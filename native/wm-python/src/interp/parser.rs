@@ -5,7 +5,8 @@
 //! Additions to PyMini: `class`, decorators, `with`, `nonlocal`, `assert`,
 //! keyword-only parameters and `**kwargs`, `*` and `**` spreads in calls and
 //! displays, type annotations (parsed and ignored), dotted and relative
-//! imports, dotted exception names, and `raise … from …`. Expression nesting
+//! imports, dotted exception names, `raise … from …`, and starred targets
+//! (`first, *rest = items`). Expression nesting
 //! is capped at [MAX_NESTING], because a native stack overflow cannot be
 //! caught the way the JVM's can.
 
@@ -60,7 +61,8 @@ fn string_parts(parts: &[FRawPart], depth: u32) -> Result<Vec<FPart>, PyError> {
             FRawPart::Expr { source, conv, spec } => {
                 let expr = parse_expression(source, depth + 1)?;
                 let conversion = match conv.as_deref() {
-                    Some("r") | Some("a") => Some(FConversion::Repr),
+                    Some("r") => Some(FConversion::Repr),
+                    Some("a") => Some(FConversion::Ascii),
                     Some("s") => Some(FConversion::Str),
                     _ => None,
                 };
@@ -352,8 +354,11 @@ impl Parser {
         Ok(if saw_comma { Expr::Tuple(items) } else { items.pop().unwrap() })
     }
 
-    /// A single target: a name, an index, or a bracketed nested target.
+    /// A single target: a name, an index, a `*rest`, or a bracketed nested target.
     fn parse_target_atom(&mut self) -> P<Expr> {
+        if self.match_op("*") {
+            return Ok(Expr::Starred(Box::new(self.parse_target_atom()?)));
+        }
         if self.is_op("(") || self.is_op("[") {
             let close = if self.is_op("(") { ")" } else { "]" };
             self.advance();
@@ -644,15 +649,13 @@ impl Parser {
         self.advance();
         if self.at_statement_end() || self.is_op(";") {
             self.expect_statement_end()?;
-            return Ok(Stmt { line, kind: StmtKind::Raise(None) });
+            return Ok(Stmt { line, kind: StmtKind::Raise(None, None) });
         }
         let e = self.parse_expr()?;
-        if self.match_keyword("from") {
-            // The cause is evaluated by Python and kept on the exception; here it is read and dropped.
-            self.parse_expr()?;
-        }
+        // The cause is kept on the exception, as `__cause__`.
+        let cause = if self.match_keyword("from") { Some(self.parse_expr()?) } else { None };
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Raise(Some(e)) })
+        Ok(Stmt { line, kind: StmtKind::Raise(Some(e), cause) })
     }
 
     /// `a`, `a.b.c`, or with leading dots a module relative to the importing one.
@@ -795,20 +798,28 @@ impl Parser {
         Ok(Stmt { line, kind: StmtKind::Expr(first) })
     }
 
-    /// An expression that may be a bare comma tuple (`a, b = …`, `return a, b`).
+    /// An expression that may be a bare comma tuple (`a, b = …`, `return a, b`),
+    /// whose items may be starred (`first, *rest = …`, `return *head, last`).
     fn parse_expr_or_tuple(&mut self) -> P<Expr> {
-        let first = self.parse_expr()?;
+        let first = self.parse_tuple_item()?;
         if self.is_op(",") {
             let mut items = vec![first];
             while self.match_op(",") {
-                if self.is_op("=") || matches!(self.kind(), Tok::Newline | Tok::Eof | Tok::Dedent) || self.is_op(";") {
+                if self.is_op("=") || matches!(self.kind(), Tok::Newline | Tok::Eof | Tok::Dedent) || self.is_op(";") || self.is_op(":") {
                     break;
                 }
-                items.push(self.parse_expr()?);
+                items.push(self.parse_tuple_item()?);
             }
             return Ok(Expr::Tuple(items));
         }
         Ok(first)
+    }
+
+    fn parse_tuple_item(&mut self) -> P<Expr> {
+        if self.match_op("*") {
+            return Ok(Expr::Starred(Box::new(self.parse_or()?)));
+        }
+        self.parse_expr()
     }
 
     // MARK: - Expressions, by precedence

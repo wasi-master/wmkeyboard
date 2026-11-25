@@ -119,7 +119,7 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("name_typo", s("count = 1\nprint(cuont)\n"), s("count = 1\nprint(count)\n"), host()),
         ("module_not_imported", s("x = math.pi\n"), s("import math\nx = math.pi\n"), host()),
         ("removed_builtin", s("open('f')\n"), s("len('f')\n"), host()),
-        ("missing_builtin", s("x = frozenset\n"), s("x = len\n"), host()),
+        ("missing_builtin", s("x = memoryview\n"), s("x = frozenset\n"), host()),
         ("import_not_available", s("import os\n"), s("import json\n"), host()),
         ("unused_local", s("def f():\n    x = 1\n    return 2\n"), s("def f():\n    x = 1\n    return x\n"), host()),
         ("unused_parameter", s("def f(a):\n    return 1\n"), s("def f(a):\n    return a\n"), host()),
@@ -285,13 +285,11 @@ fn every_unsupported_construct_is_named() {
         ("match x:\n    case 1:\n        pass\n", "match"),
         ("from math import *\n", "import *"),
         ("if (n := 3):\n    pass\n", ":="),
-        ("x = 1 << 2\n", "bit shifts"),
         ("x = a @ b\n", "@"),
-        ("x = ~1\n", "~"),
-        ("a, *b = [1, 2]\n", "starred assignment"),
+        ("a, *b, *c = [1, 2]\n", "two starred targets"),
         ("x = ...\n", "..."),
         ("x = 2j\n", "complex numbers"),
-        ("x |= 1\n", "|="),
+        ("x @= 1\n", "@"),
     ];
     for (source, what) in cases {
         let d = diagnostics(source, &host());
@@ -359,5 +357,44 @@ fn the_wm_package_is_checked_name_by_name() {
     assert!(found.iter().any(|d| d.starts_with("member_typo")), "{found:#?}");
     let fine = "from wm.ui import column, button\nfrom wm import _, ngettext, i18n\n\ndef render():\n    with column():\n        button(_(\"Go\"))\n        button(ngettext(\"{n} day\", \"{n} days\", 2) + i18n.locale)\n";
     let found = serious(fine, &panel());
+    assert!(found.is_empty(), "{found:#?}");
+}
+
+#[test]
+fn python_the_interpreter_now_runs_raises_nothing() {
+    // Each of these runs in the interpreter; the editor must not flag any of it.
+    let source = String::from(r#"import re
+import json
+import math
+p = re.compile(r"(\d+)", re.I)
+m = p.search("a1")
+first, *rest = [1, 2, 3]
+items = [1, 2, 3, 4]
+items[1:3] = [9]
+del items[::2]
+seen = frozenset([1, 2])
+buf = bytearray(b"ab")
+table = str.maketrans("ab", "xy")
+names = sorted(["b", "A"], key=str.lower)
+print("a", "b", sep="-", end="")
+pairs = list(enumerate("ab", start=1))
+merged = dict(a=1) | {"b": 2}
+text = json.dumps({"b": 1}, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+n = int("0x1f", base=0)
+close = math.isclose(0.1 + 0.2, 0.3)
+label = f"{n=} {n + 1 = } {ascii('é')} {slice(1, 2)}"
+bits = (n << 2) | (n >> 1) & ~n
+bits |= 1
+bits <<= 1
+try:
+    raise ValueError("bad") from None
+except ValueError as e:
+    cause = e.__cause__
+"#);
+    let found: Vec<String> = diagnostics(&source, &host())
+        .iter()
+        .filter(|d| d.severity() != Severity::Info && d.code.name() != "unused_local")
+        .map(|d| format!("{}: {:?}", d.code.name(), d.args))
+        .collect();
     assert!(found.is_empty(), "{found:#?}");
 }

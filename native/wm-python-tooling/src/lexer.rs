@@ -667,7 +667,15 @@ fn collect_fields(src: &[u16], from: usize, end: usize, out: &mut Vec<Span>, nes
                 j += 1;
             }
             let close = if spec_start.is_some() { find_field_close(src, j, end) } else { j };
-            let expr_end = expr_end.unwrap_or(close.min(end));
+            let mut expr_end = expr_end.unwrap_or(close.min(end));
+            // `{x=}` writes the expression's own text before its value: the `=` is not part of it.
+            let mut k = expr_end;
+            while k > body && (src[k - 1] == u(' ') || src[k - 1] == u('\t')) {
+                k -= 1;
+            }
+            if k > body + 1 && src[k - 1] == u('=') && ![u('='), u('!'), u('<'), u('>')].contains(&src[k - 2]) {
+                expr_end = k - 1;
+            }
             out.push(Span::new(body as u32, expr_end.max(body) as u32));
             if let (Some(spec), true) = (spec_start, nesting < 2) {
                 collect_fields(src, spec, close.min(end), out, nesting + 1);

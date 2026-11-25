@@ -5,9 +5,9 @@
 use indexmap::IndexMap;
 
 use super::error::{AbortKind, PyError};
-use super::text::{graphemes, longer_than, parse_swift_double, parse_swift_int};
+use super::text::{graphemes, longer_than, parse_swift_double, parse_swift_int, str_compare};
 use super::builtins::is_scalar;
-use super::value::{format_double, py_str, HKey, Value};
+use super::value::{format_double, HKey, Value};
 
 type Res<T> = Result<T, PyError>;
 
@@ -18,14 +18,51 @@ fn verr(m: &str) -> PyError {
     PyError::new(m, "ValueError")
 }
 
-/// Encode [value]. A None [indent] uses Python's `", "` / `": "` separators; a number pretty-prints.
-pub(crate) fn encode(value: &Value, indent: Option<i64>, limit: usize, charge: &mut dyn FnMut() -> Res<()>) -> Res<String> {
+/// How `json.dumps` writes: its `indent`, `sort_keys`, `ensure_ascii` and `separators`.
+pub(crate) struct EncodeOptions {
+    /// What one level of nesting indents by; None writes everything on one line.
+    pub indent: Option<String>,
+    pub sort_keys: bool,
+    /// Write every character past ASCII as a `\uXXXX` escape.
+    pub ensure_ascii: bool,
+    /// Between items, and between a key and its value.
+    pub item_separator: String,
+    pub key_separator: String,
+}
+
+impl EncodeOptions {
+    /// Python's defaults for an indent: `", "` on one line, `","` when indented.
+    pub fn new(indent: Option<String>) -> EncodeOptions {
+        let item_separator = if indent.is_some() { "," } else { ", " }.to_string();
+        EncodeOptions { indent, sort_keys: false, ensure_ascii: false, item_separator, key_separator: ": ".into() }
+    }
+}
+
+/// Encode [value].
+pub(crate) fn encode(value: &Value, options: &EncodeOptions, limit: usize, charge: &mut dyn FnMut() -> Res<()>) -> Res<String> {
     let mut out = String::new();
-    write(value, &mut out, indent, 0, limit, charge)?;
+    write(value, &mut out, options, 0, limit, charge)?;
     Ok(out)
 }
 
-fn write(v: &Value, out: &mut String, indent: Option<i64>, depth: u32, limit: usize, charge: &mut dyn FnMut() -> Res<()>) -> Res<()> {
+/// `sort_keys`: numbers by value, strings by code point; anything else mixed in is an error, as in Python.
+fn key_order(a: &HKey, b: &HKey) -> Res<std::cmp::Ordering> {
+    let number = |k: &HKey| match k {
+        HKey::Bool(b) => Some(*b as i64 as f64),
+        HKey::Int(i) => Some(*i as f64),
+        HKey::Float(f) => Some(*f),
+        _ => None,
+    };
+    match (a, b) {
+        (HKey::Str(x), HKey::Str(y)) => Ok(str_compare(x, y)),
+        _ => match (number(a), number(b)) {
+            (Some(x), Some(y)) => Ok(x.partial_cmp(&y).unwrap_or(std::cmp::Ordering::Equal)),
+            _ => Err(PyError::new("'<' not supported between keys of different types", "TypeError")),
+        },
+    }
+}
+
+fn write(v: &Value, out: &mut String, options: &EncodeOptions, depth: u32, limit: usize, charge: &mut dyn FnMut() -> Res<()>) -> Res<()> {
     charge()?;
     if longer_than(out, limit) {
         return Err(PyError::abort(AbortKind::StringCap, "string too large", None));
@@ -33,10 +70,12 @@ fn write(v: &Value, out: &mut String, indent: Option<i64>, depth: u32, limit: us
     if depth > MAX_DEPTH * 2 {
         return Err(PyError::abort(AbortKind::Recursion, "maximum recursion depth exceeded", None));
     }
-    let pad = indent.map(|i| " ".repeat((i * (depth as i64 + 1)).max(0) as usize)).unwrap_or_default();
-    let close_pad = indent.map(|i| " ".repeat((i * depth as i64).max(0) as usize)).unwrap_or_default();
+    let indent = options.indent.as_deref();
+    let pad = indent.map(|i| i.repeat(depth as usize + 1)).unwrap_or_default();
+    let close_pad = indent.map(|i| i.repeat(depth as usize)).unwrap_or_default();
     let newline = if indent.is_none() { "" } else { "\n" };
-    let separator = if indent.is_none() { ", " } else { ",\n" };
+    let separator = format!("{}{newline}", options.item_separator);
+    let separator = separator.as_str();
     let items: Vec<Value> = match v {
         Value::None => {
             out.push_str("null");
@@ -55,11 +94,24 @@ fn write(v: &Value, out: &mut String, indent: Option<i64>, depth: u32, limit: us
             return Ok(());
         }
         Value::Str(s) => {
-            quoted(s, out);
+            quoted(s, out, options.ensure_ascii);
             return Ok(());
         }
         Value::Dict(d) => {
-            let pairs: Vec<(HKey, Value)> = d.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+            let mut pairs: Vec<(HKey, Value)> = d.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+            if options.sort_keys {
+                let mut failed = None;
+                pairs.sort_by(|(a, _), (b, _)| match key_order(a, b) {
+                    Ok(o) => o,
+                    Err(e) => {
+                        failed.get_or_insert(e);
+                        std::cmp::Ordering::Equal
+                    }
+                });
+                if let Some(e) = failed {
+                    return Err(e);
+                }
+            }
             if pairs.is_empty() {
                 out.push_str("{}");
                 return Ok(());
@@ -71,9 +123,9 @@ fn write(v: &Value, out: &mut String, indent: Option<i64>, depth: u32, limit: us
                     out.push_str(separator);
                 }
                 out.push_str(&pad);
-                quoted(&py_str(&k.to_value()), out);
-                out.push_str(": ");
-                write(value, out, indent, depth + 1, limit, charge)?;
+                quoted(&key_text(k)?, out, options.ensure_ascii);
+                out.push_str(&options.key_separator);
+                write(value, out, options, depth + 1, limit, charge)?;
             }
             out.push_str(newline);
             out.push_str(&close_pad);
@@ -96,7 +148,7 @@ fn write(v: &Value, out: &mut String, indent: Option<i64>, depth: u32, limit: us
             out.push_str(separator);
         }
         out.push_str(&pad);
-        write(item, out, indent, depth + 1, limit, charge)?;
+        write(item, out, options, depth + 1, limit, charge)?;
     }
     out.push_str(newline);
     out.push_str(&close_pad);
@@ -104,7 +156,20 @@ fn write(v: &Value, out: &mut String, indent: Option<i64>, depth: u32, limit: us
     Ok(())
 }
 
-fn quoted(s: &str, out: &mut String) {
+/// A dict key as JSON writes it: strings as they are, numbers, booleans and
+/// None as JSON would spell them.
+fn key_text(k: &HKey) -> Res<String> {
+    Ok(match k {
+        HKey::Str(s) => s.to_string(),
+        HKey::Bool(b) => if *b { "true" } else { "false" }.to_string(),
+        HKey::None => "null".to_string(),
+        HKey::Int(i) => i.to_string(),
+        HKey::Float(f) => format_double(*f),
+        other => return Err(PyError::new(format!("keys must be str, int, float, bool or None, not {}", other.to_value().type_name()), "TypeError")),
+    })
+}
+
+fn quoted(s: &str, out: &mut String, ascii: bool) {
     out.push('"');
     for c in s.chars() {
         match c {
@@ -113,7 +178,15 @@ fn quoted(s: &str, out: &mut String) {
             '\n' => out.push_str("\\n"),
             '\t' => out.push_str("\\t"),
             '\r' => out.push_str("\\r"),
+            '\u{08}' => out.push_str("\\b"),
+            '\u{0c}' => out.push_str("\\f"),
             c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c if ascii && !c.is_ascii() => {
+                let mut units = [0u16; 2];
+                for u in c.encode_utf16(&mut units) {
+                    out.push_str(&format!("\\u{:04x}", u));
+                }
+            }
             c => out.push(c),
         }
     }

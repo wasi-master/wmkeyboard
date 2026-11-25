@@ -31,12 +31,13 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
         "math" => &[
             "sqrt", "floor", "ceil", "trunc", "fabs", "pow", "exp", "log", "log2", "log10", "sin", "cos", "tan", "asin",
             "acos", "atan", "atan2", "degrees", "radians", "hypot", "gcd", "lcm", "factorial", "isnan", "isinf",
-            "isfinite", "copysign", "fmod", "comb", "prod",
+            "isfinite", "copysign", "fmod", "comb", "prod", "isclose", "isqrt", "perm", "fsum", "dist", "sinh", "cosh",
+            "tanh", "asinh", "acosh", "atanh", "log1p", "expm1", "modf", "cbrt", "exp2", "remainder", "ldexp", "frexp",
         ],
         "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed"],
         "time" => &["time", "monotonic", "parts", "format"],
         "json" => &["dumps", "loads"],
-        "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape"],
+        "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile"],
         "_native" => super::stdlib::NATIVE_FUNCTIONS,
         _ => &[],
     }
@@ -152,6 +153,21 @@ fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
     kwargs.iter().find(|(k, _)| k.as_ref() == name).map(|(_, v)| v)
 }
 
+/// What a compiled pattern answers to, as `pattern.search(text)`.
+pub(crate) const PATTERN_METHODS: &[&str] = &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split"];
+
+/// The integer square root: the largest r with r * r <= n.
+fn isqrt(n: u64) -> u64 {
+    let mut r = (n as f64).sqrt() as u64;
+    while r > 0 && r.checked_mul(r).is_none_or(|sq| sq > n) {
+        r -= 1;
+    }
+    while (r + 1).checked_mul(r + 1).is_some_and(|sq| sq <= n) {
+        r += 1;
+    }
+    r
+}
+
 fn gcd(a: i64, b: i64) -> i64 {
     let (mut x, mut y) = (a, b);
     while y != 0 {
@@ -198,7 +214,7 @@ impl Interp {
             return Err(self.error(format!("no module named '{module}'"), "ImportError"));
         }
         match module {
-            "math" => self.math_call(name, &args),
+            "math" => self.math_call(name, &args, &kwargs),
             "random" => self.random_call(name, &args),
             "time" => self.time_call(name, &args),
             "json" => self.json_call(name, &args, &kwargs),
@@ -211,7 +227,7 @@ impl Interp {
     // MARK: - math
 
     #[inline(never)]
-    fn math_call(&mut self, name: &str, args: &[Value]) -> R<Value> {
+    fn math_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         let number = |me: &Interp, i: usize| -> R<f64> {
             args.get(i).and_then(Value::as_float).ok_or_else(|| me.error(format!("math.{name}() needs a number"), "TypeError"))
         };
@@ -287,26 +303,129 @@ impl Interp {
                 if n < 0 {
                     return Err(self.error("factorial() not defined for negative values", "ValueError"));
                 }
-                if n > 20 {
-                    return Err(self.error("factorial() argument too large", "ValueError"));
+                if n <= 20 {
+                    return Ok(Value::Int((2..=n).product::<i64>().max(1)));
                 }
-                Ok(Value::Int((2..=n).product::<i64>().max(1)))
+                // Past 64 bits there is no big integer: the answer goes on as a float.
+                if n > 170 {
+                    return Err(self.error("factorial() result too large for a float", "OverflowError"));
+                }
+                Ok(Value::Float((2..=n).fold(1.0f64, |acc, i| acc * i as f64)))
             }
-            "comb" => {
+            "comb" | "perm" => {
                 let n = integer(self, 0)?;
-                let k = integer(self, 1)?;
+                let k = if name == "perm" && args.len() < 2 { n } else { integer(self, 1)? };
                 if n < 0 || k < 0 {
-                    return Err(self.error("comb() needs non-negative values", "ValueError"));
+                    return Err(self.error(format!("{name}() needs non-negative values"), "ValueError"));
                 }
                 if k > n {
                     return Ok(Value::Int(0));
                 }
-                let mut r: i64 = 1;
-                for i in 0..k.min(n - k) {
+                let steps = if name == "comb" { k.min(n - k) } else { k };
+                let mut exact: Option<i64> = Some(1);
+                let mut approx: f64 = 1.0;
+                for i in 0..steps {
                     self.tick()?;
-                    r = r.checked_mul(n - i).ok_or_else(|| overflow(self))? / (i + 1);
+                    if name == "comb" {
+                        exact = exact.and_then(|r| r.checked_mul(n - i)).map(|r| r / (i + 1));
+                        approx = approx * (n - i) as f64 / (i + 1) as f64;
+                    } else {
+                        exact = exact.and_then(|r| r.checked_mul(n - i));
+                        approx *= (n - i) as f64;
+                    }
                 }
-                Ok(Value::Int(r))
+                // Past 64 bits the answer goes on as a float, as other integer results do.
+                Ok(match exact {
+                    Some(r) => Value::Int(r),
+                    None if approx.is_finite() => Value::Float(approx.round()),
+                    None => return Err(overflow(self)),
+                })
+            }
+            "isclose" => {
+                let (a, b) = (number(self, 0)?, number(self, 1)?);
+                let rel = kwarg(kwargs, "rel_tol").and_then(Value::as_float).unwrap_or(1e-9);
+                let abs = kwarg(kwargs, "abs_tol").and_then(Value::as_float).unwrap_or(0.0);
+                if rel < 0.0 || abs < 0.0 {
+                    return Err(self.error("tolerances must be non-negative", "ValueError"));
+                }
+                if a == b {
+                    return Ok(Value::Bool(true));
+                }
+                if a.is_infinite() || b.is_infinite() {
+                    return Ok(Value::Bool(false));
+                }
+                let diff = (a - b).abs();
+                Ok(Value::Bool(diff <= (rel * b.abs()).max(rel * a.abs()) || diff <= abs))
+            }
+            "isqrt" => {
+                let n = integer(self, 0)?;
+                if n < 0 {
+                    return Err(self.error("isqrt() argument must be nonnegative", "ValueError"));
+                }
+                Ok(Value::Int(isqrt(n as u64) as i64))
+            }
+            "fsum" => {
+                // Neumaier's compensated sum: exact enough that 0.1 * 10 gives 1.0.
+                let items = match args.first() {
+                    Some(a) => self.iterate(a)?,
+                    None => Vec::new(),
+                };
+                let (mut sum, mut c) = (0.0f64, 0.0f64);
+                for v in items {
+                    let x = v.as_float().ok_or_else(|| self.error("fsum() needs numbers", "TypeError"))?;
+                    let t = sum + x;
+                    c += if sum.abs() >= x.abs() { (sum - t) + x } else { (x - t) + sum };
+                    sum = t;
+                }
+                f(sum + c)
+            }
+            "dist" => {
+                let (Some(p), Some(q)) = (args.first(), args.get(1)) else {
+                    return Err(self.error("dist() needs two points", "TypeError"));
+                };
+                let (p, q) = (self.iterate(p)?, self.iterate(q)?);
+                if p.len() != q.len() {
+                    return Err(self.error("both points must have the same number of dimensions", "ValueError"));
+                }
+                let mut total = 0.0;
+                for (a, b) in p.iter().zip(q.iter()) {
+                    let (a, b) = (a.as_float(), b.as_float());
+                    let (Some(a), Some(b)) = (a, b) else {
+                        return Err(self.error("dist() needs numbers", "TypeError"));
+                    };
+                    total += (a - b) * (a - b);
+                }
+                f(total.sqrt())
+            }
+            "sinh" => f(number(self, 0)?.sinh()),
+            "cosh" => f(number(self, 0)?.cosh()),
+            "tanh" => f(number(self, 0)?.tanh()),
+            "asinh" => f(number(self, 0)?.asinh()),
+            "acosh" => f(number(self, 0)?.acosh()),
+            "atanh" => f(number(self, 0)?.atanh()),
+            "log1p" => f(number(self, 0)?.ln_1p()),
+            "expm1" => f(number(self, 0)?.exp_m1()),
+            "cbrt" => f(number(self, 0)?.cbrt()),
+            "exp2" => f(number(self, 0)?.exp2()),
+            "modf" => {
+                let x = number(self, 0)?;
+                Ok(Value::tuple(vec![Value::Float(x.fract()), Value::Float(x.trunc())]))
+            }
+            "remainder" => {
+                let (x, y) = (number(self, 0)?, number(self, 1)?);
+                if y == 0.0 {
+                    return Err(self.error("math domain error", "ValueError"));
+                }
+                f(x - (x / y).round_ties_even() * y)
+            }
+            "ldexp" => f(number(self, 0)? * 2f64.powi(integer(self, 1)?.clamp(-2000, 2000) as i32)),
+            "frexp" => {
+                let x = number(self, 0)?;
+                if x == 0.0 || !x.is_finite() {
+                    return Ok(Value::tuple(vec![Value::Float(x), Value::Int(0)]));
+                }
+                let e = x.abs().log2().floor() as i32 + 1;
+                Ok(Value::tuple(vec![Value::Float(x / 2f64.powi(e)), Value::Int(e as i64)]))
             }
             "prod" => {
                 let mut acc = Value::Int(1);
@@ -522,8 +641,28 @@ impl Interp {
         match name {
             "dumps" => {
                 let v = args.first().ok_or_else(|| self.error("json.dumps() needs a value", "TypeError"))?;
-                let indent = args.get(1).or_else(|| kwarg(kwargs, "indent")).and_then(Value::as_int);
-                let s = json::encode(v, indent, limit, &mut || self.tick())?;
+                let indent = match args.get(1).or_else(|| kwarg(kwargs, "indent")) {
+                    None | Some(Value::None) => None,
+                    Some(Value::Str(s)) => Some(s.to_string()),
+                    Some(other) => match other.as_int() {
+                        Some(n) => Some(" ".repeat(n.clamp(0, 64) as usize)),
+                        None => return Err(self.error("indent must be a number or a string", "TypeError")),
+                    },
+                };
+                let mut options = json::EncodeOptions::new(indent);
+                options.sort_keys = kwarg(kwargs, "sort_keys").is_some_and(Value::truthy);
+                // Off unless asked: the keyboard's text is rarely ASCII, and JSON reads it either way.
+                options.ensure_ascii = kwarg(kwargs, "ensure_ascii").is_some_and(Value::truthy);
+                if let Some(sep) = kwarg(kwargs, "separators").filter(|v| !v.is_none()) {
+                    match sequence_items(sep).as_deref() {
+                        Some([Value::Str(item), Value::Str(key)]) => {
+                            options.item_separator = item.to_string();
+                            options.key_separator = key.to_string();
+                        }
+                        _ => return Err(self.error("separators must be an (item, key) pair of strings", "TypeError")),
+                    }
+                }
+                let s = json::encode(v, &options, limit, &mut || self.tick())?;
                 Ok(Value::str(s))
             }
             "loads" => {
@@ -546,28 +685,96 @@ impl Interp {
             };
             return Ok(Value::str(Regex::escape(s)));
         }
-        let Some(Value::Str(pattern)) = args.first() else {
-            return Err(self.error(format!("re.{name}() needs a pattern string"), "TypeError"));
+        // A pattern string, or a compiled pattern with its own flags.
+        let (pattern, mut flags) = match args.first() {
+            Some(Value::Str(p)) => (p.clone(), 0),
+            Some(Value::Object(o)) => match o.as_ref() {
+                Object::Pattern { pattern, flags } => (pattern.clone(), *flags),
+                _ => return Err(self.error(format!("re.{name}() needs a pattern string"), "TypeError")),
+            },
+            _ => return Err(self.error(format!("re.{name}() needs a pattern string"), "TypeError")),
         };
-        // `sub`/`subn` take (pattern, repl, string); everything else (pattern, string).
+        // `sub`/`subn` take (pattern, repl, string, count, flags), `split`
+        // (pattern, string, maxsplit, flags), `compile` (pattern, flags) and
+        // the rest (pattern, string, flags).
+        let flag_index = match name {
+            "sub" | "subn" => 4,
+            "split" => 3,
+            "compile" => 1,
+            _ => 2,
+        };
+        if let Some(f) = args.get(flag_index).or_else(|| kwarg(kwargs, "flags")).and_then(Value::as_int) {
+            flags |= f;
+        }
+        if name == "compile" {
+            // Compiled now, so a bad pattern fails here rather than at its first use.
+            let regex = Regex::compile(&pattern, flags)?;
+            return Ok(Value::Object(Rc::new(Object::Pattern { pattern, flags: flags | regex.inline_flags() })));
+        }
+        let rest: Vec<Value> = args.iter().skip(1).take(flag_index - 1).cloned().collect();
+        self.regex_apply(&pattern, flags, name, &rest, kwargs, 0, None)
+    }
+
+    /// `pattern.search(text, pos, endpos)` and the other methods of a compiled pattern.
+    #[inline(never)]
+    pub(crate) fn pattern_method(&mut self, pattern: &Rc<str>, flags: i64, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        match name {
+            "groups" => return Ok(Value::Int(Regex::compile(pattern, flags)?.group_count as i64)),
+            "groupindex" => {
+                let regex = Regex::compile(pattern, flags)?;
+                let mut names: Vec<(&String, &usize)> = regex.names.iter().collect();
+                names.sort_by_key(|(_, i)| **i);
+                return Ok(Value::dict(names.into_iter().map(|(n, i)| (n.as_str(), Value::Int(*i as i64))).collect()));
+            }
+            _ if !PATTERN_METHODS.contains(&name) => {
+                return Err(self.error(format!("'re.Pattern' object has no attribute '{name}'"), "AttributeError"))
+            }
+            _ => {}
+        }
+        let position = |i: usize, key: &str| args.get(i).or_else(|| kwarg(&kwargs, key)).and_then(Value::as_int);
+        let (pos, endpos) = match name {
+            "sub" | "subn" | "split" => (None, None),
+            _ => (position(1, "pos"), position(2, "endpos")),
+        };
+        let rest: Vec<Value> = match name {
+            "sub" | "subn" | "split" => args.clone(),
+            _ => args.iter().take(1).cloned().collect(),
+        };
+        self.regex_apply(pattern, flags, name, &rest, &kwargs, pos.unwrap_or(0).max(0) as usize, endpos.map(|e| e.max(0) as usize))
+    }
+
+    /// Run one `re` operation. [rest] is what follows the pattern: (string) for
+    /// a search, (repl, string, count) for sub, (string, maxsplit) for split.
+    /// [pos] and [endpos] narrow where a compiled pattern looks.
+    #[allow(clippy::too_many_arguments)]
+    fn regex_apply(
+        &mut self,
+        pattern: &str,
+        flags: i64,
+        name: &str,
+        rest: &[Value],
+        kwargs: &[(Rc<str>, Value)],
+        pos: usize,
+        endpos: Option<usize>,
+    ) -> R<Value> {
+        let regex = Regex::compile(pattern, flags)?;
         let is_sub = name == "sub" || name == "subn";
-        let subject_index = if is_sub { 2 } else { 1 };
-        let Some(Value::Str(subject_text)) = args.get(subject_index) else {
+        let subject_index = if is_sub { 1 } else { 0 };
+        let Some(Value::Str(full_text)) = rest.get(subject_index).or_else(|| kwarg(kwargs, "string")) else {
             return Err(self.error(format!("re.{name}() needs a string to search"), "TypeError"));
         };
-        let flag_index = subject_index + if is_sub || name == "split" { 2 } else { 1 };
-        let mut flags = 0;
-        if let Some(f) = args.get(flag_index).and_then(Value::as_int) {
-            flags = f;
-        }
-        if let Some(f) = kwarg(kwargs, "flags").and_then(Value::as_int) {
-            flags = f;
-        }
-        let regex = Regex::compile(pattern, flags)?;
-        let b = self.chars(subject_text);
+        let full_text = full_text.clone();
+        let b = self.chars(&full_text);
+        // `endpos` ends the subject early, as if the text stopped there.
+        let subject_text: Rc<str> = match endpos {
+            Some(e) if e + 1 < b.len() => Rc::from(&full_text[..b[e] as usize]),
+            _ => full_text.clone(),
+        };
+        let b = self.chars(&subject_text);
         let subject = Rc::new(Subject::new(subject_text.clone(), b));
-        let limit_arg = |i: usize| -> usize {
-            let l = args.get(i).and_then(Value::as_int).unwrap_or(0);
+        let pos = pos.min(subject.len());
+        let limit_of = |v: Option<&Value>| -> usize {
+            let l = v.and_then(Value::as_int).unwrap_or(0);
             if l > 0 {
                 l.min(i32::MAX as i64) as usize
             } else {
@@ -576,12 +783,12 @@ impl Interp {
         };
         let match_value = |m: Option<super::regex::Match>| m.map(|m| Value::Match(Rc::new(m))).unwrap_or(Value::None);
         match name {
-            "search" => Ok(match_value(regex.first_match(&subject, 0, false, false, &mut || self.tick())?)),
-            "match" => Ok(match_value(regex.first_match(&subject, 0, true, false, &mut || self.tick())?)),
-            "fullmatch" => Ok(match_value(regex.first_match(&subject, 0, true, true, &mut || self.tick())?)),
+            "search" => Ok(match_value(regex.first_match(&subject, pos, false, false, &mut || self.tick())?)),
+            "match" => Ok(match_value(regex.first_match(&subject, pos, true, false, &mut || self.tick())?)),
+            "fullmatch" => Ok(match_value(regex.first_match(&subject, pos, true, true, &mut || self.tick())?)),
             "findall" => {
                 // Python's shape: no groups → the whole match; one group → that group; several → a tuple.
-                let all = regex.all_matches(&subject, usize::MAX, &mut || self.tick())?;
+                let all = regex.all_matches(&subject, pos, usize::MAX, &mut || self.tick())?;
                 Ok(Value::list(
                     all.iter()
                         .map(|m| match regex.group_count {
@@ -593,11 +800,11 @@ impl Interp {
                 ))
             }
             "finditer" => {
-                let all = regex.all_matches(&subject, usize::MAX, &mut || self.tick())?;
+                let all = regex.all_matches(&subject, pos, usize::MAX, &mut || self.tick())?;
                 Ok(Value::list(all.into_iter().map(|m| Value::Match(Rc::new(m))).collect()))
             }
             "split" => {
-                let all = regex.all_matches(&subject, limit_arg(2), &mut || self.tick())?;
+                let all = regex.all_matches(&subject, 0, limit_of(rest.get(1).or_else(|| kwarg(kwargs, "maxsplit"))), &mut || self.tick())?;
                 let mut out = Vec::new();
                 let mut at = 0;
                 for m in &all {
@@ -615,8 +822,8 @@ impl Interp {
                 Ok(Value::list(out))
             }
             "sub" | "subn" => {
-                let replacement = args[1].clone();
-                let all = regex.all_matches(&subject, limit_arg(3), &mut || self.tick())?;
+                let replacement = rest.first().or_else(|| kwarg(kwargs, "repl")).cloned().unwrap_or(Value::None);
+                let all = regex.all_matches(&subject, 0, limit_of(rest.get(2).or_else(|| kwarg(kwargs, "count"))), &mut || self.tick())?;
                 let mut out = String::new();
                 let mut at = 0;
                 let mut count = 0;

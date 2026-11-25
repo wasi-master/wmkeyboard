@@ -111,7 +111,7 @@ pub const LIBRARY: &[&str] = &[
 pub const CONTRACT: &[&str] = &["render", "on_event", "transform"];
 
 /// The value types whose methods are listed, in the order a guess prefers them.
-pub const VALUE_TYPES: &[&str] = &["str", "list", "dict", "bytes", "set", "tuple", "Match"];
+pub const VALUE_TYPES: &[&str] = &["str", "list", "dict", "bytes", "set", "tuple", "Match", "Pattern"];
 
 /// Exception names PyMini raises or matches, usable in `except` and `raise`.
 pub const EXCEPTIONS: &[&str] = &[
@@ -128,9 +128,7 @@ pub const REMOVED_BUILTINS: &[&str] = &[
 ];
 
 /// Builtins Python has and PyMini does not.
-pub const MISSING_BUILTINS: &[&str] = &[
-    "frozenset", "bytearray", "memoryview", "complex", "slice", "ascii", "dir", "aiter", "anext",
-];
+pub const MISSING_BUILTINS: &[&str] = &["memoryview", "complex", "dir", "aiter", "anext"];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
 /// typed text or reach the file system. (The network, the clipboard and the
@@ -319,28 +317,32 @@ fn build() -> Model {
     add("ui.page", Function, Some("page(title, *children)"), None, "One page of ui.tabs: its title, then its widgets.");
 
     // ---- builtins ---------------------------------------------------------
-    add("print", Builtin, Some("print(*values)"), None, "Writes the values, separated by spaces, as one line of the plugin log, the same log wm.log writes.");
+    add("print", Builtin, Some("print(*values, sep=\" \", end=\"\\n\")"), None, "Writes the values, separated by sep, as one line of the plugin log, the same log wm.log writes. With an end other than a line break, the next print carries on the same line.");
     add("len", Builtin, Some("len(value)"), None, "How many items a list, tuple, dict or set holds, or how many characters a string has. Characters are what a person sees, so an emoji or a conjunct counts once.");
-    add("str", Builtin, Some("str(value=\"\")"), None, "value as text.");
+    add("str", Builtin, Some("str(value=\"\", encoding=None)"), None, "value as text. With an encoding, bytes decoded: str(data, \"utf-8\").");
     add("repr", Builtin, Some("repr(value)"), None, "value as Python would write it: strings in quotes.");
-    add("int", Builtin, Some("int(value=0, base=10)"), None, "value as a whole number. Text like \"3.5\" reads as 3; a base reads text in base 2 to 36.");
+    add("ascii", Builtin, Some("ascii(value)"), None, "repr(value) with every character past ASCII written as an escape: ascii(\"é\") gives '\\xe9'.");
+    add("int", Builtin, Some("int(value=0, base=10)"), None, "value as a whole number. Text may have _ between digits and digits of any script; \"3.5\" reads as 3. A base reads text in base 2 to 36, and base 0 reads a 0x, 0o or 0b prefix.");
     add("float", Builtin, Some("float(value=0.0)"), None, "value as a floating-point number.");
     add("bool", Builtin, Some("bool(value=False)"), None, "Whether value is true: not zero, not empty, not None.");
     add("bytes", Builtin, Some("bytes(values)"), None, "Bytes from a list of numbers from 0 to 255. str.encode() gives the UTF-8 bytes of text, and bytes.fromhex() reads hex.");
+    add("bytearray", Builtin, Some("bytearray(values=b\"\")"), None, "Bytes you can change: b[0] = 65, append, extend, pop. Takes bytes, a list of numbers from 0 to 255, a length, or text and an encoding.");
+    add("frozenset", Builtin, Some("frozenset(values=())"), None, "A set that cannot change, so it can be a dict key or a member of another set.");
+    add("slice", Builtin, Some("slice(start, stop, step=None)"), None, "What items[1:3] uses: slice(1, 3) picks the same items, and an object's __getitem__ receives one for obj[1:3].");
     add("abs", Builtin, Some("abs(x)"), None, "The absolute value of x.");
     add("round", Builtin, Some("round(x, ndigits=None)"), None, "x rounded to the nearest whole number, an int; with ndigits, to that many decimals, a float. Halves round to even.");
     add("min", Builtin, Some("min(*values, key=None, default=None)"), None, "The smallest of the values, or of one list of them. key picks what to compare; default is returned for an empty list.");
     add("max", Builtin, Some("max(*values, key=None, default=None)"), None, "The largest of the values, or of one list of them. key picks what to compare; default is returned for an empty list.");
     add("sum", Builtin, Some("sum(values, start=0)"), None, "start plus every item of values.");
     add("range", Builtin, Some("range(start, stop, step=1)"), None, "A list of whole numbers from start up to but not including stop. range(n) counts from 0. At most 10,000 items.");
-    add("sorted", Builtin, Some("sorted(values, key=None, reverse=False)"), None, "A new sorted list of the items. key picks what to sort by.");
+    add("sorted", Builtin, Some("sorted(values, key=None, reverse=False)"), None, "A new sorted list of the items. key picks what to sort by. The sort is stable: items that compare equal keep their order, reverse=True too.");
     add("reversed", Builtin, Some("reversed(values)"), None, "A new list of the items in reverse order.");
     add("list", Builtin, Some("list(values=())"), None, "A new list of the items of values, or an empty list.");
-    add("dict", Builtin, Some("dict(pairs=())"), None, "A new dict, empty, copied from another dict, or built from (key, value) pairs.");
+    add("dict", Builtin, Some("dict(pairs=(), **values)"), None, "A new dict, empty, copied from another dict, or built from (key, value) pairs, with key=value arguments on top.");
     add("set", Builtin, Some("set(values=())"), None, "A new set of the items of values, each once.");
     add("tuple", Builtin, Some("tuple(values=())"), None, "A new tuple of the items of values.");
     add("enumerate", Builtin, Some("enumerate(values, start=0)"), None, "(index, item) pairs: for i, item in enumerate(items).");
-    add("zip", Builtin, Some("zip(*lists)"), None, "Tuples of the items at the same position in each list, as long as the shortest.");
+    add("zip", Builtin, Some("zip(*lists, strict=False)"), None, "Tuples of the items at the same position in each list, as long as the shortest. An endless iterator such as itertools.count() gives only as many as the others have.");
     add("ord", Builtin, Some("ord(character)"), None, "The code point of a one-code-point character.");
     add("chr", Builtin, Some("chr(code)"), None, "The character with that code point.");
     add("any", Builtin, Some("any(values)"), None, "Whether any item is true.");
@@ -421,14 +423,33 @@ fn build() -> Model {
         ("hypot", "hypot(*xs)", "The length of a vector: the square root of the sum of squares."),
         ("gcd", "gcd(*xs)", "The greatest common divisor."),
         ("lcm", "lcm(*xs)", "The least common multiple."),
-        ("factorial", "factorial(n)", "n!, for n from 0 to 20."),
+        ("factorial", "factorial(n)", "n!: an int up to 20!, past that a float, up to 170!."),
         ("isnan", "isnan(x)", "Whether x is not a number."),
         ("isinf", "isinf(x)", "Whether x is infinite."),
         ("isfinite", "isfinite(x)", "Whether x is neither infinite nor not a number."),
         ("copysign", "copysign(x, y)", "x with the sign of y."),
         ("fmod", "fmod(x, y)", "The remainder of x / y, with the sign of x."),
         ("comb", "comb(n, k)", "How many ways to choose k of n."),
+        ("perm", "perm(n, k=None)", "How many ways to arrange k of n in order."),
         ("prod", "prod(values)", "The product of the items."),
+        ("isclose", "isclose(a, b, rel_tol=1e-09, abs_tol=0.0)", "Whether a and b are equal within a tolerance: isclose(0.1 + 0.2, 0.3) is True."),
+        ("isqrt", "isqrt(n)", "The whole-number square root: the largest r with r * r <= n."),
+        ("fsum", "fsum(values)", "The sum of floats without the rounding a plain sum gathers."),
+        ("dist", "dist(p, q)", "The distance between two points given as lists of coordinates."),
+        ("sinh", "sinh(x)", "The hyperbolic sine of x."),
+        ("cosh", "cosh(x)", "The hyperbolic cosine of x."),
+        ("tanh", "tanh(x)", "The hyperbolic tangent of x."),
+        ("asinh", "asinh(x)", "The inverse hyperbolic sine of x."),
+        ("acosh", "acosh(x)", "The inverse hyperbolic cosine of x."),
+        ("atanh", "atanh(x)", "The inverse hyperbolic tangent of x."),
+        ("log1p", "log1p(x)", "The natural logarithm of 1 + x, exact for small x."),
+        ("expm1", "expm1(x)", "e to the power x, minus 1, exact for small x."),
+        ("modf", "modf(x)", "(fraction, whole part) of x, both floats."),
+        ("cbrt", "cbrt(x)", "The cube root of x."),
+        ("exp2", "exp2(x)", "2 to the power x."),
+        ("remainder", "remainder(x, y)", "x minus the multiple of y nearest to it."),
+        ("ldexp", "ldexp(x, i)", "x times 2 to the power i."),
+        ("frexp", "frexp(x)", "(mantissa, exponent) with x = mantissa * 2 ** exponent."),
     ] {
         add(leak(format!("math.{name}")), Function, Some(leak(sig.to_string())), None, doc);
     }
@@ -460,7 +481,7 @@ fn build() -> Model {
     add("time.format", Function, Some("format(pattern, seconds=None)"), None, "seconds, or now, as text in a Unicode date pattern such as \"yyyy-MM-dd HH:mm\" or \"EEE d MMM\", with English names.");
 
     add("json", Module, None, None, "JSON text to and from Python values. import json.");
-    add("json.dumps", Function, Some("dumps(value, indent=None)"), None, "value written as JSON text. Dicts keep their order.");
+    add("json.dumps", Function, Some("dumps(value, indent=None, sort_keys=False, ensure_ascii=False, separators=None)"), None, "value written as JSON text. Dicts keep their order unless sort_keys. Characters past ASCII are written as they are; ensure_ascii=True escapes them. separators=(\",\", \":\") writes it compactly.");
     add("json.loads", Function, Some("loads(text)"), None, "JSON text read as Python values. Raises ValueError on bad JSON.");
 
     add("re", Module, None, None, "Regular expressions, on a budgeted matcher. import re.");
@@ -474,9 +495,27 @@ fn build() -> Model {
         ("subn", "subn(pattern, replacement, text, count=0, flags=0)", "Like sub, and how many were replaced, as a tuple."),
         ("split", "split(pattern, text, maxsplit=0, flags=0)", "text split at each match."),
         ("escape", "escape(text)", "text with every special character escaped."),
+        ("compile", "compile(pattern, flags=0)", "A Pattern to use again: p = re.compile(r\"\\d+\"), then p.findall(text)."),
     ] {
         add(leak(format!("re.{name}")), Function, Some(leak(sig.to_string())), None, doc);
     }
+    add("Pattern", Type, None, None, "What re.compile returns. Its methods are re's, without the pattern argument.");
+    for (name, sig, doc) in [
+        ("search", "search(text, pos=0, endpos=None)", "The first match anywhere in text, or None."),
+        ("match", "match(text, pos=0, endpos=None)", "A match at the start of text, or None."),
+        ("fullmatch", "fullmatch(text, pos=0, endpos=None)", "A match covering all of text, or None."),
+        ("findall", "findall(text, pos=0, endpos=None)", "Every match: the whole match with no groups, the group with one, tuples with several."),
+        ("finditer", "finditer(text, pos=0, endpos=None)", "A list of every match object."),
+        ("sub", "sub(replacement, text, count=0)", "text with matches replaced."),
+        ("subn", "subn(replacement, text, count=0)", "Like sub, and how many were replaced, as a tuple."),
+        ("split", "split(text, maxsplit=0)", "text split at each match."),
+    ] {
+        add(leak(format!("Pattern.{name}")), Method, Some(leak(sig.to_string())), None, doc);
+    }
+    add("Pattern.pattern", Constant, None, None, "The pattern text.");
+    add("Pattern.flags", Constant, None, None, "The flags, as a number.");
+    add("Pattern.groups", Constant, None, None, "How many capturing groups the pattern has.");
+    add("Pattern.groupindex", Constant, None, None, "The named groups, as a dict of name to number.");
     add("re.I", Constant, None, None, "Flag: ignore case.");
     add("re.IGNORECASE", Constant, None, None, "Flag: ignore case.");
     add("re.M", Constant, None, None, "Flag: ^ and $ match at each line.");
@@ -539,7 +578,15 @@ fn build() -> Model {
         ("removeprefix", "removeprefix(prefix)", "The text without prefix at its start."),
         ("removesuffix", "removesuffix(suffix)", "The text without suffix at its end."),
         ("format", "format(*args, **named)", "The text with {} fields filled, as an f-string would."),
+        ("format_map", "format_map(mapping)", "Like format, with the named fields from a dict."),
         ("encode", "encode(encoding=\"utf-8\")", "The UTF-8 bytes of the text."),
+        ("translate", "translate(table)", "The text with each character the table maps replaced, or dropped where it maps to None. str.maketrans builds the table."),
+        ("maketrans", "maketrans(x, y=None, drop=None)", "str.maketrans(\"ab\", \"xy\", \"z\"): a table for translate, from two strings of equal length (and characters to drop), or from a dict."),
+        ("expandtabs", "expandtabs(tabsize=8)", "The text with each tab replaced by spaces up to the next tab stop."),
+        ("isidentifier", "isidentifier()", "Whether the text could be a Python name."),
+        ("isascii", "isascii()", "Whether every character is ASCII."),
+        ("isdecimal", "isdecimal()", "Whether every character is a decimal digit, in any script."),
+        ("isprintable", "isprintable()", "Whether no character is a control or other invisible character."),
     ] {
         add(leak(format!("str.{name}")), Method, Some(leak(sig.to_string())), None, doc);
     }
@@ -566,7 +613,8 @@ fn build() -> Model {
         ("pop", "pop(key, default)", "Removes key and returns its value, or default. Raises KeyError when there is neither."),
         ("popitem", "popitem()", "Removes and returns the last (key, value) pair."),
         ("setdefault", "setdefault(key, default=None)", "The value under key, first setting it to default when there is none."),
-        ("update", "update(other)", "Copies every key and value of other in."),
+        ("update", "update(other, **values)", "Copies every key and value of other in, then the key=value arguments."),
+        ("fromkeys", "fromkeys(keys, value=None)", "dict.fromkeys(keys, 0): a new dict with each key set to value."),
         ("clear", "clear()", "Removes every key."),
         ("copy", "copy()", "A new dict with the same keys and values."),
     ] {

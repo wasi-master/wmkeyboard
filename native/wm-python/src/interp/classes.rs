@@ -324,6 +324,8 @@ impl Interp {
             }
             "__str__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_STR))))),
             "__repr__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_REPR))))),
+            // An exception's cause and context are None until `raise … from` sets one.
+            "__cause__" | "__context__" | "__traceback__" if inst.class.exception_root.is_some() => return Ok(Some(Value::None)),
             _ => {}
         }
         if let Some(getattr) = inst.class.lookup("__getattr__") {
@@ -425,6 +427,16 @@ impl Interp {
                 c.attrs.borrow_mut().insert(name.clone(), value);
                 Ok(())
             }
+            // Functions take attributes too: `f.calls = 0`, or what functools.wraps copies.
+            Value::Function(f) => {
+                let mut attrs = f.attrs.borrow_mut();
+                if attrs.len() >= self.max_container && !attrs.contains_key(name) {
+                    drop(attrs);
+                    return Err(self.container_abort("function"));
+                }
+                attrs.insert(name.clone(), value);
+                Ok(())
+            }
             other => Err(self.error(
                 format!("cannot set attribute '{name}' on '{}'; only class instances take new attributes", other.type_name()),
                 "AttributeError",
@@ -454,6 +466,7 @@ impl Interp {
                 inst.attrs.borrow_mut().shift_remove(name).is_some()
             }
             Value::Class(c) => c.attrs.borrow_mut().shift_remove(name).is_some(),
+            Value::Function(f) => f.attrs.borrow_mut().shift_remove(name).is_some(),
             _ => false,
         };
         if removed {
@@ -788,7 +801,7 @@ impl Interp {
             self.track_instance(&inst);
             return Value::Instance(inst);
         }
-        Value::Exception(Rc::new(ExceptionValue { kind: error.kind.clone(), message: error.message.clone() }))
+        Value::Exception(Rc::new(ExceptionValue::new(error.kind.clone(), error.message.clone())))
     }
 
     // MARK: - modules written in Python
@@ -1031,11 +1044,7 @@ impl Interp {
             }
             "hash" => {
                 self.arity(name, args, 1)?;
-                let key = self.hashable(&args[0])?;
-                use std::hash::{Hash, Hasher};
-                let mut h = std::collections::hash_map::DefaultHasher::new();
-                key.hash(&mut h);
-                Value::Int((h.finish() >> 1) as i64)
+                Value::Int(self.hash_of(&args[0])?)
             }
             HIDDEN_BASE_INIT => {
                 if let Some(Value::Instance(inst)) = args.first() {
@@ -1152,6 +1161,7 @@ impl Interp {
                 "dict" => matches!(value, Value::Dict(_)),
                 "set" => matches!(value, Value::Set(_)),
                 "bytes" => matches!(value, Value::Bytes(_)),
+                "slice" => matches!(value, Value::Object(o) if matches!(o.as_ref(), Object::Slice(..))),
                 "object" => true,
                 kind if EXCEPTION_KINDS.contains(&kind) => match value {
                     Value::Exception(e) => self.exception_is(kind, &e.kind),

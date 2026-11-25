@@ -11,7 +11,7 @@ use super::bytes::{encode, ByteError};
 use super::error::{Exc, R};
 use super::eval::Interp;
 use super::format::py_format;
-use super::text::{grapheme_count, parse_swift_double, parse_swift_int, trim_whitespaces};
+use super::text::{decimal_value, grapheme_count, longer_than, parse_swift_double, trim_whitespaces};
 use super::value::*;
 
 /// The exception names scripts can raise and catch.
@@ -53,11 +53,17 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "getattr", "setattr", "hasattr", "delattr", "vars", "iter", "next", "property", "staticmethod", "classmethod",
     "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
     "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
-    "TimeoutError", "ConnectionError", "FileNotFoundError",
+    "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii",
 ];
 
-/// The only builtins that take keyword arguments.
-pub(crate) const KWARG_BUILTINS: &[&str] = &["sorted", "min", "max", "round", "property"];
+/// Builtins written in Python (`src/stdlib/_builtins.py`), loaded the first
+/// time a script names one.
+pub(crate) const PYTHON_BUILTINS: &[&str] = &["frozenset", "bytearray"];
+
+/// The builtins that take keyword arguments.
+pub(crate) const KWARG_BUILTINS: &[&str] = &[
+    "sorted", "min", "max", "round", "property", "print", "enumerate", "dict", "sum", "int", "zip", "str", "bytes",
+];
 
 /// Swift's `Unicode.Scalar(i)` succeeds for these: any code point but a surrogate.
 pub(crate) fn is_scalar(i: i64) -> bool {
@@ -71,9 +77,20 @@ fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
 impl Interp {
     #[inline(never)]
     pub(crate) fn call_builtin(&mut self, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        if let Some(path) = name.strip_prefix(super::methods::UNBOUND_PREFIX) {
+            let path = path.to_string();
+            return self.call_type_member(&path, args, kwargs);
+        }
         if EXCEPTION_KINDS.contains(&name) {
-            let message = args.iter().map(py_str).collect::<Vec<_>>().join(" ");
-            return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message })));
+            // What str(e) gives, as CPython has it: nothing, the one argument
+            // (a KeyError's in quotes), or the tuple of them all.
+            let message = match args.len() {
+                0 => String::new(),
+                1 if name == "KeyError" => self.to_repr(&args[0])?,
+                1 => self.to_str(&args[0])?,
+                _ => self.to_repr(&Value::tuple(args.clone()))?,
+            };
+            return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args, cause: None })));
         }
         if let Some(v) = self.class_builtin(name, &args, &kwargs)? {
             return Ok(v);
@@ -83,23 +100,75 @@ impl Interp {
                 self.arity(name, &args, 1)?;
                 Ok(Value::Int(self.length(&args[0])? as i64))
             }
-            "str" => match args.first() {
-                Some(v) => Ok(Value::str(self.to_str(v)?)),
-                None => Ok(Value::str("")),
+            "str" => match (args.first().or_else(|| kwarg(&kwargs, "object")), args.get(1).or_else(|| kwarg(&kwargs, "encoding"))) {
+                // str(data, "utf-8") decodes, as bytes.decode does.
+                (Some(Value::Bytes(_)), Some(_)) => {
+                    let mut rest: Vec<Value> = args.iter().skip(1).cloned().collect();
+                    if rest.is_empty() {
+                        rest.extend(kwarg(&kwargs, "encoding").cloned());
+                    }
+                    let errors = kwarg(&kwargs, "errors").cloned().map(|e| vec![(Rc::from("errors"), e)]).unwrap_or_default();
+                    self.call_method(&args[0], "decode", rest, errors)
+                }
+                (Some(v), _) => Ok(Value::str(self.to_str(v)?)),
+                (None, _) => Ok(Value::str("")),
             },
             "repr" => {
                 self.arity(name, &args, 1)?;
                 Ok(Value::str(self.to_repr(&args[0])?))
             }
+            "ascii" => {
+                self.arity(name, &args, 1)?;
+                Ok(Value::str(ascii_escape(&self.to_repr(&args[0])?)))
+            }
             "print" => {
+                let text_kwarg = |me: &Interp, key: &str, default: &str| -> R<String> {
+                    match kwarg(&kwargs, key) {
+                        None | Some(Value::None) => Ok(default.to_string()),
+                        Some(Value::Str(s)) => Ok(s.to_string()),
+                        Some(other) => Err(me.error(format!("{key} must be None or a string, not {}", other.type_name()), "TypeError")),
+                    }
+                };
+                let sep = text_kwarg(self, "sep", " ")?;
+                let end = text_kwarg(self, "end", "\n")?;
                 let mut parts = Vec::with_capacity(args.len());
                 for a in &args {
                     parts.push(self.to_str(a)?);
                 }
-                self.emit(parts.join(" "));
+                // Each print is one line of output; `end` other than a line end
+                // leaves the line open for the next print to carry on.
+                let mut text = std::mem::take(&mut self.print_partial);
+                text.push_str(&parts.join(&sep));
+                if end == "\n" {
+                    self.emit(text);
+                } else {
+                    text.push_str(&end);
+                    match text.rfind('\n') {
+                        Some(at) => {
+                            self.print_partial = text.split_off(at + 1);
+                            text.pop();
+                            self.emit(text);
+                        }
+                        None => self.print_partial = text,
+                    }
+                    if longer_than(&self.print_partial, self.max_string) {
+                        self.print_partial.clear();
+                        return Err(self.string_abort());
+                    }
+                }
                 Ok(Value::None)
             }
-            "int" => self.to_int(&args),
+            "int" => {
+                let mut all = args.clone();
+                if let Some(b) = kwarg(&kwargs, "base") {
+                    if all.is_empty() {
+                        return Err(self.error("int() missing string argument", "TypeError"));
+                    }
+                    all.truncate(1);
+                    all.push(b.clone());
+                }
+                self.to_int(&all)
+            }
             "float" => self.to_float(&args),
             "bool" => Ok(Value::Bool(args.first().is_some_and(Value::truthy))),
             "abs" => {
@@ -115,7 +184,7 @@ impl Interp {
             "max" => self.minmax(&args, &kwargs, true),
             "sum" => {
                 let first = args.first().ok_or_else(|| self.error("sum() needs an iterable", "TypeError"))?;
-                let mut acc = args.get(1).cloned().unwrap_or(Value::Int(0));
+                let mut acc = args.get(1).or_else(|| kwarg(&kwargs, "start")).cloned().unwrap_or(Value::Int(0));
                 for v in self.iterate(first)? {
                     acc = self.binary_op(BinOp::Add, &acc, &v)?;
                 }
@@ -146,23 +215,51 @@ impl Interp {
                 }
                 Ok(Value::new_set(s))
             }
-            "dict" => self.dict_builtin(&args),
+            "dict" => self.dict_builtin(&args, &kwargs),
             "enumerate" => {
                 let first = args.first().ok_or_else(|| self.error("enumerate() needs an iterable", "TypeError"))?;
-                let start = args.get(1).and_then(Value::as_int).unwrap_or(0);
+                let start = args.get(1).or_else(|| kwarg(&kwargs, "start")).and_then(Value::as_int).unwrap_or(0);
                 let items = self.iterate(first)?;
                 Ok(Value::list(
                     items.into_iter().enumerate().map(|(o, v)| Value::tuple(vec![Value::Int(start + o as i64), v])).collect(),
                 ))
             }
             "zip" => {
-                let mut seqs = Vec::new();
+                // An iterator object (itertools.count(), anything with __next__)
+                // gives only as many items as the shortest other argument has,
+                // so zip(count(1), names) works on an endless one.
+                let lazy = |v: &Value| matches!(v, Value::Instance(i) if i.class.lookup("__next__").is_some());
+                let mut known: Vec<Option<Vec<Value>>> = Vec::new();
                 for a in &args {
-                    seqs.push(self.iterate(a)?);
+                    known.push(if lazy(a) { None } else { Some(self.iterate(a)?) });
+                }
+                let finite = known.iter().flatten().map(Vec::len).min();
+                let mut seqs = Vec::new();
+                for (a, k) in args.iter().zip(known) {
+                    seqs.push(match (k, finite) {
+                        (Some(items), _) => items,
+                        (None, None) => self.iterate(a)?,
+                        (None, Some(n)) => {
+                            let mut items = Vec::with_capacity(n);
+                            while items.len() < n {
+                                self.tick()?;
+                                match self.dunder(a, "__next__", Vec::new()) {
+                                    Ok(Some(v)) => items.push(v),
+                                    Ok(None) => break,
+                                    Err(Exc::Error(e)) if !e.is_abort() && e.kind == "StopIteration" => break,
+                                    Err(e) => return Err(e),
+                                }
+                            }
+                            items
+                        }
+                    });
                 }
                 let Some(shortest) = seqs.iter().map(Vec::len).min() else {
                     return Ok(Value::list(Vec::new()));
                 };
+                if kwarg(&kwargs, "strict").is_some_and(Value::truthy) && seqs.iter().any(|s| s.len() != shortest) {
+                    return Err(self.error("zip() arguments have different lengths", "ValueError"));
+                }
                 Ok(Value::list((0..shortest).map(|i| Value::tuple(seqs.iter().map(|s| s[i].clone()).collect())).collect()))
             }
             "map" => {
@@ -271,7 +368,22 @@ impl Interp {
                     other => Ok(Value::str(other.type_name())),
                 }
             }
-            "bytes" => self.bytes_builtin(&args),
+            "bytes" => {
+                let mut all = args.clone();
+                if let (1, Some(enc)) = (all.len(), kwarg(&kwargs, "encoding")) {
+                    all.push(enc.clone());
+                }
+                self.bytes_builtin(&all)
+            }
+            "slice" => {
+                let (a, b, c) = match args.len() {
+                    1 => (Value::None, args[0].clone(), Value::None),
+                    2 => (args[0].clone(), args[1].clone(), Value::None),
+                    3 => (args[0].clone(), args[1].clone(), args[2].clone()),
+                    n => return Err(self.error(format!("slice expected 1 to 3 arguments, got {n}"), "TypeError")),
+                };
+                Ok(Value::Object(Rc::new(Object::Slice(a, b, c))))
+            }
             _ => Err(self.error(format!("name '{name}' is not defined"), "NameError")),
         }
     }
@@ -323,23 +435,28 @@ impl Interp {
     fn to_int(&self, args: &[Value]) -> R<Value> {
         let Some(a) = args.first() else { return Ok(Value::Int(0)) };
         if args.len() > 1 {
-            let i = match (a, args[1].as_int()) {
-                (Value::Str(s), Some(base)) if (2..=36).contains(&base) => parse_swift_int(trim_whitespaces(s), base as u32),
-                _ => None,
+            let base = args[1].as_int().ok_or_else(|| self.error("int() base must be an integer", "TypeError"))?;
+            if base != 0 && !(2..=36).contains(&base) {
+                return Err(self.error("int() base must be >= 2 and <= 36, or 0", "ValueError"));
+            }
+            let Value::Str(s) = a else {
+                return Err(self.error("int() can't convert non-string with explicit base", "TypeError"));
             };
-            return i.map(Value::Int).ok_or_else(|| self.error("invalid literal for int() with that base", "ValueError"));
+            return parse_int_literal(trim_whitespaces(s), base as u32)
+                .map(Value::Int)
+                .ok_or_else(|| self.error(format!("invalid literal for int() with base {base}: {}", py_repr(a)), "ValueError"));
         }
         match a {
             Value::Int(_) | Value::Bool(_) => Ok(Value::Int(a.as_int().unwrap())),
             Value::Float(f) => Ok(Value::Int(self.to_long_exact(*f)?)),
             Value::Str(s) => {
                 let t = trim_whitespaces(s);
-                if let Some(i) = parse_swift_int(t, 10) {
+                if let Some(i) = parse_int_literal(t, 10) {
                     return Ok(Value::Int(i));
                 }
                 // CPython refuses "3.5" here; PyMini reads it.
                 let d = parse_swift_double(t)
-                    .ok_or_else(|| self.error(format!("invalid literal for int(): {}", py_repr(a)), "ValueError"))?;
+                    .ok_or_else(|| self.error(format!("invalid literal for int() with base 10: {}", py_repr(a)), "ValueError"))?;
                 Ok(Value::Int(self.to_long_exact(d)?))
             }
             _ => Err(self.error("int() argument must be a string or a number", "TypeError")),
@@ -428,33 +545,25 @@ impl Interp {
         Ok(Value::list(out))
     }
 
-    fn dict_builtin(&mut self, args: &[Value]) -> R<Value> {
+    /// `dict()`, `dict(mapping)`, `dict(pairs)`, each with `key=value` keywords on top.
+    fn dict_builtin(&mut self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         let mut d = IndexMap::new();
-        let Some(first) = args.first() else { return Ok(Value::new_dict(d)) };
-        if let Value::Dict(src) = first {
-            for (k, v) in src.borrow().iter() {
-                d.insert(k.clone(), v.clone());
-            }
-            return Ok(Value::new_dict(d));
-        }
-        if let Value::Instance(i) = first {
-            if i.class.lookup("keys").is_some() {
-                for (k, v) in self.mapping_pairs(first)? {
-                    d.insert(k, v);
-                }
-                return Ok(Value::new_dict(d));
+        if let Some(first) = args.first() {
+            let pairs = match first {
+                Value::Dict(src) => src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+                Value::Instance(i) if i.class.lookup("keys").is_some() => self.mapping_pairs(first)?,
+                // dict([(k, v), ...]), the shape zip() and items() hand back.
+                other => self.pairs_of(other, "dict()")?,
+            };
+            for (k, v) in pairs {
+                d.insert(k, v);
             }
         }
-        // dict([(k, v), ...]), the shape zip() and items() hand back.
-        for pair in self.iterate(first)? {
-            let items = sequence_items(&pair);
-            let key = items.as_ref().filter(|i| i.len() == 2).and_then(|i| HKey::from_value(&i[0]));
-            match (items, key) {
-                (Some(items), Some(key)) => {
-                    d.insert(key, items[1].clone());
-                }
-                _ => return Err(self.error("dict() needs (key, value) pairs", "ValueError")),
-            }
+        for (k, v) in kwargs {
+            d.insert(HKey::Str(k.clone()), v.clone());
+        }
+        if d.len() > self.max_container {
+            return Err(self.container_abort("dict"));
         }
         Ok(Value::new_dict(d))
     }
@@ -463,39 +572,94 @@ impl Interp {
         self.arity("sorted", args, 1)?;
         let mut items = self.iterate(&args[0])?;
         let reverse = kwarg(kwargs, "reverse").is_some_and(Value::truthy);
-        self.insertion_sort(&mut items, kwarg(kwargs, "key").cloned())?;
-        if reverse {
-            items.reverse();
-        }
+        self.sort_values(&mut items, kwarg(kwargs, "key").cloned(), reverse)?;
         Ok(Value::list(items))
     }
 
-    /// A stable insertion sort on the three-way order, which throws on mixed
-    /// types. Quadratic, but every comparison is charged to the budget.
-    pub(crate) fn insertion_sort(&mut self, items: &mut [Value], key: Option<Value>) -> R<()> {
-        if items.len() <= 1 {
+    /// Python's sort: stable, `reverse` keeping equal items in their order, and
+    /// an error for things that do not compare. A bottom-up merge sort, so
+    /// n log n comparisons at most (n for a list already in order), each
+    /// charged to the step budget.
+    pub(crate) fn sort_values(&mut self, items: &mut Vec<Value>, key: Option<Value>, reverse: bool) -> R<()> {
+        let n = items.len();
+        if n <= 1 {
             return Ok(());
         }
-        let mut keys = Vec::with_capacity(items.len());
-        match &key {
+        // Reversed, sorted, reversed back: what CPython does for reverse=True,
+        // so equal items come out in the order they went in.
+        if reverse {
+            items.reverse();
+        }
+        let keys: Vec<Value> = match &key {
             Some(k) => {
+                let mut keys = Vec::with_capacity(n);
                 for v in items.iter() {
                     self.tick()?;
                     keys.push(self.invoke(k, vec![v.clone()])?);
                 }
+                keys
             }
-            None => keys.extend(items.iter().cloned()),
-        }
-        for i in 1..items.len() {
-            let mut j = i;
-            while j > 0 && self.order(&keys[j], &keys[j - 1])? < 0 {
-                items.swap(j, j - 1);
-                keys.swap(j, j - 1);
-                j -= 1;
+            None => items.clone(),
+        };
+        let mut order: Vec<usize> = (0..n).collect();
+        let mut scratch: Vec<usize> = vec![0; n];
+        let mut width = 1;
+        while width < n {
+            let mut lo = 0;
+            while lo < n {
+                let mid = (lo + width).min(n);
+                let hi = (lo + 2 * width).min(n);
+                if mid >= hi {
+                    scratch[lo..hi].copy_from_slice(&order[lo..hi]);
+                    lo = hi;
+                    continue;
+                }
+                // Already in order across the seam: nothing to merge.
                 self.tick()?;
+                if self.order(&keys[order[mid]], &keys[order[mid - 1]])? >= 0 {
+                    scratch[lo..hi].copy_from_slice(&order[lo..hi]);
+                    lo = hi;
+                    continue;
+                }
+                let (mut i, mut j, mut k) = (lo, mid, lo);
+                while i < mid && j < hi {
+                    self.tick()?;
+                    // Take from the right only when strictly smaller: that keeps it stable.
+                    if self.order(&keys[order[j]], &keys[order[i]])? < 0 {
+                        scratch[k] = order[j];
+                        j += 1;
+                    } else {
+                        scratch[k] = order[i];
+                        i += 1;
+                    }
+                    k += 1;
+                }
+                scratch[k..k + (mid - i)].copy_from_slice(&order[i..mid]);
+                k += mid - i;
+                scratch[k..k + (hi - j)].copy_from_slice(&order[j..hi]);
+                lo = hi;
             }
+            std::mem::swap(&mut order, &mut scratch);
+            width *= 2;
+        }
+        let sorted: Vec<Value> = order.iter().map(|&i| items[i].clone()).collect();
+        *items = sorted;
+        if reverse {
+            items.reverse();
         }
         Ok(())
+    }
+
+    /// `frozenset` and `bytearray`, written in Python: the first use loads them.
+    pub(crate) fn python_builtin(&mut self, name: &str) -> R<Value> {
+        const MODULE: &str = "_builtins";
+        if !self.source_modules.contains_key(MODULE) {
+            self.source_modules.insert(MODULE.to_string(), Rc::from(super::stdlib::BUILTINS_SOURCE));
+        }
+        let saved = self.current_line;
+        self.ensure_module(MODULE)?;
+        self.current_line = saved;
+        self.member(MODULE, name).ok_or_else(|| self.error(format!("name '{name}' is not defined"), "NameError"))
     }
 
     fn bytes_builtin(&mut self, args: &[Value]) -> R<Value> {
@@ -547,6 +711,52 @@ impl Interp {
             ByteError::Hex(message) => self.error(message, "ValueError"),
             ByteError::Errors(name) => self.error(format!("unknown error handler name '{name}'"), "LookupError"),
         }
+    }
+}
+
+/// An integer literal as `int(text, base)` reads it: a sign, `_` between
+/// digits, and with base 0 (or the matching base) a `0x`, `0o` or `0b` prefix.
+pub(crate) fn parse_int_literal(text: &str, base: u32) -> Option<i64> {
+    let (negative, body) = match text.as_bytes().first() {
+        Some(b'-') => (true, &text[1..]),
+        Some(b'+') => (false, &text[1..]),
+        _ => (false, text),
+    };
+    let lower = body.to_ascii_lowercase();
+    let prefix = ["0x", "0o", "0b"].iter().zip([16u32, 8, 2]).find(|(p, _)| lower.starts_with(**p)).map(|(_, r)| r);
+    let (radix, digits) = match (base, prefix) {
+        (0, Some(r)) => (r, &body[2..]),
+        (b, Some(r)) if b == r => (r, &body[2..]),
+        (0, None) => {
+            // Base 0 refuses a leading zero, as a Python literal does: 010 is an error, 00 is 0.
+            if body.starts_with('0') && body.chars().any(|c| c != '0' && c != '_') {
+                return None;
+            }
+            (10, body)
+        }
+        (b, _) => (b, body),
+    };
+    // One `_` may follow a prefix (0x_ff); otherwise `_` only between digits.
+    let digits = if radix != base || base == 0 { digits.strip_prefix('_').filter(|_| prefix.is_some()).unwrap_or(digits) } else { digits };
+    if digits.is_empty() || digits.starts_with('_') || digits.ends_with('_') || digits.contains("__") {
+        return None;
+    }
+    let mut clean: String = digits.chars().filter(|c| *c != '_').collect();
+    if radix == 10 && !clean.is_ascii() {
+        // Digits from other scripts (٣, ৩), as Python reads them.
+        clean = clean.chars().map(|c| decimal_value(c).and_then(|d| char::from_digit(d, 10))).collect::<Option<String>>()?;
+    }
+    if !clean.chars().all(|c| c.is_digit(radix)) {
+        return None;
+    }
+    let magnitude = u64::from_str_radix(&clean, radix).ok()?;
+    if negative {
+        if magnitude == 1 << 63 {
+            return Some(i64::MIN);
+        }
+        i64::try_from(magnitude).ok().map(|v| -v)
+    } else {
+        i64::try_from(magnitude).ok()
     }
 }
 

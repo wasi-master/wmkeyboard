@@ -143,7 +143,14 @@ def _frozen_delattr(self, name):
     raise FrozenInstanceError(f"cannot delete field '{name}'")
 
 
-def dataclass(cls=None, *, init=True, repr=True, eq=True, order=False, frozen=False):
+def _make_hash(fields):
+    def __hash__(self):
+        return hash(_key(self, fields))
+
+    return __hash__
+
+
+def dataclass(cls=None, *, init=True, repr=True, eq=True, order=False, frozen=False, unsafe_hash=False):
     def wrap(cls):
         fields = _collect(cls)
         own = vars(cls)
@@ -166,6 +173,9 @@ def dataclass(cls=None, *, init=True, repr=True, eq=True, order=False, frozen=Fa
         if frozen:
             cls.__setattr__ = _frozen_setattr
             cls.__delattr__ = _frozen_delattr
+        # Frozen and compared by value: hashed by value too, so equal ones are one dict key.
+        if unsafe_hash or (frozen and eq and "__hash__" not in own):
+            cls.__hash__ = _make_hash(fields)
         return cls
 
     if cls is None:

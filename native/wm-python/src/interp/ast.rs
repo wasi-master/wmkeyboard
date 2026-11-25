@@ -52,6 +52,8 @@ pub(crate) enum BoolKind {
 pub(crate) enum FConversion {
     Str,
     Repr,
+    /// `!a`: the repr with everything past ASCII escaped.
+    Ascii,
 }
 
 /// One segment of an f-string: a literal run, or an embedded expression.
@@ -199,7 +201,8 @@ pub(crate) enum StmtKind {
     Continue,
     Pass,
     Try(Box<TryStmt>),
-    Raise(Option<Expr>),
+    /// `raise value from cause`.
+    Raise(Option<Expr>, Option<Expr>),
     /// `import math [as m]` / `from math import sqrt [as root], pi`.
     Import { module: Rc<str>, alias: Option<Rc<str>>, names: Option<Vec<(Rc<str>, Option<Rc<str>>)>> },
     Global(Vec<Rc<str>>),

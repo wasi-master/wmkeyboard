@@ -39,6 +39,10 @@ pub(crate) const PYTHON_MODULES: &[(&str, &str, bool)] = &[
     ("uuid", include_str!("../stdlib/uuid.py"), false),
 ];
 
+/// `frozenset` and `bytearray`, loaded when a script first names one: always
+/// there, unlike the modules above, which a host turns on.
+pub(crate) const BUILTINS_SOURCE: &str = include_str!("../stdlib/_builtins.py");
+
 pub(crate) const NATIVE_FUNCTIONS: &[&str] = &["digest", "b64encode", "b64decode", "mktime", "quote", "unquote"];
 
 fn b64(urlsafe: bool) -> GeneralPurpose {

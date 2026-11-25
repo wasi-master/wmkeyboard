@@ -134,6 +134,38 @@ pub(crate) fn char_is_number(g: &str) -> bool {
     first_scalar(g).is_some_and(char::is_numeric)
 }
 
+/// The value of a decimal digit in any script (`৩` is 3), as Python's
+/// `int()` reads it; None for anything else.
+pub(crate) fn decimal_value(c: char) -> Option<u32> {
+    if c.is_ascii_digit() {
+        return c.to_digit(10);
+    }
+    if c.general_category() != Gc::DecimalNumber {
+        return None;
+    }
+    // Decimal digits come in runs of ten from zero, some runs back to back.
+    let mut start = c as u32;
+    while start > 0 && char::from_u32(start - 1).is_some_and(|p| p.general_category() == Gc::DecimalNumber) {
+        start -= 1;
+    }
+    Some((c as u32 - start) % 10)
+}
+
+/// `str.isdecimal`: Unicode category Nd.
+pub(crate) fn scalar_is_decimal(c: char) -> bool {
+    c.general_category() == Gc::DecimalNumber
+}
+
+/// `str.isprintable`: not a control, format, private-use, unassigned or
+/// separator character, though a plain space is printable.
+pub(crate) fn scalar_is_printable(c: char) -> bool {
+    c == ' '
+        || !matches!(
+            c.general_category(),
+            Gc::Control | Gc::Format | Gc::Surrogate | Gc::PrivateUse | Gc::Unassigned | Gc::LineSeparator | Gc::ParagraphSeparator | Gc::SpaceSeparator
+        )
+}
+
 /// Unicode White_Space, which is what Swift checks.
 pub(crate) fn scalar_is_whitespace(c: char) -> bool {
     matches!(c as u32,

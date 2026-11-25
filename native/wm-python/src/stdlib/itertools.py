@@ -1,6 +1,56 @@
-"""itertools, eagerly: each function returns a list rather than a lazy
-iterator, since this interpreter has no generators. The infinite ones
-(count, cycle, repeat without a count) are left out."""
+"""itertools, mostly eagerly: each function returns a list rather than a
+lazy iterator, since this interpreter has no generators. The infinite ones
+(count, cycle, repeat without a count) are iterator objects; islice,
+takewhile, next() and zip() take from them only what they need."""
+
+
+class count:
+    def __init__(self, start=0, step=1):
+        self._next = start
+        self._step = step
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        value = self._next
+        self._next = value + self._step
+        return value
+
+    def __repr__(self):
+        if self._step == 1:
+            return f"count({self._next!r})"
+        return f"count({self._next!r}, {self._step!r})"
+
+
+class cycle:
+    def __init__(self, iterable):
+        self._items = list(iterable)
+        self._at = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if not self._items:
+            raise StopIteration
+        value = self._items[self._at]
+        self._at = (self._at + 1) % len(self._items)
+        return value
+
+
+class _Repeat:
+    def __init__(self, obj):
+        self._obj = obj
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self._obj
+
+    def __repr__(self):
+        return f"repeat({self._obj!r})"
 
 
 class chain:
@@ -128,7 +178,6 @@ def zip_longest(*iterables, fillvalue=None):
 
 
 def islice(iterable, *args):
-    items = list(iterable)
     if len(args) == 1:
         start, stop, step = 0, args[0], 1
     elif len(args) == 2:
@@ -139,13 +188,29 @@ def islice(iterable, *args):
         start = 0
     if step is None:
         step = 1
-    if stop is None:
-        stop = len(items)
-    return items[start:stop:step]
+    if start < 0 or (stop is not None and stop < 0) or step < 1:
+        raise ValueError("indices for islice() must be None or non-negative integers, and step at least 1")
+    # Taken one at a time, so an endless iterator gives up only what is asked for.
+    it = iter(iterable)
+    out = []
+    i = 0
+    wanted = start
+    while stop is None or i < stop:
+        try:
+            item = next(it)
+        except StopIteration:
+            break
+        if i == wanted:
+            out.append(item)
+            wanted += step
+        i += 1
+    return out
 
 
-def repeat(obj, times):
-    return [obj] * times
+def repeat(obj, times=None):
+    if times is None:
+        return _Repeat(obj)
+    return [obj] * max(times, 0)
 
 
 def starmap(function, iterable):
@@ -153,8 +218,13 @@ def starmap(function, iterable):
 
 
 def takewhile(predicate, iterable):
+    it = iter(iterable)
     out = []
-    for x in iterable:
+    while True:
+        try:
+            x = next(it)
+        except StopIteration:
+            break
         if not predicate(x):
             break
         out.append(x)

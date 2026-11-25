@@ -33,15 +33,33 @@ class partial:
         return f"functools.partial({self.func!r})"
 
 
-def wraps(wrapped):
+WRAPPER_ASSIGNMENTS = ("__module__", "__name__", "__qualname__", "__doc__")
+WRAPPER_UPDATES = ("__dict__",)
+
+
+def update_wrapper(wrapper, wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
+    """Give wrapper the name and doc of wrapped, and __wrapped__ pointing at it."""
+    for name in assigned:
+        try:
+            value = getattr(wrapped, name)
+        except AttributeError:
+            continue
+        try:
+            setattr(wrapper, name, value)
+        except AttributeError:
+            pass
+    try:
+        wrapper.__wrapped__ = wrapped
+    except AttributeError:
+        pass
+    return wrapper
+
+
+def wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     def decorator(wrapper):
-        return wrapper
+        return update_wrapper(wrapper, wrapped, assigned, updated)
 
     return decorator
-
-
-def update_wrapper(wrapper, wrapped):
-    return wrapper
 
 
 def _make_key(args, kwargs):
@@ -53,6 +71,8 @@ def _make_key(args, kwargs):
 class _Cached:
     def __init__(self, func, maxsize):
         self.func = func
+        self.__name__ = getattr(func, "__name__", "cached")
+        self.__wrapped__ = func
         self.maxsize = maxsize
         self.cache = {}
         self.order = []

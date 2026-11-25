@@ -7,8 +7,10 @@
 //!
 //! Supported: literals, `.`, classes with ranges and negation, `\d \D \w \W \s
 //! \S \b \B`, anchors, groups (capturing, `(?:…)`, `(?P<name>…)`), alternation,
-//! and `* + ? {m,n}` greedy and lazy. Not supported: backreferences,
-//! lookaround, possessive quantifiers. Subjects are matched as grapheme
+//! `* + ? {m,n}` greedy and lazy, lookahead `(?=…)` `(?!…)`, fixed-width
+//! lookbehind `(?<=…)` `(?<!…)`, backreferences `\1` and `(?P=name)`, and the
+//! inline flags `(?i)`, `(?m)`, `(?s)`. Not supported: possessive quantifiers,
+//! atomic groups, conditionals and `(?x)`. Subjects are matched as grapheme
 //! clusters, so `m.start()` counts clusters, as PyMini's do.
 
 use std::collections::HashMap;
@@ -147,6 +149,27 @@ enum Node {
     AnchorStart,
     AnchorEnd,
     WordBoundary(bool),
+    /// `(?=…)`, `(?!…)` (ahead) and `(?<=…)`, `(?<!…)` (behind, [width]
+    /// characters back). [negate] for the `!` forms.
+    Look { behind: Option<usize>, negate: bool, node: Box<Node> },
+    /// `\1` or `(?P=name)`: the text a group captured, again.
+    Backref(usize),
+}
+
+/// How many characters [node] always matches, when that is fixed: what a lookbehind needs.
+fn fixed_width(node: &Node) -> Option<usize> {
+    match node {
+        Node::Empty | Node::AnchorStart | Node::AnchorEnd | Node::WordBoundary(_) | Node::Look { .. } => Some(0),
+        Node::Char(_) | Node::AnyChar | Node::CharClass(_) => Some(1),
+        Node::Seq(items) => items.iter().map(fixed_width).sum(),
+        Node::Alt(branches) => {
+            let first = fixed_width(branches.first()?)?;
+            branches.iter().all(|b| fixed_width(b) == Some(first)).then_some(first)
+        }
+        Node::Group(_, inner) => fixed_width(inner),
+        Node::Repeated(body, min, max, _) if Some(*min) == *max => fixed_width(body).map(|w| w * min),
+        Node::Repeated(..) | Node::Backref(_) => None,
+    }
 }
 
 /// A compiled regular expression.
@@ -155,17 +178,27 @@ pub(crate) struct Regex {
     pub group_count: usize,
     pub names: Rc<HashMap<String, usize>>,
     flags: i64,
+    /// The flags the pattern set itself, `(?i)`.
+    inline: i64,
 }
 
 impl Regex {
     pub fn compile(pattern: &str, flags: i64) -> Res<Regex> {
         let chars = graphemes(pattern);
-        let mut p = RxParser { chars: &chars, pos: 0, group_count: 0, names: HashMap::new(), depth: 0 };
+        let mut p = RxParser { chars: &chars, pos: 0, group_count: 0, names: HashMap::new(), depth: 0, inline: 0, backrefs: Vec::new() };
         let root = p.parse_alternation()?;
         if p.pos < chars.len() {
             return Err(verr("unbalanced parenthesis in pattern"));
         }
-        Ok(Regex { root, group_count: p.group_count, names: Rc::new(p.names), flags })
+        if p.backrefs.iter().any(|&i| i == 0 || i > p.group_count) {
+            return Err(verr("invalid group reference in pattern"));
+        }
+        Ok(Regex { root, group_count: p.group_count, names: Rc::new(p.names), flags: flags | p.inline, inline: p.inline })
+    }
+
+    /// The flags `(?i)`, `(?m)` or `(?s)` in the pattern turned on.
+    pub fn inline_flags(&self) -> i64 {
+        self.inline
     }
 
     /// `re.escape`: backslash every character that could be syntax.
@@ -225,10 +258,10 @@ impl Regex {
         }
     }
 
-    /// Every non-overlapping match; a zero-width match advances one character.
-    pub fn all_matches(&self, subject: &Rc<Subject>, limit: usize, tick: &mut dyn FnMut() -> Res<()>) -> Res<Vec<Match>> {
+    /// Every non-overlapping match from [from]; a zero-width match advances one character.
+    pub fn all_matches(&self, subject: &Rc<Subject>, from: usize, limit: usize, tick: &mut dyn FnMut() -> Res<()>) -> Res<Vec<Match>> {
         let mut out = Vec::new();
-        let mut at = 0;
+        let mut at = from;
         while at <= subject.len() && out.len() < limit {
             let Some(m) = self.first_match(subject, at, false, false, tick)? else { break };
             let (s, e) = m.spans[0].unwrap_or((at, at));
@@ -247,6 +280,10 @@ struct RxParser<'a> {
     group_count: usize,
     names: HashMap<String, usize>,
     depth: u32,
+    /// Flags set by `(?i)` and the like.
+    inline: i64,
+    /// Every group number a backreference names, checked once the groups are counted.
+    backrefs: Vec<usize>,
 }
 
 impl RxParser<'_> {
@@ -355,33 +392,74 @@ impl RxParser<'_> {
                 let mut index = None;
                 if self.peek() == Some("?") {
                     self.pos += 1;
-                    if self.peek() == Some(":") {
-                        self.pos += 1;
-                    } else if self.peek() == Some("P") || self.peek() == Some("<") {
-                        if self.peek() == Some("P") {
-                            self.pos += 1;
-                        }
-                        if self.peek() != Some("<") {
-                            return Err(verr("lookaround is not supported by PyMini"));
-                        }
-                        self.pos += 1;
-                        let mut name = String::new();
-                        while let Some(n) = self.peek() {
-                            if n == ">" {
-                                break;
+                    let next = self.peek().map(str::to_string);
+                    let after = self.chars.get(self.pos + 1).copied();
+                    match (next.as_deref(), after) {
+                        (Some(":"), _) => self.pos += 1,
+                        // Lookahead and lookbehind.
+                        (Some("=" | "!"), _) | (Some("<"), Some("=" | "!")) => {
+                            let behind = next.as_deref() == Some("<");
+                            if behind {
+                                self.pos += 1;
                             }
-                            name.push_str(n);
+                            let negate = self.peek() == Some("!");
                             self.pos += 1;
+                            let inner = self.parse_alternation()?;
+                            if self.peek() != Some(")") {
+                                return Err(verr("missing ')' in pattern"));
+                            }
+                            self.pos += 1;
+                            let behind = if behind {
+                                Some(fixed_width(&inner).ok_or_else(|| verr("look-behind requires fixed-width pattern"))?)
+                            } else {
+                                None
+                            };
+                            return Ok(Node::Look { behind, negate, node: Box::new(inner) });
                         }
-                        if self.peek() != Some(">") {
-                            return Err(verr("unterminated group name"));
+                        // `(?P=name)`: the named group's text again.
+                        (Some("P"), Some("=")) => {
+                            self.pos += 2;
+                            let name = self.read_until(")")?;
+                            let index = *self.names.get(&name).ok_or_else(|| verr(&format!("unknown group name '{name}'")))?;
+                            return Ok(Node::Backref(index));
                         }
-                        self.pos += 1;
-                        self.group_count += 1;
-                        index = Some(self.group_count);
-                        self.names.insert(name, self.group_count);
-                    } else {
-                        return Err(verr("this group syntax is not supported by PyMini"));
+                        (Some("P" | "<"), _) => {
+                            if self.peek() == Some("P") {
+                                self.pos += 1;
+                            }
+                            if self.peek() != Some("<") {
+                                return Err(verr("this group syntax is not supported"));
+                            }
+                            self.pos += 1;
+                            let name = self.read_until(">")?;
+                            if name.is_empty() {
+                                return Err(verr("missing group name"));
+                            }
+                            self.group_count += 1;
+                            index = Some(self.group_count);
+                            self.names.insert(name, self.group_count);
+                        }
+                        // Inline flags, `(?i)`, `(?ms)`: on for the whole pattern, as in Python.
+                        (Some("i" | "m" | "s" | "a" | "u" | "L"), _) => {
+                            while let Some(f) = self.peek() {
+                                match f {
+                                    "i" => self.inline |= IGNORE_CASE,
+                                    "m" => self.inline |= MULTILINE,
+                                    "s" => self.inline |= DOT_ALL,
+                                    "a" | "u" | "L" => {}
+                                    ")" => break,
+                                    ":" | "-" => return Err(verr("scoped inline flags like (?i:...) are not supported; put (?i) at the start")),
+                                    _ => return Err(verr(&format!("unknown flag '{f}' in pattern"))),
+                                }
+                                self.pos += 1;
+                            }
+                            if self.peek() != Some(")") {
+                                return Err(verr("missing ')' in pattern"));
+                            }
+                            self.pos += 1;
+                            return Ok(Node::Empty);
+                        }
+                        _ => return Err(verr("this group syntax is not supported")),
                     }
                 } else {
                     self.group_count += 1;
@@ -424,7 +502,14 @@ impl RxParser<'_> {
                     "A" => Node::AnchorStart,
                     "Z" | "z" => Node::AnchorEnd,
                     "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
-                        return Err(verr("backreferences are not supported by PyMini"))
+                        // Up to two digits, as Python reads `\12`.
+                        let mut n = e.parse::<usize>().unwrap_or(0);
+                        if let Some(d) = self.peek().filter(|d| d.len() == 1 && d.as_bytes()[0].is_ascii_digit()) {
+                            n = n * 10 + d.parse::<usize>().unwrap_or(0);
+                            self.pos += 1;
+                        }
+                        self.backrefs.push(n);
+                        Node::Backref(n)
                     }
                     other => Node::Char(escape_char(other)),
                 })
@@ -435,6 +520,20 @@ impl RxParser<'_> {
                 Ok(Node::Char(other))
             }
         }
+    }
+
+    /// The text up to [end], past it.
+    fn read_until(&mut self, end: &str) -> Res<String> {
+        let mut out = String::new();
+        while let Some(c) = self.peek() {
+            if c == end {
+                self.pos += 1;
+                return Ok(out);
+            }
+            out.push_str(c);
+            self.pos += 1;
+        }
+        Err(verr("unterminated group name"))
     }
 
     fn parse_class(&mut self) -> Res<Class> {
@@ -651,6 +750,40 @@ impl<'a> Matcher<'a> {
                 } else {
                     self.match_repeat(body, *min, *max, *greedy, 0, pos, cont)
                 }
+            }
+            Node::Look { behind, negate, node } => {
+                // Where the inner pattern must match: here, or a fixed width back.
+                let start = match behind {
+                    None => Some(pos),
+                    Some(w) => pos.checked_sub(*w),
+                };
+                let saved = self.captures.clone();
+                let found = match start {
+                    None => false,
+                    Some(start) => self.matches(node, start, &mut |_, end| Ok(behind.is_none() || end == pos))?,
+                };
+                // A negative lookaround keeps nothing it captured; a positive one keeps its groups.
+                if *negate {
+                    self.captures = saved.clone();
+                }
+                if found != *negate && cont(self, pos)? {
+                    return Ok(true);
+                }
+                self.captures = saved;
+                Ok(false)
+            }
+            Node::Backref(index) => {
+                let Some((s, e)) = self.captures.get(*index).copied().flatten() else { return Ok(false) };
+                let len = e - s;
+                if pos + len > n {
+                    return Ok(false);
+                }
+                for i in 0..len {
+                    if !self.equal(self.subject.get(pos + i), self.subject.get(s + i)) {
+                        return Ok(false);
+                    }
+                }
+                cont(self, pos + len)
             }
         }
     }

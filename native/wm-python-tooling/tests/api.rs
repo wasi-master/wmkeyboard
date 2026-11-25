@@ -43,11 +43,11 @@ fn the_host_api_is_exactly_section_1() {
 #[test]
 fn the_pymini_modules_and_builtins_are_all_there() {
     let modules: &[(&str, &[&str])] = &[
-        ("math", &["sqrt", "floor", "ceil", "trunc", "fabs", "pow", "exp", "log", "log2", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "degrees", "radians", "hypot", "gcd", "lcm", "factorial", "isnan", "isinf", "isfinite", "copysign", "fmod", "comb", "prod", "pi", "e", "tau", "inf", "nan"]),
+        ("math", &["sqrt", "floor", "ceil", "trunc", "fabs", "pow", "exp", "log", "log2", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "degrees", "radians", "hypot", "gcd", "lcm", "factorial", "isnan", "isinf", "isfinite", "copysign", "fmod", "comb", "prod", "isclose", "isqrt", "perm", "fsum", "dist", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "log1p", "expm1", "modf", "cbrt", "exp2", "remainder", "ldexp", "frexp", "pi", "e", "tau", "inf", "nan"]),
         ("random", &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed"]),
         ("time", &["time", "monotonic", "parts", "format"]),
         ("json", &["dumps", "loads"]),
-        ("re", &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL"]),
+        ("re", &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile", "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL"]),
         ("sys", &["version"]),
     ];
     for (module, names) in modules {
@@ -57,10 +57,10 @@ fn the_pymini_modules_and_builtins_are_all_there() {
         want.sort();
         assert_eq!(found, want, "{module}");
     }
-    for b in ["len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted", "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map", "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes"] {
+    for b in ["len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted", "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map", "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "bytearray", "frozenset", "slice", "ascii"] {
         assert_eq!(api::model().find(b).map(|e| e.kind), Some(ApiKind::Builtin), "{b}");
     }
-    for m in ["str.encode", "bytes.fromhex", "bytes.hex", "bytes.decode", "list.append", "dict.items", "str.removeprefix"] {
+    for m in ["str.encode", "bytes.fromhex", "bytes.hex", "bytes.decode", "list.append", "dict.items", "str.removeprefix", "str.translate", "str.maketrans", "dict.fromkeys", "Pattern.search", "Pattern.sub"] {
         assert!(api::model().find(m).is_some(), "{m}");
     }
 }

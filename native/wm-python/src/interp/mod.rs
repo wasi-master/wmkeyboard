@@ -15,9 +15,12 @@
 //! cancel flag is the one piece another thread may touch.
 //!
 //! Additions to PyMini: a dict answers its string keys as attributes
-//! (`e.type`), a minimal `bytes` type, `time.format` with English names, a
-//! cancel flag and deadline polled on the step path, a call-depth cap of 300,
-//! and a parser nesting cap of 100.
+//! (`e.type`), a minimal `bytes` type, `frozenset` and `bytearray` (written in
+//! Python), `time.format` with English names, a cancel flag and deadline
+//! polled on the step path, a call-depth cap of 300, and a parser nesting cap
+//! of 100. Where PyMini and CPython part, this follows CPython: equal numbers
+//! are one dict key, `__hash__` and `__eq__` decide keys, sorting is a stable
+//! merge sort.
 //!
 //! Native stack: deep recursion (300 calls) needs about 1 MB in release builds
 //! and several MB in debug builds. Hosts should run scripts on a thread with
@@ -174,6 +177,7 @@ impl Runtime {
     pub fn reset_budget(&mut self) {
         self.interp.reset_budget();
         self.interp.printed.clear();
+        self.interp.print_partial.clear();
     }
 
     /// What `print` wrote during the latest `load`, `run` or `call`, one line per call.
@@ -317,6 +321,8 @@ impl Runtime {
             self.interp.printed.clear();
         }
         let r = body(&mut self.interp);
+        // A last `print(..., end="")` still shows, as a line of its own.
+        self.interp.flush_print();
         host::flow_to_error(r, self.interp.current_line)
     }
 }

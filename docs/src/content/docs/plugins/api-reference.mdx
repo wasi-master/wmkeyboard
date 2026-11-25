@@ -369,10 +369,13 @@ and `**kwargs`, `lambda`, decorators, `class` with single inheritance,
 `super()`, `@property`, `@staticmethod` and `@classmethod`,
 `if`/`elif`/`else`, `for` and `while` with `break`, `continue` and `else`,
 `try`/`except`/`finally`, `raise` (and `raise … from …`), `with`, `assert`,
-`global`, `nonlocal`, `del`, list, dict and set comprehensions, f-strings,
-slicing, tuple unpacking, `*` and `**` spreads in calls and displays, chained
+`global`, `nonlocal`, `del`, list, dict and set comprehensions, f-strings
+(with `{x=}`, which writes `x=` before the value), slicing, slice assignment
+(`items[1:3] = new`, `del items[::2]`), tuple unpacking with a starred target
+(`first, *rest = items`), `*` and `**` spreads in calls and displays, chained
 comparisons, `b"…"` bytes literals, type annotations (read and ignored) and
-`import`.
+`import`. An exception raised with `raise … from cause` keeps the cause as
+`__cause__`.
 
 **Classes** work the way Python's do for everyday code: `__init__`, methods,
 class attributes, and the operator methods `__str__`, `__repr__`, `__eq__`,
@@ -390,13 +393,17 @@ walrus `:=`. A script that uses one is refused with a message that names it,
 not a vague syntax error. String escapes are Python's: `\n`, `\t`, `\r`,
 `\a`, `\b`, `\f`, `\v`, octal `\101`, `\x41`, `\u00e9`, `\U0001F600`,
 `\\` and the quotes. An escape Python does not know, such as `\q`, keeps its
-backslash.
+backslash. `\N{BULLET}`, which names a character by its Unicode name, is
+refused with an error: write the character itself, or `\u2022`.
 
 **Numbers:** integers are exact across 64 bits, with `<<`, `>>`, `&`, `|`, `^`
 and `~` and their `<<=`-style assignments; `int.from_bytes`, `n.to_bytes` and
 `n.bit_length()` read and write binary fields. There are no big integers, so a
-result past 64 bits, such as `2 ** 64`, carries on as a float. `1 is True` is
-false, as in Python.
+result past 64 bits, such as `2 ** 64` or `math.factorial(25)`, carries on as a
+float. `1 is True` is false, as in Python. `int()` reads text as Python does:
+`_` between digits, digits of any script (`int("৩")` is 3), and with base 0 a
+`0x`, `0o` or `0b` prefix. Format specs take `#` for that prefix:
+`f"{255:#x}"` is `"0xff"`.
 
 **Built-in functions:** `abs`, `all`, `any`, `bin`, `bool`, `callable`, `chr`,
 `classmethod`, `delattr`, `dict`, `divmod`, `enumerate`, `filter`, `float`,
@@ -404,8 +411,26 @@ false, as in Python.
 `issubclass`, `iter`, `len`, `list`, `map`, `max`, `min`, `next`, `object`,
 `oct`, `ord`, `pow`, `print`, `property`, `range`, `repr`, `reversed`,
 `round`, `set`, `setattr`, `sorted`, `staticmethod`, `str`, `sum`, `super`,
-`tuple`, `type`, `vars` and `zip`. There is no `open`, `eval`, `exec`,
-`compile` or `__import__`.
+`tuple`, `type`, `vars` and `zip`, and `ascii`, `bytearray`, `frozenset` and
+`slice`. There is no `open`, `eval`, `exec`, `compile` or `__import__`.
+
+They take Python's keyword arguments: `print(*values, sep=" ", end="\n")`,
+`enumerate(items, start=1)`, `dict(pairs, key=value)`,
+`d.update(other, key=value)`, `sum(items, start=0)`, `int(text, base=16)`,
+`zip(*lists, strict=True)`. A method also works through its type, so
+`sorted(names, key=str.lower)` and `map(str.strip, lines)` do what they do in
+Python, as do `str.maketrans` and `dict.fromkeys`.
+
+**Sorting and dict keys** behave as in Python. `sorted` and `list.sort` are
+stable, `reverse=True` included, and fast on long lists: ten thousand items
+take a few hundred thousand steps. Numbers that are equal are one key, so
+`1`, `1.0` and `True` find the same entry. An object whose class defines
+`__hash__` is found by value: two instances that `__eq__` calls equal are one
+key and one member of a set. A class with `__eq__` and no `__hash__` still
+hashes by identity, where Python would refuse it; `__hash__ = None` makes it
+unhashable. A frozen `dataclass` hashes its fields. `d1 | d2` merges dicts,
+`|=` updates a dict or set in place, and `<`, `<=`, `>`, `>=` compare sets by
+inclusion.
 
 `type(x)` gives a name such as `"int"` for the built-in types, as PyMini
 does, and the class itself for an instance of a class, so
@@ -425,9 +450,9 @@ on an event. Writing still takes brackets: `d["name"] = value`.
 
 | Module | What it has |
 |---|---|
-| `math` | `sqrt`, `floor`, `ceil`, `trunc`, `fabs`, `pow`, `exp`, `log`, `log2`, `log10`, the trigonometric functions, `degrees`, `radians`, `hypot`, `gcd`, `lcm`, `factorial`, `isnan`, `isinf`, `isfinite`, `copysign`, `fmod`, `comb`, `prod`, and `pi`, `e`, `tau`, `inf`, `nan` |
-| `json` | `dumps` and `loads`. Bad JSON raises an error. |
-| `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape`, and the flags `I`, `M`, `S` (also spelled out). Matching spends steps like any loop. |
+| `math` | `sqrt`, `isqrt`, `floor`, `ceil`, `trunc`, `fabs`, `pow`, `exp`, `exp2`, `expm1`, `log`, `log2`, `log10`, `log1p`, the trigonometric and hyperbolic functions, `degrees`, `radians`, `hypot`, `dist`, `gcd`, `lcm`, `factorial`, `comb`, `perm`, `prod`, `fsum`, `isclose`, `isnan`, `isinf`, `isfinite`, `copysign`, `fmod`, `remainder`, `modf`, `frexp`, `ldexp`, `cbrt`, and `pi`, `e`, `tau`, `inf`, `nan` |
+| `json` | `dumps` and `loads`. `dumps` takes `indent`, `sort_keys`, `separators` and `ensure_ascii`. Unlike Python, `ensure_ascii` is off unless you turn it on, so text in other scripts is written as it is. Bad JSON raises an error. |
+| `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape` and `compile`, whose pattern objects have the same methods; the flags `I`, `M`, `S` (also spelled out, or written in the pattern as `(?i)`, `(?m)`, `(?s)`). Patterns take lookahead `(?=…)` `(?!…)`, fixed-width lookbehind `(?<=…)` `(?<!…)` and backreferences `\1` `(?P=name)`; not possessive quantifiers, atomic groups or `(?x)`. Matching spends steps like any loop. |
 | `time` | `time()` and `monotonic()` in seconds; `parts()` or `parts(seconds)`, a dict of `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday` (Monday is 0) and `yearday` in the phone's time zone; `format(pattern)` or `format(pattern, seconds)` with a Unicode date pattern such as `"EEE d MMM yyyy"`, which writes day and month names in English. Left out, `seconds` is now. |
 | `random` | `random`, `randint`, `randrange`, `choice`, `choices`, `shuffle`, `sample`, `uniform`, `seed` |
 | `sys` | `version` |

@@ -14,6 +14,7 @@ use super::format::py_format;
 use super::regex::Match;
 use super::text::*;
 use super::value::*;
+use unicode_properties::UnicodeGeneralCategory;
 
 fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
     kwargs.iter().find(|(k, _)| k.as_ref() == name).map(|(_, v)| v)
@@ -22,7 +23,7 @@ fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
 /// Method names per built-in type, for taking a method as a value
 /// (`on_submit=items.append`).
 pub(crate) const STR_METHODS: &[&str] = &[
-    "capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs", "find", "format", "index", "isalnum",
+    "capitalize", "casefold", "center", "count", "encode", "endswith", "expandtabs", "find", "format", "format_map", "index", "isalnum",
     "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier", "islower", "isnumeric", "isprintable", "isspace",
     "istitle", "isupper", "join", "ljust", "lower", "lstrip", "partition", "removeprefix", "removesuffix", "replace",
     "rfind", "rindex", "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines", "startswith", "strip",
@@ -41,6 +42,31 @@ pub(crate) const BYTES_METHODS: &[&str] = &[
 ];
 /// The builtin name a method taken as a value calls through.
 pub(crate) const METHOD_PREFIX: &str = "__method__:";
+/// The builtin name of a method taken from its type, `str.lower`, which takes
+/// the value as its first argument; or a static one, `str.maketrans`.
+pub(crate) const UNBOUND_PREFIX: &str = "__unbound__:";
+
+/// Methods called on the type itself rather than on a value.
+const TYPE_STATICS: &[(&str, &str)] = &[("str", "maketrans"), ("dict", "fromkeys"), ("int", "from_bytes"), ("bytes", "fromhex")];
+
+/// Whether `ty.name` is a method of a built-in type, taken from the type
+/// (`str.lower`, `list.append`) or a static one (`dict.fromkeys`).
+pub(crate) fn type_member(ty: &str, name: &str) -> bool {
+    if TYPE_STATICS.contains(&(ty, name)) {
+        return true;
+    }
+    let table: &[&str] = match ty {
+        "str" => STR_METHODS,
+        "list" => LIST_METHODS,
+        "tuple" => TUPLE_METHODS,
+        "set" => SET_METHODS,
+        "dict" => DICT_METHODS,
+        "bytes" => BYTES_METHODS,
+        "int" => &["to_bytes", "bit_length"],
+        _ => return false,
+    };
+    table.contains(&name)
+}
 
 /// Whether [obj] has a built-in method [name].
 pub(crate) fn has_builtin_method(obj: &Value, name: &str) -> bool {
@@ -85,7 +111,7 @@ impl Interp {
                 let entry = d.borrow().get(&HKey::str(name)).cloned();
                 match entry {
                     Some(v) if !(DICT_METHODS.contains(&name) && !is_callable(&v)) => self.call_value(&v, args, kwargs),
-                    _ => self.dict_method(d, name, &args),
+                    _ => self.dict_method(d, name, &args, &kwargs),
                 }
             }
             Value::Match(m) => self.match_method(m, name, &args),
@@ -94,6 +120,7 @@ impl Interp {
                 self.call_module(&m, name, args, kwargs)
             }
             Value::Bytes(b) => self.bytes_method(b, name, &args, &kwargs),
+            Value::Builtin(b) if type_member(b, name) => self.call_type_member(&format!("{b}.{name}"), args, kwargs),
             Value::Builtin(b) if b.as_ref() == "int" && name == "from_bytes" => self.int_from_bytes(&args, &kwargs),
             Value::Int(_) | Value::Bool(_) if matches!(name, "to_bytes" | "bit_length") => self.int_method(obj, name, &args, &kwargs),
             Value::Builtin(b) if b.as_ref() == "bytes" && name == "fromhex" => {
@@ -117,6 +144,15 @@ impl Interp {
                 let m = self.attribute(obj, name)?;
                 self.call_value(&m, args, kwargs)
             }
+            Value::Object(o) if matches!(o.as_ref(), Object::Pattern { .. }) => {
+                let Object::Pattern { pattern, flags } = o.as_ref() else { unreachable!() };
+                let (pattern, flags) = (pattern.clone(), *flags);
+                self.pattern_method(&pattern, flags, name, args, kwargs)
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Slice(..)) && name == "indices" => {
+                let Object::Slice(a, b, c) = o.as_ref() else { unreachable!() };
+                self.slice_indices_method(a, b, c, &args)
+            }
             Value::Class(_) | Value::Object(_) | Value::Function(_) => {
                 let m = self.attribute(obj, name)?;
                 self.call_value(&m, args, kwargs)
@@ -131,6 +167,110 @@ impl Interp {
             },
             _ => Err(self.error(format!("'{}' object has no method '{name}'", obj.type_name()), "AttributeError")),
         }
+    }
+
+    /// `str.lower("X")`, `dict.fromkeys(keys)`: a method reached through its type.
+    pub(crate) fn call_type_member(&mut self, path: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        let (ty, name) = path.split_once('.').unwrap_or((path, ""));
+        match (ty, name) {
+            ("str", "maketrans") => return self.maketrans(&args),
+            ("dict", "fromkeys") => {
+                let keys = args.first().ok_or_else(|| self.error("fromkeys expected at least 1 argument", "TypeError"))?;
+                let value = args.get(1).cloned().unwrap_or(Value::None);
+                let mut d = indexmap::IndexMap::new();
+                for k in self.iterate(keys)? {
+                    d.insert(self.hashable(&k)?, value.clone());
+                }
+                return Ok(Value::new_dict(d));
+            }
+            ("int", "from_bytes") => return self.int_from_bytes(&args, &kwargs),
+            ("bytes", "fromhex") => {
+                let s = self.arg_str(&args, 0, "fromhex")?;
+                return match from_hex(&s) {
+                    Ok(v) => Ok(Value::bytes(&v)),
+                    Err(e) => Err(self.byte_error(e)),
+                };
+            }
+            _ => {}
+        }
+        let Some(receiver) = args.first().cloned() else {
+            return Err(self.error(format!("unbound method {ty}.{name}() needs an argument"), "TypeError"));
+        };
+        let fits = match ty {
+            "int" => matches!(receiver, Value::Int(_) | Value::Bool(_)),
+            _ => receiver.static_type_name() == ty,
+        };
+        if !fits {
+            return Err(self.error(
+                format!("descriptor '{name}' for '{ty}' objects doesn't apply to a '{}' object", receiver.type_name()),
+                "TypeError",
+            ));
+        }
+        self.call_method(&receiver, name, args[1..].to_vec(), kwargs)
+    }
+
+    /// `str.maketrans(x, y=None, z=None)`: a table for `str.translate`, from a
+    /// dict, or from two strings of equal length and a string of characters to drop.
+    fn maketrans(&mut self, args: &[Value]) -> R<Value> {
+        let mut table = indexmap::IndexMap::new();
+        match args {
+            [Value::Dict(d)] => {
+                for (k, v) in d.borrow().iter() {
+                    let key = match k.to_value() {
+                        Value::Str(s) if s.chars().count() == 1 => s.chars().next().unwrap() as i64,
+                        Value::Int(i) => i,
+                        _ => return Err(self.error("keys in a translate table must be strings of length 1 or integers", "ValueError")),
+                    };
+                    table.insert(HKey::Int(key), v.clone());
+                }
+            }
+            [Value::Str(x), Value::Str(y), rest @ ..] => {
+                if x.chars().count() != y.chars().count() {
+                    return Err(self.error("the first two maketrans arguments must have equal length", "ValueError"));
+                }
+                for (a, b) in x.chars().zip(y.chars()) {
+                    table.insert(HKey::Int(a as i64), Value::Int(b as i64));
+                }
+                match rest {
+                    [] => {}
+                    [Value::Str(z)] => {
+                        for c in z.chars() {
+                            table.insert(HKey::Int(c as i64), Value::None);
+                        }
+                    }
+                    _ => return Err(self.error("maketrans() third argument must be a string", "TypeError")),
+                }
+            }
+            _ => return Err(self.error("maketrans() takes a dict, or two strings and an optional third", "TypeError")),
+        }
+        Ok(Value::new_dict(table))
+    }
+
+    /// `slice.indices(length)`: (start, stop, step) clamped to a sequence of that length.
+    fn slice_indices_method(&mut self, a: &Value, b: &Value, c: &Value, args: &[Value]) -> R<Value> {
+        let n = args.first().and_then(Value::as_int).ok_or_else(|| self.error("indices() needs a length", "TypeError"))?;
+        if n < 0 {
+            return Err(self.error("length should not be negative", "ValueError"));
+        }
+        let bound = |v: &Value| -> R<Option<i64>> {
+            match v {
+                Value::None => Ok(None),
+                other => other.as_int().map(Some).ok_or_else(|| self.error("slice indices must be integers or None", "TypeError")),
+            }
+        };
+        let step = bound(c)?.unwrap_or(1);
+        if step == 0 {
+            return Err(self.error("slice step cannot be zero", "ValueError"));
+        }
+        let (low, high) = if step > 0 { (0, n) } else { (-1, n - 1) };
+        let clamp = |v: Option<i64>, default: i64| match v {
+            None => default,
+            Some(i) if i < 0 => (i + n).max(low),
+            Some(i) => i.min(high),
+        };
+        let start = clamp(bound(a)?, if step > 0 { 0 } else { n - 1 });
+        let stop = clamp(bound(b)?, if step > 0 { n } else { -1 });
+        Ok(Value::tuple(vec![Value::Int(start), Value::Int(stop), Value::Int(step)]))
     }
 
     fn arg_str(&self, args: &[Value], i: usize, method: &str) -> R<Rc<str>> {
@@ -316,6 +456,80 @@ impl Interp {
                 st(s.strip_suffix(p.as_ref()).unwrap_or(s).to_string())
             }
             "format" => st(self.format_method(s, &args, &kwargs)?),
+            "format_map" => {
+                let Some(Value::Dict(d)) = args.first() else {
+                    return Err(self.error("format_map() needs a dict", "TypeError"));
+                };
+                let named: Vec<(Rc<str>, Value)> =
+                    d.borrow().iter().filter_map(|(k, v)| match k { HKey::Str(k) => Some((k.clone(), v.clone())), _ => None }).collect();
+                st(self.format_method(s, &[], &named)?)
+            }
+            "translate" => {
+                let table = args.first().ok_or_else(|| self.error("translate() needs a table", "TypeError"))?.clone();
+                let mut out = String::with_capacity(s.len());
+                for c in s.chars() {
+                    let key = Value::Int(c as i64);
+                    let mapped = match &table {
+                        Value::Dict(d) => d.borrow().get(&HKey::Int(c as i64)).cloned(),
+                        Value::Instance(_) => match self.dunder(&table, "__getitem__", vec![key]) {
+                            Ok(v) => v,
+                            Err(super::error::Exc::Error(e)) if !e.is_abort() && matches!(e.kind.as_str(), "KeyError" | "IndexError" | "LookupError") => None,
+                            Err(e) => return Err(e),
+                        },
+                        _ => return Err(self.error("translate() table must be a dict", "TypeError")),
+                    };
+                    match mapped {
+                        None => out.push(c),
+                        Some(Value::None) => {}
+                        Some(Value::Str(r)) => out.push_str(&r),
+                        Some(Value::Int(i)) if super::builtins::is_scalar(i) => out.push(char::from_u32(i as u32).unwrap()),
+                        Some(_) => return Err(self.error("character mapping must return an integer, None or a string", "TypeError")),
+                    }
+                    if out.len() > self.max_string * 4 {
+                        return Err(self.string_abort());
+                    }
+                }
+                st(out)
+            }
+            "expandtabs" => {
+                let size = args.first().or_else(|| kwarg(&kwargs, "tabsize")).and_then(Value::as_int).unwrap_or(8).max(0) as usize;
+                let mut out = String::new();
+                let mut column = 0usize;
+                for c in self.clusters_of(s) {
+                    match c.as_str() {
+                        "\t" => {
+                            if size > 0 {
+                                let pad = size - column % size;
+                                out.push_str(&" ".repeat(pad));
+                                column += pad;
+                            }
+                        }
+                        "\n" | "\r" | "\r\n" => {
+                            out.push_str(&c);
+                            column = 0;
+                        }
+                        _ => {
+                            out.push_str(&c);
+                            column += 1;
+                        }
+                    }
+                    if column > self.max_string {
+                        return Err(self.string_abort());
+                    }
+                }
+                st(out)
+            }
+            "isascii" => Ok(Value::Bool(s.is_ascii())),
+            "isdecimal" => Ok(Value::Bool(!s.is_empty() && s.chars().all(scalar_is_decimal))),
+            "isprintable" => Ok(Value::Bool(s.chars().all(scalar_is_printable))),
+            "isidentifier" => {
+                let mut chars = s.chars();
+                let ok = match chars.next() {
+                    Some(c) if c == '_' || c.is_alphabetic() => chars.all(|c| c == '_' || c.is_alphanumeric() || matches!(c.general_category_group(), unicode_properties::GeneralCategoryGroup::Mark)),
+                    _ => false,
+                };
+                Ok(Value::Bool(ok))
+            }
             "encode" => {
                 let enc = match args.first().or_else(|| kwarg(&kwargs, "encoding")) {
                     None => Rc::from("utf-8"),
@@ -619,10 +833,8 @@ impl Interp {
             }
             "sort" => {
                 let mut items = l.borrow().clone();
-                self.insertion_sort(&mut items, kwarg(&kwargs, "key").cloned())?;
-                if kwarg(&kwargs, "reverse").is_some_and(Value::truthy) {
-                    items.reverse();
-                }
+                let reverse = kwarg(&kwargs, "reverse").is_some_and(Value::truthy);
+                self.sort_values(&mut items, kwarg(&kwargs, "key").cloned(), reverse)?;
                 *l.borrow_mut() = items;
                 Ok(Value::None)
             }
@@ -693,7 +905,7 @@ impl Interp {
                 self.arity("remove", args, 1)?;
                 let k = self.hashable(&args[0])?;
                 if !s.borrow_mut().shift_remove(&k) {
-                    return Err(self.error(py_repr(&args[0]), "KeyError"));
+                    return Err(self.key_error(&args[0]));
                 }
                 Ok(Value::None)
             }
@@ -740,9 +952,12 @@ impl Interp {
     // MARK: - dict
 
     #[inline(never)]
-    fn dict_method(&mut self, d: &DictRef, name: &str, args: &[Value]) -> R<Value> {
-        let key = |me: &Interp| -> R<HKey> {
-            args.first().and_then(HKey::from_value).ok_or_else(|| me.error("unhashable key", "TypeError"))
+    fn dict_method(&mut self, d: &DictRef, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let key = |me: &mut Interp| -> R<HKey> {
+            match args.first() {
+                Some(k) => me.hashable(k),
+                None => Err(me.error(format!("{name}() needs a key"), "TypeError")),
+            }
         };
         match name {
             "keys" => Ok(Value::list(d.borrow().keys().map(HKey::to_value).collect())),
@@ -759,7 +974,7 @@ impl Interp {
                 match v {
                     Some(v) => Ok(v),
                     None if args.len() > 1 => Ok(args[1].clone()),
-                    None => Err(self.error(py_repr(&args[0]), "KeyError")),
+                    None => Err(self.key_error(&args[0])),
                 }
             }
             "popitem" => {
@@ -782,24 +997,21 @@ impl Interp {
                 }
             }
             "update" => {
-                let first = args.first().ok_or_else(|| self.error("update() expects a dict", "TypeError"))?;
-                if let Value::Dict(src) = first {
-                    let pairs: Vec<(HKey, Value)> = src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-                    let mut m = d.borrow_mut();
-                    for (k, v) in pairs {
-                        m.insert(k, v);
-                    }
-                } else {
-                    for pair in self.iterate(first)? {
-                        let items = sequence_items(&pair);
-                        let k = items.as_ref().filter(|i| i.len() == 2).and_then(|i| HKey::from_value(&i[0]));
-                        match (items, k) {
-                            (Some(items), Some(k)) => {
-                                d.borrow_mut().insert(k, items[1].clone());
-                            }
-                            _ => return Err(self.error("update() needs (key, value) pairs", "ValueError")),
-                        }
-                    }
+                // update(mapping or pairs, **more): every key of each, later ones winning.
+                let mut pairs: Vec<(HKey, Value)> = match args.first() {
+                    None => Vec::new(),
+                    Some(Value::Dict(src)) => src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+                    Some(first @ Value::Instance(i)) if i.class.lookup("keys").is_some() => self.mapping_pairs(first)?,
+                    Some(first) => self.pairs_of(first, "update()")?,
+                };
+                pairs.extend(kwargs.iter().map(|(k, v)| (HKey::Str(k.clone()), v.clone())));
+                let mut m = d.borrow_mut();
+                for (k, v) in pairs {
+                    m.insert(k, v);
+                }
+                if m.len() > self.max_container {
+                    drop(m);
+                    return Err(self.container_abort("dict"));
                 }
                 Ok(Value::None)
             }

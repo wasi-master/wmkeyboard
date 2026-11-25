@@ -1,8 +1,8 @@
 //! Port of PyFormat.kt: format specs for f-string placeholders,
 //! `"{:...}".format(...)` and `format(value, spec)`, all one implementation.
 //!
-//! Grammar (Python's, minus locale-aware `n` and the `#` alternate form):
-//!     [[fill]align][sign][0][width][grouping][.precision][type]
+//! Grammar (Python's, minus locale-aware `n`):
+//!     [[fill]align][sign][#][0][width][grouping][.precision][type]
 
 use super::builtins::{is_scalar, to_radix};
 use super::error::PyError;
@@ -13,6 +13,8 @@ struct Spec {
     fill: String,
     align: Option<&'static str>,
     sign: &'static str,
+    /// `#`: `0x`/`0o`/`0b` before an integer, and a decimal point kept on a float.
+    alternate: bool,
     width: Option<usize>,
     grouping: Option<String>,
     precision: Option<usize>,
@@ -31,7 +33,7 @@ fn align_of(s: &str) -> Option<&'static str> {
 
 fn parse_spec(spec: &str) -> Result<Spec, PyError> {
     let chars = graphemes(spec);
-    let mut s = Spec { fill: " ".into(), align: None, sign: "-", width: None, grouping: None, precision: None, ty: None };
+    let mut s = Spec { fill: " ".into(), align: None, sign: "-", alternate: false, width: None, grouping: None, precision: None, ty: None };
     let mut i = 0;
     // fill+align, or a bare align.
     if chars.len() >= 2 && align_of(chars[1]).is_some() {
@@ -56,7 +58,8 @@ fn parse_spec(spec: &str) -> Result<Spec, PyError> {
         }
     }
     if i < chars.len() && chars[i] == "#" {
-        return Err(PyError::new("the '#' format option is not supported", "ValueError"));
+        s.alternate = true;
+        i += 1;
     }
     if i < chars.len() && chars[i] == "0" {
         if s.align.is_none() {
@@ -151,7 +154,14 @@ fn integer_formatted(value: &Value, spec: &Spec) -> Result<String, PyError> {
     if let Some(g) = &spec.grouping {
         digits = grouped(&digits, g);
     }
-    let prefix = sign_prefix(i < 0, spec);
+    let radix_prefix = match (spec.alternate, ty) {
+        (true, "b") => "0b",
+        (true, "o") => "0o",
+        (true, "x") => "0x",
+        (true, "X") => "0X",
+        _ => "",
+    };
+    let prefix = format!("{}{radix_prefix}", sign_prefix(i < 0, spec));
     Ok(padded(&format!("{prefix}{digits}"), spec, true, prefix.len()))
 }
 
@@ -189,6 +199,13 @@ fn float_formatted(value: &Value, spec: &Spec) -> Result<String, PyError> {
             }
             _ => c_fixed(magnitude, spec.precision.unwrap_or(6)),
         };
+        // `#` keeps the decimal point even with no digits after it: `f"{3:#.0f}"` is "3.".
+        if spec.alternate && !b.contains('.') && matches!(ty, "f" | "F" | "%" | "e" | "E") {
+            match b.find(['e', 'E']) {
+                Some(at) => b.insert(at, '.'),
+                None => b.push('.'),
+            }
+        }
         if let Some(g) = &spec.grouping {
             b = match b.find('.') {
                 None => grouped(&b, g),

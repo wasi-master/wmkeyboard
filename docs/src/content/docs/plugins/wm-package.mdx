@@ -84,13 +84,19 @@ needs:
   `@classmethod`, and the usual `__dunder__` methods
 - `if`, `for`, `while`, `try`/`except`/`finally`, `raise`, `with`, `assert`,
   `global`, `nonlocal`, `del`
-- list, dict and set comprehensions, f-strings, slicing, unpacking, type
+- list, dict and set comprehensions, f-strings (`{x=}` too), slicing, slice
+  assignment, unpacking with a starred target (`first, *rest = items`), type
   annotations (read and ignored)
 - your own exceptions: `class NotFound(Exception): pass`
 - exact 64-bit integers with `<<`, `>>` and the other bit operators,
   `int.from_bytes` and `n.to_bytes` for binary formats; past 64 bits a result
   becomes a float, since there are no big integers
-- Python's string escapes, `\x41`, `\u00e9` and `\U0001F600` included
+- Python's string escapes, `\x41`, `\u00e9` and `\U0001F600` included, though
+  not `\N{name}`
+- Python's sorting (stable, with `key` and `reverse`), dict keys (`1` and
+  `1.0` are one key; `__hash__` and `__eq__` decide for your classes),
+  `frozenset`, `bytearray`, and `re.compile` with lookahead, lookbehind and
+  backreferences
 
 Not there: `yield` and generators, `async` and `await`, `match`, the walrus
 `:=`, `eval`, `exec`, `compile`, `open` and `__import__`. A script that uses
@@ -108,8 +114,11 @@ one is refused with a message that names it.
 `time` has `time()`, `monotonic()`, `parts(seconds)` (a dict of `year`,
 `month`, `day`, `hour`, `minute`, `second`, `weekday`, `yearday`) and
 `format(pattern, seconds)` with Java date patterns such as
-`"EEE d MMM yyyy"`. The [classic reference](/plugins/api-reference/#the-python-you-get)
-has more detail on the built-in modules, strings and dicts.
+`"EEE d MMM yyyy"`. In `itertools`, `count`, `cycle` and `repeat` are endless
+iterators: `islice`, `takewhile`, `zip` and `next()` take only what they need
+from them. `typing.NamedTuple` classes unpack and compare like tuples. The
+[classic reference](/plugins/api-reference/#the-python-you-get) has more detail
+on the built-in modules, strings and dicts.
 
 ## plugin
 

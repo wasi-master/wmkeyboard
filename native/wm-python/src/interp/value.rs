@@ -7,8 +7,8 @@
 //!
 //! Strings follow PyMini: `len`, indexing, slicing and iteration count extended
 //! grapheme clusters, and `==`/`<` use canonical equivalence (NFC). Ints are
-//! 64-bit, but arithmetic runs through `f64` as PyMini's does, so a result past
-//! 2^53 comes back as a float (`10**20` prints `1e+20`).
+//! exact 64-bit; a result past 64 bits carries on as a float (`2**64` prints
+//! `1.8446744073709552e+19`), since there are no big integers.
 
 use std::cell::{Cell, RefCell};
 use std::fmt;
@@ -128,17 +128,58 @@ pub enum Object {
     StaticMethod(Value),
     ClassMethod(Value),
     Property { get: Value, set: Value },
+    /// `slice(start, stop, step)`, what `obj[1:3]` hands an object's `__getitem__`.
+    Slice(Value, Value, Value),
+    /// What `re.compile` returns: the pattern and its flags, compiled again
+    /// for each use.
+    Pattern { pattern: Rc<str>, flags: i64 },
     /// `super()`: attribute lookups start above [class] and bind to [receiver].
     Super { class: Rc<Class>, receiver: Value },
     /// What `iter()` returns for a built-in sequence: the items left to hand out.
     Iterator(RefCell<std::collections::VecDeque<Value>>),
 }
 
-/// A raised exception: there are no classes, so it is a type name and a message.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+/// A raised built-in exception: its kind, the message `str(e)` gives, and the
+/// arguments it was made with (`e.args`).
+#[derive(Clone)]
 pub struct ExceptionValue {
     pub kind: String,
     pub message: String,
+    /// `ValueError("a", 1).args`. The interpreter's own errors carry their
+    /// message here, or nothing when it is empty, as CPython's do.
+    pub args: Vec<Value>,
+    /// What `raise … from cause` named, read back as `__cause__`.
+    pub cause: Option<Value>,
+}
+
+impl ExceptionValue {
+    /// One the interpreter raised with only a message.
+    pub fn new(kind: impl Into<String>, message: impl Into<String>) -> ExceptionValue {
+        let message = message.into();
+        let args = if message.is_empty() { Vec::new() } else { vec![Value::str(&message)] };
+        ExceptionValue { kind: kind.into(), message, args, cause: None }
+    }
+}
+
+impl PartialEq for ExceptionValue {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.message == other.message
+    }
+}
+
+impl Eq for ExceptionValue {}
+
+impl Hash for ExceptionValue {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        self.kind.hash(h);
+        self.message.hash(h);
+    }
+}
+
+impl fmt::Debug for ExceptionValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}({:?})", self.kind, self.message)
+    }
 }
 
 /// What a function value runs.
@@ -160,11 +201,25 @@ pub struct Function {
     /// one, None where there is no default. So `lambda i=i: i` in a loop
     /// keeps each turn's `i`.
     pub(crate) defaults: Vec<Option<Value>>,
+    /// Attributes set on the function, `f.cache = {}` or the `__name__`
+    /// `functools.wraps` copies over.
+    pub(crate) attrs: RefCell<IndexMap<Rc<str>, Value>>,
 }
 
 impl Function {
     pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>, defaults: Vec<Option<Value>>) -> Function {
-        Function { name, body, closure, owner: RefCell::new(None), defaults }
+        Function { name, body, closure, owner: RefCell::new(None), defaults, attrs: RefCell::new(IndexMap::new()) }
+    }
+
+    /// The name it shows: a `__qualname__` or `__name__` set on it, or the one it was defined with.
+    pub fn display_name(&self) -> Rc<str> {
+        let attrs = self.attrs.borrow();
+        for key in ["__qualname__", "__name__"] {
+            if let Some(Value::Str(s)) = attrs.get(key) {
+                return s.clone();
+            }
+        }
+        self.name.clone()
     }
 
     pub(crate) fn signature(&self) -> &Params {
@@ -190,8 +245,9 @@ impl Function {
     }
 }
 
-/// The values that can be dict keys and set members. Like Swift's synthesized
-/// Hashable, `1`, `1.0` and `True` are three different keys.
+/// The values that can be dict keys and set members. As in Python, numbers
+/// that are equal are one key: `1`, `1.0` and `True` all find the same entry,
+/// which keeps the first one written.
 #[derive(Clone)]
 pub enum HKey {
     None,
@@ -203,6 +259,25 @@ pub enum HKey {
     Bytes(Rc<[u8]>),
     /// A class, instance or function, which hash and compare by identity.
     Ref(Value),
+    /// An instance whose class defines `__hash__`: the hash it gave, and
+    /// [canon], the first instance seen with that hash that `__eq__` found
+    /// equal to it. Equal instances share one canon, so they are one key.
+    Obj { hash: i64, canon: Value, value: Value },
+}
+
+/// A number key as an integer when it is one exactly, so `1`, `1.0` and
+/// `True` hash and compare alike.
+fn whole(k: &HKey) -> Option<i64> {
+    match k {
+        HKey::Bool(b) => Some(*b as i64),
+        HKey::Int(i) => Some(*i),
+        HKey::Float(f) if f.fract() == 0.0 && *f >= i64::MIN as f64 && *f < -(i64::MIN as f64) => Some(*f as i64),
+        _ => None,
+    }
+}
+
+fn is_number(k: &HKey) -> bool {
+    matches!(k, HKey::Bool(_) | HKey::Int(_) | HKey::Float(_))
 }
 
 impl HKey {
@@ -219,15 +294,22 @@ impl HKey {
 
 impl PartialEq for HKey {
     fn eq(&self, other: &Self) -> bool {
+        if is_number(self) && is_number(other) {
+            return match (whole(self), whole(other)) {
+                (Some(a), Some(b)) => a == b,
+                (None, None) => matches!((self, other), (HKey::Float(a), HKey::Float(b)) if a == b),
+                _ => false,
+            };
+        }
         match (self, other) {
             (HKey::None, HKey::None) => true,
-            (HKey::Bool(a), HKey::Bool(b)) => a == b,
-            (HKey::Int(a), HKey::Int(b)) => a == b,
-            (HKey::Float(a), HKey::Float(b)) => a == b,
             (HKey::Str(a), HKey::Str(b)) => str_eq(a, b),
             (HKey::Tuple(a), HKey::Tuple(b)) => a == b,
             (HKey::Bytes(a), HKey::Bytes(b)) => a == b,
             (HKey::Ref(a), HKey::Ref(b)) => HKey::ref_address(a) == HKey::ref_address(b),
+            (HKey::Obj { hash: a, canon: x, .. }, HKey::Obj { hash: b, canon: y, .. }) => {
+                a == b && HKey::ref_address(x) == HKey::ref_address(y)
+            }
             _ => false,
         }
     }
@@ -239,18 +321,18 @@ impl Hash for HKey {
     fn hash<H: Hasher>(&self, h: &mut H) {
         match self {
             HKey::None => 0u8.hash(h),
-            HKey::Bool(b) => {
-                1u8.hash(h);
-                b.hash(h)
-            }
-            HKey::Int(i) => {
-                2u8.hash(h);
-                i.hash(h)
-            }
-            HKey::Float(f) => {
-                3u8.hash(h);
-                if *f == 0.0 { 0u64 } else { f.to_bits() }.hash(h)
-            }
+            HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) => match whole(self) {
+                Some(i) => {
+                    2u8.hash(h);
+                    i.hash(h)
+                }
+                None => {
+                    3u8.hash(h);
+                    if let HKey::Float(f) = self {
+                        f.to_bits().hash(h)
+                    }
+                }
+            },
             HKey::Str(s) => {
                 4u8.hash(h);
                 str_hash(s, h)
@@ -269,6 +351,10 @@ impl Hash for HKey {
             HKey::Ref(v) => {
                 7u8.hash(h);
                 HKey::ref_address(v).hash(h)
+            }
+            HKey::Obj { hash, .. } => {
+                8u8.hash(h);
+                hash.hash(h)
             }
         }
     }
@@ -306,6 +392,7 @@ impl HKey {
             HKey::Bytes(b) => Value::Bytes(b.clone()),
             HKey::Tuple(t) => Value::Tuple(Rc::new(t.iter().map(HKey::to_value).collect())),
             HKey::Ref(v) => v.clone(),
+            HKey::Obj { value, .. } => value.clone(),
         }
     }
 
@@ -439,6 +526,8 @@ impl Value {
                 Object::Property { .. } => "property",
                 Object::Super { .. } => "super",
                 Object::Iterator(_) => "iterator",
+                Object::Slice(..) => "slice",
+                Object::Pattern { .. } => "re.Pattern",
             },
         }
     }
@@ -586,8 +675,11 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::Float(f) => format_double(*f),
         Value::Str(s) => s.to_string(),
         Value::List(_) | Value::Dict(_) | Value::Tuple(_) | Value::Set(_) | Value::Bytes(_) => py_repr(v),
-        Value::Function(f) => format!("<function {}>", f.name),
-        Value::Builtin(n) => format!("<builtin {n}>"),
+        Value::Function(f) => format!("<function {}>", f.display_name()),
+        Value::Builtin(n) => match n.strip_prefix(super::methods::UNBOUND_PREFIX).and_then(|m| m.split_once('.')) {
+            Some((ty, method)) => format!("<method '{method}' of '{ty}' objects>"),
+            None => format!("<builtin {n}>"),
+        },
         Value::HostFunction(f) => format!("<builtin {}>", f.name),
         Value::Module(n) => format!("<module '{n}'>"),
         Value::ModuleFunction(mf) => format!("<builtin {}.{}>", mf.0, mf.1),
@@ -604,18 +696,37 @@ pub(crate) fn py_str(v: &Value) -> String {
         },
         Value::Object(o) => match o.as_ref() {
             Object::Bound(_, f) => format!("<bound method {}>", py_str(f).trim_start_matches("<function ").trim_end_matches('>')),
+            Object::Slice(a, b, c) => format!("slice({}, {}, {})", py_repr(a), py_repr(b), py_repr(c)),
+            Object::Pattern { pattern, flags } => {
+                let names: Vec<&str> = [(2, "re.IGNORECASE"), (8, "re.MULTILINE"), (16, "re.DOTALL")]
+                    .iter()
+                    .filter(|(bit, _)| flags & bit != 0)
+                    .map(|(_, n)| *n)
+                    .collect();
+                if names.is_empty() {
+                    format!("re.compile({})", str_repr(pattern))
+                } else {
+                    format!("re.compile({}, {})", str_repr(pattern), names.join("|"))
+                }
+            }
             _ => format!("<{} object>", v.static_type_name()),
         },
     }
 }
 
+/// Python's repr of a string: single quotes, or double ones when the text
+/// has a single quote and no double quote.
 pub(crate) fn str_repr(s: &str) -> String {
+    let quote = if s.contains('\'') && !s.contains('"') { '"' } else { '\'' };
     let mut out = String::with_capacity(s.len() + 2);
-    out.push('\'');
+    out.push(quote);
     for c in s.chars() {
         match c {
             '\\' => out.push_str("\\\\"),
-            '\'' => out.push_str("\\'"),
+            c if c == quote => {
+                out.push('\\');
+                out.push(c);
+            }
             '\n' => out.push_str("\\n"),
             '\t' => out.push_str("\\t"),
             '\r' => out.push_str("\\r"),
@@ -624,7 +735,22 @@ pub(crate) fn str_repr(s: &str) -> String {
             c => out.push(c),
         }
     }
-    out.push('\'');
+    out.push(quote);
+    out
+}
+
+/// `ascii()`: a repr with every character past ASCII written as `\xNN`,
+/// `\uNNNN` or `\UNNNNNNNN`.
+pub(crate) fn ascii_escape(repr: &str) -> String {
+    let mut out = String::with_capacity(repr.len());
+    for c in repr.chars() {
+        match c as u32 {
+            0..=0x7F => out.push(c),
+            n @ 0x80..=0xFF => out.push_str(&format!("\\x{n:02x}")),
+            n @ 0x100..=0xFFFF => out.push_str(&format!("\\u{n:04x}")),
+            n => out.push_str(&format!("\\U{n:08x}")),
+        }
+    }
     out
 }
 
@@ -683,7 +809,7 @@ pub(crate) fn py_repr(v: &Value) -> String {
                 pairs.iter().map(|(k, v)| format!("{}: {}", py_repr(&k.to_value()), py_repr(v))).collect::<Vec<_>>().join(", ")
             )
         }),
-        Value::Exception(e) => format!("{}({})", e.kind, str_repr(&e.message)),
+        Value::Exception(e) => format!("{}({})", e.kind, e.args.iter().map(py_repr).collect::<Vec<_>>().join(", ")),
         Value::Instance(i) if i.class.exception_root.is_some() => {
             let args = match i.attrs.borrow().get("args") {
                 Some(Value::Tuple(a)) => a.iter().map(py_repr).collect::<Vec<_>>().join(", "),

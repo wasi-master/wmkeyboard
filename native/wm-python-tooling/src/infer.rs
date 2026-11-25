@@ -45,6 +45,7 @@ pub fn type_of(e: &Expr) -> Option<&'static str> {
                 "set" => Some("set"),
                 "tuple" | "divmod" => Some("tuple"),
                 "bytes" => Some("bytes"),
+                "ascii" => Some("str"),
                 _ => None,
             },
             ExprKind::Attribute { value, attr, .. } => {
@@ -57,6 +58,7 @@ pub fn type_of(e: &Expr) -> Option<&'static str> {
                     (Some("re"), "split") | (Some("re"), "findall") => Some("list"),
                     (Some("time"), "parts") => Some("dict"),
                     (Some("re"), "search") | (Some("re"), "match") | (Some("re"), "fullmatch") => Some("Match"),
+                    (Some("re"), "compile") => Some("Pattern"),
                     (Some("bytes"), "fromhex") => Some("bytes"),
                     (_, "encode") => Some("bytes"),
                     (_, a) if STR_RESULTS.contains(&a) && type_of(value) != Some("dict") => Some("str"),

@@ -93,7 +93,8 @@ struct Lexer<'a> {
 }
 
 /// Split one placeholder's raw text into expression, `!conversion` and `:spec`.
-fn placeholder(body: &str, line: u32) -> Result<FRawPart, PyError> {
+/// A self-documenting `{x=}` also gives the text it writes before the value.
+fn placeholder(body: &str, line: u32) -> Result<(Option<String>, FRawPart), PyError> {
     let chars = graphemes(body);
     let mut depth: i64 = 0;
     let mut quote: Option<&str> = None;
@@ -134,7 +135,19 @@ fn placeholder(body: &str, line: u32) -> Result<FRawPart, PyError> {
         }
         i += 1;
     }
-    let source = trim_whitespaces(&chars[..expr_end.min(chars.len())].concat()).to_string();
+    let raw = chars[..expr_end.min(chars.len())].concat();
+    let mut source = trim_whitespaces(&raw).to_string();
+    // `{x=}` and `{x + 1 = }` write the expression as typed, then its repr.
+    let mut label = None;
+    if let Some(stripped) = source.strip_suffix('=') {
+        if !stripped.ends_with(['=', '!', '<', '>']) {
+            label = Some(raw.clone());
+            source = trim_whitespaces(stripped).to_string();
+            if conv.is_none() && spec_start.is_none() {
+                conv = Some("r".into());
+            }
+        }
+    }
     if source.is_empty() {
         return Err(perr("empty expression in f-string", line));
     }
@@ -142,7 +155,7 @@ fn placeholder(body: &str, line: u32) -> Result<FRawPart, PyError> {
         Some(s) => Some(spec_parts(&chars[s.min(chars.len())..].concat(), line)?),
         None => None,
     };
-    Ok(FRawPart::Expr { source, conv, spec })
+    Ok((label, FRawPart::Expr { source, conv, spec }))
 }
 
 /// A format spec can interpolate too, as in `{value:>{width}}`.
@@ -175,7 +188,7 @@ fn spec_parts(spec: &str, line: u32) -> Result<Vec<FRawPart>, PyError> {
                 return Err(perr("unterminated format spec", line));
             }
             i += 1;
-            parts.push(placeholder(&inner, line)?);
+            parts.push(placeholder(&inner, line)?.1);
             continue;
         }
         lit.push_str(chars[i]);
@@ -334,8 +347,14 @@ impl<'a> Lexer<'a> {
                     _ => return Err(perr("invalid \\x escape in a bytes literal", self.line)),
                 }
             }
+            if c == "\\" && !raw && self.peek(1) == Some("N") {
+                // Not an escape in bytes: Python keeps it as written.
+                out.extend_from_slice(b"\\N");
+                self.pos += 2;
+                continue;
+            }
             if c == "\\" {
-                out.extend_from_slice(self.scan_escape(raw).as_bytes());
+                out.extend_from_slice(self.scan_escape(raw)?.as_bytes());
                 continue;
             }
             if self.closes_string(quote, length) {
@@ -490,22 +509,31 @@ impl<'a> Lexer<'a> {
 
     /// A backslash followed by a newline joins lines without adding text. In a raw
     /// string the backslash and the character after it are both kept.
-    fn scan_escape(&mut self, raw: bool) -> String {
+    fn scan_escape(&mut self, raw: bool) -> Result<String, PyError> {
         self.pos += 1;
         if self.pos >= self.chars.len() {
-            return if raw { "\\".into() } else { String::new() };
+            return Ok(if raw { "\\".into() } else { String::new() });
         }
         let c = self.chars[self.pos];
         self.pos += 1;
         if c == "\n" {
             self.line += 1;
-            return if raw { "\\\n".into() } else { String::new() };
+            return Ok(if raw { "\\\n".into() } else { String::new() });
         }
         if raw {
-            return format!("\\{c}");
+            return Ok(format!("\\{c}"));
+        }
+        // `\N{NAME}` needs Unicode's table of names, which is not carried here:
+        // refused by name rather than kept as text Python would never produce.
+        if c == "N" && self.chars.get(self.pos) == Some(&"{") {
+            let name: String = self.chars[self.pos + 1..].iter().take_while(|c| **c != "}" && **c != "\n").copied().collect();
+            return Err(perr(
+                format!("\\N{{{name}}} names a character by its Unicode name, which plugins cannot do; write the character itself or its \\u escape"),
+                self.line,
+            ));
         }
         // Unrecognised escapes keep the backslash, as Python does, so ¯\_(ツ)_/¯ survives.
-        match c {
+        Ok(match c {
             "n" => "\n".into(),
             "t" => "\t".into(),
             "r" => "\r".into(),
@@ -543,7 +571,7 @@ impl<'a> Lexer<'a> {
                 char::from_u32(value).map(String::from).unwrap_or_default()
             }
             _ => format!("\\{c}"),
-        }
+        })
     }
 
     /// The character [digits] hex digits after the escape letter name, past them.
@@ -568,7 +596,7 @@ impl<'a> Lexer<'a> {
         while self.pos < self.chars.len() {
             let c = self.chars[self.pos];
             if c == "\\" {
-                s.push_str(&self.scan_escape(raw));
+                s.push_str(&self.scan_escape(raw)?);
             } else if self.closes_string(quote, length) {
                 self.pos += length;
                 self.push(Tok::Str(s), start_line);
@@ -596,7 +624,7 @@ impl<'a> Lexer<'a> {
         while self.pos < self.chars.len() {
             let c = self.chars[self.pos];
             if c == "\\" {
-                lit.push_str(&self.scan_escape(raw));
+                lit.push_str(&self.scan_escape(raw)?);
                 continue;
             }
             if self.closes_string(quote, length) {
@@ -618,7 +646,11 @@ impl<'a> Lexer<'a> {
                 }
                 self.pos += 1;
                 let body = self.scan_placeholder()?;
-                parts.push(placeholder(&body, self.line)?);
+                let (label, part) = placeholder(&body, self.line)?;
+                if let Some(label) = label {
+                    parts.push(FRawPart::Lit(label));
+                }
+                parts.push(part);
                 continue;
             }
             if c == "}" {

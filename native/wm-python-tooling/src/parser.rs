@@ -50,8 +50,8 @@ struct Parser<'a> {
     loose: Vec<Stmt>,
 }
 
-const AUG_OPS: &[&str] = &["+=", "-=", "*=", "/=", "%=", "//=", "**="];
-const AUG_UNSUPPORTED: &[&str] = &["&=", "|=", "^=", "<<=", ">>=", "@="];
+const AUG_OPS: &[&str] = &["+=", "-=", "*=", "/=", "%=", "//=", "**=", "&=", "|=", "^=", "<<=", ">>="];
+const AUG_UNSUPPORTED: &[&str] = &["@="];
 
 impl<'a> Parser<'a> {
     fn new(t: &'a Tokens, s: &'a Structure, nesting: u32) -> Parser<'a> {
@@ -901,16 +901,22 @@ impl<'a> Parser<'a> {
 
     fn check_target(&mut self, target: &Expr) {
         match &target.kind {
+            // `first, *rest = items` takes one starred target; a second is an error in Python too.
             ExprKind::Tuple(items) | ExprKind::List(items) => {
+                let mut starred = 0;
                 for item in items {
-                    if let ExprKind::Starred(_) = item.kind {
-                        self.unsupported(item.span, "starred assignment");
+                    if let ExprKind::Starred(inner) = &item.kind {
+                        starred += 1;
+                        if starred > 1 {
+                            self.unsupported(item.span, "two starred targets");
+                        }
+                        self.check_target(inner);
                     } else {
                         self.check_target(item);
                     }
                 }
             }
-            ExprKind::Starred(_) => self.unsupported(target.span, "starred assignment"),
+            ExprKind::Starred(_) => self.unsupported(target.span, "a starred target outside a tuple or list"),
             _ => {}
         }
     }
@@ -954,9 +960,7 @@ impl<'a> Parser<'a> {
         let start = self.start_here();
         if self.eat_op("*") {
             let inner = self.target_atom()?;
-            let e = Expr { kind: ExprKind::Starred(Box::new(inner)), span: self.span_from(start) };
-            self.unsupported(e.span, "starred assignment");
-            return Ok(e);
+            return Ok(Expr { kind: ExprKind::Starred(Box::new(inner)), span: self.span_from(start) });
         }
         self.postfix()
     }
@@ -1181,9 +1185,6 @@ impl<'a> Parser<'a> {
         };
         if let Some(op) = op {
             let at = self.t.span(self.advance());
-            if op == "~" {
-                self.unsupported(at, "~");
-            }
             self.enter()?;
             let operand = self.factor();
             self.leave();
@@ -1629,21 +1630,13 @@ enum Arg {
 
 fn unsupported_operator(op: &str) -> Option<&'static str> {
     match op {
-        "<<" | ">>" => Some("bit shifts"),
         "@" => Some("@"),
         _ => None,
     }
 }
 
-fn op_name(op: &str) -> &'static str {
-    match op {
-        "&=" => "&=",
-        "|=" => "|=",
-        "^=" => "^=",
-        "<<=" => "bit shifts",
-        ">>=" => "bit shifts",
-        _ => "@",
-    }
+fn op_name(_op: &str) -> &'static str {
+    "@"
 }
 
 /// Joins a chain left to right, or as a balanced tree when it is long enough

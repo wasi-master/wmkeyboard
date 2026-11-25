@@ -28,7 +28,7 @@ use super::value::*;
 /// Deeper than this and a native stack is at risk; PyMini has no limit.
 pub const MAX_CALL_DEPTH: u32 = 300;
 
-const PRINTF_TYPES: &[&str] = &["s", "d", "i", "f", "g", "e", "E", "x", "X", "o", "c"];
+const PRINTF_TYPES: &[&str] = &["s", "r", "a", "d", "i", "u", "f", "F", "g", "G", "e", "E", "x", "X", "o", "c"];
 
 /// A lexical scope. Functions capture the one they were defined in.
 pub(crate) struct Env {
@@ -219,6 +219,11 @@ pub(crate) struct Interp {
     pub(crate) current_module: Rc<str>,
     pub(crate) repr_depth: u32,
     pub(crate) plain_object: Option<Rc<Class>>,
+    /// Instances whose class defines `__hash__`, by the hash they gave: the
+    /// first of each set of equal ones stands for all of them as a key.
+    pub(crate) hash_buckets: HashMap<i64, Vec<Weak<Instance>>>,
+    /// What `print(..., end="")` wrote that no line end has closed yet.
+    pub(crate) print_partial: String,
 }
 
 impl Drop for Interp {
@@ -242,6 +247,7 @@ impl Drop for Interp {
             env.vars.borrow_mut().clear();
         }
         self.module_envs.clear();
+        self.hash_buckets.clear();
         self.exception_classes.clear();
         self.frames.clear();
         self.raised = None;
@@ -292,6 +298,8 @@ impl Interp {
             current_module: Rc::from("__main__"),
             repr_depth: 0,
             plain_object: None,
+            hash_buckets: HashMap::new(),
+            print_partial: String::new(),
         }
     }
 
@@ -344,6 +352,14 @@ impl Interp {
             f(&line);
         }
         self.printed.push(line);
+    }
+
+    /// Write out a line `print(..., end="")` left open.
+    pub fn flush_print(&mut self) {
+        if !self.print_partial.is_empty() {
+            let line = std::mem::take(&mut self.print_partial);
+            self.emit(line);
+        }
     }
 
     // MARK: - Step budget
@@ -425,7 +441,7 @@ impl Interp {
             StmtKind::Continue => Err(Exc::Continue),
             StmtKind::Pass => Ok(()),
             StmtKind::Try(t) => self.exec_try(t, env),
-            StmtKind::Raise(value) => Err(self.exec_raise(value.as_ref(), env)),
+            StmtKind::Raise(value, cause) => Err(self.exec_raise(value.as_ref(), cause.as_ref(), env)),
             StmtKind::Import { module, alias, names } => self.exec_import(module, alias.as_ref(), names.as_deref(), env),
             StmtKind::Global(names) => {
                 let mut g = env.global_names.borrow_mut();
@@ -463,6 +479,35 @@ impl Interp {
                     return Err(self.container_abort("list"));
                 }
                 l.borrow_mut().extend(items);
+                return Ok(());
+            }
+        }
+        // `d |= other` updates the dict in place, and `s |= t` (with `&=`, `-=`
+        // and `^=`) changes the set itself, so every name for it sees the change.
+        if let (Value::Dict(d), BinOp::BitOr) = (&current, op) {
+            let pairs = match &rhs {
+                Value::Dict(_) | Value::Instance(_) => self.mapping_pairs(&rhs)?,
+                other => self.pairs_of(other, "|=")?,
+            };
+            let mut m = d.borrow_mut();
+            for (k, v) in pairs {
+                m.insert(k, v);
+            }
+            if m.len() > self.max_container {
+                drop(m);
+                return Err(self.container_abort("dict"));
+            }
+            return Ok(());
+        }
+        if let (Value::Set(a), Value::Set(b)) = (&current, &rhs) {
+            // Worked out first, so no borrow of either set is held when [a] changes.
+            let result = set_algebra(op, &a.borrow(), &b.borrow());
+            if let Some(Value::Set(result)) = result {
+                let items = std::mem::take(&mut *result.borrow_mut());
+                if items.len() > self.max_container {
+                    return Err(self.container_abort("set"));
+                }
+                *a.borrow_mut() = items;
                 return Ok(());
             }
         }
@@ -583,8 +628,11 @@ impl Interp {
                         .find(|h| h.types.is_empty() || h.types.iter().any(|t| self.exception_is(t, &error.kind)));
                     match handler {
                         Some(h) => {
-                            let value = Rc::new(ExceptionValue { kind: error.kind.clone(), message: error.message.clone() });
                             let caught = self.caught_value(&error);
+                            let value = match &caught {
+                                Value::Exception(e) => e.clone(),
+                                _ => Rc::new(ExceptionValue::new(error.kind.clone(), error.message.clone())),
+                            };
                             self.raised = None;
                             if let Some(b) = &h.binding {
                                 env.define(b, caught.clone());
@@ -613,29 +661,79 @@ impl Interp {
         }
     }
 
-    fn exec_raise(&mut self, e: Option<&Expr>, env: &Rc<Env>) -> Exc {
+    fn exec_raise(&mut self, e: Option<&Expr>, cause: Option<&Expr>, env: &Rc<Env>) -> Exc {
         let Some(e) = e else {
             if let Some(Value::Instance(inst)) = self.active_instance.clone() {
                 return self.raise_instance(&inst);
             }
-            return match &self.active_exception {
-                Some(active) => err(active.message.clone(), &active.kind, self.current_line),
+            return match self.active_exception.clone() {
+                Some(active) => self.raise_exception(active, None),
                 None => self.error("no active exception to re-raise", "RuntimeError"),
             };
         };
-        match self.eval(e, env) {
-            Err(x) => x,
-            Ok(Value::Exception(ex)) => err(ex.message.clone(), &ex.kind, self.current_line),
-            Ok(Value::Str(s)) => err(s.to_string(), "Exception", self.current_line),
-            Ok(Value::Instance(inst)) => self.raise_instance(&inst),
-            Ok(Value::Class(c)) if c.exception_root.is_some() => match self.construct(&c, Vec::new(), Vec::new()) {
-                Ok(Value::Instance(inst)) => self.raise_instance(&inst),
+        let value = match self.eval(e, env) {
+            Ok(v) => v,
+            Err(x) => return x,
+        };
+        // `raise … from cause`: the cause is kept on the exception as `__cause__`.
+        let cause = match cause {
+            Some(c) => match self.eval(c, env) {
+                Ok(v) => Some(v),
+                Err(x) => return x,
+            },
+            None => None,
+        };
+        match value {
+            Value::Exception(ex) => self.raise_exception(ex, cause),
+            Value::Str(s) => err(s.to_string(), "Exception", self.current_line),
+            Value::Instance(inst) => {
+                if let Some(c) = cause {
+                    if inst.class.exception_root.is_some() {
+                        inst.attrs.borrow_mut().insert(Rc::from("__cause__"), c);
+                    }
+                }
+                self.raise_instance(&inst)
+            }
+            Value::Class(c) if c.exception_root.is_some() => match self.construct(&c, Vec::new(), Vec::new()) {
+                Ok(Value::Instance(inst)) => {
+                    if let Some(c) = cause {
+                        inst.attrs.borrow_mut().insert(Rc::from("__cause__"), c);
+                    }
+                    self.raise_instance(&inst)
+                }
                 Ok(_) => self.error("exceptions must derive from Exception", "TypeError"),
                 Err(x) => x,
             },
-            Ok(Value::Builtin(kind)) if EXCEPTION_KINDS.contains(&kind.as_ref()) => err("", &kind, self.current_line),
-            Ok(v) => self.error(format!("exceptions must be an exception type, not '{}'", v.type_name()), "TypeError"),
+            Value::Builtin(kind) if EXCEPTION_KINDS.contains(&kind.as_ref()) => {
+                self.raise_exception(Rc::new(ExceptionValue::new(kind.as_ref(), "")), cause)
+            }
+            v => self.error(format!("exceptions must be an exception type, not '{}'", v.type_name()), "TypeError"),
         }
+    }
+
+    /// Unwind with a built-in exception value, remembered so `except … as e`
+    /// gets it back with its args and cause.
+    fn raise_exception(&mut self, ex: Rc<ExceptionValue>, cause: Option<Value>) -> Exc {
+        let ex = match cause {
+            Some(c) => {
+                let mut copy = (*ex).clone();
+                copy.cause = Some(c);
+                Rc::new(copy)
+            }
+            None => ex,
+        };
+        self.raised = Some((Rc::from(ex.kind.as_str()), ex.message.clone(), Value::Exception(ex.clone())));
+        err(ex.message.clone(), &ex.kind, self.current_line)
+    }
+
+    /// A KeyError for [key]: `str(e)` is the key's repr and `e.args` holds the key, as in Python.
+    pub(crate) fn key_error(&mut self, key: &Value) -> Exc {
+        let message = match self.to_repr(key) {
+            Ok(m) => m,
+            Err(e) => return e,
+        };
+        let ex = ExceptionValue { kind: "KeyError".into(), message, args: vec![key.clone()], cause: None };
+        self.raise_exception(Rc::new(ex), None)
     }
 
     /// Every module name a script could import right now.
@@ -718,33 +816,122 @@ impl Interp {
             Expr::Index(base, idx) => {
                 let base = self.eval(base, env)?;
                 let idx = self.eval(idx, env)?;
-                match &base {
-                    Value::Instance(_) => {
-                        if self.dunder(&base, "__delitem__", vec![idx.clone()])?.is_none() {
-                            return Err(self.error(format!("'{}' object does not support item deletion", base.type_name()), "TypeError"));
-                        }
-                    }
-                    Value::List(l) => {
-                        let n = l.borrow().len();
-                        let i = self.list_index(&idx, n)?;
-                        l.borrow_mut().remove(i);
-                    }
-                    Value::Dict(d) => {
-                        let key = self.hashable(&idx)?;
-                        if d.borrow_mut().shift_remove(&key).is_none() {
-                            return Err(self.error(py_repr(&idx), "KeyError"));
-                        }
-                    }
-                    _ => return Err(self.error(format!("cannot delete from '{}'", base.type_name()), "TypeError")),
-                }
+                self.delete_item(&base, &idx)?;
+            }
+            Expr::Slice(sl) => {
+                let base = self.eval(&sl.0, env)?;
+                let idx = self.slice_value(&sl.1, &sl.2, &sl.3, env)?;
+                self.delete_item(&base, &idx)?;
             }
             _ => return Err(self.error("cannot delete this expression", "SyntaxError")),
         }
         Ok(())
     }
 
-    pub fn hashable(&self, v: &Value) -> R<HKey> {
-        HKey::from_value(v).ok_or_else(|| self.error(format!("unhashable type: '{}'", v.type_name()), "TypeError"))
+    /// `del base[idx]`, where [idx] may be a slice object.
+    fn delete_item(&mut self, base: &Value, idx: &Value) -> R<()> {
+        match base {
+            Value::Instance(_) => {
+                if self.dunder(base, "__delitem__", vec![idx.clone()])?.is_none() {
+                    return Err(self.error(format!("'{}' object does not support item deletion", base.type_name()), "TypeError"));
+                }
+            }
+            Value::List(l) => {
+                if let Value::Object(o) = idx {
+                    if let Object::Slice(a, b, c) = o.as_ref() {
+                        let n = l.borrow().len();
+                        let picked = self.slice_positions(n, a, b, c)?;
+                        let mut items = l.borrow_mut();
+                        for i in picked.into_iter().rev() {
+                            items.remove(i);
+                        }
+                        return Ok(());
+                    }
+                }
+                let n = l.borrow().len();
+                let i = self.list_index(idx, n)?;
+                l.borrow_mut().remove(i);
+            }
+            Value::Dict(d) => {
+                let key = self.hashable(idx)?;
+                if d.borrow_mut().shift_remove(&key).is_none() {
+                    return Err(self.key_error(idx));
+                }
+            }
+            _ => return Err(self.error(format!("cannot delete from '{}'", base.type_name()), "TypeError")),
+        }
+        Ok(())
+    }
+
+    /// The key [v] is under in a dict or set. An instance whose class defines
+    /// `__hash__` hashes by it, and equal instances (by `__eq__`) are one key.
+    pub fn hashable(&mut self, v: &Value) -> R<HKey> {
+        match v {
+            Value::Instance(inst) => self.instance_key(inst, v),
+            Value::Tuple(items) if items.iter().any(|i| matches!(i, Value::Instance(_) | Value::Tuple(_))) => {
+                let mut parts = Vec::with_capacity(items.len());
+                for i in items.iter() {
+                    parts.push(self.hashable(i)?);
+                }
+                Ok(HKey::Tuple(Rc::new(parts)))
+            }
+            _ => HKey::from_value(v).ok_or_else(|| self.error(format!("unhashable type: '{}'", v.type_name()), "TypeError")),
+        }
+    }
+
+    fn instance_key(&mut self, inst: &Rc<Instance>, v: &Value) -> R<HKey> {
+        let Some(method) = inst.class.lookup("__hash__") else {
+            return Ok(HKey::Ref(v.clone()));
+        };
+        if method.is_none() {
+            return Err(self.error(format!("unhashable type: '{}'", inst.class.name), "TypeError"));
+        }
+        let bound = self.bind(method, v.clone(), &inst.class);
+        let hash = match self.call_value(&bound, Vec::new(), Vec::new())? {
+            Value::Int(i) => i,
+            Value::Bool(b) => b as i64,
+            _ => return Err(self.error("__hash__ method should return an integer", "TypeError")),
+        };
+        let mut candidates = self.hash_buckets.get(&hash).cloned().unwrap_or_default();
+        candidates.retain(|w| w.strong_count() > 0);
+        for w in &candidates {
+            let Some(other) = w.upgrade() else { continue };
+            self.tick()?;
+            let other = Value::Instance(other);
+            if py_identical(&other, v) || self.eq(&other, v)? {
+                return Ok(HKey::Obj { hash, canon: other, value: v.clone() });
+            }
+        }
+        candidates.push(Rc::downgrade(inst));
+        self.hash_buckets.insert(hash, candidates);
+        Ok(HKey::Obj { hash, canon: v.clone(), value: v.clone() })
+    }
+
+    /// `hash(v)`: an instance's own `__hash__` answer, or a hash of its key.
+    pub(crate) fn hash_of(&mut self, v: &Value) -> R<i64> {
+        use std::hash::{Hash, Hasher};
+        match self.hashable(v)? {
+            HKey::Obj { hash, .. } => Ok(hash),
+            key => {
+                let mut h = std::collections::hash_map::DefaultHasher::new();
+                key.hash(&mut h);
+                Ok((h.finish() >> 1) as i64)
+            }
+        }
+    }
+
+    /// The (key, value) pairs of an iterable of pairs, for `dict(pairs)` and `update(pairs)`.
+    pub(crate) fn pairs_of(&mut self, v: &Value, what: &str) -> R<Vec<(HKey, Value)>> {
+        let mut out = Vec::new();
+        for pair in self.iterate(v)? {
+            let items = match sequence_items(&pair) {
+                Some(items) if items.len() == 2 => items,
+                _ => return Err(self.error(format!("{what} needs (key, value) pairs"), "ValueError")),
+            };
+            let key = self.hashable(&items[0])?;
+            out.push((key, items[1].clone()));
+        }
+        Ok(out)
     }
 
     // MARK: - Assignment
@@ -756,43 +943,156 @@ impl Interp {
                 let o = self.eval(obj, env)?;
                 self.set_attr(&o, name, value)?;
             }
-            Expr::Tuple(items) => {
+            Expr::Tuple(items) | Expr::List(items) => {
                 let parts = self.iterate(&value)?;
-                if parts.len() != items.len() {
+                let starred = items.iter().filter(|t| matches!(t, Expr::Starred(_))).count();
+                if starred > 1 {
+                    return Err(self.error("multiple starred expressions in assignment", "SyntaxError"));
+                }
+                if starred == 0 {
+                    if parts.len() != items.len() {
+                        return Err(self.error(
+                            format!("cannot unpack {} values into {} targets", parts.len(), items.len()),
+                            "ValueError",
+                        ));
+                    }
+                    for (t, p) in items.iter().zip(parts) {
+                        self.assign(t, p, env)?;
+                    }
+                    return Ok(());
+                }
+                // `first, *rest = items`: the starred target takes what the others leave, as a list.
+                let at = items.iter().position(|t| matches!(t, Expr::Starred(_))).unwrap();
+                let after = items.len() - at - 1;
+                if parts.len() < items.len() - 1 {
                     return Err(self.error(
-                        format!("cannot unpack {} values into {} targets", parts.len(), items.len()),
+                        format!("not enough values to unpack (expected at least {}, got {})", items.len() - 1, parts.len()),
                         "ValueError",
                     ));
                 }
-                for (t, p) in items.iter().zip(parts) {
+                let mut parts = parts;
+                let tail = parts.split_off(parts.len() - after);
+                let middle = parts.split_off(at);
+                for (t, p) in items[..at].iter().zip(parts) {
+                    self.assign(t, p, env)?;
+                }
+                if let Expr::Starred(inner) = &items[at] {
+                    self.assign(inner, Value::list(middle), env)?;
+                }
+                for (t, p) in items[at + 1..].iter().zip(tail) {
                     self.assign(t, p, env)?;
                 }
             }
             Expr::Index(base, idx) => {
                 let base = self.eval(base, env)?;
                 let idx = self.eval(idx, env)?;
-                match &base {
-                    Value::List(l) => {
-                        let n = l.borrow().len();
-                        let i = self.list_index(&idx, n)?;
-                        l.borrow_mut()[i] = value;
-                    }
-                    Value::Dict(d) => {
-                        let key = self.hashable(&idx)?;
-                        d.borrow_mut().insert(key, value);
-                    }
-                    Value::Instance(_) if self.dunder(&base, "__setitem__", vec![idx.clone(), value.clone()])?.is_some() => {}
-                    _ => {
-                        return Err(self.error(
-                            format!("'{}' object does not support item assignment", base.type_name()),
-                            "TypeError",
-                        ))
-                    }
-                }
+                self.set_item(&base, &idx, value)?;
             }
+            Expr::Slice(sl) => {
+                let base = self.eval(&sl.0, env)?;
+                let idx = self.slice_value(&sl.1, &sl.2, &sl.3, env)?;
+                self.set_item(&base, &idx, value)?;
+            }
+            Expr::Starred(_) => return Err(self.error("starred assignment target must be in a list or tuple", "SyntaxError")),
             _ => return Err(self.error("cannot assign to this expression", "SyntaxError")),
         }
         Ok(())
+    }
+
+    /// `base[idx] = value`, where [idx] may be a slice object.
+    fn set_item(&mut self, base: &Value, idx: &Value, value: Value) -> R<()> {
+        match base {
+            Value::List(l) => {
+                if let Value::Object(o) = idx {
+                    if let Object::Slice(a, b, c) = o.as_ref() {
+                        return self.assign_list_slice(l, a, b, c, value);
+                    }
+                }
+                let n = l.borrow().len();
+                let i = self.seq_index(idx, n, "list assignment")?;
+                l.borrow_mut()[i] = value;
+            }
+            Value::Dict(d) => {
+                let key = self.hashable(idx)?;
+                d.borrow_mut().insert(key, value);
+            }
+            Value::Instance(_) if self.dunder(base, "__setitem__", vec![idx.clone(), value.clone()])?.is_some() => {}
+            _ => {
+                return Err(self.error(format!("'{}' object does not support item assignment", base.type_name()), "TypeError"))
+            }
+        }
+        Ok(())
+    }
+
+    /// `items[a:b] = values` replaces that run, growing or shrinking the list;
+    /// with a step, `items[::2] = values` needs exactly as many values as places.
+    fn assign_list_slice(&mut self, l: &ListRef, a: &Value, b: &Value, c: &Value, value: Value) -> R<()> {
+        let new_items = self.iterate(&value)?;
+        let n = l.borrow().len();
+        let step = self.slice_step(c)?;
+        if step == 1 {
+            let (lo, hi) = (self.slice_bound(a)?, self.slice_bound(b)?);
+            let clamp = |i: Option<i64>, default: i64| match i {
+                None => default,
+                Some(i) if i < 0 => (i + n as i64).max(0),
+                Some(i) => i.min(n as i64),
+            };
+            let start = clamp(lo, 0) as usize;
+            let stop = (clamp(hi, n as i64) as usize).max(start);
+            if n - (stop - start) + new_items.len() > self.max_container {
+                return Err(self.container_abort("list"));
+            }
+            l.borrow_mut().splice(start..stop, new_items);
+            return Ok(());
+        }
+        let picked = self.slice_positions(n, a, b, c)?;
+        if picked.len() != new_items.len() {
+            return Err(self.error(
+                format!("attempt to assign sequence of size {} to extended slice of size {}", new_items.len(), picked.len()),
+                "ValueError",
+            ));
+        }
+        let mut items = l.borrow_mut();
+        for (i, v) in picked.into_iter().zip(new_items) {
+            items[i] = v;
+        }
+        Ok(())
+    }
+
+    /// `base[lo:hi:step]` evaluated into a slice object.
+    fn slice_value(&mut self, lo: &Option<Expr>, hi: &Option<Expr>, st: &Option<Expr>, env: &Rc<Env>) -> R<Value> {
+        let mut parts = [Value::None, Value::None, Value::None];
+        for (slot, e) in parts.iter_mut().zip([lo, hi, st]) {
+            if let Some(e) = e {
+                *slot = self.eval(e, env)?;
+            }
+        }
+        let [a, b, c] = parts;
+        Ok(Value::Object(Rc::new(Object::Slice(a, b, c))))
+    }
+
+    fn slice_bound(&self, v: &Value) -> R<Option<i64>> {
+        match v {
+            Value::None => Ok(None),
+            other => match other.as_int() {
+                Some(i) => Ok(Some(i)),
+                None => Err(self.error("slice indices must be integers or None", "TypeError")),
+            },
+        }
+    }
+
+    fn slice_step(&self, v: &Value) -> R<i64> {
+        let step = self.slice_bound(v)?.unwrap_or(1);
+        if step == 0 {
+            return Err(self.error("slice step cannot be zero", "ValueError"));
+        }
+        Ok(step)
+    }
+
+    /// The positions a slice picks out of [n] items, in slice order.
+    pub(crate) fn slice_positions(&self, n: usize, a: &Value, b: &Value, c: &Value) -> R<Vec<usize>> {
+        let step = self.slice_step(c)?;
+        Ok(slice_indices(n as i64, self.slice_bound(a)?, self.slice_bound(b)?, step))
     }
 
     // MARK: - Expressions
@@ -849,6 +1149,9 @@ impl Interp {
         }
         if BUILTIN_NAMES.contains(&n.as_ref()) {
             return Ok(Value::Builtin(n.clone()));
+        }
+        if super::builtins::PYTHON_BUILTINS.contains(&n.as_ref()) {
+            return self.python_builtin(n);
         }
         Err(self.error(format!("name '{n}' is not defined"), "NameError"))
     }
@@ -948,6 +1251,10 @@ impl Interp {
     #[inline(never)]
     fn eval_slice(&mut self, s: &(Expr, Option<Expr>, Option<Expr>, Option<Expr>), env: &Rc<Env>) -> R<Value> {
         let base = self.eval(&s.0, env)?;
+        if let Value::Instance(_) = base {
+            let idx = self.slice_value(&s.1, &s.2, &s.3, env)?;
+            return self.index(&base, &idx);
+        }
         let mut parts = [None, None, None];
         for (slot, e) in parts.iter_mut().zip([&s.1, &s.2, &s.3]) {
             if let Some(e) = e {
@@ -1038,6 +1345,7 @@ impl Interp {
                     let value = self.eval(expr, env)?;
                     let converted = match (conversion, &value) {
                         (Some(FConversion::Repr), _) => Value::str(self.to_repr(&value)?),
+                        (Some(FConversion::Ascii), _) => Value::str(ascii_escape(&self.to_repr(&value)?)),
                         (_, Value::Instance(_)) if spec.is_some() => match self.dunder(&value, "__format__", vec![Value::str("")])? {
                             Some(_) => value,
                             None => Value::str(self.to_str(&value)?),
@@ -1163,18 +1471,50 @@ impl Interp {
                     "__self__" => Ok(receiver.clone()),
                     "__func__" => Ok(f.clone()),
                     "__name__" => match f {
-                        Value::Function(f) => Ok(Value::Str(f.name.clone())),
+                        Value::Function(f) => Ok(Value::Str(f.display_name())),
                         other => Ok(Value::str(other.to_str())),
                     },
-                    _ => Err(self.error(format!("'method' object has no attribute '{name}'"), "AttributeError")),
+                    _ => match f {
+                        // A method reads its function's own attributes, as Python's does.
+                        Value::Function(func) if func.attrs.borrow().contains_key(name) => {
+                            Ok(func.attrs.borrow().get(name).cloned().unwrap_or(Value::None))
+                        }
+                        _ => Err(self.error(format!("'method' object has no attribute '{name}'"), "AttributeError")),
+                    },
+                },
+                Object::Slice(a, b, c) => match name {
+                    "start" => Ok(a.clone()),
+                    "stop" => Ok(b.clone()),
+                    "step" => Ok(c.clone()),
+                    _ if name == "indices" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'slice' object has no attribute '{name}'"), "AttributeError")),
+                },
+                Object::Pattern { pattern, flags } => match name {
+                    "pattern" => Ok(Value::Str(pattern.clone())),
+                    "flags" => Ok(Value::Int(*flags)),
+                    "groups" | "groupindex" => self.call_method(obj, name, Vec::new(), Vec::new()),
+                    _ if super::modules::PATTERN_METHODS.contains(&name) => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'re.Pattern' object has no attribute '{name}'"), "AttributeError")),
                 },
                 _ => Err(self.error(format!("'{}' object has no attribute '{name}'", obj.type_name()), "AttributeError")),
             },
-            Value::Function(f) => match name {
-                "__name__" | "__qualname__" => Ok(Value::Str(f.name.clone())),
-                "__doc__" => Ok(Value::None),
-                _ => Err(self.error(format!("'function' object has no attribute '{name}'"), "AttributeError")),
-            },
+            Value::Function(f) => {
+                if let Some(v) = f.attrs.borrow().get(name) {
+                    return Ok(v.clone());
+                }
+                match name {
+                    "__name__" | "__qualname__" => Ok(Value::Str(f.name.clone())),
+                    "__doc__" => Ok(Value::None),
+                    "__dict__" => {
+                        let pairs: Vec<(Rc<str>, Value)> = f.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+                        Ok(Value::dict(pairs))
+                    }
+                    _ => Err(self.error(format!("'function' object has no attribute '{name}'"), "AttributeError")),
+                }
+            }
+            Value::Builtin(b) if super::methods::type_member(b, name) => {
+                Ok(Value::Builtin(Rc::from(format!("{}{b}.{name}", super::methods::UNBOUND_PREFIX))))
+            }
             Value::Builtin(b) if b.as_ref() == "object" => {
                 let hidden = match name {
                     "__setattr__" => super::classes::HIDDEN_OBJECT_SETATTR,
@@ -1187,14 +1527,19 @@ impl Interp {
                 };
                 Ok(Value::Builtin(Rc::from(hidden)))
             }
-            Value::Builtin(b) if name == "__name__" => Ok(Value::Str(b.clone())),
+            Value::Builtin(b) if name == "__name__" => match b.strip_prefix(super::methods::UNBOUND_PREFIX) {
+                Some(path) => Ok(Value::str(path.rsplit('.').next().unwrap_or(path))),
+                None => Ok(Value::Str(b.clone())),
+            },
             Value::Module(m) => self
                 .member(m, name)
                 .ok_or_else(|| self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
             Value::Exception(e) => match name {
-                "args" => Ok(Value::tuple(vec![Value::str(&e.message)])),
+                "args" => Ok(Value::tuple(e.args.clone())),
                 "message" => Ok(Value::str(&e.message)),
-                _ => Err(self.error(format!("exception has no attribute '{name}'"), "AttributeError")),
+                "__cause__" => Ok(e.cause.clone().unwrap_or(Value::None)),
+                "__context__" | "__traceback__" => Ok(Value::None),
+                _ => Err(self.error(format!("'{}' object has no attribute '{name}'", e.kind), "AttributeError")),
             },
             Value::Match(m) => match name {
                 "string" => Ok(Value::str(m.subject.text())),
@@ -1230,7 +1575,10 @@ impl Interp {
         match callee {
             Value::Function(f) => self.call_function(f, args, kwargs),
             Value::Builtin(name) => {
-                if !kwargs.is_empty() && !super::builtins::KWARG_BUILTINS.contains(&name.as_ref()) {
+                if !kwargs.is_empty()
+                    && !super::builtins::KWARG_BUILTINS.contains(&name.as_ref())
+                    && !name.starts_with(super::methods::UNBOUND_PREFIX)
+                {
                     return Err(self.error(format!("{name}() takes no keyword arguments"), "TypeError"));
                 }
                 self.call_builtin(name, args, kwargs)
@@ -1468,6 +1816,17 @@ impl Interp {
                 return Ok(v);
             }
         }
+        // `a | b` on dicts: a new dict with b's entries over a's.
+        if let (BinOp::BitOr, Value::Dict(x), Value::Dict(y)) = (op, a, b) {
+            let mut merged = x.borrow().clone();
+            for (k, v) in y.borrow().iter() {
+                merged.insert(k.clone(), v.clone());
+            }
+            if merged.len() > self.max_container {
+                return Err(self.container_abort("dict"));
+            }
+            return Ok(Value::new_dict(merged));
+        }
         if op == BinOp::Sub {
             if let Value::Set(_) = a {
                 return Err(self.error(
@@ -1515,6 +1874,12 @@ impl Interp {
             }
         }
         let (Some(x), Some(y)) = (a.as_float(), b.as_float()) else {
+            if let (BinOp::Add, Value::Str(_) | Value::List(_) | Value::Tuple(_) | Value::Bytes(_)) = (op, a) {
+                return Err(self.error(
+                    format!("can only concatenate {} (not \"{}\") to {}", a.type_name(), b.type_name(), a.type_name()),
+                    "TypeError",
+                ));
+            }
             return Err(self.error(
                 format!("unsupported operand type(s) for {}: '{}' and '{}'", op_symbol(op), a.type_name(), b.type_name()),
                 "TypeError",
@@ -1614,10 +1979,21 @@ impl Interp {
             if next >= args.len() {
                 return Err(self.error("not enough arguments for format string", "TypeError"));
             }
-            let value = &args[next];
+            let value = args[next].clone();
             next += 1;
-            spec.push_str(if ty == "i" { "d" } else { ty });
-            out.push_str(&py_format(value, &spec)?);
+            // `%s` asks an object's __str__, `%r` and `%a` its __repr__.
+            let value = match ty {
+                "s" => Value::str(self.to_str(&value)?),
+                "r" => Value::str(self.to_repr(&value)?),
+                "a" => Value::str(ascii_escape(&self.to_repr(&value)?)),
+                _ => value,
+            };
+            spec.push_str(match ty {
+                "i" | "u" => "d",
+                "r" | "a" => "s",
+                other => other,
+            });
+            out.push_str(&py_format(&value, &spec)?);
         }
         Ok(out)
     }
@@ -1686,6 +2062,17 @@ impl Interp {
                 }
                 _ => {}
             }
+        }
+        // Sets order by inclusion: `a <= b` is a subset, `a < b` a proper one.
+        if let (Value::Set(x), Value::Set(y), CmpOp::Lt | CmpOp::Le | CmpOp::Gt | CmpOp::Ge) = (a, b, op) {
+            let (x, y) = (x.borrow(), y.borrow());
+            let subset = |p: &IndexSet<HKey>, q: &IndexSet<HKey>| p.iter().all(|k| q.contains(k));
+            return Ok(match op {
+                CmpOp::Le => subset(&x, &y),
+                CmpOp::Lt => x.len() < y.len() && subset(&x, &y),
+                CmpOp::Ge => subset(&y, &x),
+                _ => y.len() < x.len() && subset(&y, &x),
+            });
         }
         Ok(match op {
             CmpOp::Eq => self.eq(a, b)?,
@@ -1776,8 +2163,18 @@ impl Interp {
             }
             Value::List(l) => l.borrow().clone().iter().any(|v| py_equals(v, item)),
             Value::Tuple(t) => t.iter().any(|v| py_equals(v, item)),
-            Value::Set(s) => HKey::from_value(item).is_some_and(|k| s.borrow().contains(&k)),
-            Value::Dict(d) => HKey::from_value(item).is_some_and(|k| d.borrow().contains_key(&k)),
+            Value::Set(_) | Value::Dict(_) => {
+                // An unhashable item is in no set or dict.
+                let key = match item {
+                    Value::Instance(_) | Value::Tuple(_) => Some(self.hashable(item)?),
+                    other => HKey::from_value(other),
+                };
+                match (container, key) {
+                    (Value::Set(s), Some(k)) => s.borrow().contains(&k),
+                    (Value::Dict(d), Some(k)) => d.borrow().contains_key(&k),
+                    _ => false,
+                }
+            }
             Value::Bytes(b) => match item {
                 Value::Bytes(needle) => needle.is_empty() || b.windows(needle.len()).any(|w| w == needle.as_ref()),
                 other => match other.as_int() {
@@ -1835,20 +2232,36 @@ impl Interp {
         Ok(i as usize)
     }
 
+    /// [list_index] with CPython's message, which names the type: "list index out of range".
+    fn seq_index(&self, idx: &Value, count: usize, what: &str) -> R<usize> {
+        match self.list_index(idx, count) {
+            Err(Exc::Error(e)) if e.kind == "IndexError" => Err(self.error(format!("{what} index out of range"), "IndexError")),
+            other => other,
+        }
+    }
+
     fn index(&mut self, base: &Value, idx: &Value) -> R<Value> {
+        // `items[slice(1, 3)]` is `items[1:3]`.
+        if let (Value::Object(o), false) = (idx, matches!(base, Value::Instance(_) | Value::Dict(_))) {
+            if let Object::Slice(a, b, c) = o.as_ref() {
+                let step = self.slice_step(c)?;
+                let (lo, hi) = (self.slice_bound(a)?, self.slice_bound(b)?);
+                return self.slice(base, lo.map(Value::Int).as_ref(), hi.map(Value::Int).as_ref(), Some(&Value::Int(step)));
+            }
+        }
         match base {
             Value::Str(s) => {
                 let b = self.chars(s);
-                let i = self.list_index(idx, b.len() - 1)?;
+                let i = self.seq_index(idx, b.len() - 1, "string")?;
                 Ok(Value::str(&s[b[i] as usize..b[i + 1] as usize]))
             }
             Value::List(l) => {
                 let n = l.borrow().len();
-                let i = self.list_index(idx, n)?;
+                let i = self.seq_index(idx, n, "list")?;
                 Ok(l.borrow()[i].clone())
             }
             Value::Tuple(t) => {
-                let i = self.list_index(idx, t.len())?;
+                let i = self.seq_index(idx, t.len(), "tuple")?;
                 Ok(t[i].clone())
             }
             Value::Bytes(b) => {
@@ -1858,7 +2271,10 @@ impl Interp {
             Value::Dict(d) => {
                 let key = self.hashable(idx)?;
                 let v = d.borrow().get(&key).cloned();
-                v.ok_or_else(|| self.error(py_repr(idx), "KeyError"))
+                match v {
+                    Some(v) => Ok(v),
+                    None => Err(self.key_error(idx)),
+                }
             }
             Value::Match(m) => {
                 let text = idx.as_int().and_then(|i| if i < 0 { None } else { m.text(i as usize) });

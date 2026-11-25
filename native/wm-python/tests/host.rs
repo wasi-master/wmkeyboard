@@ -114,7 +114,7 @@ fn compile_and_runtime_errors() {
     let r = load(&mut s, "x = 1\n\ny = int('nope')\ndef render():\n    return []");
     assert_eq!(
         r["error"],
-        json!({"kind": "runtime", "message": "ValueError: invalid literal for int(): 'nope'", "line": 3, "abort": null, "exception": "ValueError"})
+        json!({"kind": "runtime", "message": "ValueError: invalid literal for int() with base 10: 'nope'", "line": 3, "abort": null, "exception": "ValueError"})
     );
     let r = load(&mut s, "def render():\n    return 1 / 0");
     assert_eq!(r["error"]["kind"], "runtime");
@@ -291,7 +291,7 @@ fn storage_api() {
     );
     assert_eq!(
         r["ui"]["root"][0]["text"],
-        "[['b'], ['2', None, 'dflt', 'set() argument \\'value\\' must be str, not int', 'storage keys can\\'t be longer than 64 characters', 'that value is larger than the 8 KB limit for one key']]"
+        "[['b'], ['2', None, 'dflt', \"set() argument 'value' must be str, not int\", \"storage keys can't be longer than 64 characters\", 'that value is larger than the 8 KB limit for one key']]"
     );
 }
 
@@ -416,7 +416,7 @@ fn reminders_api() {
     assert_eq!(r["remindersChanged"], true);
     assert_eq!(
         r["ui"]["root"][0]["text"],
-        "[[{'id': 'dentist', 'time': 1893574740, 'text': 'Dentist, earlier'}], ['that time has already passed', 'the time must be a number of seconds, as time.time() or wm.timestamp() gives', 'a reminder id can\\'t be empty'], [True, False], 1893574800]"
+        "[[{'id': 'dentist', 'time': 1893574740, 'text': 'Dentist, earlier'}], ['that time has already passed', 'the time must be a number of seconds, as time.time() or wm.timestamp() gives', \"a reminder id can't be empty\"], [True, False], 1893574800]"
     );
     assert_eq!(parse(s.render())["remindersChanged"], false);
 }
@@ -437,7 +437,7 @@ fn timestamp_is_local_and_lenient() {
     // UTC+1: local midnight is 23:00 UTC the day before.
     assert_eq!(
         r["ui"]["root"][0]["text"],
-        "[1893452400, 1893456000, 1925031600, 1896130800, ['field \\'day\\' is out of range']]"
+        "[1893452400, 1893456000, 1925031600, 1896130800, [\"field 'day' is out of range\"]]"
     );
 }
 
