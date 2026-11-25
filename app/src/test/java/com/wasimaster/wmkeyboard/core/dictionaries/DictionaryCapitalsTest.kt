@@ -67,6 +67,23 @@ class DictionaryCapitalsTest {
         assertNull(engine.shouldAutocorrect("Haus"))
     }
 
+    /** #1539: a noun typed without its umlauts is corrected to the noun, capital and all. */
+    @Test fun aCorrectionToANounTakesTheNounsCapital() {
+        val (words, capitals) = fold("der", "Frühstück", "Tür", "früh")
+        val list = PackedTrie.of(words.map { it!! to 100 })
+        val engine = SuggestionEngine(PackedTrie.EMPTY, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            englishSources = false
+            primaryLanguageId = "de"
+            customDictionary = list
+            dictionaryCapitals = mapOf("de" to capitals!!)
+        }
+        assertEquals("Frühstück", engine.shouldAutocorrect("fruhstuck"))
+        // A shifted word keeps the case it was given.
+        assertEquals("Frühstück", engine.shouldAutocorrect("Fruhstuck"))
+        engine.dictionaryCapitalsEnabled = false
+        assertEquals("frühstück", engine.shouldAutocorrect("fruhstuck"))
+    }
+
     @Test fun theSwitchTurnsItOff() {
         val engine = engine().apply { dictionaryCapitalsEnabled = false }
         assertNull(engine.shouldAutocorrect("haus"))

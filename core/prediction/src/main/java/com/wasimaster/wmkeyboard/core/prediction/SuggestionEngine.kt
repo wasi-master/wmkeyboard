@@ -6889,7 +6889,10 @@ class SuggestionEngine(
         fastTyping: Boolean = false,
         ownCapital: Boolean = false,
     ): CorrectionDecision {
-        val decision = decideCorrectionOf(word, touch, timingMultiplier, previousWord, keys, fastTyping)
+        val decision = withListCapital(
+            word,
+            decideCorrectionOf(word, touch, timingMultiplier, previousWord, keys, fastTyping),
+        )
         val fixed = decision.apply ?: return decision
         if (!ownCapital || word.firstOrNull()?.isUpperCase() != true) return decision
         val lower = word.lowered()
@@ -6960,6 +6963,24 @@ class SuggestionEngine(
      * one fix offered for a lower-case "i" was the thing that kept it there.
      */
     private fun dictionaryCapital(lower: String): CorrectionDecision? {
+        val spelling = capitalOf(lower) ?: return null
+        if (suppressed(lower)) return null
+        // An undo blocks it for the run of typing that earned it, and two
+        // retire it. One remembered undo only handicaps: a capital the list
+        // asks for has no rival to lose to, so treating that as a block left it
+        // no way to fire again and be kept, which is how the pair is forgiven.
+        when (correctionStats.penalty(lower, spelling)) {
+            CorrectionStats.Penalty.BLOCKED, CorrectionStats.Penalty.PROBATION -> return null
+            CorrectionStats.Penalty.PENALIZED, CorrectionStats.Penalty.NONE -> Unit
+        }
+        return CorrectionDecision(apply = spelling, certainty = 1.0)
+    }
+
+    /**
+     * The capital [dictionaryCapital] gives [lower], or null when the word is
+     * written in small letters. See there for whose capital counts.
+     */
+    private fun capitalOf(lower: String): String? {
         val listed = listSpelling(lower)
         val own = userLexicon.displayOf(lower)
         fun asked(spelling: String?): String? =
@@ -6972,17 +6993,29 @@ class SuggestionEngine(
             // list's "I" for good.
             own != null && own != lower -> own.takeIf { it == listed }
             else -> listed ?: asked(systemWordCases[lower])
-        }?.takeIf { it != lower } ?: return null
-        if (suppressed(lower)) return null
-        // An undo blocks it for the run of typing that earned it, and two
-        // retire it. One remembered undo only handicaps: a capital the list
-        // asks for has no rival to lose to, so treating that as a block left it
-        // no way to fire again and be kept, which is how the pair is forgiven.
-        when (correctionStats.penalty(lower, spelling)) {
-            CorrectionStats.Penalty.BLOCKED, CorrectionStats.Penalty.PROBATION -> return null
-            CorrectionStats.Penalty.PENALIZED, CorrectionStats.Penalty.NONE -> Unit
         }
-        return CorrectionDecision(apply = spelling, certainty = 1.0)
+        return spelling?.takeIf { it != lower }
+    }
+
+    /**
+     * [decision] with its fix spelled the way [dictionaryCapital] spells a word
+     * typed right (#1539): `fruhstuck` corrects to *Frühstück*, the noun's
+     * capital included, exactly as `frühstück` typed with its umlauts commits
+     * as *Frühstück*. Only for a [word] typed with no capital at all, since a
+     * shifted or shouted one has already given the fix its case, and only for
+     * a fix that came out in small letters; a language whose capitals are
+     * letters ([caseExact]) picks its spelling elsewhere.
+     */
+    private fun withListCapital(word: String, decision: CorrectionDecision): CorrectionDecision {
+        if (caseExact || word != word.lowered()) return decision
+        fun cased(fix: String?): String? {
+            if (fix == null || ' ' in fix || fix != fix.lowered()) return fix
+            return capitalOf(fix)?.takeUnless { suppressed(fix) } ?: fix
+        }
+        val apply = cased(decision.apply)
+        val offer = cased(decision.offer)
+        if (apply == decision.apply && offer == decision.offer) return decision
+        return decision.copy(apply = apply, offer = offer)
     }
 
     /**
