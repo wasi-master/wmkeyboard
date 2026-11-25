@@ -81,10 +81,12 @@ deletion routes, not this one. WM Keyboard keeps no record of it and cannot
 delete it on your behalf.
 
 The Google Play and GitHub builds use Google's ML Kit for handwriting and
-scanning, which sends its own diagnostics to Google. That collection is
-Google's, and Google offers no deletion path for it; the only way to avoid it
-is not to use those features, or to use the F-Droid build, which does not
-contain ML Kit. See the
+scanning. From 0.6.8 the app switches off ML Kit's usage reports, so there is
+no ML Kit diagnostics record of yours at Google to delete. What ML Kit still
+sends (model downloads, and the translator's Firebase installation identifier)
+and what Google Play services records while it runs its parts are Google's,
+held under Google's own policy. The only way to avoid them is not to use those
+features, or to use the F-Droid build, which does not contain ML Kit. See the
 [Google Play edition privacy policy](/privacy/policy/) and the
 [F-Droid edition privacy policy](/privacy/policy-fdroid/).
 

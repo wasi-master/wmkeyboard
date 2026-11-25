@@ -6855,7 +6855,6 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Tikai %1$s</string>
     <string name="netlog_filter_remove_desc">Rādīt visu vēlreiz</string>
-    <string name="netlog_invisible_body">Trīs lietotnes Google daļas veic savus pieprasījumus ārpus koda, kas aizpilda šo žurnālu. ML Kit (rokraksts, teksta skenēšana, QR skenēšana, uzlīmju izgriešana un tulkošana ierīcē, tikai pilnajā versijā) ziņo Google par lietojumu. Play pakalpojumi lejupielādē fontus pēc nosaukuma. Play veikala būvējumi vaicā Play veikalam par atjauninājumiem un pēc pieprasījuma pieejamām daļām.</string>
     <string name="netlog_invisible_link">Lasīt, ko katrs sūta</string>
     <string name="netlog_invisible_title">Ko šis ekrāns nevar redzēt</string>
     <string name="netlog_keep_info">Žurnāls saglabā līdz 2000 rindu un 30 dienu kopsavilkumus tikai jūsu ierīcē. Katrā rindā ir funkcija, serveris, adrese bez vaicājuma, izmērs, rezultāts un laiks. Tas nekad nesaglabā to, ko esat ierakstījis, meklējis vai nosūtījis, un tajā nekad nav API atslēgu. Dublējumkopijās tas nav iekļauts.</string>
@@ -8192,7 +8191,6 @@
     <string name="privacy_native_downloads_confirm_title">Lejupielādēt failus, kurus F-Droid nav pārbaudījis?</string>
     <string name="privacy_native_downloads_info">Šajā F-Droid versijā nav iekļautas vietējās bibliotēkas, kas nodrošina dažas funkcijas, piemēram, balss ievadi bezsaistē un gramatikas pārbaudi. Ja šis iestatījums ir ieslēgts, tastatūra lejupielādē bibliotēku pirmo reizi, kad funkcijai tā ir nepieciešama, no WM Keyboard datu repozitorija vietnē GitHub. Ieslēdzot to, jūs izvēlaties apiet F-Droid pārbaudes: F-Droid nav izveidojis vai pārbaudījis šos failus. Pirms tastatūra izmanto failu, tā salīdzina failu ar kontrolsummu, kas ir iegulta šajā lietotnē. Varat arī importēt failus pats, dodoties uz Iestatījumi › Par › Krātuve.</string>
     <string name="privacy_native_downloads_title">Lejupielādēt funkciju bibliotēkas</string>
-    <string name="privacy_on_device_info">Rakstīšana pilnībā darbojas šajā ierīcē. Vārdu saraksti, prognozēšana, automātiskā labošana, transliterācija un emocijzīmju meklēšana ir lietotnes daļa, un nevienai no tām nav nepieciešams tīkla savienojums. Lietotne par jums neko nevāc, un tai nav savas analītikas. Rokraksta atpazīšana, teksta skenēšana un QR skenēšana ir balstīta uz Google ML Kit, kas ziņo par savu diagnostiku Google, kamēr jūs tos izmantojat. Tikai rīks izmanto tīklu, un tikai tajā brīdī, kad to nospiežat: tulkošana, laikapstākļi, meklēšana tīmeklī, attēlu meklēšana, GIF, uzlīmes, vārdnīcas uzmeklēšana un AI rīki. Katru no tiem varat izslēgt rīku ekrānā.</string>
     <string name="privacy_other_apps_group_title">Citas lietotnes</string>
     <string name="privacy_permissions_accessibility_subtitle">Saglabāt tastatūras žestus, kamēr TalkBack ir ieslēgts</string>
     <string name="privacy_permissions_accessibility_title">Pieejamības pakalpojums</string>

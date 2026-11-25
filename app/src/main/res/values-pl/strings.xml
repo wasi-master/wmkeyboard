@@ -6853,7 +6853,6 @@
     <string name="netlog_filter_incognito">Tryb incognito</string>
     <string name="netlog_filter_only">Tylko %1$s</string>
     <string name="netlog_filter_remove_desc">Pokaż wszystko ponownie</string>
-    <string name="netlog_invisible_body">Trzy komponenty Google w aplikacji wykonują własne żądania, poza kodem, który wypełnia ten dziennik. ML Kit (rozpoznawanie pisma ręcznego, skanowanie tekstu, skanowanie kodów QR, wycinanie naklejek i tłumaczenie na urządzeniu, tylko w pełnej wersji) zgłasza użycie do Google. Usługi Play pobierają czcionki według nazwy. Kompilacje ze Sklepu Play pytają Sklep Play o aktualizacje i części na żądanie.</string>
     <string name="netlog_invisible_link">Przeczytaj, co wysyła każdy z nich</string>
     <string name="netlog_invisible_title">Czego ten ekran nie widzi</string>
     <string name="netlog_keep_info">Dziennik przechowuje do 2000 wierszy i 30 dni sumarycznych danych, wyłącznie na Twoim urządzeniu. Każdy wiersz zawiera funkcję, serwer, adres bez zapytania, rozmiar, wynik i czas. Nigdy nie przechowuje tego, co wpisałeś, wyszukałeś lub wysłałeś, ani kluczy API. Kopie zapasowe go nie obejmują.</string>
@@ -8190,7 +8189,6 @@
     <string name="privacy_native_downloads_confirm_title">Pobrać pliki, których F-Droid nie sprawdził?</string>
     <string name="privacy_native_downloads_info">Ta wersja F-Droid pomija biblioteki natywne obsługujące niektóre funkcje, takie jak pisanie głosowe offline i sprawdzanie gramatyki. Po włączeniu tego ustawienia klawiatura pobiera bibliotekę przy pierwszym użyciu funkcji, która jej wymaga, z repozytorium danych WM Keyboard w serwisie GitHub. Włączając to, decydujesz się pominąć kontrole F-Droid: F-Droid nie zbudował ani nie sprawdził tych plików. Zanim klawiatura użyje pliku, porównuje go z sumą kontrolną wbudowaną w tę aplikację. Możesz również zaimportować pliki samodzielnie w Ustawienia › Informacje › Pamięć.</string>
     <string name="privacy_native_downloads_title">Pobierz biblioteki funkcji</string>
-    <string name="privacy_on_device_info">Pisanie działa w pełni na tym urządzeniu. Listy słów, przewidywanie, autokorekta, transliteracja i wyszukiwanie emoji są częścią aplikacji i żadna z nich nie wymaga połączenia z siecią. Aplikacja nie zbiera żadnych informacji o Tobie i nie posiada własnej analityki. Pismo odręczne, skanowanie tekstu i skanowanie kodów QR opierają się na ML Kit firmy Google, który podczas korzystania z nich przesyła własne dane diagnostyczne do Google. Tylko narzędzia korzystają z sieci i to tylko w momencie ich użycia: tłumaczenie, pogoda, wyszukiwanie w internecie, wyszukiwanie obrazów, GIF-y, naklejki, sprawdzanie w słowniku i narzędzia AI. Możesz wyłączyć każde z nich na ekranie Narzędzia.</string>
     <string name="privacy_other_apps_group_title">Inne aplikacje</string>
     <string name="privacy_permissions_accessibility_subtitle">Zachowaj gesty klawiatury, gdy TalkBack jest włączony</string>
     <string name="privacy_permissions_accessibility_title">Usługa ułatwień dostępu</string>

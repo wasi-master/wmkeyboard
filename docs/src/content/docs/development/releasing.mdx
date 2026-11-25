@@ -751,7 +751,8 @@ non-UTF-8 locale otherwise raises rather than counting.
    - **Privacy policy URL**: `https://wmkeyboard.pages.dev/privacy/policy/`,
      the *Play* one. There are two, because the F-Droid build and the others
      are not the same app underneath: the Play and GitHub builds carry ML Kit
-     and the Play build its libraries, and have to disclose what they report,
+     and the Play build its libraries, and have to disclose what still reaches
+     Google through them,
      and the build F-Droid makes carries neither. F-Droid's own policy is at
      [`/privacy/policy-fdroid/`](/privacy/policy-fdroid/). Never point the Play
      listing at that one, because it would under-disclose. The About screen picks the
@@ -765,13 +766,16 @@ non-UTF-8 locale otherwise raises rather than counting.
      [documents](https://developers.google.com/ml-kit/android-data-disclosure)
      that its SDKs send device and app information, a per-installation
      identifier, and performance and error data to Google for diagnostics and
-     usage analytics whenever an ML Kit feature runs. Declare that under *App
-     info and performance → Diagnostics* and *Device or other IDs*: collected,
-     not shared, encrypted in transit, and not deletable on request, since
-     Google offers no opt-out. Answering "no data collected" here is the
-     mismatch that gets a keyboard rejected, because the reviewer can see the
-     SDK in the bundle. Read [Network policy](/privacy/network/) while you fill
-     it in.
+     usage analytics whenever an ML Kit feature runs. From 0.6.8 the build
+     cuts those reports (`MlKitTelemetry` in `:core:intelligence`), but keep
+     declaring *App info and performance → Diagnostics* and *Device or other
+     IDs*: collected, not shared, encrypted in transit, and not deletable on
+     request. The translator still sends a Firebase installation identifier,
+     and the Play build's text and barcode readers run code Play services
+     loads into the app, which the build cannot edit. Answering "no data
+     collected" here is the mismatch that gets a keyboard rejected, because
+     the reviewer can see the SDK in the bundle. Read
+     [Network policy](/privacy/network/) while you fill it in.
    - **AI-generated content**: yes. The AI writing tools, the AI chat screen
      and the on-device models all produce generated text, and the policy asks
      for an in-app way to report a bad generation. Every surface that shows

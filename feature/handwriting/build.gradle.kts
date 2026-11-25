@@ -6,6 +6,8 @@ plugins {
     // See :app: the digital-ink library is packaged here on Play, so its
     // downloader is rewritten here.
     id("wmkeyboard.ink-offline-imports")
+    // And its usage reports cut, as in :app (MlKitTelemetry).
+    id("wmkeyboard.mlkit-no-telemetry")
 }
 
 // The on-demand home of ML Kit's digital-ink recogniser, Play builds only:

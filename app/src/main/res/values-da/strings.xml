@@ -6850,7 +6850,6 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Kun %1$s</string>
     <string name="netlog_filter_remove_desc">Vis alt igen</string>
-    <string name="netlog_invisible_body">Tre Google-dele af appen foretager deres egne anmodninger uden for koden, der udfylder denne log. ML Kit (håndskrift, tekstscanning, QR-scanning, klipning af klistermærker og oversættelse på enheden, kun fuld udgave) rapporterer brug til Google. Play-tjenester downloader skrifttyper efter navn. Play Butik-versioner forespørger Play Butik angående opdateringer og dele efter behov.</string>
     <string name="netlog_invisible_link">Læs hvad hver enkelt sender</string>
     <string name="netlog_invisible_title">Hvad denne skærm ikke kan se</string>
     <string name="netlog_keep_info">Loggen gemmer op til 2.000 rækker og 30 dages totaler, kun på din enhed. Hver række indeholder funktionen, serveren, adressen uden dens forespørgsel, størrelsen, resultatet og tidspunktet. Den gemmer aldrig det, du har skrevet, søgt eller sendt, og den gemmer aldrig API-nøgler. Sikkerhedskopier inkluderer den ikke.</string>
@@ -8187,7 +8186,6 @@
     <string name="privacy_native_downloads_confirm_title">Vil du downloade filer, som F-Droid ikke har tjekket?</string>
     <string name="privacy_native_downloads_info">Denne F-Droid-build udelader de native biblioteker bag visse funktioner, såsom offline stemmeskrivning og grammatikkontrol. Med denne indstilling slået til downloader tastaturet et bibliotek, første gang funktionen har brug for det, fra WM Keyboard-datarepositoriet på GitHub. Ved at slå dette til vælger du at omgå F-Droids tjek: F-Droid har ikke bygget eller gennemgået disse filer. Før tastaturet bruger en fil, sammenligner det filen med en kontrolsum, der er indbygget i denne app. Du kan også selv importere filerne fra Indstillinger › Om › Lager.</string>
     <string name="privacy_native_downloads_title">Download funktionsbiblioteker</string>
-    <string name="privacy_on_device_info">Indtastning fungerer fuldt ud på denne enhed. Ordlister, forudsigelse, autokorrektur, translitteration og emojisøgning er en del af appen, og ingen af dem kræver en netværksforbindelse. Appen indsamler intet om dig og har ingen egen analyse. Håndskrift, tekstscanning og QR-scanning er bygget på Googles ML Kit, som rapporterer sin egen diagnostik til Google, mens du bruger dem. Kun et værktøj bruger netværket, og kun i det øjeblik du trykker på det: oversættelse, vejr, websøgning, billedsøgning, GIF\'er, klistermærker, ordbogsopslag og AI-værktøjerne. Du kan slå hver enkelt af dem fra på værktøjsskærmen.</string>
     <string name="privacy_other_apps_group_title">Andre apps</string>
     <string name="privacy_permissions_accessibility_subtitle">Behold tastaturgestikulationer, mens TalkBack er slået til</string>
     <string name="privacy_permissions_accessibility_title">Tilgængelighedstjeneste</string>

@@ -6842,7 +6842,6 @@
     <string name="netlog_filter_incognito">Huliðshamur</string>
     <string name="netlog_filter_only">Aðeins %1$s</string>
     <string name="netlog_filter_remove_desc">Sýna allt aftur</string>
-    <string name="netlog_invisible_body">Þrír Google-hlutar forritsins gera sínar eigin beiðnir, utan þess kóða sem fyllir þessa skrá. ML Kit (rithönd, textaskönnun, QR-skönnun, límmiðaklippingar og þýðing á tæki, aðeins í fullri útgáfu) sendir notkunarskýrslur til Google. Play-þjónustur hlaða niður leturgerðum eftir nafni. Play Store-útgáfur spyrja Play Store um uppfærslur og hluta sem sóttir eru eftir þörfum.</string>
     <string name="netlog_invisible_link">Lesa hvað hver og einn sendir</string>
     <string name="netlog_invisible_title">Það sem þessi skjár sér ekki</string>
     <string name="netlog_keep_info">Annállinn geymir allt að 2.000 raðir og 30 daga af samtölum, eingöngu á tækinu þínu. Hver röð geymir eiginleikann, netþjóninn, vistfangið án fyrirspurnar, stærðina, niðurstöðuna og tímann. Hann geymir aldrei það sem þú skrifaðir, leitaðir að eða sendir, og hann geymir aldrei API-lykla. Afrit innihalda hann ekki.</string>
@@ -8177,7 +8176,6 @@
     <string name="privacy_native_downloads_confirm_title">Hlaða niður skrám sem F-Droid hefur ekki athugað?</string>
     <string name="privacy_native_downloads_info">Þessi F-Droid útgáfa sleppir innfæddum söfnum á bak við suma eiginleika, svo sem raddinnslátt án nettengingar og málfræðileiðréttingu. Með þessa stillingu á, hleður lyklaborðið niður safni í fyrsta sinn sem eiginleikinn þarf á því að halda, frá WM Keyboard gagnageymslunni á GitHub. Með því að kveikja á þessu velurðu að fara framhjá athugunum F-Droid: F-Droid smíðaði eða yfirfór ekki þessar skrár. Áður en lyklaborðið notar skrá, ber það skrána saman við eftirlitssummu sem er innbyggð í þetta forrit. Þú getur líka flutt inn skrárnar sjálfur í Stillingar › Um › Geymsla.</string>
     <string name="privacy_native_downloads_title">Sækja eiginleikasöfn</string>
-    <string name="privacy_on_device_info">Innsláttur virkar að fullu á þessu tæki. Orðalistar, spár, sjálfvirk leiðrétting, umritun og emoji-leit eru hluti af appinu og ekkert af því þarf nettengingu. Appið safnar engu um þig og hefur engar eigin greiningar. Handskrift, textaskönnun og QR-skönnun eru byggð á ML Kit frá Google, sem sendir sínar eigin greiningar til Google á meðan þú notar þau. Aðeins verkfæri nota netið, og aðeins þegar þú ýtir á þau: þýðing, veður, vefleit, myndleit, GIF, límmiðar, orðabókaleit og gervigreindarverkfæri. Þú getur slökkt á hverju og einu þeirra á verkfæraskjánum.</string>
     <string name="privacy_other_apps_group_title">Önnur forrit</string>
     <string name="privacy_permissions_accessibility_subtitle">Halda hreyfingum lyklaborðsins á meðan TalkBack er virkt</string>
     <string name="privacy_permissions_accessibility_title">Aðgengisþjónusta</string>

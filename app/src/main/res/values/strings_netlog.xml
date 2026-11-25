@@ -124,7 +124,7 @@
     <string name="netlog_sheet_data_saver">Data saver</string>
 
     <string name="netlog_invisible_title">What this screen cannot see</string>
-    <string name="netlog_invisible_body">Three Google parts of the app make their own requests, outside the code that fills this log. ML Kit (handwriting, text scan, QR scanning, sticker cut-outs and on-device translation; not in the F-Droid build) reports usage to Google. Play services downloads fonts by name. Play Store builds ask the Play Store about updates and on-demand parts.</string>
+    <string name="netlog_invisible_body">Three Google parts of the app make their own requests, outside the code that fills this log. ML Kit (handwriting, text scan, QR scanning, sticker cut-outs and on-device translation; not in the F-Droid build) downloads its models, and its translator asks Firebase for its settings. Its usage reports to Google are off. Play services downloads fonts by name. Play Store builds ask the Play Store about updates and on-demand parts.</string>
     <string name="netlog_invisible_link">Read what each one sends</string>
 
     <string name="netlog_empty_title">Nothing has left your device</string>

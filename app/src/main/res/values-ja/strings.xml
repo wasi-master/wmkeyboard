@@ -6847,7 +6847,6 @@
     <string name="netlog_filter_incognito">シークレット</string>
     <string name="netlog_filter_only">%1$sのみ</string>
     <string name="netlog_filter_remove_desc">すべてを再表示</string>
-    <string name="netlog_invisible_body">アプリの3つのGoogle関連コンポーネントが、このログを生成するコードとは別に独自のリクエストを行っています。ML Kit（手書き、テキストスキャン、QRスキャン、ステッカーの切り抜き、デバイス内翻訳、フルエディションのみ）は、使用状況をGoogleに報告します。Play開発者サービスは名前でフォントをダウンロードします。Playストアのビルドは、アップデートやオンデマンドコンポーネントについてPlayストアに問い合わせます。</string>
     <string name="netlog_invisible_link">それぞれが何を送信しているかを確認する</string>
     <string name="netlog_invisible_title">この画面で表示できないもの</string>
     <string name="netlog_keep_info">ログはデバイス内にのみ保存され、最大2,000行および30日間の合計が保持されます。各行には機能、サーバー、クエリを除いたアドレス、サイズ、結果、時刻が含まれます。入力、検索、送信した内容は一切含まれず、APIキーも含まれません。バックアップには含まれません。</string>
@@ -8182,7 +8181,6 @@
     <string name="privacy_native_downloads_confirm_title">F-Droidが確認していないファイルをダウンロードしますか？</string>
     <string name="privacy_native_downloads_info">このF-Droidビルドには、オフライン音声入力や文法チェックなどの一部機能に必要なネイティブライブラリが含まれていません。この設定をオンにすると、機能が必要になった際に、GitHubのWM Keyboardデータリポジトリからライブラリがダウンロードされます。これをオンにすることで、F-Droidのチェックをバイパスすることを選択したことになります。F-Droidはこれらのファイルをビルドまたはレビューしていません。キーボードはファイルを使用する前に、アプリに組み込まれたチェックサムと照合します。ファイルは「設定」&gt;「情報」&gt;「ストレージ」から手動でインポートすることも可能です。</string>
     <string name="privacy_native_downloads_title">機能ライブラリをダウンロード</string>
-    <string name="privacy_on_device_info">入力はすべてこのデバイス上で完結します。単語リスト、予測、自動修正、翻字、絵文字検索はアプリの一部であり、ネットワーク接続を必要としません。このアプリにはテレメトリや分析機能はありません。ネットワークを使用するのはツールのみで、翻訳、天気、ウェブ検索、画像検索、GIF、ステッカー、辞書検索、AIツールなど、そのツールを押した瞬間のみです。各ツールは「ツール」画面でオフにできます。</string>
     <string name="privacy_other_apps_group_title">他のアプリ</string>
     <string name="privacy_permissions_accessibility_subtitle">TalkBackがオンのときもキーボードジェスチャーを維持する</string>
     <string name="privacy_permissions_accessibility_title">ユーザー補助サービス</string>

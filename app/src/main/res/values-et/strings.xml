@@ -6854,7 +6854,6 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Ainult %1$s</string>
     <string name="netlog_filter_remove_desc">Näita kõike uuesti</string>
-    <string name="netlog_invisible_body">Kolm Google\'i rakenduse osa teevad oma päringuid väljaspool koodi, mis seda logi täidab. ML Kit (käekiri, tekstiskannimine, QR-skannimine, kleebiste väljalõiked ja seadmesisene tõlge, ainult täisversioonis) teatab kasutamisest Google\'ile. Play teenused laadivad fonte nime järgi. Play poe ehitused küsivad Play poest värskendusi ja nõudmisel osasid.</string>
     <string name="netlog_invisible_link">Loe, mida igaüks saadab</string>
     <string name="netlog_invisible_title">Mida see ekraan ei näe</string>
     <string name="netlog_keep_info">Logi säilitab kuni 2000 rida ja 30 päeva koondandmeid ainult teie seadmes. Iga rida sisaldab funktsiooni, serverit, aadressi ilma päringuta, suurust, tulemust ja aega. See ei salvesta kunagi seda, mida tippisite, otsisite või saatsite, ega salvesta API-võtmeid. Varukoopiad ei sisalda seda.</string>
@@ -8192,7 +8191,6 @@
     <string name="privacy_native_downloads_confirm_title">Kas laadida alla faile, mida F-Droid pole kontrollinud?</string>
     <string name="privacy_native_downloads_info">See F-Droidi versioon jätab välja mõnede funktsioonide, nagu võrguühenduseta häälsisestus ja grammatika kontroll, taga olevad natiivsed teegid. Kui see seade on sisse lülitatud, laadib klaviatuur teegi esimesel korral, kui selle funktsioon seda vajab, GitHubi WM Keyboardi andmehoidlast. Selle sisselülitamisega otsustate F-Droidi kontrollid vahele jätta: F-Droid ei koostanud ega kontrollinud neid faile. Enne kui klaviatuur faili kasutab, võrdleb see faili kontrollsummaga, mis on sellesse rakendusse sisse ehitatud. Faile saate ka ise importida seadete › Teave › Salvestusruum kaudu.</string>
     <string name="privacy_native_downloads_title">Laadi alla funktsiooniteegid</string>
-    <string name="privacy_on_device_info">Kirjutamine toimub täielikult selles seadmes. Sõnaloendid, ennustamine, automaatkorrektuur, transliteratsioon ja emotikonide otsing on rakenduse osa ning ükski neist ei vaja võrguühendust. Rakendus ei kogu teie kohta midagi ega oma oma analüütikat. Käekirjatuvastus, tekstiskannimine ja QR-skannimine põhinevad Google\'i ML Kitil, mis saadab teie kasutamise ajal Google\'ile oma diagnostikaandmeid. Ainult tööriistad kasutavad võrku ja sedagi vaid hetkel, kui te neid vajutate: tõlkimine, ilm, veebiotsing, pildiotsing, GIF-id, kleebised, sõnastikuotsing ja tehisintellekti tööriistad. Saate igaühe neist Tööriistade ekraanil välja lülitada.</string>
     <string name="privacy_other_apps_group_title">Muud rakendused</string>
     <string name="privacy_permissions_accessibility_subtitle">Säilita klaviatuuri žestid, kui TalkBack on sisse lülitatud</string>
     <string name="privacy_permissions_accessibility_title">Hõlbustusteenus</string>

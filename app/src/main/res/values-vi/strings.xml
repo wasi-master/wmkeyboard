@@ -6845,7 +6845,6 @@
     <string name="netlog_filter_incognito">Ẩn danh</string>
     <string name="netlog_filter_only">Chỉ %1$s</string>
     <string name="netlog_filter_remove_desc">Hiển thị lại tất cả</string>
-    <string name="netlog_invisible_body">Ba thành phần Google của ứng dụng thực hiện các yêu cầu riêng, nằm ngoài mã nguồn điền vào nhật ký này. ML Kit (nhận dạng chữ viết tay, quét văn bản, quét mã QR, cắt nhãn dán và dịch trên thiết bị, chỉ dành cho bản đầy đủ) báo cáo việc sử dụng cho Google. Dịch vụ Play tải xuống phông chữ theo tên. Các bản dựng từ Cửa hàng Play yêu cầu Cửa hàng Play cập nhật và các thành phần theo yêu cầu.</string>
     <string name="netlog_invisible_link">Đọc những gì mỗi mục gửi đi</string>
     <string name="netlog_invisible_title">Những gì màn hình này không thể thấy</string>
     <string name="netlog_keep_info">Nhật ký lưu giữ tối đa 2.000 hàng và tổng số liệu trong 30 ngày, chỉ trên thiết bị của bạn. Mỗi hàng chứa tính năng, máy chủ, địa chỉ không bao gồm truy vấn, kích thước, kết quả và thời gian. Nó không bao giờ lưu giữ những gì bạn đã nhập, tìm kiếm hoặc gửi, và không bao giờ lưu giữ khóa API. Các bản sao lưu không bao gồm dữ liệu này.</string>
@@ -8181,7 +8180,6 @@
     <string name="privacy_native_downloads_confirm_title">Tải xuống các tệp mà F-Droid chưa kiểm tra?</string>
     <string name="privacy_native_downloads_info">Bản dựng F-Droid này bỏ qua các thư viện gốc hỗ trợ một số tính năng, chẳng hạn như nhập liệu bằng giọng nói ngoại tuyến và kiểm tra ngữ pháp. Khi bật cài đặt này, bàn phím sẽ tải xuống thư viện vào lần đầu tiên tính năng cần dùng, từ kho lưu trữ dữ liệu WM Keyboard trên GitHub. Bằng cách bật tính năng này, bạn chọn bỏ qua các bước kiểm tra của F-Droid: F-Droid không xây dựng hoặc xem xét các tệp này. Trước khi bàn phím sử dụng tệp, nó sẽ so sánh tệp đó với tổng kiểm tra được tích hợp trong ứng dụng này. Bạn cũng có thể tự nhập tệp từ Cài đặt › Giới thiệu › Bộ nhớ.</string>
     <string name="privacy_native_downloads_title">Tải xuống các thư viện tính năng</string>
-    <string name="privacy_on_device_info">Việc nhập liệu hoạt động hoàn toàn trên thiết bị này. Danh sách từ, dự đoán, tự động sửa lỗi, chuyển tự và tìm kiếm biểu tượng cảm xúc là một phần của ứng dụng và không cần kết nối mạng. Ứng dụng không có đo lường từ xa và không có phân tích. Chỉ có công cụ mới sử dụng mạng và chỉ tại thời điểm bạn nhấn vào nó: dịch, thời tiết, tìm kiếm web, tìm kiếm hình ảnh, ảnh GIF, nhãn dán, tra cứu từ điển và các công cụ AI. Bạn có thể tắt từng công cụ trên màn hình Công cụ.</string>
     <string name="privacy_other_apps_group_title">Ứng dụng khác</string>
     <string name="privacy_permissions_accessibility_subtitle">Giữ các cử chỉ bàn phím khi TalkBack đang bật</string>
     <string name="privacy_permissions_accessibility_title">Dịch vụ hỗ trợ tiếp cận</string>

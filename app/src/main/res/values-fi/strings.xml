@@ -6845,7 +6845,6 @@
     <string name="netlog_filter_incognito">Yksityinen</string>
     <string name="netlog_filter_only">Vain %1$s</string>
     <string name="netlog_filter_remove_desc">Näytä kaikki uudelleen</string>
-    <string name="netlog_invisible_body">Kolme Googlen sovellusosaa tekee omia pyyntöjään tämän lokin täyttävän koodin ulkopuolella. ML Kit (käsiala, tekstin skannaus, QR-skannaus, tarrojen leikkaus ja laitteessa tapahtuva käännös, vain täysversiossa) raportoi käytöstä Googlelle. Play-palvelut lataa fontteja nimen perusteella. Play Kauppa -koontiversiot kysyvät Play Kaupalta päivityksiä ja tarvittavia osia.</string>
     <string name="netlog_invisible_link">Lue mitä kukin lähettää</string>
     <string name="netlog_invisible_title">Mitä tämä näyttö ei näe</string>
     <string name="netlog_keep_info">Loki säilyttää enintään 2 000 riviä ja 30 päivän yhteenvetotiedot vain laitteellasi. Jokainen rivi sisältää ominaisuuden, palvelimen, osoitteen ilman kyselyä, koon, tuloksen ja ajan. Se ei koskaan sisällä kirjoittamaasi, etsimääsi tai lähettämääsi sisältöä, eikä se koskaan sisällä API-avaimia. Varmuuskopiot eivät sisällä sitä.</string>
@@ -8180,7 +8179,6 @@
     <string name="privacy_native_downloads_confirm_title">Ladataanko tiedostoja, joita F-Droid ei ole tarkistanut?</string>
     <string name="privacy_native_downloads_info">Tämä F-Droid-versio jättää pois natiivikirjastot, joita tarvitaan joihinkin ominaisuuksiin, kuten offline-puhekirjoitukseen ja kieliopin tarkistukseen. Kun tämä asetus on päällä, näppäimistö lataa kirjaston ensimmäisellä kerralla, kun ominaisuus sitä tarvitsee, WM Keyboardin GitHub-tietovarastosta. Ottamalla tämän käyttöön valitset ohittaa F-Droidin tarkistukset: F-Droid ei ole rakentanut tai tarkistanut näitä tiedostoja. Ennen kuin näppäimistö käyttää tiedostoa, se vertaa tiedostoa sovellukseen sisäänrakennettuun tarkistussummaan. Voit myös tuoda tiedostot itse kohdasta Asetukset › Tietoja › Tallennustila.</string>
     <string name="privacy_native_downloads_title">Lataa ominaisuuskirjastot</string>
-    <string name="privacy_on_device_info">Kirjoittaminen toimii täysin tällä laitteella. Sanalistat, ennustaminen, automaattinen korjaus, translitterointi ja emojihaku ovat osa sovellusta, eikä mikään niistä vaadi verkkoyhteyttä. Sovellus ei kerää sinusta mitään eikä sillä ole omaa analytiikkaa. Käsinkirjoitus, tekstin skannaus ja QR-skannaus perustuvat Googlen ML Kitiin, joka raportoi omia diagnostiikkatietojaan Googlelle käytön aikana. Vain työkalu käyttää verkkoa, ja vain sillä hetkellä kun painat sitä: kääntäminen, sää, verkkohaku, kuvahaku, GIF-kuvat, tarrat, sanakirjahaku ja tekoälytyökalut. Voit poistaa jokaisen niistä käytöstä Työkalut-näytöllä.</string>
     <string name="privacy_other_apps_group_title">Muut sovellukset</string>
     <string name="privacy_permissions_accessibility_subtitle">Pidä näppäimistön eleet käytössä, kun TalkBack on päällä</string>
     <string name="privacy_permissions_accessibility_title">Esteettömyyspalvelu</string>

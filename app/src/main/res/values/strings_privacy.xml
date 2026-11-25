@@ -160,7 +160,7 @@
          the Data safety form and against the SDKs in the bundle, so the
          sentence names the exception rather than inviting the mismatch.
     -->
-    <string name="privacy_on_device_info">Typing works fully on this device. The word lists, prediction, autocorrect, transliteration and emoji search are part of the app, and none of them needs a network connection. The app collects nothing about you and has no analytics of its own. Handwriting, text scanning and QR scanning are built on Google\'s ML Kit, which reports its own diagnostics to Google while you use them. Only a tool uses the network, and only at the moment that you press it: translate, weather, web search, image search, GIFs, stickers, dictionary lookup and the AI tools. You can turn off each one of them on the Tools screen.</string>
+    <string name="privacy_on_device_info">Typing works fully on this device. The word lists, prediction, autocorrect, transliteration and emoji search are part of the app, and none of them needs a network connection. The app collects nothing about you and has no analytics of its own. Outside the F-Droid build, handwriting, text scanning and QR scanning use Google\'s ML Kit, and the app stops the usage reports that ML Kit sends to Google. Only a tool uses the network, and only at the moment that you press it: translate, weather, web search, image search, GIFs, stickers, dictionary lookup and the AI tools. You can turn off each one of them on the Tools screen.</string>
 
     <!-- ================================================================== -->
     <!-- App lock: a fingerprint in front of the settings the user picked.  -->

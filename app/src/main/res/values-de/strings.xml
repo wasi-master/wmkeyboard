@@ -6852,7 +6852,6 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Nur %1$s</string>
     <string name="netlog_filter_remove_desc">Alles wieder anzeigen</string>
-    <string name="netlog_invisible_body">Drei Google-Komponenten der App führen ihre eigenen Anfragen außerhalb des Codes aus, der dieses Protokoll füllt. ML Kit (Handschrifterkennung, Textscan, QR-Scanning, Sticker-Freistellungen und geräteinterne Übersetzung, nur in der Vollversion) meldet die Nutzung an Google. Play-Dienste laden Schriftarten nach Namen. Play-Store-Builds fragen den Play Store nach Updates und on-demand Komponenten.</string>
     <string name="netlog_invisible_link">Lesen, was jeder sendet</string>
     <string name="netlog_invisible_title">Was dieser Bildschirm nicht sehen kann</string>
     <string name="netlog_keep_info">Das Protokoll speichert bis zu 2.000 Zeilen und 30 Tage an Summen, nur auf Ihrem Gerät. Jede Zeile enthält die Funktion, den Server, die Adresse ohne Abfrage, die Größe, das Ergebnis und die Zeit. Es speichert niemals, was Sie getippt, gesucht oder gesendet haben, und es speichert niemals API-Schlüssel. Backups enthalten diese Daten nicht.</string>
@@ -8189,7 +8188,6 @@
     <string name="privacy_native_downloads_confirm_title">Dateien herunterladen, die F-Droid nicht überprüft hat?</string>
     <string name="privacy_native_downloads_info">Dieser F-Droid-Build lässt die nativen Bibliotheken für einige Funktionen weg, wie z. B. Offline-Spracheingabe und Grammatikprüfung. Wenn diese Einstellung aktiviert ist, lädt die Tastatur eine Bibliothek herunter, sobald die Funktion sie benötigt, und zwar aus dem WM-Keyboard-Daten-Repository auf GitHub. Durch das Aktivieren dieser Option entscheiden Sie sich dafür, die Prüfungen von F-Droid zu umgehen: F-Droid hat diese Dateien nicht erstellt oder überprüft. Bevor die Tastatur eine Datei verwendet, vergleicht sie die Datei mit einer Prüfsumme, die in dieser App integriert ist. Sie können die Dateien auch selbst unter Einstellungen › Info › Speicher importieren.</string>
     <string name="privacy_native_downloads_title">Funktionsbibliotheken herunterladen</string>
-    <string name="privacy_on_device_info">Das Tippen funktioniert vollständig auf diesem Gerät. Die Wortlisten, Vorhersagen, Autokorrektur, Transliteration und Emoji-Suche sind Teil der App, und keine davon benötigt eine Netzwerkverbindung. Die App hat keine Telemetrie und keine Analysen. Nur ein Werkzeug nutzt das Netzwerk, und zwar nur in dem Moment, in dem Sie es drücken: Übersetzen, Wetter, Websuche, Bildersuche, GIFs, Sticker, Wörterbuchsuche und die KI-Werkzeuge. Sie können jedes davon auf dem Werkzeug-Bildschirm deaktivieren.</string>
     <string name="privacy_other_apps_group_title">Andere Apps</string>
     <string name="privacy_permissions_accessibility_subtitle">Tastaturgesten beibehalten, während TalkBack aktiviert ist</string>
     <string name="privacy_permissions_accessibility_title">Bedienungshilfen-Dienst</string>

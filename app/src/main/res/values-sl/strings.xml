@@ -6857,7 +6857,6 @@
     <string name="netlog_filter_incognito">Brez beleženja zgodovine</string>
     <string name="netlog_filter_only">Samo %1$s</string>
     <string name="netlog_filter_remove_desc">Prikaži vse znova</string>
-    <string name="netlog_invisible_body">Tri Googlovi deli aplikacije pošiljajo lastne zahteve zunaj kode, ki polni ta dnevnik. ML Kit (rokopis, optično branje besedila, branje QR kod, izrezovanje nalepk in prevajanje v napravi, samo polna različica) poroča o uporabi Googlu. Storitve Play prenašajo pisave po imenu. Aplikacije iz Trgovine Play poizvedujejo v Trgovini Play glede posodobitev in delov na zahtevo.</string>
     <string name="netlog_invisible_link">Preberite, kaj vsak od njih pošlje</string>
     <string name="netlog_invisible_title">Česar ta zaslon ne vidi</string>
     <string name="netlog_keep_info">Dnevnik hrani do 2000 vrstic in 30 dni seštevkov, samo v vaši napravi. Vsaka vrstica vsebuje funkcijo, strežnik, naslov brez poizvedbe, velikost, rezultat in čas. Nikoli ne hrani tega, kar ste vtipkali, iskali ali poslali, in nikoli ne hrani ključev API. Varnostne kopije ga ne vključujejo.</string>
@@ -8193,7 +8192,6 @@
     <string name="privacy_native_downloads_confirm_title">Prenos datotek, ki jih F-Droid ni preveril?</string>
     <string name="privacy_native_downloads_info">Ta različica F-Droid izpušča izvorne knjižnice, ki so potrebne za nekatere funkcije, kot sta glasovno tipkanje brez povezave in preverjanje slovnice. Če je ta nastavitev vklopljena, tipkovnica prenese knjižnico ob prvi uporabi te funkcije iz repozitorija podatkov WM Keyboard na GitHubu. Z vklopom te možnosti se odločite za obvod preverjanj F-Droida: F-Droid teh datotek ni ustvaril ali pregledal. Preden tipkovnica uporabi datoteko, jo primerja s kontrolno vsoto, ki je vgrajena v aplikaciji. Datoteke lahko uvozite tudi sami v Nastavitve › Vizitka › Shramba.</string>
     <string name="privacy_native_downloads_title">Prenesi knjižnice funkcij</string>
-    <string name="privacy_on_device_info">Tipkanje deluje v celoti v tej napravi. Seznami besed, napovedovanje, samodejno popravljanje, transliteracija in iskanje emojijev so del aplikacije in nobeden od njih ne potrebuje omrežne povezave. Aplikacija o vas ne zbira ničesar in nima lastne analitike. Prepoznavanje rokopisa, skeniranje besedila in skeniranje QR so zgrajeni na Googlovem kompletu ML Kit, ki med uporabo pošilja lastno diagnostiko Googlu. Omrežje uporablja le orodje, in sicer v trenutku, ko ga pritisnete: prevajanje, vreme, spletno iskanje, iskanje slik, GIF-i, nalepke, iskanje v slovarju in orodja AI. Vsakega od njih lahko izklopite na zaslonu Orodja.</string>
     <string name="privacy_other_apps_group_title">Druge aplikacije</string>
     <string name="privacy_permissions_accessibility_subtitle">Ohranite kretnje tipkovnice, ko je TalkBack vklopljen</string>
     <string name="privacy_permissions_accessibility_title">Storitev dostopnosti</string>

@@ -6852,7 +6852,6 @@
     <string name="netlog_filter_incognito">Incognitovenster</string>
     <string name="netlog_filter_only">Alleen %1$s</string>
     <string name="netlog_filter_remove_desc">Alles weer tonen</string>
-    <string name="netlog_invisible_body">Drie Google-onderdelen van de app doen hun eigen verzoeken, buiten de code om die dit logboek vult. ML Kit (handschrift, tekstscannen, QR-scannen, sticker-uitsnijdingen en vertaling op het apparaat, alleen volledige editie) rapporteert het gebruik aan Google. Play-services downloadt lettertypen op naam. Play Store-builds vragen de Play Store om updates en onderdelen op aanvraag.</string>
     <string name="netlog_invisible_link">Lees wat iedereen verstuurt</string>
     <string name="netlog_invisible_title">Wat dit scherm niet kan zien</string>
     <string name="netlog_keep_info">Het logboek bewaart maximaal 2.000 rijen en 30 dagen aan totalen, alleen op uw apparaat. Elke rij bevat de functie, de server, het adres zonder query, de grootte, het resultaat en de tijd. Het bevat nooit wat u hebt getypt, gezocht of verzonden, en het bevat nooit API-sleutels. Back-ups bevatten dit niet.</string>
@@ -8189,7 +8188,6 @@
     <string name="privacy_native_downloads_confirm_title">Bestanden downloaden die F-Droid niet heeft gecontroleerd?</string>
     <string name="privacy_native_downloads_info">Deze F-Droid-build laat de native bibliotheken achter sommige functies weg, zoals offline spraakgestuurd typen en grammaticacontrole. Als deze instelling is ingeschakeld, downloadt het toetsenbord een bibliotheek de eerste keer dat de functie deze nodig heeft, vanuit de WM Keyboard-gegevensrepository op GitHub. Door dit in te schakelen, kies je ervoor om de controles van F-Droid te omzeilen: F-Droid heeft deze bestanden niet gebouwd of beoordeeld. Voordat het toetsenbord een bestand gebruikt, vergelijkt het het bestand met een controlesom die in deze app is ingebouwd. Je kunt de bestanden ook zelf importeren via Instellingen › Over › Opslag.</string>
     <string name="privacy_native_downloads_title">Download functiebibliotheken</string>
-    <string name="privacy_on_device_info">Typen werkt volledig op dit apparaat. De woordenlijsten, voorspelling, autocorrectie, transliteratie en emoji-zoekopdrachten maken deel uit van de app en geen van deze heeft een netwerkverbinding nodig. De app verzamelt niets over jou en heeft geen eigen analyses. Handschrift, tekstscannen en QR-scannen zijn gebouwd op Google\'s ML Kit, die zijn eigen diagnostische gegevens aan Google rapporteert terwijl je ze gebruikt. Alleen een tool gebruikt het netwerk, en alleen op het moment dat je erop drukt: vertalen, weer, webzoeken, afbeeldingen zoeken, GIF\'s, stickers, woordenboekopzoekingen en de AI-tools. Je kunt ze elk uitschakelen op het scherm Tools.</string>
     <string name="privacy_other_apps_group_title">Andere apps</string>
     <string name="privacy_permissions_accessibility_subtitle">Behoud de toetsenbordgebaren terwijl TalkBack is ingeschakeld</string>
     <string name="privacy_permissions_accessibility_title">Toegankelijkheidsservice</string>

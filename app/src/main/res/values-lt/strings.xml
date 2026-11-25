@@ -6852,7 +6852,6 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Tik %1$s</string>
     <string name="netlog_filter_remove_desc">Rodyti viską iš naujo</string>
-    <string name="netlog_invisible_body">Trys „Google“ programėlės dalys siunčia savo užklausas, nepriklausomai nuo kodo, kuris pildo šį žurnalą. „ML Kit“ (rašysenos atpažinimas, teksto nuskaitymas, QR nuskaitymas, lipdukų iškirpimas ir vertimas įrenginyje, tik pilnoje versijoje) praneša „Google“ apie naudojimą. „Play“ paslaugos atsisiunčia šriftus pagal pavadinimą. „Play Store“ versijos teiraujasi „Play Store“ apie atnaujinimus ir papildomus komponentus.</string>
     <string name="netlog_invisible_link">Skaityti, ką kiekvienas siunčia</string>
     <string name="netlog_invisible_title">Ko šis ekranas nemato</string>
     <string name="netlog_keep_info">Žurnale saugoma iki 2000 eilučių ir 30 dienų bendrų duomenų, tik jūsų įrenginyje. Kiekvienoje eilutėje saugoma funkcija, serveris, adresas be užklausos, dydis, rezultatas ir laikas. Jame niekada nesaugoma tai, ką įvedėte, ieškojote ar išsiuntėte, ir niekada nesaugomi API raktai. Atsarginėse kopijose šie duomenys neįtraukiami.</string>
@@ -8188,7 +8187,6 @@
     <string name="privacy_native_downloads_confirm_title">Atsisiųsti failus, kurių „F-Droid“ nepatikrino?</string>
     <string name="privacy_native_downloads_info">Šioje „F-Droid“ laidoje trūksta kai kurių funkcijų veikimui reikalingų vietinių bibliotekų, pvz., balso įvedimo neprisijungus ar gramatikos tikrinimo. Įjungus šį nustatymą, klaviatūra atsisiunčia biblioteką pirmą kartą, kai funkcijai jos prireikia, iš „WM Keyboard“ duomenų saugyklos „GitHub“. Įjungdami šią funkciją, jūs pasirenkate apeiti „F-Droid“ patikrinimus: „F-Droid“ nesukūrė ir neperžiūrėjo šių failų. Prieš klaviatūrai naudojant failą, ji palygina jį su programėlėje integruota kontroline suma. Taip pat galite patys importuoti failus per Nustatymai › Apie › Saugykla.</string>
     <string name="privacy_native_downloads_title">Atsisiųsti funkcijų bibliotekas</string>
-    <string name="privacy_on_device_info">Rašymas veikia visiškai šiame įrenginyje. Žodžių sąrašai, numatymas, automatinis taisymas, transliteracija ir jaustukų paieška yra programos dalis, ir nė vienam iš jų nereikia tinklo ryšio. Programa nerenka jokios informacijos apie jus ir neturi savo analizės įrankių. Rašysenos atpažinimas, teksto nuskaitymas ir QR nuskaitymas yra sukurti naudojant „Google ML Kit“, kuris siunčia savo diagnostiką „Google“, kol jūs jais naudojatės. Tik įrankiai naudoja tinklą, ir tik tuo momentu, kai juos paspaudžiate: vertimas, orai, žiniatinklio paieška, vaizdų paieška, GIF, lipdukai, žodyno paieška ir AI įrankiai. Kiekvieną iš jų galite išjungti įrankių ekrane.</string>
     <string name="privacy_other_apps_group_title">Kitos programėlės</string>
     <string name="privacy_permissions_accessibility_subtitle">Išsaugoti klaviatūros gestus, kai įjungtas „TalkBack“</string>
     <string name="privacy_permissions_accessibility_title">Pritaikymo neįgaliesiems paslauga</string>

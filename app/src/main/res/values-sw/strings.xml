@@ -6861,7 +6861,6 @@
     <string name="netlog_filter_incognito">Ficho</string>
     <string name="netlog_filter_only">Ni %1$s pekee</string>
     <string name="netlog_filter_remove_desc">Onyesha kila kitu tena</string>
-    <string name="netlog_invisible_body">Sehemu tatu za Google za programu hufanya maombi yao wenyewe, nje ya msimbo unaojaza logi hii. ML Kit (mwandiko, skanning ya maandishi, skanning ya QR, ukataji wa vibandiko na tafsiri kwenye kifaa, toleo kamili pekee) huripoti matumizi kwa Google. Huduma za Play hupakua fonti kwa jina. Ujenzi wa Play Store huuliza Play Store kuhusu masasisho na sehemu zinazohitajika.</string>
     <string name="netlog_invisible_link">Soma kile kila kimoja kinachotuma</string>
     <string name="netlog_invisible_title">Kile skrini hii haiwezi kuona</string>
     <string name="netlog_keep_info">Logi huhifadhi hadi safu 2,000 na jumla ya siku 30, kwenye kifaa chako pekee. Kila safu inashikilia kipengele, seva, anwani bila hoja yake, ukubwa, matokeo na wakati. Haiwahi kuhifadhi ulichoandika, kutafuta au kutuma, na haihifadhi funguo za API. Hifadhi rudufu hazijumuishi hii.</string>
@@ -8198,7 +8197,6 @@
     <string name="privacy_native_downloads_confirm_title">Pakua faili ambazo F-Droid haijaziangalia?</string>
     <string name="privacy_native_downloads_info">Toleo hili la F-Droid linakosa maktaba asilia zinazohitajika kwa baadhi ya vipengele, kama vile kuandika kwa sauti nje ya mtandao na ukaguzi wa sarufi. Kwa kuwasha mpangilio huu, kibodi hupakua maktaba mara ya kwanza kipengele chake kinapohitaji, kutoka kwenye hifadhi ya data ya Kibodi ya WM kwenye GitHub. Kwa kuwasha hili, unachagua kukwepa ukaguzi wa F-Droid: F-Droid haikuunda wala kukagua faili hizi. Kabla ya kibodi kutumia faili, inalinganisha faili hiyo na jumla ya kizuizi (checksum) iliyojengwa kwenye programu hii. Unaweza pia kuleta faili hizo mwenyewe kutoka kwa Mipangilio › Kuhusu › Hifadhi.</string>
     <string name="privacy_native_downloads_title">Pakua maktaba za vipengele</string>
-    <string name="privacy_on_device_info">Kuandika hufanya kazi kikamilifu kwenye kifaa hiki. Orodha za maneno, utabiri, kusahihisha kiotomatiki, unukuzi na utafutaji wa emoji ni sehemu ya programu, na hakuna hata moja inayohitaji muunganisho wa mtandao. Programu haikusanyi chochote kukuhusu na haina uchanganuzi wake yenyewe. Mwandiko, kuchanganua maandishi na kuchanganua QR vimejengwa kwenye ML Kit ya Google, ambayo huripoti uchunguzi wake yenyewe kwa Google unapoitumia. Zana pekee inayotumia mtandao, na wakati tu unapoibonyeza: tafsiri, hali ya hewa, utafutaji wa wavuti, utafutaji wa picha, GIF, vibandiko, utafutaji wa kamusi na zana za AI. Unaweza kuzima kila moja yao kwenye skrini ya Zana.</string>
     <string name="privacy_other_apps_group_title">Programu nyingine</string>
     <string name="privacy_permissions_accessibility_subtitle">Dumisha ishara za kibodi wakati TalkBack imewashwa</string>
     <string name="privacy_permissions_accessibility_title">Huduma ya ufikivu</string>

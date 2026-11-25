@@ -3,6 +3,9 @@ plugins {
     // through build-logic, and Gradle refuses a versioned plugin request for
     // a plugin the classpath already carries.
     id("com.android.dynamic-feature")
+    // ML Kit's translator is packaged here on Play, so its usage reports are
+    // cut here, as in :app (MlKitTelemetry).
+    id("wmkeyboard.mlkit-no-telemetry")
 }
 
 // The on-demand home of ML Kit's translator, Play builds only: :app lists this

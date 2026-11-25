@@ -20,6 +20,10 @@ plugins {
     // ML Kit's digital-ink downloader. Inert on Play, where the library is in
     // :feature:handwriting, which applies it too.
     id("wmkeyboard.ink-offline-imports")
+    // ML Kit's usage reports to Google: both of its two routes rewritten to a
+    // no-op (MlKitTelemetry in :core:intelligence). On Play the translator and
+    // ink recogniser sit in their splits, which apply it too.
+    id("wmkeyboard.mlkit-no-telemetry")
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.licensee)

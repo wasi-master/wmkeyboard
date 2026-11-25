@@ -6,7 +6,7 @@ sidebar:
   order: 8
 ---
 
-**Effective 12 November 2026.** This policy covers the WM Keyboard Android app
+**Effective 26 November 2026.** This policy covers the WM Keyboard Android app
 (`com.wasimaster.wmkeyboard`) and this documentation site. WM Keyboard is
 written and published by Wasi Master, an individual developer.
 
@@ -18,7 +18,9 @@ This page is every build but F-Droid's: the one on Google Play, and the
 standard and offline APKs on the GitHub releases page. It includes handwriting, OCR, QR and document
 scanning, sticker background removal, grammar checking, offline Whisper
 dictation and on-device AI. The handwriting, scanning and background-removal
-features run on Google's ML Kit, which reports its own diagnostics to Google.
+features run on Google's ML Kit. From 0.6.8 the app switches off ML Kit's
+usage reports to Google; what still reaches Google is under
+[Google components inside the app](#google-components-inside-the-app).
 
 If you installed from F-Droid, you have a build that ships none of the ML
 Kit features, and no ML Kit, Play library or Google sign-in code at all. Read
@@ -40,10 +42,12 @@ ever sends to a server of this project is a name you typed yourself, after you
 chose to tip and asked to be listed, with a message if you wrote one; see
 [Tips](#tips).
 
-One caveat: some features are built on
-Google's ML Kit and on Google Play services, and those libraries send their
-own diagnostics to Google when you use the features they power. That is
-Google's collection, not this project's, and it is spelled out in full under
+One caveat: some features are built on Google's ML Kit and on Google Play
+services. The app switches off ML Kit's own usage reports, but those features
+still download their models from Google, ML Kit's translator asks Firebase for
+its settings, and the parts that run inside Google Play services are Google's
+code under Google's own policy. That is Google's collection, not this
+project's, and it is spelled out in full under
 [Google components inside the app](#google-components-inside-the-app).
 
 The app does not sell, rent or share personal information. Apart from a
@@ -149,30 +153,42 @@ removed on request.
 
 ## Google components inside the app
 
-Four Google components the app uses report to Google on their own,
-without going through any code here. They cannot see what you type, and this
-project receives nothing from them. None of them can be switched off from
-inside the app either, so your only choice is whether to use the feature.
+Four Google components the app uses can reach Google on their own, without
+going through any code here. They cannot see what you type, and this project
+receives nothing from them.
 
 - **ML Kit** powers handwriting input, OCR, QR and barcode scanning, the
   document scanner, sticker background removal and on-device translation, in
   every build but F-Droid's.
   Google
   [states](https://developers.google.com/ml-kit/android-data-disclosure) that
-  its SDK sends device information (make, model, OS build, available ML
+  its SDK reports device information (make, model, OS build, available ML
   accelerators), this app's package name and version, a per-installation
   identifier, timing and error information, and the size and settings of what
-  was processed. That happens whenever you use one of those features. Google
-  describes it as diagnostics and usage analytics, encrypted in transit and
-  not passed to third parties. The content of the image, ink or document is
-  not part of it.
+  was processed, as diagnostics and usage analytics, whenever one of those
+  features runs. From 0.6.8 the app switches those reports off: the two calls
+  ML Kit sends them through are replaced, when the app is built, with ones
+  that send nothing. What still reaches Google:
+  - model downloads, such as a handwriting language or a translation
+    language, from Google's servers the first time you need one;
+  - ML Kit's on-device translator, which Google lists as using Firebase
+    installations and Remote Config: it asks Google for its settings with a
+    per-installation identifier;
+  - the parts that run from Google Play services rather than from the app: on
+    the Google Play build the text and barcode readers, and on any phone with
+    Play services the Chinese, Japanese, Korean and Devanagari text readers,
+    the document scanner and the one-tap background remover. That is Google's
+    code in Google's own app, and what Play services records is covered by
+    [Google's privacy policy](https://policies.google.com/privacy).
+
+  The content of the image, ink or document is not part of any of it.
 - **Android AICore**, on phones that have it, runs Gemini Nano when you pick
   **Gemini Nano (on this phone)** in the app's AI chat or Settings assistant.
   The conversation goes to AICore, a system service on the phone, and is
   answered there; this app sends it nowhere else. AICore downloads and updates
   the model itself, and its use comes under Google's terms for AICore and
-  Gemini Nano. The app talks to it through ML Kit's GenAI library, which
-  reports its diagnostics as described above. Nothing reaches AICore unless
+  Gemini Nano. The app talks to it through ML Kit's GenAI library, whose usage
+  reports are switched off with the rest of ML Kit's. Nothing reaches AICore unless
   you pick Gemini Nano and send a message.
 - **Downloadable fonts.** Some scripts' default keyboard font, and every
   Google font in the theme editor, are fetched by Google Play services' font

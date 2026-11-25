@@ -78,7 +78,7 @@ The **Log** group at the bottom of the screen:
 
 A few parts of the app are other people's code that make their own requests, outside the code that fills this log. They're listed at the bottom of the screen and in full under [Google components](/privacy/network/#google-components-and-what-they-report):
 
-- **ML Kit** (not in the F-Droid build) reports usage to Google when you use handwriting, text scan, QR scanning, document scanning, sticker background removal or on-device translation. Its model downloads go through Google's own code too.
+- **ML Kit** (not in the F-Droid build) downloads its models through Google's own code, and its on-device translator asks Firebase for its settings. Its usage reports are switched off, and what the parts that run from Play services send is Play services' request, not the keyboard's.
 - **Play services** downloads fonts by name when a script first needs one.
 - **Play Store builds** ask the Play Store about updates and about the parts of the app it delivers on demand.
 - **Voice typing** with Android's own recognizer is Android's request, not the keyboard's.

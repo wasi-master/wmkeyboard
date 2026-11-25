@@ -38,6 +38,20 @@
             android:name="com.google.mlkit.common.internal.MlKitInitProvider"
             android:authorities="${applicationId}.mlkitinitprovider"
             tools:node="remove" />
+        <!-- ML Kit's usage reports travel through Firebase datatransport, whose
+             only backend (CCT, Google's logging endpoint) registers itself
+             here. Without it, datatransport drops each event before storing
+             it ("Transport backend 'cct' is not registered") and deletes any
+             an older install queued. The calls themselves are rewritten to a
+             no-op at build time too; see MlKitTelemetry in :core:intelligence. -->
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                tools:node="remove" />
+        </service>
     </application>
 
 </manifest>

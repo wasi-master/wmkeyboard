@@ -6846,7 +6846,6 @@
     <string name="netlog_filter_incognito">Gizli</string>
     <string name="netlog_filter_only">Sadece %1$s</string>
     <string name="netlog_filter_remove_desc">Her şeyi tekrar göster</string>
-    <string name="netlog_invisible_body">Uygulamanın üç Google parçası, bu günlüğü dolduran kodun dışında kendi isteklerini yapar. ML Kit (el yazısı, metin tarama, QR tarama, çıkartma kesimleri ve cihaz içi çeviri, yalnızca tam sürümde) kullanımı Google\'a bildirir. Play hizmetleri yazı tiplerini isme göre indirir. Play Store yapıları, güncellemeler ve isteğe bağlı parçalar hakkında Play Store\'a soru sorar.</string>
     <string name="netlog_invisible_link">Her birinin ne gönderdiğini okuyun</string>
     <string name="netlog_invisible_title">Bu ekranın göremedikleri</string>
     <string name="netlog_keep_info">Günlük, yalnızca cihazınızda 2.000 satıra ve 30 günlük toplamlara kadar veri tutar. Her satır özelliği, sunucuyu, sorgusu olmayan adresi, boyutu, sonucu ve zamanı içerir. Yazdığınız, aradığınız veya gönderdiğiniz hiçbir şeyi ve API anahtarlarını asla tutmaz. Yedeklemeler bunu içermez.</string>
@@ -8182,7 +8181,6 @@
     <string name="privacy_native_downloads_confirm_title">F-Droid tarafından kontrol edilmemiş dosyalar indirilsin mi?</string>
     <string name="privacy_native_downloads_info">Bu F-Droid derlemesi, çevrimdışı sesle yazma ve dil bilgisi denetimi gibi bazı özelliklerin arkasındaki yerel kitaplıkları içermez. Bu ayar açıkken klavye, özelliğin ihtiyaç duyduğu ilk seferde GitHub\'daki WM Klavye veri deposundan bir kitaplık indirir. Bunu açarak F-Droid\'in denetimlerini atlamayı seçmiş olursunuz: F-Droid bu dosyaları derlemedi veya incelemedi. Klavye bir dosyayı kullanmadan önce, dosyayı bu uygulamaya yerleşik bir sağlama toplamı ile karşılaştırır. Dosyaları Ayarlar › Hakkında › Depolama bölümünden kendiniz de içe aktarabilirsiniz.</string>
     <string name="privacy_native_downloads_title">Özellik kütüphanelerini indir</string>
-    <string name="privacy_on_device_info">Yazma işlemi tamamen bu cihazda gerçekleşir. Kelime listeleri, tahmin, otomatik düzeltme, harf çevirimi ve emoji arama uygulamanın bir parçasıdır ve hiçbiri ağ bağlantısına ihtiyaç duymaz. Uygulamanın telemetrisi veya analitiği yoktur. Sadece bir araç ağı kullanır ve o da sadece ona bastığınız anda gerçekleşir: çeviri, hava durumu, web araması, görsel araması, GIF\'ler, çıkartmalar, sözlük araması ve yapay zeka araçları. Bunların her birini Araçlar ekranından kapatabilirsiniz.</string>
     <string name="privacy_other_apps_group_title">Diğer uygulamalar</string>
     <string name="privacy_permissions_accessibility_subtitle">TalkBack açıkken klavye hareketlerini koru</string>
     <string name="privacy_permissions_accessibility_title">Erişilebilirlik hizmeti</string>

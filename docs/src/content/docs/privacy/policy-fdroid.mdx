@@ -6,7 +6,7 @@ sidebar:
   order: 9
 ---
 
-**Effective 12 November 2026.** This policy covers the WM Keyboard Android app
+**Effective 26 November 2026.** This policy covers the WM Keyboard Android app
 (`com.wasimaster.wmkeyboard`) as built and distributed by F-Droid, and this
 documentation site. WM Keyboard is written and published by Wasi Master, an
 individual developer.
@@ -34,9 +34,10 @@ tracking, no analytics, no crash reporting, and no server belonging to this
 project that the app sends anything to. What you type is processed on your
 device and stays there.
 
-In this build there is no caveat to that. The other builds have to disclose
-Google's ML Kit reporting its own diagnostics; this build does not contain
-ML Kit, so there is nothing of that kind to disclose. The one Google-adjacent
+In this build there is no caveat to that. The other builds carry Google's ML
+Kit and have to disclose what still reaches Google through it with its usage
+reports switched off; this build does not contain ML Kit, so there is nothing
+of that kind to disclose. The one Google-adjacent
 code path that survives is downloadable fonts, and it is inert on a device
 without Google Play services. See [What this build does not
 contain](#what-this-build-does-not-contain) below for the exact list.
@@ -53,11 +54,11 @@ and the source it builds from.
 
 | Absent | What it would have done | What you lose |
 |---|---|---|
-| **Google ML Kit** | reports device and app information, a per-install identifier, and timing and error data to Google whenever one of its features runs | handwriting input, OCR, QR and barcode scanning, document scanning, sticker background removal |
+| **Google ML Kit** | downloads its models from Google, asks Firebase for the translator's settings, and runs some of its parts from Google Play services. Its own usage reports are switched off in the other builds | Google's readers. Handwriting, text scan, QR scanning and document scanning run on open-source engines here instead, and handwriting and text scan read fewer scripts (see [Which build you have](/start/editions/)). The one-tap sticker background remover is gone |
 | **Google Play in-app updates** | asks the Play Store whether a newer version exists | nothing: F-Droid's own client handles updates |
-| **The self-updater** | downloads an APK from the project's GitHub releases and installs it | nothing, and it could not have worked here anyway: F-Droid signs its builds with its own key, so an APK from GitHub cannot install over an F-Droid install. This build has no `REQUEST_INSTALL_PACKAGES` permission and no installer code. What it has instead is a check that asks F-Droid, described below |
+| **The self-updater** | downloads an APK from the project's GitHub releases and installs it | nothing: F-Droid's own client installs updates. This build has no `REQUEST_INSTALL_PACKAGES` permission and no installer code. What it has instead is a check that asks F-Droid, described below |
 | **Play Feature Delivery** | downloads a feature's native library as a separate module | nothing: this edition downloads those libraries itself, after you agree to it (see below) |
-| **Google Play services auth** | gets an OAuth token for Google Drive | Drive as a backup destination. Local storage, WebDAV, an S3-compatible bucket, an SFTP, SMB, NFS or FTP server, a Synology or QNAP NAS, a Git repository, a mail account, Dropbox, OneDrive, Box, pCloud, MEGA, iCloud Drive and Proton Drive all still work |
+| **Google Play services auth** | gets an OAuth token for Google Drive | Drive as a backup destination. Local storage, WebDAV, an S3-compatible bucket, an SFTP, SMB, NFS or FTP server, a Synology or QNAP NAS, a Git repository, a mail account, pCloud, MEGA, iCloud Drive and Proton Drive all still work. Dropbox, OneDrive and Box are missing too, because this build carries none of the project's sign-in client IDs |
 | **LiteRT-LM** | runs a language model on the device | the LiteRT-LM models (`.litertlm` and `.task` files). GGUF models still run on the device through llama.cpp, which this edition builds from source, and cloud AI providers still work with your own key |
 | **Qualcomm QNN runtime** | runs an on-device AI model on a Snapdragon phone's NPU, under Qualcomm's own licence | the **NPU** choice under Compute, which this edition could not use anyway without LiteRT-LM |
 | **LiteRT Whisper models** | offline dictation on Google's LiteRT | the older LiteRT Whisper models. Offline Whisper on whisper.cpp and the other offline voice engines still work |

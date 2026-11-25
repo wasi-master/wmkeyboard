@@ -6840,7 +6840,6 @@
     <string name="netlog_filter_incognito">无痕模式</string>
     <string name="netlog_filter_only">仅 %1$s</string>
     <string name="netlog_filter_remove_desc">再次显示所有内容</string>
-    <string name="netlog_invisible_body">应用中的三个 Google 组件会自行发起请求，这些请求不在填充此日志的代码范围内。ML Kit（手写、文本扫描、二维码扫描、贴纸剪裁和设备端翻译，仅限完整版）会向 Google 报告使用情况。Play 服务会按名称下载字体。Play 商店构建版本会向 Play 商店查询更新和按需组件。</string>
     <string name="netlog_invisible_link">查看每个请求发送的内容</string>
     <string name="netlog_invisible_title">此屏幕无法看到的内容</string>
     <string name="netlog_keep_info">日志最多保留 2,000 行和 30 天的总计数据，且仅保存在您的设备上。每一行记录包含功能、服务器、不带查询参数的地址、大小、结果和时间。它绝不会保存您输入、搜索或发送的内容，也绝不会保存 API 密钥。备份不包含此数据。</string>
@@ -8176,7 +8175,6 @@
     <string name="privacy_native_downloads_confirm_title">下载 F-Droid 未经检查的文件？</string>
     <string name="privacy_native_downloads_info">此 F-Droid 构建版本省略了某些功能背后的原生库，例如离线语音输入和语法检查。开启此设置后，键盘会在功能首次需要时从 GitHub 上的 WM Keyboard 数据存储库下载库。开启此功能即表示您选择绕过 F-Droid 的检查：F-Droid 未构建或审查这些文件。在键盘使用文件之前，它会将文件与此应用程序内置的校验和进行比较。您也可以从“设置”&gt;“关于”&gt;“存储”中自行导入文件。</string>
     <string name="privacy_native_downloads_title">下载功能库</string>
-    <string name="privacy_on_device_info">输入功能完全在本设备上运行。词库、预测、自动更正、转写和表情符号搜索都是应用的一部分，无需网络连接。该应用没有遥测和分析功能。只有工具会在您按下时使用网络：翻译、天气、网页搜索、图片搜索、GIF、贴纸、词典查询和 AI 工具。您可以在“工具”屏幕上关闭其中的每一项。</string>
     <string name="privacy_other_apps_group_title">其他应用</string>
     <string name="privacy_permissions_accessibility_subtitle">在 TalkBack 开启时保留键盘手势</string>
     <string name="privacy_permissions_accessibility_title">无障碍服务</string>

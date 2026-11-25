@@ -6859,7 +6859,6 @@
     <string name="netlog_filter_incognito">Incognito</string>
     <string name="netlog_filter_only">Kuphela %1$s</string>
     <string name="netlog_filter_remove_desc">Bonisa konke futhi</string>
-    <string name="netlog_invisible_body">Izingxenye ezintathu ze-Google zohlelo lokusebenza zenza izicelo zazo, ngaphandle kwekhodi egcwalisa le logi. I-ML Kit (ukubhala ngesandla, ukuskena umbhalo, ukuskena i-QR, ukusika izitika nokuhumusha kudivayisi, uhlelo oluphelele kuphela) ibika ukusetshenziswa ku-Google. I-Play services ilanda amafonti ngegama. Izinhlelo ze-Play Store zibuza i-Play Store mayelana nezibuyekezo nezingxenye ezidingekayo.</string>
     <string name="netlog_invisible_link">Funda lokho okuthunyelwa ngamunye</string>
     <string name="netlog_invisible_title">Lokho lesi sikrini esingakuboni</string>
     <string name="netlog_keep_info">Ilogi igcina imigqa efika ku-2,000 nezinsuku ezingama-30 zezibalo, kudivayisi yakho kuphela. Umugqa ngamunye ubamba isici, iseva, ikheli ngaphandle kombuzo walo, usayizi, umphumela nesikhathi. Ayikaze ibambe lokho okuthayiphile, okuseshile noma okuthumile, futhi ayikaze ibambe okhiye be-API. Izipele azikufaki lokhu.</string>
@@ -8193,7 +8192,6 @@
     <string name="privacy_native_downloads_confirm_title">Landa amafayela i-F-Droid engawahlolanga?</string>
     <string name="privacy_native_downloads_info">Le-build ye-F-Droid ishiya ngaphandle imitapo yolwazi (native libraries) eyenza izici ezithile zisebenze, njengokuthayipha ngezwi okungaxhunyiwe ku-inthanethi nokuhlola uhlelo lolimi. Uma le sethingi ivuliwe, ikhibhodi ilanda umtapo wolwazi uma isici sayo siwudinga okokuqala, kusuka kusilondolozi sedatha sekhibhodi ye-WM ku-GitHub. Ngokuvula lokhu, ukhetha ukudlula ukuhlola kwe-F-Droid: I-F-Droid ayizange yakhe noma yahlola lezi fayela. Ngaphambi kokuba ikhibhodi isebenzise ifayela, iqhathanisa ifayela nalokho okuhloliwe (checksum) okufakwe kulolu hlelo lokusebenza. Ungakwazi futhi ukungenisa amafayela ngokwakho ku-Izilungiselelo › Mayelana › Isitoreji.</string>
     <string name="privacy_native_downloads_title">Landa imitapo yolwazi yezici</string>
-    <string name="privacy_on_device_info">Ukuthayipha kusebenza ngokugcwele kule divayisi. Uhlu lwamagama, ukubikezela, ukulungisa ngokuzenzakalelayo, ukuhumusha izinhlamvu kanye nokusesha ama-emoji kuyingxenye yohlelo lokusebenza, futhi akukho okudinga uxhumano lwenethiwekhi. Uhlelo lokusebenza alunawo ama-telemetry futhi alunawo ama-analytics. Ithuluzi kuphela elisebenzisa inethiwekhi, futhi kuphela ngesikhathi ulicindezela: ukuhumusha, isimo sezulu, ukusesha kuwebhu, ukusesha izithombe, ama-GIF, izitika, ukubheka kusichazamazwi kanye namathuluzi e-AI. Ungavala ngalinye lazo esikrinini samathuluzi.</string>
     <string name="privacy_other_apps_group_title">Ezinye izinhlelo zokusebenza</string>
     <string name="privacy_permissions_accessibility_subtitle">Gcina ukuhlephula kwekhibhodi ngenkathi i-TalkBack ivuliwe</string>
     <string name="privacy_permissions_accessibility_title">Insizakalo yokufinyeleleka</string>

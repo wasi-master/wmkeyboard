@@ -6846,7 +6846,6 @@
     <string name="netlog_filter_incognito">Anonymní režim</string>
     <string name="netlog_filter_only">Pouze %1$s</string>
     <string name="netlog_filter_remove_desc">Zobrazit vše znovu</string>
-    <string name="netlog_invisible_body">Tři části aplikace od Googlu provádějí vlastní požadavky mimo kód, který vyplňuje tento protokol. ML Kit (rukopis, skenování textu, skenování QR, výřezy nálepek a překlad v zařízení, pouze plná verze) hlásí využití Googlu. Služby Play stahují písma podle názvu. Sestavení z Obchodu Play se ptají Obchodu Play na aktualizace a části na vyžádání.</string>
     <string name="netlog_invisible_link">Přečtěte si, co kdo posílá</string>
     <string name="netlog_invisible_title">Co tato obrazovka nevidí</string>
     <string name="netlog_keep_info">Protokol uchovává až 2 000 řádků a 30 dní souhrnů, pouze ve vašem zařízení. Každý řádek obsahuje funkci, server, adresu bez dotazu, velikost, výsledek a čas. Nikdy neobsahuje to, co jste napsali, vyhledali nebo odeslali, a nikdy neobsahuje klíče API. Zálohy jej neobsahují.</string>
@@ -8182,7 +8181,6 @@
     <string name="privacy_native_downloads_confirm_title">Stáhnout soubory, které F-Droid nezkontroloval?</string>
     <string name="privacy_native_downloads_info">Tato verze z F-Droidu neobsahuje nativní knihovny pro některé funkce, jako je offline hlasové psaní a kontrola gramatiky. S tímto zapnutým nastavením si klávesnice stáhne knihovnu při prvním použití dané funkce z datového úložiště WM Keyboard na GitHubu. Zapnutím této volby souhlasíte s obejitím kontrol F-Droidu: F-Droid tyto soubory nevytvořil ani nekontroloval. Před použitím souboru klávesnice porovná soubor s kontrolním součtem, který je součástí této aplikace. Soubory můžete také importovat sami v Nastavení › O aplikaci › Úložiště.</string>
     <string name="privacy_native_downloads_title">Stáhnout knihovny funkcí</string>
-    <string name="privacy_on_device_info">Psaní funguje plně v tomto zařízení. Seznamy slov, predikce, automatické opravy, transliterace a vyhledávání emoji jsou součástí aplikace a žádná z nich nepotřebuje připojení k síti. Aplikace o vás nic neshromažďuje a nemá vlastní analytiku. Psaní rukou, skenování textu a skenování QR kódů jsou postaveny na sadě ML Kit od Googlu, která během jejich používání odesílá Googlu vlastní diagnostiku. Síť používá pouze nástroj, a to pouze v okamžiku, kdy jej stisknete: překlad, počasí, vyhledávání na webu, vyhledávání obrázků, GIFy, nálepky, vyhledávání ve slovníku a nástroje AI. Každý z nich můžete vypnout na obrazovce Nástroje.</string>
     <string name="privacy_other_apps_group_title">Ostatní aplikace</string>
     <string name="privacy_permissions_accessibility_subtitle">Ponechat gesta klávesnice, když je zapnutá funkce TalkBack</string>
     <string name="privacy_permissions_accessibility_title">Služba usnadnění</string>

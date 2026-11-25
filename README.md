@@ -170,9 +170,10 @@ learning behave identically with the radio off.
 - Every tool that touches the network says so on its own settings page and stays off until you
   open it. A network activity log shows every request the keyboard has made.
 - Backups can be encrypted with a passphrase and written wherever you point them.
-- The one exception worth naming: in the standard build, handwriting and the scanners run on
-  Google's ML Kit, which reports its own diagnostics to Google. The F-Droid build carries no
-  Google library at all, and the offline build has no internet permission.
+- In the standard build, handwriting and the scanners run on Google's ML Kit. The app switches
+  off ML Kit's usage reports to Google; ML Kit still downloads its models from Google. The
+  F-Droid build carries no Google library at all, and the offline build has no internet
+  permission.
 
 [Privacy at a glance](https://wmkeyboard.pages.dev/privacy/overview/) · [Network policy](https://wmkeyboard.pages.dev/privacy/network/) · [Your data on device](https://wmkeyboard.pages.dev/privacy/data/)
 

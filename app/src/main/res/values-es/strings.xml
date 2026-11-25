@@ -6855,7 +6855,6 @@
     <string name="netlog_filter_incognito">Incógnito</string>
     <string name="netlog_filter_only">Solo %1$s</string>
     <string name="netlog_filter_remove_desc">Mostrar todo de nuevo</string>
-    <string name="netlog_invisible_body">Tres partes de Google de la aplicación realizan sus propias solicitudes, fuera del código que completa este registro. ML Kit (escritura a mano, escaneo de texto, escaneo de códigos QR, recortes de pegatinas y traducción en el dispositivo, solo en la edición completa) informa del uso a Google. Los servicios de Play descargan fuentes por nombre. Las compilaciones de Play Store preguntan a Play Store sobre actualizaciones y partes bajo demanda.</string>
     <string name="netlog_invisible_link">Lee lo que envía cada uno</string>
     <string name="netlog_invisible_title">Lo que esta pantalla no puede ver</string>
     <string name="netlog_keep_info">El registro conserva hasta 2000 filas y 30 días de totales, solo en su dispositivo. Cada fila contiene la función, el servidor, la dirección sin su consulta, el tamaño, el resultado y la hora. Nunca contiene lo que escribió, buscó o envió, y nunca contiene claves de API. Las copias de seguridad no lo incluyen.</string>
@@ -8192,7 +8191,6 @@
     <string name="privacy_native_downloads_confirm_title">¿Descargar archivos que F-Droid no ha verificado?</string>
     <string name="privacy_native_downloads_info">Esta versión de F-Droid omite las bibliotecas nativas necesarias para algunas funciones, como la escritura por voz sin conexión y la corrección gramatical. Con esta opción activada, el teclado descarga una biblioteca la primera vez que la función la necesita, desde el repositorio de datos de WM Keyboard en GitHub. Al activar esto, eliges omitir las comprobaciones de F-Droid: F-Droid no compiló ni revisó estos archivos. Antes de que el teclado utilice un archivo, lo compara con una suma de comprobación integrada en esta aplicación. También puedes importar los archivos tú mismo desde Ajustes › Acerca de › Almacenamiento.</string>
     <string name="privacy_native_downloads_title">Descargar bibliotecas de funciones</string>
-    <string name="privacy_on_device_info">La escritura funciona completamente en este dispositivo. Las listas de palabras, la predicción, la autocorrección, la transliteración y la búsqueda de emojis son parte de la aplicación y ninguna de ellas necesita una conexión de red. La aplicación no tiene telemetría ni análisis. Solo una herramienta utiliza la red, y solo en el momento en que la presionas: traducir, clima, búsqueda web, búsqueda de imágenes, GIFs, stickers, búsqueda en diccionario y las herramientas de IA. Puedes desactivar cada una de ellas en la pantalla de Herramientas.</string>
     <string name="privacy_other_apps_group_title">Otras aplicaciones</string>
     <string name="privacy_permissions_accessibility_subtitle">Mantener los gestos del teclado mientras TalkBack está activado</string>
     <string name="privacy_permissions_accessibility_title">Servicio de accesibilidad</string>

@@ -6845,7 +6845,6 @@
     <string name="netlog_filter_incognito">Incognito</string>
     <string name="netlog_filter_only">Solo %1$s</string>
     <string name="netlog_filter_remove_desc">Mostra di nuovo tutto</string>
-    <string name="netlog_invisible_body">Tre componenti Google dell\'app effettuano le proprie richieste, al di fuori del codice che riempie questo registro. ML Kit (scrittura a mano, scansione testo, scansione QR, ritagli di adesivi e traduzione sul dispositivo, solo edizione completa) segnala l\'utilizzo a Google. I servizi Play scaricano i font per nome. Le build del Play Store interrogano il Play Store per aggiornamenti e componenti on-demand.</string>
     <string name="netlog_invisible_link">Leggi cosa invia ciascuno</string>
     <string name="netlog_invisible_title">Cosa questa schermata non può vedere</string>
     <string name="netlog_keep_info">Il registro conserva fino a 2.000 righe e 30 giorni di totali, solo sul tuo dispositivo. Ogni riga contiene la funzionalità, il server, l\'indirizzo senza la sua query, la dimensione, il risultato e l\'ora. Non contiene mai ciò che hai digitato, cercato o inviato e non contiene mai chiavi API. I backup non lo includono.</string>
@@ -8182,7 +8181,6 @@
     <string name="privacy_native_downloads_confirm_title">Scaricare file che F-Droid non ha controllato?</string>
     <string name="privacy_native_downloads_info">Questa build F-Droid esclude le librerie native dietro alcune funzionalità, come la digitazione vocale offline e il controllo grammaticale. Con questa impostazione attiva, la tastiera scarica una libreria la prima volta che la sua funzionalità ne ha bisogno, dal repository di dati WM Keyboard su GitHub. Attivando questa opzione, scegli di ignorare i controlli di F-Droid: F-Droid non ha compilato o revisionato questi file. Prima che la tastiera utilizzi un file, lo confronta con un checksum integrato in questa app. Puoi anche importare i file tu stesso da Impostazioni › Informazioni › Archiviazione.</string>
     <string name="privacy_native_downloads_title">Scarica librerie di funzionalità</string>
-    <string name="privacy_on_device_info">La digitazione funziona interamente sul dispositivo. Gli elenchi di parole, la previsione, la correzione automatica, la traslitterazione e la ricerca di emoji fanno parte dell\'app e nessuno di essi richiede una connessione di rete. L\'app non ha telemetria né analisi. Solo uno strumento utilizza la rete, e solo nel momento in cui lo premi: traduzione, meteo, ricerca web, ricerca immagini, GIF, adesivi, consultazione dizionario e strumenti AI. Puoi disattivare ciascuno di essi nella schermata Strumenti.</string>
     <string name="privacy_other_apps_group_title">Altre app</string>
     <string name="privacy_permissions_accessibility_subtitle">Mantieni i gesti della tastiera mentre TalkBack è attivo</string>
     <string name="privacy_permissions_accessibility_title">Servizio di accessibilità</string>

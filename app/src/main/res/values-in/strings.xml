@@ -6849,7 +6849,6 @@
     <string name="netlog_filter_incognito">Penyamaran</string>
     <string name="netlog_filter_only">Hanya %1$s</string>
     <string name="netlog_filter_remove_desc">Tampilkan semuanya lagi</string>
-    <string name="netlog_invisible_body">Tiga bagian aplikasi Google melakukan permintaan sendiri, di luar kode yang mengisi log ini. ML Kit (tulisan tangan, pemindaian teks, pemindaian QR, potongan stiker dan terjemahan pada perangkat, hanya edisi lengkap) melaporkan penggunaan ke Google. Layanan Play mengunduh font berdasarkan nama. Build Play Store menanyakan pembaruan dan bagian sesuai permintaan ke Play Store.</string>
     <string name="netlog_invisible_link">Baca apa yang dikirim masing-masing</string>
     <string name="netlog_invisible_title">Apa yang tidak dapat dilihat layar ini</string>
     <string name="netlog_keep_info">Log menyimpan hingga 2.000 baris dan total 30 hari, hanya di perangkat Anda. Setiap baris berisi fitur, server, alamat tanpa kuerinya, ukuran, hasil, dan waktu. Log tidak pernah menyimpan apa yang Anda ketik, cari, atau kirim, dan tidak pernah menyimpan kunci API. Cadangan tidak menyertakannya.</string>
@@ -8186,7 +8185,6 @@
     <string name="privacy_native_downloads_confirm_title">Unduh file yang belum diperiksa oleh F-Droid?</string>
     <string name="privacy_native_downloads_info">Build F-Droid ini menghilangkan pustaka bawaan untuk beberapa fitur, seperti pengetikan suara offline dan pemeriksaan tata bahasa. Dengan menyalakan setelan ini, papan ketik akan mengunduh pustaka saat fitur tersebut pertama kali membutuhkannya dari repositori data Papan Ketik WM di GitHub. Dengan menyalakannya, Anda memilih untuk melewati pemeriksaan F-Droid: F-Droid tidak membangun atau meninjau file-file ini. Sebelum papan ketik menggunakan sebuah file, papan ketik membandingkan file tersebut dengan checksum yang ada di dalam aplikasi ini. Anda juga dapat mengimpor file sendiri melalui Setelan › Tentang › Penyimpanan.</string>
     <string name="privacy_native_downloads_title">Unduh pustaka fitur</string>
-    <string name="privacy_on_device_info">Pengetikan berfungsi sepenuhnya di perangkat ini. Daftar kata, prediksi, koreksi otomatis, transliterasi, dan pencarian emoji adalah bagian dari aplikasi, dan tidak ada satu pun yang memerlukan koneksi jaringan. Aplikasi ini tidak memiliki telemetri dan tidak ada analitik. Hanya alat yang menggunakan jaringan, dan hanya pada saat Anda menekannya: terjemahan, cuaca, pencarian web, pencarian gambar, GIF, stiker, pencarian kamus, dan alat AI. Anda dapat mematikan masing-masing alat tersebut di layar Alat.</string>
     <string name="privacy_other_apps_group_title">Aplikasi lain</string>
     <string name="privacy_permissions_accessibility_subtitle">Pertahankan gestur keyboard saat TalkBack aktif</string>
     <string name="privacy_permissions_accessibility_title">Layanan aksesibilitas</string>
