@@ -2508,6 +2508,13 @@ data class ToolbarBehavior(
      * tools are.
      */
     val secondRowTools: List<ToolKey> = DefaultSecondRowTools.toolKeys(),
+    /**
+     * The second row's own height in dp, padding aside (#1545). 0, the
+     * default, is the toolbar's height, so the row follows the toolbar
+     * height setting, a theme's toolbar and the resize tool's handle as it
+     * always did; otherwise [SecondToolbarHeightRange].
+     */
+    val secondRowHeightDp: Int = 0,
     /** The alarm, special-day, clock and to-do icons at the toolbar's far end (#1453). */
     val statusIcons: StatusIconSettings = StatusIconSettings(),
 )
@@ -11201,6 +11208,12 @@ data class LayoutBehaviorSettings(
      */
     val arrowRowOnTop: Boolean = false,
     /**
+     * The arrow row's own key height in dp (#1545). 0, the default, borrows
+     * the number row's height, so resizing scales it with the keys;
+     * otherwise [ArrowRowHeightRange], fixed.
+     */
+    val arrowRowHeightDp: Int = 0,
+    /**
      * The number row every layout draws that has not written one of its own
      * (`numberRow` on its layer), in place of the built-in digits: on the
      * letters, the symbols and the Fn layer. The second symbols page keeps its
@@ -11574,6 +11587,12 @@ val BottomRowHeightRange = 32..96
  * the settings sliders share them. The theme editor's slider has its own.
  */
 val ToolbarHeightRange = 24..80
+
+/** Bounds for [ToolbarBehavior.secondRowHeightDp] when non-zero (#1545). */
+val SecondToolbarHeightRange = 24..80
+
+/** Bounds for [LayoutBehaviorSettings.arrowRowHeightDp] when non-zero (#1545). */
+val ArrowRowHeightRange = 20..80
 
 /** Bounds for [ToolbarBehavior.toolWidthDp]: the classic circle up to a wide pill (#1264). */
 val ToolWidthRange = 38..96
@@ -13525,6 +13544,7 @@ class SettingsRepository(private val context: Context) {
         private val ARROW_ROW = booleanPreferencesKey("arrow_row")
         private val ARROW_ROW_ORDER = stringPreferencesKey("arrow_row_order")
         private val ARROW_ROW_ON_TOP = booleanPreferencesKey("arrow_row_on_top")
+        private val ARROW_ROW_HEIGHT = intPreferencesKey("arrow_row_height")
         private val CUSTOM_NUMBER_ROW = stringPreferencesKey("custom_number_row")
         private val CUSTOM_ARROW_ROW = stringPreferencesKey("custom_arrow_row")
         private val BOTTOM_ROW_HEIGHT = intPreferencesKey("bottom_row_height")
@@ -14063,6 +14083,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
         private val TOOLBAR_SECOND_ROW = booleanPreferencesKey("toolbar_second_row")
         private val TOOLBAR_SECOND_ROW_TOOLS = stringPreferencesKey("toolbar_second_row_tools")
+        private val TOOLBAR_SECOND_ROW_HEIGHT = intPreferencesKey("toolbar_second_row_height")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
         private val SWAP_COMMA_GLOBE = booleanPreferencesKey("swap_comma_globe")
@@ -16775,6 +16796,7 @@ class SettingsRepository(private val context: Context) {
             arrowRowOrder = p[ARROW_ROW_ORDER]?.let(::decodeArrowRowOrder)
                 ?: defaults.layoutBehavior.arrowRowOrder,
             arrowRowOnTop = p[ARROW_ROW_ON_TOP] ?: defaults.layoutBehavior.arrowRowOnTop,
+            arrowRowHeightDp = p[ARROW_ROW_HEIGHT] ?: defaults.layoutBehavior.arrowRowHeightDp,
             customNumberRow = p.decoded(CUSTOM_NUMBER_ROW) { KeyRowCodec.decode(it).orEmpty() }
                 ?.takeIf { it.isNotEmpty() } ?: defaults.layoutBehavior.customNumberRow,
             customArrowRow = p.decoded(CUSTOM_ARROW_ROW) { KeyRowCodec.decode(it).orEmpty() }
@@ -16919,6 +16941,7 @@ class SettingsRepository(private val context: Context) {
             // Enum names before plugins could go on it, which decode the same.
             secondRowTools = p[TOOLBAR_SECOND_ROW_TOOLS]?.let(::decodeToolKeys)
                 ?: defaults.toolbarBehavior.secondRowTools,
+            secondRowHeightDp = p[TOOLBAR_SECOND_ROW_HEIGHT] ?: defaults.toolbarBehavior.secondRowHeightDp,
             statusIcons = StatusIconPrefs.read(p, defaults.toolbarBehavior.statusIcons),
         )
 
@@ -20215,6 +20238,13 @@ class SettingsRepository(private val context: Context) {
                 ?: SettingsDefaults.toolbarBehavior.secondRowTools
             prefs[TOOLBAR_SECOND_ROW_TOOLS] = encodeToolKeys(tools)
             enableToolsIn(prefs, (tools - before.toSet()).builtinTools())
+        }
+
+    /** The second toolbar's own height (#1545); 0 follows the toolbar's. */
+    suspend fun setSecondToolbarHeightDp(value: Int) =
+        editPrefs {
+            it[TOOLBAR_SECOND_ROW_HEIGHT] =
+                if (value < SecondToolbarHeightRange.first) 0 else value.coerceAtMost(SecondToolbarHeightRange.last)
         }
 
     /** [setToolEnabled]'s switch-on, for several tools in one write. */
@@ -24515,6 +24545,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setArrowRowOnTop(value: Boolean) =
         editPrefs { it[ARROW_ROW_ON_TOP] = value }
+
+    /** The arrow row's own height (#1545); 0 follows the number row's. */
+    suspend fun setArrowRowHeightDp(value: Int) =
+        editPrefs {
+            it[ARROW_ROW_HEIGHT] = if (value < ArrowRowHeightRange.first) 0 else value.coerceAtMost(ArrowRowHeightRange.last)
+        }
 
     /** The keyboard-wide number row; null or empty puts the built-in digits back. */
     suspend fun setCustomNumberRow(row: List<LayoutKey>?) = editPrefs { prefs ->

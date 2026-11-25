@@ -116,6 +116,10 @@
     <string name="appearance_second_toolbar_place_subtitle">Drag it among the other rows on Rows &amp; bars</string>
     <string name="appearance_second_toolbar_tools_title">Tools on the second toolbar</string>
     <string name="appearance_second_toolbar_tools_subtitle">Add a tool here, or drag one onto the row from the toolbox</string>
+    <string name="appearance_second_toolbar_height_title">Second toolbar height</string>
+    <string name="appearance_second_toolbar_height_subtitle">How tall the second toolbar is, apart from the toolbar</string>
+    <string name="appearance_second_toolbar_height_info">The second toolbar is as tall as the toolbar by default, and follows it when you change the toolbar height or resize the toolbar. Move the slider off \"Same as toolbar\" to give the second toolbar a height of its own. The toolbar\'s top and bottom padding still apply. A button never grows taller than the row, so a short row makes its buttons shorter too.</string>
+    <string name="appearance_second_toolbar_height_same_label">Same as toolbar</string>
     <string name="appearance_toolbar_landscape_column_title">Tools in landscape</string>
     <string name="appearance_toolbar_landscape_column_subtitle">A column beside the keys while the phone is sideways</string>
     <string name="appearance_toolbar_landscape_column_info">A phone on its side has width to spare and little height. Pick a side and, in landscape, the tools leave the top of the keyboard and stand in a column down that edge, next to the suggestions and the keys, always in reach. If the tools had a row of their own, its height goes back to the keys. The column follows the rest of the toolbar settings: your pinned tools in their order, their colors and labels, and how they fit. Portrait is unchanged.</string>

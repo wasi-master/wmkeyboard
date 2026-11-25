@@ -24686,7 +24686,7 @@ private fun ArrowKeyRow(
         val keys = authored ?: custom ?: order.map(::arrowRowKey)
         keyRowVisual(
             keys, split, settings.splitGapPercent, settings.layoutBehavior.splitSpacebar,
-            keys.sumOf { it.width.toDouble() }.toFloat(), settings.numberRowHeightDp, state, palette,
+            keys.sumOf { it.width.toDouble() }.toFloat(), arrowRowHeightDp(settings), state, palette,
             layout.appearance.drawnFontScale(),
         )
     }
@@ -27984,20 +27984,27 @@ internal fun topBarHeight(settings: KeyboardSettings): Dp =
  * The toolbar's height with its padding, whether or not the toolbar is on:
  * [topBarHeight] while it is, and the second toolbar's height always (#1217).
  */
-private fun paddedToolbarHeight(settings: KeyboardSettings): Dp {
+private fun paddedToolbarHeight(settings: KeyboardSettings): Dp = paddedBarHeight(settings, settings.toolbarHeightDp)
+
+/** [base] with the toolbar's top and bottom padding, as [paddedToolbarHeight] pads the toolbar's own height. */
+private fun paddedBarHeight(settings: KeyboardSettings, base: Int): Dp {
     // A padding below zero (#970) takes height off the strip, never past
     // the slider floor, and never past a bar a theme made shorter still.
-    val padded = settings.toolbarHeightDp + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp
-    return padded.coerceAtLeast(minOf(settings.toolbarHeightDp, ToolbarHeightRange.first)).dp
+    val padded = base + settings.toolbarBehavior.paddingTopDp + settings.toolbarBehavior.paddingBottomDp
+    return padded.coerceAtLeast(minOf(base, ToolbarHeightRange.first)).dp
 }
 
 /**
  * The second toolbar's height (#1217): a toolbar's, padding included, so it
  * follows the toolbar height setting, a theme's toolbar height and the resize
- * tool's toolbar handle. Not gated on the toolbar being on, since the row
+ * tool's toolbar handle. Or its own height when the user gave it one (#1545),
+ * padded the same way. Not gated on the toolbar being on, since the row
  * stays without it.
  */
-internal fun secondToolbarHeight(settings: KeyboardSettings): Dp = paddedToolbarHeight(settings)
+internal fun secondToolbarHeight(settings: KeyboardSettings): Dp {
+    val own = settings.toolbarBehavior.secondRowHeightDp
+    return if (own > 0) paddedBarHeight(settings, own) else paddedToolbarHeight(settings)
+}
 
 /** The second toolbar's tools that can draw here, in its order (#1217). */
 internal fun secondToolbarTools(state: KeyboardUiState): List<ToolKey> =
@@ -28079,6 +28086,15 @@ internal fun numberRowShown(state: KeyboardUiState): Boolean =
  */
 internal fun arrowRowShown(state: KeyboardUiState): Boolean =
     state.settings.layoutBehavior.arrowRow && state.layoutMode != LayoutMode.SECONDARY
+
+/**
+ * The arrow row's key height in dp: the number row's, so resizing scales it
+ * with the keys, or the height the user gave the row itself (#1545). Read by
+ * [ArrowKeyRow] and [keyRowsHeight] alike, so the reserved height is the
+ * drawn one.
+ */
+internal fun arrowRowHeightDp(settings: KeyboardSettings): Int =
+    settings.layoutBehavior.arrowRowHeightDp.takeIf { it > 0 } ?: settings.numberRowHeightDp
 
 // ---- what is on screen: one answer, read by the renderer and the service ----
 //
@@ -28668,7 +28684,7 @@ internal fun keyRowsHeight(state: KeyboardUiState): Dp {
     }
     // The arrow row borrows the digit row's height, see [ArrowKeyRow].
     if (arrowRowShown(state)) {
-        height += settings.numberRowHeightDp.dp + keyGapV(settings) * 2
+        height += arrowRowHeightDp(settings).dp + keyGapV(settings) * 2
     }
     // One lane per reserved row, which is what the render loop draws: a lane
     // before every body block, and the padding rows' share folded into the pad

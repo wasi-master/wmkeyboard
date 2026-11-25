@@ -864,6 +864,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_arrow_row_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_arrow_row_order_title) { Icons.Outlined.Reorder }
         put(R.string.layout_arrow_row_on_top_title) { Icons.Outlined.VerticalAlignTop }
+        put(R.string.layout_arrow_row_height_title) { Icons.Outlined.Height }
         put(R.string.layout_custom_number_row_title) { Icons.Outlined.Edit }
         put(R.string.layout_custom_arrow_row_title) { Icons.Outlined.Edit }
         put(R.string.layout_symbols_return_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
@@ -1361,6 +1362,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_second_toolbar_title) { Icons.Outlined.ViewAgenda }
         put(R.string.appearance_second_toolbar_place_title) { Icons.Outlined.SwapVert }
         put(R.string.appearance_second_toolbar_tools_title) { Icons.Outlined.ContentPaste }
+        put(R.string.appearance_second_toolbar_height_title) { Icons.Outlined.Height }
         put(R.string.tooldetail_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_show_in_toolbox_title) { Icons.Outlined.Apps }
         put(R.string.tooldetail_icon_colour_title) { Icons.Outlined.Colorize }

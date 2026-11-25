@@ -33,12 +33,16 @@
          header and the toggle carry the same name, so they share one key. -->
     <string name="layout_arrow_row_title">Arrow keys row</string>
     <string name="layout_arrow_row_subtitle">Show left, up, down and right keys under the keyboard</string>
-    <string name="layout_arrow_row_info">The keyboard adds a row of four arrow keys under the spacebar, so you can move the cursor without the toolbar or a drag on the spacebar. Hold an arrow to keep moving. The row is as tall as the number row, and the keyboard grows by that much.</string>
+    <string name="layout_arrow_row_info">The keyboard adds a row of four arrow keys under the spacebar, so you can move the cursor without the toolbar or a drag on the spacebar. Hold an arrow to keep moving. The row is as tall as the number row unless you give it a height of its own, and the keyboard grows by that much.</string>
     <string name="layout_arrow_row_order_title">Arrow order</string>
     <string name="layout_arrow_row_order_subtitle">Drag the handles to put the arrows in the order you want</string>
     <string name="layout_arrow_row_order_info">The keys appear on the row from left to right in the order of this list.</string>
     <string name="layout_arrow_row_on_top_title">Arrow keys on top</string>
     <string name="layout_arrow_row_on_top_subtitle">Show the arrow keys row above the keys instead of under the spacebar</string>
+    <string name="layout_arrow_row_height_title">Arrow row height</string>
+    <string name="layout_arrow_row_height_subtitle">How tall the arrow keys are</string>
+    <string name="layout_arrow_row_height_info">The arrow keys row is as tall as the number row by default, and grows and shrinks with it when you resize the keyboard. Move the slider off \"Same as number row\" to give the arrow keys a fixed height of their own, shorter or taller than the number row.</string>
+    <string name="layout_arrow_row_height_same_label">Same as number row</string>
     <string name="layout_arrow_row_on_top_info">The row moves to the top of the keyboard, above the number row when that is on. It keeps the same keys, order and height.</string>
     <!-- The keyboard-wide number and arrow rows, edited once for every layout
          (Telegram group, 0.6.5). A layout's own row still wins. -->

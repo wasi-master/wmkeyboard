@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
+import com.wasimaster.wmkeyboard.core.settings.ArrowRowHeightRange
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarKeys
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyLabelCase
 import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
+import com.wasimaster.wmkeyboard.core.settings.SecondToolbarHeightRange
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -1153,6 +1155,20 @@ internal fun AppearanceToolbarSettings(
                 keepLast = false,
             )
         }
+        // Its own height (#1545), the toolbar's until moved off the stop.
+        item(visible = secondOn) {
+            val dpFormat = stringResource(R.string.typing_value_dp)
+            val sameAsToolbar = stringResource(R.string.appearance_second_toolbar_height_same_label)
+            SliderSetting(
+                R.string.appearance_second_toolbar_height_title,
+                subtitle = stringResource(R.string.appearance_second_toolbar_height_subtitle),
+                value = settings.watch { it.toolbarBehavior.secondRowHeightDp }.toFloat(),
+                range = 0f..SecondToolbarHeightRange.last.toFloat(),
+                display = { if (it < SecondToolbarHeightRange.first) sameAsToolbar else dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.appearance_second_toolbar_height_info),
+                default = SettingsDefaults.toolbarBehavior.secondRowHeightDp.toFloat(),
+            ) { scope.launch { repository.setSecondToolbarHeightDp(it.roundToInt()) } }
+        }
     }
 }
 
@@ -1963,6 +1979,20 @@ internal fun LayoutArrowRowSettings(
                 info = stringResource(R.string.layout_arrow_row_on_top_info),
                 default = SettingsDefaults.layoutBehavior.arrowRowOnTop,
             ) { scope.launch { repository.setArrowRowOnTop(it) } }
+        }
+        // Its own height (#1545), the number row's until moved off the stop.
+        item(visible = arrowRow, level = SettingLevel.STANDARD) {
+            val dpFormat = stringResource(R.string.typing_value_dp)
+            val sameAsNumbers = stringResource(R.string.layout_arrow_row_height_same_label)
+            SliderSetting(
+                R.string.layout_arrow_row_height_title,
+                subtitle = stringResource(R.string.layout_arrow_row_height_subtitle),
+                value = settings.watch { it.layoutBehavior.arrowRowHeightDp }.toFloat(),
+                range = 0f..ArrowRowHeightRange.last.toFloat(),
+                display = { if (it < ArrowRowHeightRange.first) sameAsNumbers else dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.layout_arrow_row_height_info),
+                default = SettingsDefaults.layoutBehavior.arrowRowHeightDp.toFloat(),
+            ) { scope.launch { repository.setArrowRowHeightDp(it.roundToInt()) } }
         }
         item(visible = arrowRow, level = SettingLevel.STANDARD) {
             NavRow(
