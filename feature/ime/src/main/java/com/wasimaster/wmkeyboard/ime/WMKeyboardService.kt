@@ -7726,6 +7726,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val privacyShade = PrivacyShade(this) { window?.window?.decorView?.requestLayout() }.also { shade ->
         shade.onClose = ::closePrivacyShade
+        // The slider on the shade itself (#1564) sets the same Opacity as Settings.
+        shade.onOpacityChange = { value -> serviceScope.launch { settingsRepository.setPrivacyShadeOpacity(value) } }
     }
 
     /**

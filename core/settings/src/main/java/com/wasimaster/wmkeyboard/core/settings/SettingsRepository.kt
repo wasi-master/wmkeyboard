@@ -14323,6 +14323,7 @@ class SettingsRepository(private val context: Context) {
         private val PRIVACY_SHADE_TIMER_MINUTES = intPreferencesKey("privacy_shade_timer_minutes")
         private val PRIVACY_SHADE_PHOTO = stringPreferencesKey("privacy_shade_photo")
         private val PRIVACY_SHADE_PHOTO_OPACITY = floatPreferencesKey("privacy_shade_photo_opacity")
+        private val PRIVACY_SHADE_OPACITY_SLIDER = booleanPreferencesKey("privacy_shade_opacity_slider")
         private val FEEDBACK_SHAKE = booleanPreferencesKey("feedback_shake")
         private val FEEDBACK_SCREENSHOT = booleanPreferencesKey("feedback_screenshot")
         private val FEEDBACK_TELEGRAM_ROUTE = stringPreferencesKey("feedback_telegram_route")
@@ -15527,6 +15528,7 @@ class SettingsRepository(private val context: Context) {
                 photo = p[PRIVACY_SHADE_PHOTO]?.takeIf { it.isNotEmpty() } ?: defaults.privacyShade.photo,
                 photoOpacity = (p[PRIVACY_SHADE_PHOTO_OPACITY] ?: defaults.privacyShade.photoOpacity)
                     .coerceIn(PrivacyShadeSettings.MIN_PHOTO_OPACITY, 1f),
+                opacitySlider = p[PRIVACY_SHADE_OPACITY_SLIDER] ?: defaults.privacyShade.opacitySlider,
             ),
             feedbackShortcuts = FeedbackShortcutSettings(
                 shake = p[FEEDBACK_SHAKE] ?: defaults.feedbackShortcuts.shake,
@@ -19078,6 +19080,8 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setPrivacyShadeTouchThrough(value: Boolean) = editPrefs { it[PRIVACY_SHADE_TOUCH_THROUGH] = value }
+
+    suspend fun setPrivacyShadeOpacitySlider(value: Boolean) = editPrefs { it[PRIVACY_SHADE_OPACITY_SLIDER] = value }
 
     suspend fun setPrivacyShadeKeepScreenOn(value: Boolean) = editPrefs { it[PRIVACY_SHADE_KEEP_SCREEN_ON] = value }
 

@@ -58,6 +58,12 @@ data class PrivacyShadeSettings(
      * colour alone would.
      */
     val photoOpacity: Float = DEFAULT_PHOTO_OPACITY,
+    /**
+     * A slider on the shade itself, left of its handle (#1564), that sets
+     * [opacity] while the shade is up, so the cover can be made lighter or
+     * darker without going to Settings. Off by default.
+     */
+    val opacitySlider: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_OPACITY = 0.94f

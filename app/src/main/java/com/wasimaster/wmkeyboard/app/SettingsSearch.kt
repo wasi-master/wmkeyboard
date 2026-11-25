@@ -1933,6 +1933,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_privacy_shade_opacity_title,
         R.string.tooldetail_privacy_shade_opacity_subtitle,
     ),
+    toolEntry(
+        ToolbarTool.PRIVACY_SHADE,
+        R.string.tooldetail_privacy_shade_opacity_slider_title,
+        R.string.tooldetail_privacy_shade_opacity_slider_subtitle,
+    ),
     toolEntry(ToolbarTool.PRIVACY_SHADE, R.string.tooldetail_privacy_shade_touch_title),
     toolEntry(
         ToolbarTool.PRIVACY_SHADE,

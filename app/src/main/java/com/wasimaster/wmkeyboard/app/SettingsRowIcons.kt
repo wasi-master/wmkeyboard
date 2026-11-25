@@ -2823,6 +2823,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_privacy_shade_on_title) { Icons.Outlined.Blinds }
         put(R.string.tooldetail_privacy_shade_style_title) { Icons.Outlined.ColorLens }
         put(R.string.tooldetail_privacy_shade_opacity_title) { Icons.Outlined.Opacity }
+        put(R.string.tooldetail_privacy_shade_opacity_slider_title) { Icons.Outlined.Tune }
         put(R.string.tooldetail_privacy_shade_touch_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_privacy_shade_keep_on_title) { Icons.Outlined.LightMode }
         put(R.string.tooldetail_privacy_shade_dim_title) { Icons.Outlined.Bedtime }

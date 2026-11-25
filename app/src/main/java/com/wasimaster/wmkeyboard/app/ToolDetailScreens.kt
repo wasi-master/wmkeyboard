@@ -2017,6 +2017,16 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_privacy_shade_opacity_info),
                     ) { scope.launch { repository.setPrivacyShadeOpacity(it / 100f) } }
                 }
+                // The same opacity, set on the shade itself while it is up (#1564).
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_privacy_shade_opacity_slider_title,
+                        stringResource(R.string.tooldetail_privacy_shade_opacity_slider_subtitle),
+                        settings.watch { it.privacyShade.opacitySlider },
+                        default = SettingsDefaults.privacyShade.opacitySlider,
+                        info = stringResource(R.string.tooldetail_privacy_shade_opacity_slider_info),
+                    ) { scope.launch { repository.setPrivacyShadeOpacitySlider(it) } }
+                }
                 item {
                     ToggleSetting(
                         R.string.tooldetail_privacy_shade_touch_title,

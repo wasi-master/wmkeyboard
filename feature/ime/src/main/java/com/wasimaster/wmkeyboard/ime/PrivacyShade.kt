@@ -43,6 +43,8 @@ import kotlin.math.roundToInt
  *   conversation just above the keys, and down to cover them again; a tap on
  *   the handle covers everything again;
  * - tap the close button beside the handle to take the shade down;
+ * - with [PrivacyShadeSettings.opacitySlider] on, slide the slider left of the
+ *   handle to make the cover lighter or darker (#1564);
  * - with [PrivacyShadeSettings.touchThrough] off, hold a finger anywhere on
  *   it to lift it until the finger comes up.
  *
@@ -92,6 +94,7 @@ internal class PrivacyShade(
     fun update(next: PrivacyShadeSettings, drawable: Boolean) {
         val wasShowing = showing
         val wasTouches = takesTouches
+        val wasSlider = settings.opacitySlider
         settings = next
         showing = next.on && drawable
         // Held only while the shade is up: the keyboard's process has no
@@ -99,7 +102,8 @@ internal class PrivacyShade(
         loadPhoto(if (showing) next.photo else null)
         view?.apply(next, showing)
         if (!showing) view?.coverAll()
-        if (wasShowing != showing || wasTouches != takesTouches) requestInsets()
+        // The slider (#1564) is part of the window's touchable region too.
+        if (wasShowing != showing || wasTouches != takesTouches || wasSlider != next.opacitySlider) requestInsets()
     }
 
     /** Where the board starts, in window pixels, as the insets just worked it out. */
@@ -112,7 +116,7 @@ internal class PrivacyShade(
         view?.coverAll()
     }
 
-    /** Adds the handle and the close button to a touchable region, in window pixels. */
+    /** Adds the handle, the close button and the opacity slider to a touchable region, in window pixels. */
     fun touchRegion(region: Region) {
         val v = view ?: return
         if (!showing) return
@@ -122,10 +126,16 @@ internal class PrivacyShade(
         v.controlsRect(r)
         r.offset(offset[0], offset[1])
         if (!r.isEmpty) region.op(r, Region.Op.UNION)
+        v.sliderRect(r)
+        r.offset(offset[0], offset[1])
+        if (!r.isEmpty) region.op(r, Region.Op.UNION)
     }
 
     /** Called back from the view when the user closes the shade with its button. */
     var onClose: () -> Unit = {}
+
+    /** Called back with the opacity the shade's own slider was let go at (#1564), to be saved. */
+    var onOpacityChange: (Float) -> Unit = {}
 
     /** The user's photo on the cover (#1417), decoded; and the file name it was decoded from. */
     private var photo: Bitmap? = null
@@ -188,6 +198,7 @@ internal class PrivacyShade(
             strokeCap = Paint.Cap.ROUND
         }
         private val closeRing = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         private val hint = context.getString(R.string.ime_privacy_shade_hint)
         private val slop = ViewConfiguration.get(context).scaledTouchSlop
 
@@ -209,6 +220,12 @@ internal class PrivacyShade(
 
         /** Lifted by a held finger, with touch-through off. */
         private var peeking = false
+
+        /** The opacity slider is drawn on the cover's edge (#1564). */
+        private var slider = false
+
+        /** A finger is on the opacity slider. */
+        private var sliding = false
 
         // The drag under way, if any.
         private var dragging = false
@@ -235,7 +252,10 @@ internal class PrivacyShade(
             showHint = next.style != PrivacyShadeStyle.BLACK
             val (cover, ink) = colours(next.style)
             coverPaint.color = cover
-            coverOpacity = next.opacity.coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f)
+            // Not while a finger is on the slider: the value saved from an
+            // earlier slide must not pull the cover back under it.
+            if (!sliding) coverOpacity = next.opacity.coerceIn(PrivacyShadeSettings.MIN_OPACITY, 1f)
+            slider = next.opacitySlider
             photoOpacity = next.photoOpacity.coerceIn(PrivacyShadeSettings.MIN_PHOTO_OPACITY, 1f)
             handlePaint.color = ink
             handlePaint.alpha = HANDLE_ALPHA
@@ -246,6 +266,7 @@ internal class PrivacyShade(
             closePaint.color = ink
             closeRing.color = ink
             closeRing.alpha = CLOSE_RING_ALPHA
+            trackPaint.color = ink
             visibility = if (show) VISIBLE else GONE
             invalidate()
         }
@@ -289,6 +310,57 @@ internal class PrivacyShade(
 
         private fun closeCenterX(): Float = width / 2f + handleWidth / 2f + dp(8f) + closeSize / 2f
 
+        /**
+         * The opacity slider's strip (#1564): on the cover's lower edge, from
+         * near the left side to short of the handle, at most [SLIDER_MAX_DP]
+         * wide. Empty while it is off, or when the screen leaves no room.
+         */
+        fun sliderRect(out: Rect) {
+            if (!slider || !drawn || boardTop <= 0) {
+                out.setEmpty()
+                return
+            }
+            val bottom = coverBottom()
+            val left = dp(SLIDER_INSET_DP)
+            val right = minOf(width / 2f - handleWidth / 2f - closeSize - dp(16f), left + dp(SLIDER_MAX_DP))
+            if (right - left < dp(SLIDER_MIN_DP)) {
+                out.setEmpty()
+                return
+            }
+            out.set(
+                left.roundToInt(),
+                (bottom - stripHeight).roundToInt().coerceAtLeast(0),
+                right.roundToInt(),
+                bottom,
+            )
+        }
+
+        /** The opacity a finger at [x] on the slider's strip [track] asks for. */
+        private fun opacityAt(x: Float, track: Rect): Float {
+            val knob = dp(SLIDER_KNOB_DP)
+            val span = (track.width() - 2f * knob).coerceAtLeast(1f)
+            val f = ((x - track.left - knob) / span).coerceIn(0f, 1f)
+            return PrivacyShadeSettings.MIN_OPACITY + f * (1f - PrivacyShadeSettings.MIN_OPACITY)
+        }
+
+        /** The slider: a thin track, filled up to a round knob that sits where the opacity is. */
+        private fun drawSlider(canvas: Canvas) {
+            val track = Rect().also { sliderRect(it) }
+            if (track.isEmpty) return
+            val knob = dp(SLIDER_KNOB_DP)
+            val cy = track.bottom - stripHeight / 2f
+            val start = track.left + knob
+            val end = track.right - knob
+            val f = (coverOpacity - PrivacyShadeSettings.MIN_OPACITY) / (1f - PrivacyShadeSettings.MIN_OPACITY)
+            val at = start + (end - start) * f.coerceIn(0f, 1f)
+            val half = dp(1.5f)
+            trackPaint.alpha = TRACK_ALPHA
+            canvas.drawRoundRect(RectF(start, cy - half, end, cy + half), half, half, trackPaint)
+            trackPaint.alpha = HANDLE_ALPHA
+            canvas.drawRoundRect(RectF(start, cy - half, at, cy + half), half, half, trackPaint)
+            canvas.drawCircle(at, cy, if (sliding) knob * 1.25f else knob, trackPaint)
+        }
+
         override fun onDraw(canvas: Canvas) {
             if (!drawn || boardTop <= 0 || peeking) return
             val bottom = coverBottom().toFloat()
@@ -307,6 +379,7 @@ internal class PrivacyShade(
             val arm = r * 0.42f
             canvas.drawLine(ccx - arm, cy - arm, ccx + arm, cy + arm, closePaint)
             canvas.drawLine(ccx - arm, cy + arm, ccx + arm, cy - arm, closePaint)
+            if (slider) drawSlider(canvas)
             // What the handle is for, in the middle of the cover while there is room.
             if (showHint && bottom > dp(HINT_ROOM_DP)) {
                 canvas.drawText(hint, cx, bottom / 2f, hintPaint)
@@ -350,6 +423,14 @@ internal class PrivacyShade(
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     val y = event.y
+                    val track = Rect().also { sliderRect(it) }
+                    if (!track.isEmpty && track.contains(event.x.roundToInt(), y.roundToInt())) {
+                        sliding = true
+                        coverOpacity = opacityAt(event.x, track)
+                        parent?.requestDisallowInterceptTouchEvent(true)
+                        invalidate()
+                        return true
+                    }
                     val onControls = controls.contains(event.x.roundToInt(), y.roundToInt())
                     if (onControls) {
                         dragging = true
@@ -371,6 +452,12 @@ internal class PrivacyShade(
                     return false
                 }
                 MotionEvent.ACTION_MOVE -> {
+                    if (sliding) {
+                        val track = Rect().also { sliderRect(it) }
+                        if (!track.isEmpty) coverOpacity = opacityAt(event.x, track)
+                        invalidate()
+                        return true
+                    }
                     if (dragging) {
                         val dy = downY - event.y
                         if (!moved && abs(dy) > slop) moved = true
@@ -383,6 +470,15 @@ internal class PrivacyShade(
                     return peeking
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (sliding) {
+                        sliding = false
+                        invalidate()
+                        // Saved once, where the finger let go: the settings
+                        // coming back with it then match what is drawn.
+                        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                        onOpacityChange(coverOpacity)
+                        return true
+                    }
                     if (dragging) {
                         dragging = false
                         val tap = !moved && event.actionMasked == MotionEvent.ACTION_UP
@@ -406,7 +502,7 @@ internal class PrivacyShade(
                     return false
                 }
             }
-            return dragging || peeking
+            return dragging || peeking || sliding
         }
     }
 
@@ -422,6 +518,12 @@ internal class PrivacyShade(
         const val EDGE_ALPHA = 60
         const val HINT_ALPHA = 120
         const val CLOSE_RING_ALPHA = 36
+        const val TRACK_ALPHA = 70
+        /** The opacity slider (#1564): its gap from the left side, its widest, its narrowest, its knob's radius. */
+        const val SLIDER_INSET_DP = 16f
+        const val SLIDER_MAX_DP = 160f
+        const val SLIDER_MIN_DP = 72f
+        const val SLIDER_KNOB_DP = 7f
 
         /** The cover's colour and the colour its handle and hint are drawn in. */
         fun colours(style: PrivacyShadeStyle): Pair<Int, Int> = when (style) {

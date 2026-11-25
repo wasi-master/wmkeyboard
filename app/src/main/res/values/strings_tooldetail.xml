@@ -1656,6 +1656,9 @@
     <string name="tooldetail_privacy_shade_opacity_title">Opacity</string>
     <string name="tooldetail_privacy_shade_opacity_subtitle">Lower lets you make out your own messages up close, while someone a seat away cannot</string>
     <string name="tooldetail_privacy_shade_opacity_info">How solid the privacy shade is. At a lower value you can still read your own messages from close up, while a person one seat away cannot.</string>
+    <string name="tooldetail_privacy_shade_opacity_slider_title">Opacity slider on the shade</string>
+    <string name="tooldetail_privacy_shade_opacity_slider_subtitle">A slider left of the shade\'s handle sets the opacity while the shade is up</string>
+    <string name="tooldetail_privacy_shade_opacity_slider_info">Puts a small slider on the shade\'s lower edge, to the left of its handle. Slide it left to see more of the app and right to cover more. Where you leave it becomes the Opacity setting.</string>
     <string name="tooldetail_privacy_shade_touch_title">Touch the app through the shade</string>
     <string name="tooldetail_privacy_shade_touch_info">Taps and scrolls on the shade go through to the app under it, so you can scroll the chat while it stays covered. With this off, the shade takes the touches. This setting is on by default.</string>
     <string name="tooldetail_privacy_shade_touch_on_subtitle">Taps and scrolls on the shade reach the app under it</string>
