@@ -4779,7 +4779,14 @@ private fun TopBar(
         // job, and a swipe down on the tools or the toolbar's toolbox button
         // undoes it ([swipeTools]).
         val swipeInstead = swipeTools
+        // Beside the pinned tools the arrow is one of them as far as spacing
+        // goes (#1528): a cell of the spread bar's grid, or the packed bar's
+        // gap either side. It kept the strip's spacing instead, so the gap
+        // from it to the toolbox button was half the gap between the tools.
+        val behavior = state.settings.toolbarBehavior
+        val arrowInGrid = showToolbar && !toolsOwnRow && behavior.greedy && !behavior.scrollable
         AnimatedVisibility(
+            modifier = if (arrowInGrid) Modifier.weight(1f).fillMaxHeight() else Modifier,
             visible = !toolsColumn && !swipeInstead && when (placement) {
                 // The row is always there; there is nothing for a chevron to do.
                 ToolbarPlacement.ALWAYS_ROW -> false
@@ -4814,20 +4821,27 @@ private fun TopBar(
                 // (Telegram 10184, "remains naked"). Same size as the strip's
                 // own buttons.
                 val ownIcon = LocalIconSet.current.resolve(IconSlots.CHROME_SUGGESTIONS_EXPAND) != null
-                val behavior = state.settings.toolbarBehavior
-                ToolCircle(
-                    slot = IconSlots.CHROME_SUGGESTIONS_EXPAND,
-                    description = chevronDesc,
-                    active = false,
-                    modifier = Modifier.stripToolGap(behavior),
-                    longPressLabel = chevronDesc,
-                    wide = true,
-                    widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
-                    iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
-                    glyphTurn = if (ownIcon) null else ({ chevronTurn }),
+                Box(
+                    when {
+                        arrowInGrid -> Modifier.fillMaxSize()
+                        showToolbar -> Modifier.padding(horizontal = 3.dp)
+                        else -> Modifier.stripToolGap(behavior)
+                    },
+                    contentAlignment = Alignment.Center,
                 ) {
-                    feedback()
-                    toolbarOverride = !toolbarOverride
+                    ToolCircle(
+                        slot = IconSlots.CHROME_SUGGESTIONS_EXPAND,
+                        description = chevronDesc,
+                        active = false,
+                        longPressLabel = chevronDesc,
+                        wide = true,
+                        widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
+                        iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
+                        glyphTurn = if (ownIcon) null else ({ chevronTurn }),
+                    ) {
+                        feedback()
+                        toolbarOverride = !toolbarOverride
+                    }
                 }
             } else {
                 // A sideways chevron says "flip this row", which is what it
@@ -13705,7 +13719,10 @@ private fun RowScope.ToolbarRow(
         val gridDensity = LocalDensity.current
         Row(
             modifier = Modifier
-                .weight(1f)
+                // One weight per cell, so a cell the bar around it lays out
+                // with a weight of one (the strip's arrow, #1528) comes out
+                // exactly as wide as the cells in here.
+                .weight(gridCells.toFloat())
                 .fillMaxHeight()
                 .then(gridCut?.tracker ?: Modifier)
                 .then(
