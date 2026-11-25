@@ -2175,8 +2175,14 @@ data class AccessibilitySettings(
     val themeMotion: Boolean = true,
 )
 
-/** How long, in minutes, [ToolbarBehavior.keepToolsMinutes] can be set to. */
-val KeepToolsMinutesRange = 1..60
+/** How long, in seconds, [ToolbarBehavior.keepToolsSeconds] can be set to. */
+val KeepToolsSecondsRange = 10..3600
+
+/**
+ * The stops of the "How long a tool stays open" slider, in seconds: every 10
+ * seconds under a minute, then every minute up to an hour.
+ */
+val KeepToolsSecondsStops: List<Int> = (10..50 step 10).toList() + (1..60).map { it * 60 }
 
 /**
  * How the top toolbar behaves and lays out. Grouped into their own class
@@ -2266,11 +2272,13 @@ data class ToolbarBehavior(
     val keepToolsAcrossApps: Boolean = true,
     /**
      * How long a tool left open in an app waits for the user to come back,
-     * in minutes ([KeepToolsMinutesRange]). Three by default: long enough to
-     * look something up or change a setting, short enough that a tool does
-     * not greet someone who came back to the app for something else.
+     * in seconds ([KeepToolsSecondsRange], [KeepToolsSecondsStops]). Three
+     * minutes by default: long enough to look something up or change a
+     * setting, short enough that a tool does not greet someone who came back
+     * to the app for something else. Seconds since minutes could not go
+     * under one (Telegram); a value saved in minutes is read as such.
      */
-    val keepToolsMinutes: Int = 3,
+    val keepToolsSeconds: Int = 180,
     /**
      * Width of each pinned tool's background on the bar. 38 is the classic
      * circle; wider stretches it into a pill (pairs best with a low corner
@@ -14107,6 +14115,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_HIDE_WHEN_LOCKED = booleanPreferencesKey("toolbar_hide_when_locked")
         private val TOOLS_KEEP_ACROSS_APPS = booleanPreferencesKey("tools_keep_across_apps")
         private val TOOLS_KEEP_MINUTES = intPreferencesKey("tools_keep_minutes")
+        private val TOOLS_KEEP_SECONDS = intPreferencesKey("tools_keep_seconds")
         private val TOOLBAR_LABELS = booleanPreferencesKey("toolbar_labels")
         private val TOOLBAR_LABEL_SIZE = intPreferencesKey("toolbar_label_size")
         private val TOOL_CIRCLE_RADIUS = intPreferencesKey("tool_circle_radius")
@@ -16962,8 +16971,9 @@ class SettingsRepository(private val context: Context) {
             scrollable = p[TOOLBAR_SCROLLABLE] ?: defaults.toolbarBehavior.scrollable,
             hideWhenLocked = p[TOOLBAR_HIDE_WHEN_LOCKED] ?: defaults.toolbarBehavior.hideWhenLocked,
             keepToolsAcrossApps = p[TOOLS_KEEP_ACROSS_APPS] ?: defaults.toolbarBehavior.keepToolsAcrossApps,
-            keepToolsMinutes = p[TOOLS_KEEP_MINUTES]?.coerceIn(KeepToolsMinutesRange)
-                ?: defaults.toolbarBehavior.keepToolsMinutes,
+            keepToolsSeconds = p[TOOLS_KEEP_SECONDS]?.coerceIn(KeepToolsSecondsRange)
+                ?: p[TOOLS_KEEP_MINUTES]?.let { (it * 60).coerceIn(KeepToolsSecondsRange) }
+                ?: defaults.toolbarBehavior.keepToolsSeconds,
             toolWidthDp = p[TOOLBAR_TOOL_WIDTH] ?: defaults.toolbarBehavior.toolWidthDp,
             iconSizeDp = p[TOOLBAR_ICON_SIZE] ?: defaults.toolbarBehavior.iconSizeDp,
             toolHeightDp = p[TOOLBAR_TOOL_HEIGHT] ?: defaults.toolbarBehavior.toolHeightDp,
@@ -20244,8 +20254,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKeepToolsAcrossApps(value: Boolean) =
         editPrefs { it[TOOLS_KEEP_ACROSS_APPS] = value }
 
-    suspend fun setKeepToolsMinutes(value: Int) =
-        editPrefs { it[TOOLS_KEEP_MINUTES] = value.coerceIn(KeepToolsMinutesRange) }
+    suspend fun setKeepToolsSeconds(value: Int) =
+        editPrefs {
+            it[TOOLS_KEEP_SECONDS] = value.coerceIn(KeepToolsSecondsRange)
+            it.remove(TOOLS_KEEP_MINUTES)
+        }
 
     suspend fun setToolbarLabels(value: Boolean) =
         editPrefs { it[TOOLBAR_LABELS] = value }
@@ -24852,6 +24865,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_HIDE_WHEN_LOCKED)
         it.remove(TOOLS_KEEP_ACROSS_APPS)
         it.remove(TOOLS_KEEP_MINUTES)
+        it.remove(TOOLS_KEEP_SECONDS)
         it.remove(TOOLBAR_LABELS)
         it.remove(TOOLBAR_LABEL_SIZE)
         it.remove(SUGGESTION_TEXT_SCALE)

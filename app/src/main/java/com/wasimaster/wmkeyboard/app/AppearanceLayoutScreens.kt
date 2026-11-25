@@ -68,7 +68,7 @@ import com.wasimaster.wmkeyboard.core.settings.FieldButtonRange
 import com.wasimaster.wmkeyboard.core.settings.ToolHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ToolWidthRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarHeightRange
-import com.wasimaster.wmkeyboard.core.settings.KeepToolsMinutesRange
+import com.wasimaster.wmkeyboard.core.settings.KeepToolsSecondsStops
 import com.wasimaster.wmkeyboard.core.settings.StatusIconSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPaddingRange
 import com.wasimaster.wmkeyboard.core.settings.stripToolboxSwipes
@@ -109,6 +109,7 @@ import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -828,15 +829,24 @@ internal fun AppearanceToolbarSettings(
         }
         item(visible = keepTools) {
             val minutesFormat = stringResource(R.string.values_minutes)
+            val secondsFormat = stringResource(R.string.values_seconds)
+            // The stops by index: 10 to 50 seconds, then every minute to an hour.
+            val stopAt = { index: Float -> KeepToolsSecondsStops[index.roundToInt().coerceIn(KeepToolsSecondsStops.indices)] }
+            val indexOf = { seconds: Int -> KeepToolsSecondsStops.indices.minBy { abs(KeepToolsSecondsStops[it] - seconds) }.toFloat() }
             SliderSetting(
                 R.string.appearance_toolbar_keep_tools_minutes_title,
                 subtitle = stringResource(R.string.appearance_toolbar_keep_tools_minutes_subtitle),
-                value = settings.watch { it.toolbarBehavior.keepToolsMinutes }.toFloat(),
-                range = KeepToolsMinutesRange.first.toFloat()..KeepToolsMinutesRange.last.toFloat(),
-                display = { minutesFormat.format(it.roundToInt()) },
-                default = SettingsDefaults.toolbarBehavior.keepToolsMinutes.toFloat(),
+                value = indexOf(settings.watch { it.toolbarBehavior.keepToolsSeconds }),
+                range = 0f..KeepToolsSecondsStops.lastIndex.toFloat(),
+                display = { index ->
+                    val seconds = stopAt(index)
+                    if (seconds < 60) secondsFormat.format(seconds) else minutesFormat.format(seconds / 60)
+                },
+                // Seconds, then minutes: a bare number cannot say which.
+                typed = false,
+                default = indexOf(SettingsDefaults.toolbarBehavior.keepToolsSeconds),
                 info = stringResource(R.string.appearance_toolbar_keep_tools_minutes_info),
-            ) { scope.launch { repository.setKeepToolsMinutes(it.roundToInt()) } }
+            ) { index -> scope.launch { repository.setKeepToolsSeconds(stopAt(index)) } }
         }
         if (toolbarOn) item {
             ToggleSetting(

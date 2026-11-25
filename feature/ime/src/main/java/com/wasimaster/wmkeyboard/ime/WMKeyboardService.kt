@@ -21917,7 +21917,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * A new field in [info]'s app: its parked tool comes back when the user
-     * left the app and returned within the minutes the setting allows, the field is no
+     * left the app and returned within the time the setting allows, the field is no
      * password or incognito one ([blocked]), and nothing else already holds
      * the panel. Taken either way: a tool comes back once.
      */
@@ -21927,7 +21927,7 @@ open class WMKeyboardService : InputMethodService() {
         dropParkedTool(pkg)
         val state = _uiState.value
         if (blocked || !parked.left || !state.settings.toolbarBehavior.keepToolsAcrossApps) return
-        val wait = state.settings.toolbarBehavior.keepToolsMinutes * 60_000L
+        val wait = state.settings.toolbarBehavior.keepToolsSeconds * 1_000L
         if (System.currentTimeMillis() - parked.at !in 0..wait) return
         if (state.panel != PanelMode.NONE || parked.panel == state.appletPanel) return
         if (parked.panel == PanelMode.CLIPBOARD && !isClipboardAccessible()) return
