@@ -7904,15 +7904,30 @@ class SuggestionEngine(
         // a word (`ma`, `ta`, `jeté`), not because a tokenizer cut `m'a` at
         // its apostrophe: it is offered the elision and never rewritten to it.
         val vouched = typed != Double.NEGATIVE_INFINITY && curatedHolds(lower)
+        // A word the user put in their dictionary, Android's personal
+        // dictionary or the grammar's own list of fused spellings that are
+        // words (`ta`, `ma`) is a word they mean: the elision is offered on
+        // the strip and never committed over it (#1520).
+        val kept = userLexicon.isAddedByHand(lower) || systemDictionary.contains(lower) || rules.isWordToo(lower)
         for (split in splits) {
+            // `ta` is *t'a*: a function word whose accented twin is another
+            // word keeps the spelling typed unless [Elisions] respells it.
+            val bare = rules.keepsBare(split)
             val (word, score) = rules.respelled(split)
                 ?.let { spelled ->
                     dictionaryScore(spelled, own).takeIf { it > Double.NEGATIVE_INFINITY }?.let { spelled to it }
                 }
-                ?: listedElision(split, own)
+                ?: listedElision(split, own, accents = !bare)
+                ?: (if (bare) dictionaryScore(split.rest, own).takeIf { it > Double.NEGATIVE_INFINITY }?.let { split.rest to it } else null)
                 ?: accentedLookup(split.rest, own)
                 ?: continue
-            if (suppressed(word)) continue
+            val spelling = split.spell(word)
+            // The blacklist names what the strip shows, the whole elision.
+            if (suppressed(word) || suppressed(spelling)) continue
+            // An elision the user took back, or set to Never under Corrections
+            // you undid, is held back the way an undone contraction is
+            // ([contractionReading]): offered, never committed (#1520).
+            val undone = correctionStats.penalty(lower, spelling) != CorrectionStats.Penalty.NONE
             // A spelling no word begins with is an elision whatever a list
             // has counted: `aujourdhui` is never a word, and `hui` is never
             // anything else, so the ratio between them says nothing.
@@ -7926,14 +7941,17 @@ class SuggestionEngine(
             // it, so a spelling the ratio rewrites still leads and a real word
             // that splits still trails; unknown, it scores as its word does.
             val shown = if (known) {
-                typedRank + (score - typed) - price
+                val apart = typedRank + (score - typed) - price
+                // Held back, it trails what was typed, the way the space bar
+                // leaves it: a strip leading with it would be the bug again.
+                if (kept || undone) minOf(apart, typedRank - DECLARED_BEHIND) else apart
             } else {
                 dictionaryScore(word.lowercase(), own, ranked = true).takeIf { it.isFinite() } ?: score
             }
             val reading = ElisionReading(
-                spelling = split.spell(word),
+                spelling = spelling,
                 score = shown,
-                shadowed = !known || (!vouched && score - typed >= price),
+                shadowed = !kept && !undone && (!known || (!vouched && score - typed >= price)),
             )
             if (best == null || reading.score > best.score) best = reading
         }
@@ -7951,8 +7969,13 @@ class SuggestionEngine(
     private fun listedElision(
         split: Elisions.Split,
         own: List<FuzzyBeamSearch.WalkSource>,
+        accents: Boolean = true,
     ): Pair<String, Double>? {
-        val rests = listOfNotNull(split.rest, accentedLookup(split.rest, own)?.first).distinct()
+        val rests = if (accents) {
+            listOfNotNull(split.rest, accentedLookup(split.rest, own)?.first).distinct()
+        } else {
+            listOf(split.rest)
+        }
         var best: Pair<String, Double>? = null
         var bestWhole = Double.NEGATIVE_INFINITY
         for (rest in rests) {

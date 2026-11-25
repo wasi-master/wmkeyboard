@@ -97,7 +97,18 @@ object Elisions {
          * earns its line by being a word somebody types.
          */
         private val never: Set<String> = emptySet(),
+        /**
+         * Spellings that are words the typist means far more often than the
+         * elision, however the counts compare: French *ta* and *ma* are the
+         * possessives (`ta maison`), and *tes* is too, beside *t'a*, *m'a*
+         * and *t'es* (#1520). Unlike [never] the elision is still offered on
+         * the strip; it is only never committed over what was typed.
+         */
+        private val wordsToo: Set<String> = emptySet(),
     ) {
+
+        /** Whether [fused] is one of [wordsToo]: offered its elision, never rewritten to it. */
+        fun isWordToo(fused: String): Boolean = fused in wordsToo
 
         /**
          * Whether [letters] — a composing buffer, lowercase or not — is a
@@ -155,6 +166,16 @@ object Elisions {
 
         /** The spelling [split]'s word takes after its prefix when the lists must not choose it. */
         fun respelled(split: Split): String? = respelled[bare(split.rest)]?.get(split.prefix)
+
+        /**
+         * Whether [split]'s word stays as typed: a function word whose accented
+         * twin is a different word ([respelled] lists it), after a prefix that
+         * takes the bare one. `ta` is *t'a*, never *t'à* because *à*
+         * outnumbers *a* in the lists (#1520); only `qu'`, `jusqu'` and their
+         * kin take *à*.
+         */
+        fun keepsBare(split: Split): Boolean =
+            respelled[bare(split.rest)]?.let { split.prefix !in it } == true
 
         /** Whether a spelling fused onto [prefix] can only ever be an elision. */
         fun alwaysElides(prefix: String): Boolean = prefix in alwaysElide
@@ -253,6 +274,7 @@ object Elisions {
             "ou" to mapOf("d" to "où", "jusqu" to "où"),
             "ile" to mapOf("l" to "île", "presqu" to "île"),
         ),
+        wordsToo = setOf("ma", "ta", "tes"),
     )
 
     /** The prefixes that elide before anything: Italian's articles and prepositions. */

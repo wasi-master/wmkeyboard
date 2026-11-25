@@ -110,6 +110,39 @@ class FrenchElisionTest {
         assertNull(e.elide("quand"))
     }
 
+    @Test fun thePossessivesAreNeverRewritten() {
+        // #1520: `ta` became *t'à* — the word after the prefix took the
+        // accent of the commoner *à*, and the possessive itself, far rarer
+        // than *a*, read as a stand-in. Both are words people mean.
+        val e = french("ta" to 1_000, "ma" to 1_200, "tes" to 800, "es" to 900_000)
+        for (typed in listOf("ta", "ma", "tes")) assertNull(typed, e.elide(typed))
+        val ta = e.suggest("ta", previousWord = null)
+        assertFalse(ta.toString(), "t'à" in ta)
+        assertTrue(ta.toString(), "t'a" in ta)
+        assertTrue(ta.toString(), ta.indexOf("ta") in 0 until ta.indexOf("t'a"))
+    }
+
+    @Test fun aPronounPrefixTakesTheVerbNotThePreposition() {
+        // `ta` with no list behind it: the elision is *t'a*, never *t'à*.
+        // Only qu' and its kin take *à*.
+        val e = french()
+        assertFalse("t'à" in e.suggest("ta", previousWord = null))
+        assertEquals("jusqu'à", e.elide("jusqua"))
+    }
+
+    @Test fun aBlacklistedElisionIsNotApplied() {
+        val e = french()
+        e.blacklist = setOf("j'ai")
+        assertNull(e.elide("jai"))
+    }
+
+    @Test fun anUndoneElisionIsNotAppliedAgain() {
+        val e = french()
+        e.correctionStats.recordRevert("jai", "j'ai")
+        assertNull(e.elide("jai"))
+        assertEquals("c'est", e.elide("cest"))
+    }
+
     @Test fun aWordAlreadyElidedIsLeftAlone() {
         assertNull(french().elide("c'est"))
     }
