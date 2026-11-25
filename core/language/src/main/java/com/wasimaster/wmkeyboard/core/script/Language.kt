@@ -311,7 +311,12 @@ object LanguageRegistry {
             englishName = "Portuguese",
             script = ScriptId.LATIN,
             localeTag = "pt-BR",
-            layoutIds = listOf(AssetLayouts.PT_QWERTY_ID, AssetLayouts.PT_T9_ID, AssetLayouts.PT_ONE_ROW_ID),
+            layoutIds = listOf(
+                AssetLayouts.PT_QWERTY_ID,
+                AssetLayouts.PT_QWERTY_NO_CEDILLA_ID,
+                AssetLayouts.PT_T9_ID,
+                AssetLayouts.PT_ONE_ROW_ID,
+            ),
         ),
         LanguageDef(
             id = "uk",

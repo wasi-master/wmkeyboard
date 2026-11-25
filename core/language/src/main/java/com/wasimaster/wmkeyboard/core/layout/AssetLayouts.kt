@@ -37,6 +37,8 @@ object AssetLayouts {
 
     /** Stable ids of the shipped asset layouts, for the [LanguageDef]s that group them. */
     const val PT_QWERTY_ID = "asset_pt_qwerty"
+    /** Portuguese QWERTY without the Ç key, ç first on the hold of c (#1552). */
+    const val PT_QWERTY_NO_CEDILLA_ID = "asset_pt_qwerty_no_cedilla"
     const val UK_JCUKEN_ID = "asset_uk_jcuken"
     const val IT_QWERTY_ID = "asset_it_qwerty"
     const val NL_QWERTY_ID = "asset_nl_qwerty"
