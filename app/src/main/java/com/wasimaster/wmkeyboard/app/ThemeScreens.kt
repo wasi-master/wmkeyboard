@@ -1353,6 +1353,9 @@ fun ThemesScreen(
     // Picked themes, all in one zip of theme files, parked like [pendingExport].
     var pendingBulkExport by remember { mutableStateOf<List<ThemeSpec>?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    // How many themes a zip of theme files has given so far, while one is
+    // being read; null the rest of the time.
+    var bundleRead by remember { mutableStateOf<Int?>(null) }
     val bulkExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument(PackBundle.MIME_TYPE)
     ) { uri ->
@@ -1423,22 +1426,37 @@ fun ThemesScreen(
         // none switched to, the way a batch of files comes in.
         if (withContext(Dispatchers.IO) { PackBundle.isBundle(context, uri, ThemeCodec.FILE_EXTENSION) }) {
             val dir = withContext(Dispatchers.IO) { themeImagesDir(context) }
-            val read = withContext(Dispatchers.IO) {
-                val themes = ArrayList<ThemeSpec>()
-                runCatching {
-                    PackBundle.forEachPack(context, uri, ThemeCodec.FILE_EXTENSION) { _, input ->
-                        val parsed = input?.use { it.readBytes().decodeToString() }?.let(ThemeCodec::decode)
-                        if (parsed != null) {
-                            themes += parsed.withFreshIds("${id}_z${themes.size}").withExtractedImages(dir)
+            bundleRead = 0
+            val read = try {
+                withContext(Dispatchers.IO) {
+                    val themes = ArrayList<ThemeSpec>()
+                    runCatching {
+                        // One theme at a time: its pictures go to files as it
+                        // is read, so what is kept is the theme without them.
+                        PackBundle.forEachPack(context, uri, ThemeCodec.FILE_EXTENSION) { _, input ->
+                            val parsed = input?.use { it.readBytes().decodeToString() }?.let(ThemeCodec::decode)
+                            if (parsed != null) {
+                                themes += parsed.withFreshIds("${id}_z${themes.size}").withExtractedImages(dir)
+                                bundleRead = themes.size
+                            }
                         }
                     }
+                    themes
                 }
-                themes
+            } finally {
+                bundleRead = null
             }
             if (read.isEmpty()) {
                 return ThemeFileOutcome.failed(context.getString(R.string.theme_import_wrong_file_error))
             }
-            for (theme in read) repository.upsertCustomTheme(theme)
+            // One write for the whole zip. A write per theme rewrote the whole
+            // settings store and re-encoded the growing theme library each
+            // time, and every write was an emission that the settings screens
+            // and the keyboard rebuilt their settings from and decoded that
+            // library again: for a zip of 193 themes, hundreds of copies of a
+            // library megabytes long in a burst, which a phone with a small
+            // heap did not survive. The ids are fresh, so nothing is replaced.
+            repository.replaceCustomThemes(emptyList(), read)
             return ThemeFileOutcome(
                 read.size,
                 context.resources.getQuantityString(R.plurals.pick_import_summary, read.size, read.size),
@@ -2332,6 +2350,24 @@ fun ThemesScreen(
     }
     Spacer(Modifier.height(24.dp))
 
+    bundleRead?.let { count ->
+        AlertDialog(
+            onDismissRequest = {},
+            properties = androidx.compose.ui.window.DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false,
+            ),
+            text = {
+                Column {
+                    Text(pluralStringResource(R.plurals.theme_import_bundle_progress, count, count))
+                    androidx.compose.material3.LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    )
+                }
+            },
+            confirmButton = {},
+        )
+    }
     message?.let { text ->
         AlertDialog(
             onDismissRequest = { message = null },
