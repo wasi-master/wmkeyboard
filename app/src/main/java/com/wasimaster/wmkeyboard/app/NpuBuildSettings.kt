@@ -47,7 +47,9 @@ internal fun NpuBuildChoice(
 ) {
     val context = LocalContext.current
     val states by NpuModelDownloads.states.collectAsState()
-    val status = states[target.path] ?: if (target.isFile) NpuModelDownloads.Status.Downloaded else NpuModelDownloads.Status.NotDownloaded
+    // A build deleted with its model (Whisper's Delete) leaves a stale Downloaded behind.
+    val status = states[target.path]?.takeUnless { it is NpuModelDownloads.Status.Downloaded && !target.isFile }
+        ?: if (target.isFile) NpuModelDownloads.Status.Downloaded else NpuModelDownloads.Status.NotDownloaded
     val decide = rememberDownloadDecision(settings)
     var metered by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }

@@ -1,5 +1,9 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper.bridge
 
+import com.google.ai.edge.litert.Accelerator
+import com.google.ai.edge.litert.CompiledModel
+import com.google.ai.edge.litert.Environment
+import com.google.ai.edge.litert.TensorBuffer
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
@@ -43,6 +47,10 @@ import org.tensorflow.lite.Interpreter
  * expose the encoder and the decoder as separate signatures and an autoregressive
  * loop written on this side; the published conversions do not.
  *
+ * The NPU builds of Whisper Tiny ([transcribeNpu]) are another shape: an
+ * `encode` and a `decode` signature on LiteRT's CompiledModel, the decoding
+ * loop written here, so they do take a forced language.
+ *
  * Public with a public no-arg constructor, both for `newInstance()`.
  */
 class LitertWhisperRuntime : WhisperRuntime {
@@ -56,7 +64,49 @@ class LitertWhisperRuntime : WhisperRuntime {
         const val INPUT_NAME = "input_features"
         const val INPUT_LANG = "lang_token"
         const val OUTPUT_NAME = "sequences"
+
+        // The NPU builds' signatures and tensor names (litert-community/whisper-tiny).
+        const val NPU_ENCODE = "encode"
+        const val NPU_DECODE = "decode"
+        const val NPU_MEL = "args_0"
+        const val NPU_FEATURES = "args_0"
+        const val NPU_TOKENS = "args_1"
+        const val NPU_MASK = "args_2"
+        const val NPU_OUTPUT = "output_0"
+
+        /** A masked-out position in the decoder's additive attention mask (Google's sample uses the same). */
+        const val MASKED = -0.7f * Float.MAX_VALUE
+
+        // Multilingual Whisper's special tokens, from end-of-transcript.
+        const val SOT_OFFSET = 1
+        const val FIRST_LANGUAGE_OFFSET = 2
+        const val TRANSLATE_OFFSET = 101
+        const val TRANSCRIBE_OFFSET = 102
+        const val NO_TIMESTAMPS_OFFSET = 106
     }
+
+    /** An NPU build loaded on CompiledModel, with its buffers and the sizes read from it. */
+    private class NpuGraph(
+        val environment: Environment,
+        val model: CompiledModel,
+        val mel: TensorBuffer,
+        val features: TensorBuffer,
+        val tokens: TensorBuffer,
+        val mask: TensorBuffer,
+        val logits: TensorBuffer,
+        val melValues: Int,
+        val positions: Int,
+        val vocabulary: Int,
+    ) {
+        fun close() {
+            for (buffer in listOf(mel, features, tokens, mask, logits)) runCatching { buffer.close() }
+            runCatching { model.close() }
+            runCatching { environment.close() }
+        }
+    }
+
+    private var npu: NpuGraph? = null
+    private var loadedNpuPath: String? = null
 
     private val lock = ReentrantLock()
     private var interpreter: Interpreter? = null
@@ -153,13 +203,142 @@ class LitertWhisperRuntime : WhisperRuntime {
         }
     }
 
+    override fun transcribeNpu(
+        npuModel: File,
+        dispatchDir: File,
+        vocabFile: File,
+        pcm: FloatArray,
+        translate: Boolean,
+        langToken: Int?,
+    ): String {
+        lock.lock()
+        try {
+            val voc = obtainVocab(vocabFile)
+            val graph = obtainNpu(npuModel, dispatchDir)
+            if (voc.nMel * WhisperMel.MEL_LEN != graph.melValues) {
+                throw WhisperException(R.string.core_voice_whisper_mel_bins_error, (graph.melValues / WhisperMel.MEL_LEN).toString())
+            }
+            graph.mel.writeFloat(WhisperMel.compute(pcm, voc.filters, voc.nFft, voc.nMel))
+            graph.model.run(mapOf(NPU_MEL to graph.mel), mapOf(NPU_OUTPUT to graph.features), NPU_ENCODE)
+
+            val eot = voc.eot
+            val n = graph.positions
+            val ids = IntArray(n)
+            var length = 0
+            // Greedy over a range of the logits at the last filled position.
+            fun next(from: Int, until: Int): Int {
+                graph.tokens.writeInt(ids)
+                graph.model.run(
+                    mapOf(NPU_FEATURES to graph.features, NPU_TOKENS to graph.tokens, NPU_MASK to graph.mask),
+                    mapOf(NPU_OUTPUT to graph.logits),
+                    NPU_DECODE,
+                )
+                val logits = graph.logits.readFloat()
+                val row = (length - 1) * graph.vocabulary
+                var best = from
+                for (token in from until minOf(until, graph.vocabulary)) {
+                    if (logits[row + token] > logits[row + best]) best = token
+                }
+                return best
+            }
+            ids[length++] = eot + SOT_OFFSET
+            // Read before the slot is taken: next() looks at the last filled position.
+            val language = langToken ?: next(eot + FIRST_LANGUAGE_OFFSET, eot + TRANSLATE_OFFSET)
+            ids[length++] = language
+            ids[length++] = eot + if (translate) TRANSLATE_OFFSET else TRANSCRIBE_OFFSET
+            ids[length++] = eot + NO_TIMESTAMPS_OFFSET
+            val prompt = length
+            // Text tokens or the end of the transcript; never a timestamp or
+            // another special token, which this prompt does not ask for.
+            while (length < n) {
+                val token = next(0, eot + 1)
+                if (token == eot) break
+                ids[length++] = token
+            }
+            return voc.decode(ids.copyOfRange(prompt, length)).trim()
+        } catch (e: Throwable) {
+            releaseNpuLocked()
+            throw e
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    override fun warmNpu(npuModel: File, dispatchDir: File, vocabFile: File) {
+        lock.lock()
+        try {
+            obtainVocab(vocabFile)
+            obtainNpu(npuModel, dispatchDir)
+        } catch (e: Throwable) {
+            releaseNpuLocked()
+            throw e
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    /**
+     * The NPU build on CompiledModel, loaded once and kept until another file
+     * or [release]. The causal mask never changes, so it is written here.
+     * Loading it lets the CPU graph go: one Whisper in memory at a time.
+     */
+    private fun obtainNpu(file: File, dispatchDir: File): NpuGraph {
+        npu?.let { if (loadedNpuPath == file.path) return it }
+        releaseNpuLocked()
+        releaseLocked()
+        val environment = Environment.create(mapOf(Environment.Option.DispatchLibraryDir to dispatchDir.path))
+        val model = try {
+            CompiledModel.create(file.path, CompiledModel.Options(Accelerator.NPU, Accelerator.CPU), environment)
+        } catch (t: Throwable) {
+            environment.close()
+            throw t
+        }
+        try {
+            fun elements(name: String, signature: String, input: Boolean): Int {
+                val type = if (input) model.getInputTensorType(name, signature) else model.getOutputTensorType(name, signature)
+                return checkNotNull(type.layout) { "$name has no shape" }.dimensions.fold(1, Int::times)
+            }
+            val positions = elements(NPU_TOKENS, NPU_DECODE, input = true)
+            val logits = elements(NPU_OUTPUT, NPU_DECODE, input = false)
+            val graph = NpuGraph(
+                environment = environment,
+                model = model,
+                mel = model.createInputBuffer(NPU_MEL, NPU_ENCODE),
+                features = model.createOutputBuffer(NPU_OUTPUT, NPU_ENCODE),
+                tokens = model.createInputBuffer(NPU_TOKENS, NPU_DECODE),
+                mask = model.createInputBuffer(NPU_MASK, NPU_DECODE),
+                logits = model.createOutputBuffer(NPU_OUTPUT, NPU_DECODE),
+                melValues = elements(NPU_MEL, NPU_ENCODE, input = true),
+                positions = positions,
+                vocabulary = logits / positions,
+            )
+            val mask = FloatArray(positions * positions) { MASKED }
+            for (row in 0 until positions) for (column in 0..row) mask[row * positions + column] = 0f
+            graph.mask.writeFloat(mask)
+            npu = graph
+            loadedNpuPath = file.path
+            return graph
+        } catch (t: Throwable) {
+            runCatching { model.close() }
+            environment.close()
+            throw t
+        }
+    }
+
+    private fun releaseNpuLocked() {
+        npu?.close()
+        npu = null
+        loadedNpuPath = null
+    }
+
     /** Frees the cached interpreter. Non-blocking, so IME trim-memory never waits. */
-    override fun loadedModel(): File? = loadedModelPath?.let(::File)
+    override fun loadedModel(): File? = (loadedNpuPath ?: loadedModelPath)?.let(::File)
 
     override fun release() {
         if (!lock.tryLock()) return
         try {
             releaseLocked()
+            releaseNpuLocked()
         } finally {
             lock.unlock()
         }
@@ -219,6 +398,7 @@ class LitertWhisperRuntime : WhisperRuntime {
     private fun obtainInterpreter(modelFile: File): Interpreter {
         interpreter?.let { if (loadedModelPath == modelFile.path) return it }
         releaseLocked()
+        releaseNpuLocked()
         val buffer = FileInputStream(modelFile).use { fis ->
             fis.channel.map(FileChannel.MapMode.READ_ONLY, 0, fis.channel.size())
         }

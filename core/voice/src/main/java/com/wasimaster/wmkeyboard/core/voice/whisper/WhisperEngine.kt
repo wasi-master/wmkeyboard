@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -78,7 +79,20 @@ object WhisperEngine {
         langToken: Int? = null,
     ): String {
         WhisperGraphFix.ensure(modelFile, vocabFile)
-        return runtime().transcribe(modelFile, vocabFile, pcm, translate, langToken)
+        val runtime = runtime()
+        // Whisper Tiny's NPU build, when it is here and has not failed on
+        // this phone. Any failure hands the same clip to the CPU graph and
+        // keeps the NPU out of it until the next update.
+        WhisperNpu.plan(modelFile)?.let { plan ->
+            try {
+                return runtime.transcribeNpu(plan.file, plan.dispatchDir, vocabFile, pcm, translate, langToken)
+                    .also { WhisperNpu.confirm() }
+            } catch (e: Throwable) {
+                DebugLog.w(TAG, "the NPU build failed: ${e.javaClass.simpleName}: ${e.message}")
+                WhisperNpu.markFailed(plan.key)
+            }
+        }
+        return runtime.transcribe(modelFile, vocabFile, pcm, translate, langToken)
     }
 
     /**
@@ -93,7 +107,20 @@ object WhisperEngine {
         runCatching {
             // Before the interpreter maps the graph, never under it.
             WhisperGraphFix.ensure(modelFile, vocabFile)
-            runtime().warm(modelFile, vocabFile)
+            val runtime = runtime()
+            val plan = WhisperNpu.plan(modelFile)
+            if (plan == null) {
+                runtime.warm(modelFile, vocabFile)
+                return@runCatching
+            }
+            try {
+                runtime.warmNpu(plan.file, plan.dispatchDir, vocabFile)
+                WhisperNpu.confirm()
+            } catch (e: Throwable) {
+                DebugLog.w(TAG, "the NPU build did not load: ${e.javaClass.simpleName}: ${e.message}")
+                WhisperNpu.markFailed(plan.key)
+                runtime.warm(modelFile, vocabFile)
+            }
         }
     }
 
@@ -104,4 +131,6 @@ object WhisperEngine {
 
     /** The model file loaded right now, or null; for the Resources screen (#1163). Any thread. */
     fun loadedModel(): File? = runtime?.loadedModel()
+
+    private const val TAG = "WhisperEngine"
 }

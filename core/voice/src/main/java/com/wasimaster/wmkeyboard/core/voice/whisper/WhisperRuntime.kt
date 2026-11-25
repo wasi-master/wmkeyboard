@@ -33,6 +33,29 @@ interface WhisperRuntime {
     /** Contract of [WhisperEngine.warm]. */
     fun warm(modelFile: File, vocabFile: File)
 
+    /**
+     * [transcribe] on an NPU build of Whisper Tiny ([WhisperNpu]): LiteRT's
+     * CompiledModel with the dispatch libraries in [dispatchDir], its
+     * `encode` signature once and `decode` once per token, greedy, the
+     * decoder prompt built here (start of transcript, the language when
+     * [langToken] names one or else the one the model picks, the task, no
+     * timestamps). Throws on any failure; [WhisperEngine] then runs the CPU
+     * graph.
+     */
+    fun transcribeNpu(
+        npuModel: File,
+        dispatchDir: File,
+        vocabFile: File,
+        pcm: FloatArray,
+        translate: Boolean,
+        langToken: Int?,
+    ): String = throw UnsupportedOperationException("no NPU in this runtime")
+
+    /** [warm] for [transcribeNpu]. Throws when the build will not load. */
+    fun warmNpu(npuModel: File, dispatchDir: File, vocabFile: File) {
+        throw UnsupportedOperationException("no NPU in this runtime")
+    }
+
     /** Contract of [WhisperEngine.release]. */
     fun release()
 

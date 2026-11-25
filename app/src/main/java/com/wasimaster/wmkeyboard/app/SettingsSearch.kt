@@ -1739,6 +1739,12 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
             R.string.voice_server_language_title, R.string.voice_server_language_subtitle,
         ),
         row(R.string.voice_bias_personal_title, R.string.voice_bias_personal_subtitle),
+    ) + listOfNotNull(
+        // Only where this phone's chip has an NPU build of Whisper Tiny.
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.WHISPER,
+            R.string.models_whisper_npu_title, R.string.models_whisper_npu_subtitle,
+        ).takeIf { com.wasimaster.wmkeyboard.core.voice.whisper.WhisperNpu.build() != null },
     )
 }
 

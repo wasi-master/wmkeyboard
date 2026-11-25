@@ -72,6 +72,7 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager.Downl
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperLanguages
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperNpu
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperSize
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
 import com.wasimaster.wmkeyboard.voice.R as VoiceR
@@ -295,8 +296,25 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     }
 
     // Where the GGML models run. Only once one is on the phone: the LiteRT
-    // graphs always run on the CPU.
+    // graphs run on the CPU, Whisper Tiny's NPU build aside (below).
     if (onDisk.any { it.ggml }) WhisperComputeGroup(repository, settings)
+
+    // Whisper Tiny's NPU build, on a chip that has one, once Tiny is here.
+    val npuBuild = remember { WhisperNpu.build() }
+    if (npuBuild != null && onDisk.any { it.id == WhisperNpu.MODEL_ID }) {
+        SettingsGroup(stringResource(R.string.models_whisper_npu_title), level = SettingLevel.ADVANCED) {
+            item {
+                NpuBuildChoice(
+                    title = R.string.models_whisper_npu_title,
+                    info = stringResource(R.string.models_whisper_npu_info),
+                    build = npuBuild,
+                    target = WhisperNpu.file(context.filesDir, npuBuild.soc),
+                    failed = remember { WhisperNpu.failedHere(context) },
+                    settings = settings,
+                ) { WhisperNpu.start(context) }
+            }
+        }
+    }
 
     if (suggestions.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.models_whisper_suggested_title)) {

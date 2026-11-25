@@ -163,7 +163,7 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 
 ### Running on the GPU
 
-**Compute** decides where the whisper.cpp models run. The LiteRT models always run on the processor (CPU), whatever it says.
+**Compute** decides where the whisper.cpp models run. The LiteRT models run on the processor (CPU), whatever it says; Whisper Tiny (LiteRT) has an [NPU build](#on-the-npu) on some phones instead.
 
 - **Automatic** *(default)*: the GPU for Base and larger models on a phone with a Snapdragon chip (an Adreno GPU). Tiny stays on the CPU, which reads a phrase about as fast as the GPU takes to get going. Other GPUs are used only when you pick **GPU**.
 - **CPU**: always the processor.
@@ -172,6 +172,17 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 On Qualcomm's Adreno, the GPU in Snapdragon phones, whisper.cpp runs through the OpenCL driver, and its GPU code comes with the engines. Other GPUs (Mali, Xclipse, PowerVR) run it through Vulkan, from a build of whisper.cpp that is a separate download of about 12 MB (38 MB on the phone), fetched when you pick **GPU**: it carries every shader compiled in. On many of those GPUs it is no faster than the CPU, which is why **Automatic** leaves them out. A phone with neither runs on the CPU whatever you pick; the row's subtitle says so. The GPU is quickest at the part of the work that reads the sound (the encoder), which is most of the wait with Small and the bigger models, and it frees the processor while it runs. The words come out the same, give or take a comma in a rare phrase, since the GPU does its sums at a different precision.
 
 The first dictation on the GPU after an install or an update can take some seconds longer while the GPU prepares itself; the app keeps what it prepared, so later ones start at once. If the GPU won't start, has no room for the model, or stops in the middle of a phrase, that phrase goes to the CPU and comes out as usual, and from then on the CPU runs that model on this phone. The subtitle says when that has happened. Pick **GPU** again to give it another try; an update of the app or of Android does the same.
+
+### On the NPU
+
+On a phone with a Snapdragon 8 Gen 2, 8 Gen 3, 8 Elite or 8 Elite Gen 5, or a Dimensity 9300, 9400 or 9500, **Whisper Tiny on the NPU** appears once the multilingual Whisper Tiny (LiteRT) model is downloaded. It has two choices:
+
+- **CPU** (the default). Whisper Tiny runs on the processor like the other LiteRT models.
+- **NPU**. The keyboard downloads a build of Whisper Tiny made for your phone's chip, 120 MB for a Snapdragon and 156 MB for a Dimensity, from [litert-community on Hugging Face](https://huggingface.co/litert-community/whisper-tiny), pinned to one revision and checked against its SHA-256, and runs it on the NPU, the part of the chip made for machine learning. The Whisper Tiny you downloaded stays on the phone.
+
+The NPU build is the same Whisper Tiny model, converted with its decoding loop left out, so the keyboard runs that loop itself: it lets the model name the language, then asks for a transcript or, with translation on, an English translation, word piece by word piece, up to about 120 of them per phrase. Like the LiteRT graph, it works out the language itself.
+
+The NPU needs the same runtime files as [on-device AI](/tools/ai/) with Compute set to NPU, and they download with the build when they are missing. On a Snapdragon, a build that downloads them asks you to accept Qualcomm's licence first, and the Play Store edition gets them from Play. If the build won't load or stops during a phrase, that phrase goes to the CPU graph, which then runs Whisper Tiny on this phone until the next app or system update, and the row says so. Picking **CPU** deletes the NPU build, and deleting Whisper Tiny deletes it too. None of the NPU builds has been tried on a phone here yet. The Tensor chips have no Whisper NPU build upstream, and the F-Droid edition has no NPU at all.
 
 ## Details & edge cases
 
