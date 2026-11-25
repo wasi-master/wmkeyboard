@@ -116,7 +116,6 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.HapticStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
-import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -1600,7 +1599,7 @@ private fun IconPacksGrid(
             LaunchedEffect(pack.id, revision) {
                 if (pack.id !in previews) {
                     previews[pack.id] = withContext(Dispatchers.Default) {
-                        buildIconSet(IconSettings(activePackId = pack.id), store)
+                        buildPackPreview(store, pack.id, IconPackPreviewSlots)
                     }
                 }
             }

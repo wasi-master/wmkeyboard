@@ -318,6 +318,19 @@ fun buildIconSet(
 }
 
 /**
+ * Only [slots] of [packId], for a card that shows a few of its glyphs (the
+ * keyboard's themes panel). [buildIconSet] per card resolved every icon of
+ * every pack scrolled past, pictures decoded, and the panel holds what it
+ * built until it closes. Blocking on a pack's first read, like [buildIconSet].
+ */
+fun buildPackPreview(store: IconPackStore, packId: String, slots: List<String>): IconSet {
+    val art = store.art(packId)
+    val resolved = HashMap<String, ResolvedIcon>()
+    for (slot in slots) art[slot]?.toResolvedIcon(slot)?.let { resolved[slot] = it }
+    return if (resolved.isEmpty()) IconSet.Builtin else IconSet(resolved)
+}
+
+/**
  * One icon out of [packId], ready to draw: a slot's own (`tool.gif`) or one of
  * its variants (`tool.gif@text`). Null when the pack has no such icon or it
  * will not build.

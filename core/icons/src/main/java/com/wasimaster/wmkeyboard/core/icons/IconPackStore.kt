@@ -41,8 +41,18 @@ class IconPackStore(private var baseDir: File?) {
     private val packs = ArrayList<IconPack>()
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
-    /** packId → parsed icons, dropped whenever that pack changes. */
-    private val artCache = HashMap<String, Map<String, IconArt>>()
+    /**
+     * packId → parsed icons, dropped whenever that pack changes, and the
+     * least recently used dropped past [MAX_PARSED_PACKS]. The keyboard's
+     * themes panel parses every pack it shows a card for, and with no bound
+     * a scroll through the installed packs kept each of them parsed for the
+     * life of the process. A pack dropped is parsed again on its next use,
+     * which every caller already does off the main thread.
+     */
+    private val artCache = object : LinkedHashMap<String, Map<String, IconArt>>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Map<String, IconArt>>?): Boolean =
+            size > MAX_PARSED_PACKS
+    }
 
     private val _revision = MutableStateFlow(0)
 
@@ -92,7 +102,17 @@ class IconPackStore(private var baseDir: File?) {
         private const val FORMAT_VERSION = 1
 
         const val DIR_NAME = "iconpacks"
-        const val MAX_PACKS = 20
+
+        /**
+         * Installed packs at most. Packs are small (a few hundred icons, an
+         * archive of 24 MB at the very most) and only the ones in use are
+         * parsed, [MAX_PARSED_PACKS] of them at a time, so this is about the
+         * list staying a list. It was 20, which people collecting packs met.
+         */
+        const val MAX_PACKS = 100
+
+        /** Packs kept parsed at once; see [artCache]. */
+        private const val MAX_PARSED_PACKS = 12
 
         /**
          * The pack a single-slot SVG import lands in. Reserved so "import one
