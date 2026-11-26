@@ -845,3 +845,34 @@ fn without_translations_english_and_plurals_still_work() {
         assert_eq!(root(&r)[0]["text"], "Hi 2 items");
     });
 }
+
+#[test]
+fn errors_carry_their_file_and_traceback() {
+    big(|| {
+        let files = json!({"files": {"helpers.py": "def check(x):\n    if x < 0:\n        raise ValueError('negative')\n    return x\n"}});
+        let mut s = session(&[], files);
+        // Loading draws the panel the first time, through wm's own render().
+        let r = parse(s.load("from wm import ui\nimport helpers\n\ndef render():\n    ui.label(str(helpers.check(-1)))\n"));
+        let e = &r["error"];
+        assert_eq!(e["exception"], "ValueError", "{r:#}");
+        assert_eq!((&e["file"], &e["line"]), (&json!("helpers.py"), &json!(3)), "{r:#}");
+        let frames = e["traceback"].as_array().unwrap();
+        let last = &frames[frames.len() - 1];
+        assert_eq!(last, &json!({"file": "helpers.py", "line": 3, "function": "check"}), "{r:#}");
+        assert_eq!(frames[frames.len() - 2], json!({"file": "main.py", "line": 5, "function": "render"}), "{r:#}");
+
+        // An error while the plugin loads starts at main.py's top level.
+        let mut s = session(&[], json!({"files": {"helpers.py": "x = 1 / 0\n"}}));
+        let r = parse(s.load("from wm import ui\nimport helpers\n"));
+        let frames = r["error"]["traceback"].as_array().unwrap().clone();
+        assert_eq!(
+            frames,
+            [json!({"file": "main.py", "line": 2, "function": "<module>"}), json!({"file": "helpers.py", "line": 1, "function": "<module>"})],
+            "{r:#}"
+        );
+        // A syntax error names its file and has no calls.
+        let r = parse(session(&[], json!({})).load("def (:\n"));
+        assert_eq!(r["error"]["file"], "main.py", "{r:#}");
+        assert_eq!(r["error"]["traceback"], json!([]), "{r:#}");
+    });
+}

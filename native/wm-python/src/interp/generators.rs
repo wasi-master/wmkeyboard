@@ -485,6 +485,11 @@ impl Interp {
         );
         self.frames.pop();
         self.call_depth -= 1;
+        let mut r = r;
+        if let Err(Exc::Error(e)) = &mut r {
+            let module = super::eval::function_module(&g.func);
+            self.note_frame(e, &g.func.display_name(), &module, caller_line);
+        }
         if r.is_ok() {
             self.current_line = caller_line;
         }
@@ -722,6 +727,9 @@ impl Interp {
         let block = block_of(&def.body, &g.levels, depth);
         let stmt = &block[g.levels[depth].next];
         let inner = std::mem::replace(&mut g.levels[depth].inner, Inner::None);
+        if matches!(inner, Inner::While | Inner::For(_)) {
+            self.current_line = stmt.line;
+        }
         match (inner, &stmt.kind) {
             (Inner::While, StmtKind::While(cond, _, else_body)) => self.while_test(g, depth, cond, else_body.is_some(), env),
             (Inner::For(it), StmtKind::For(target, _, _, else_body)) => self.for_next(g, depth, target, it, else_body.is_some(), env),
@@ -767,10 +775,10 @@ impl Interp {
     }
 
     fn leave_handler(&mut self, h: &ExceptHandler, saved: Option<Handled>, env: &Rc<Env>) {
-        if let Some((e, i, line)) = saved {
+        if let Some((e, i, trace)) = saved {
             self.active_exception = e;
             self.active_instance = i;
-            self.active_line = line;
+            self.active_trace = trace;
         }
         if let Some(b) = &h.binding {
             self.unbind(b, env);
@@ -887,8 +895,8 @@ impl Interp {
         }
         let saved_exception = self.active_exception.replace(value);
         let saved_instance = self.active_instance.replace(caught);
-        let saved_line = std::mem::replace(&mut self.active_line, error.line);
-        (saved_exception, saved_instance, saved_line)
+        let saved_trace = self.active_trace.replace(super::eval::Trace::of(error));
+        (saved_exception, saved_instance, saved_trace)
     }
 
     // MARK: - coroutines
@@ -1073,4 +1081,4 @@ fn generator(name: Rc<str>, body: GenBody) -> Value {
 
 /// What a handler hid while it ran: the exception being handled before it,
 /// as a value and an instance, and the line it was raised on.
-pub(crate) type Handled = (Option<Rc<ExceptionValue>>, Option<Value>, Option<u32>);
+pub(crate) type Handled = (Option<Rc<ExceptionValue>>, Option<Value>, Option<Rc<super::eval::Trace>>);

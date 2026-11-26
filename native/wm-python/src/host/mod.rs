@@ -254,9 +254,21 @@ impl Failure {
             } else {
                 format!("{}: {}", e.kind, e.message)
             };
-            json!({"kind": kind, "message": body, "line": e.line, "abort": e.abort.map(|a| a.wire()), "exception": e.kind})
+            let traceback: Vec<Json> =
+                e.frames.iter().map(|f| json!({"file": f.file, "line": f.line, "function": f.function})).collect();
+            json!({
+                "kind": kind,
+                "message": body,
+                "line": e.line,
+                "file": e.file,
+                "traceback": traceback,
+                "abort": e.abort.map(|a| a.wire()),
+                "exception": e.kind,
+            })
         };
-        let plain = |kind: &str, message: &str| json!({"kind": kind, "message": message, "line": null, "abort": null, "exception": null});
+        let plain = |kind: &str, message: &str| {
+            json!({"kind": kind, "message": message, "line": null, "file": null, "traceback": [], "abort": null, "exception": null})
+        };
         match self {
             Failure::Compile(e) => py("compile", e),
             Failure::Script(e) if e.is_abort() => py("abort", e),
@@ -504,7 +516,8 @@ impl Session {
     pub fn load(&mut self, source: &str) -> String {
         self.begin();
         if let Err(e) = check(source) {
-            let e = PyError { message: e.message, kind: e.kind, line: e.line, abort: None };
+            let mut e = PyError::at(e.message, &e.kind, e.line);
+            e.file = Some("main.py".to_string());
             return self.result(Err(Failure::Compile(e)), None);
         }
         self.source = Some(source.to_string());

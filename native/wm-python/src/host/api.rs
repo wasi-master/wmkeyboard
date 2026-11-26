@@ -100,6 +100,7 @@ pub fn install(rt: &mut Runtime, info: &PluginInfo, storage: Option<Storage>, re
         if info.has("reminders") { reminders } else { None },
     )));
 
+    rt.set_module_file("__main__", "main.py");
     let s = state.clone();
     rt.set_on_print(Some(Box::new(move |line| s.borrow_mut().add_log(line))));
 

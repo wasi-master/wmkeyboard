@@ -244,9 +244,11 @@ pub(crate) fn install(
     for (name, source, package) in PRELUDE {
         rt.add_source_module(name, source, *package);
     }
+    rt.set_module_file("__main__", "main.py");
     for (file, source) in &extras.files {
         if let Some((name, package)) = module_name(file) {
             rt.add_source_module(&name, source, package);
+            rt.set_module_file(&name, file);
         }
     }
 

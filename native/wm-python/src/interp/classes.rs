@@ -1572,7 +1572,9 @@ impl Interp {
     fn load_source(&mut self, name: &str, source: &str) -> R<()> {
         let program = parse(source).map_err(|e| {
             let message = format!("in module '{name}': {}", e.message);
-            PyError::at(message, &e.kind, e.line)
+            let mut e = PyError::at(message, &e.kind, e.line);
+            e.file = self.module_files.get(name).cloned();
+            e
         })?;
         let env = Env::new(None);
         env.define(&Rc::from("__name__"), Value::str(name));
@@ -1581,7 +1583,10 @@ impl Interp {
         self.closures.push(Rc::downgrade(&env));
         let saved_module = std::mem::replace(&mut self.current_module, Rc::from(name));
         let saved_line = self.current_line;
-        let r = self.exec_block(&program, &env);
+        let mut r = self.exec_block(&program, &env);
+        if let Err(Exc::Error(e)) = &mut r {
+            self.note_frame(e, "<module>", name, saved_line);
+        }
         self.current_module = saved_module;
         self.current_line = saved_line;
         if let Err(e) = r {

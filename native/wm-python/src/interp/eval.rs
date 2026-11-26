@@ -154,6 +154,8 @@ pub(crate) struct Interp {
     globals_dicts: Vec<(std::rc::Weak<Env>, DictRef)>,
     /// How deep `==` is inside containers that hold instances.
     pub(crate) eq_depth: u32,
+    /// The file each module came from, as the host named it: what a traceback shows.
+    pub(crate) module_files: HashMap<String, String>,
     /// Attributes set on a module written in Rust or by the host
     /// (`json.dumps = fake`, `time.time = fake`): they win over its own.
     module_overrides: HashMap<(Rc<str>, Rc<str>), Value>,
@@ -172,9 +174,9 @@ pub(crate) struct Interp {
     /// The instance the latest `raise` threw, with its kind and message.
     pub(crate) raised: Option<(Rc<str>, String, Value)>,
     pub(crate) active_instance: Option<Value>,
-    /// The line the exception being handled was raised on, which a bare
-    /// `raise` keeps, as Python's traceback does.
-    pub(crate) active_line: Option<u32>,
+    /// Where the exception being handled was raised and the calls it came
+    /// out of, which re-raising it keeps, as Python's traceback does.
+    pub(crate) active_trace: Option<Rc<Trace>>,
     /// The functions running now, innermost last, with their scopes: what `super()` reads.
     pub(crate) frames: Vec<(Rc<Function>, Rc<Env>)>,
     /// Modules written in Python that a script may import, by dotted name.
@@ -243,7 +245,7 @@ impl Drop for Interp {
         self.frames.clear();
         self.raised = None;
         self.active_instance = None;
-        self.active_line = None;
+        self.active_trace = None;
         self.globals.vars.borrow_mut().clear();
         self.host_functions.clear();
         self.host_modules.clear();
@@ -280,6 +282,7 @@ impl Interp {
             cluster_cache: None,
             globals_dicts: Vec::new(),
             eq_depth: 0,
+            module_files: HashMap::new(),
             module_overrides: HashMap::new(),
             cancel: Arc::new(AtomicBool::new(false)),
             #[cfg(not(target_arch = "wasm32"))]
@@ -291,7 +294,7 @@ impl Interp {
             exception_classes: HashMap::new(),
             raised: None,
             active_instance: None,
-            active_line: None,
+            active_trace: None,
             frames: Vec::new(),
             source_modules: HashMap::new(),
             packages: HashSet::new(),
@@ -579,7 +582,10 @@ impl Interp {
 
     #[inline(never)]
     fn exec_while(&mut self, cond: &Expr, body: &[Stmt], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
+        // The test runs on the loop's own line, as CPython reports it.
+        let line = self.current_line;
         loop {
+            self.current_line = line;
             if !self.holds(cond, env)? {
                 break;
             }
@@ -599,7 +605,11 @@ impl Interp {
     #[inline(never)]
     fn exec_for(&mut self, target: &Expr, iterable: &Expr, body: &[Stmt], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
         let mut items = self.loop_items(iterable, env)?;
-        while let Some(item) = self.next_item(&mut items)? {
+        let line = self.current_line;
+        while let Some(item) = {
+            self.current_line = line;
+            self.next_item(&mut items)?
+        } {
             self.tick()?;
             self.assign(target, item, env)?;
             match self.exec_block(body, env) {
@@ -684,13 +694,13 @@ impl Interp {
                             }
                             let saved = self.active_exception.replace(value);
                             let saved_instance = self.active_instance.replace(caught);
-                            let saved_line = std::mem::replace(&mut self.active_line, error.line);
+                            let saved_trace = self.active_trace.replace(Trace::of(&error));
                             if let Err(e) = self.exec_block(&h.body, env) {
                                 pending = Some(e);
                             }
                             self.active_exception = saved;
                             self.active_instance = saved_instance;
-                            self.active_line = saved_line;
+                            self.active_trace = saved_trace;
                             // As in Python, `as e` is unbound when the handler ends.
                             if let Some(b) = &h.binding {
                                 self.unbind(b, env);
@@ -722,10 +732,10 @@ impl Interp {
                     None => return self.error("no active exception to re-raise", "RuntimeError"),
                 }
             };
-            // Re-raised where it was first raised.
-            return match (raised, self.active_line) {
-                (Exc::Error(mut e), Some(line)) if !e.is_abort() => {
-                    e.line = Some(line);
+            // Re-raised where it was first raised, with the calls it came out of.
+            return match (raised, &self.active_trace) {
+                (Exc::Error(mut e), Some(t)) if !e.is_abort() => {
+                    t.restore(&mut e);
                     Exc::Error(e)
                 }
                 (other, _) => other,
@@ -735,6 +745,28 @@ impl Interp {
             Ok(v) => v,
             Err(x) => return x,
         };
+        // `raise e` with the exception being handled: its traceback goes on,
+        // through this line.
+        if let (Some(active), Some(t)) = (&self.active_instance, &self.active_trace) {
+            if cause.is_none() && py_identical(&value, active) {
+                let t = t.clone();
+                let raised = self.exec_raise_value(value, None, env);
+                return match raised {
+                    Exc::Error(mut e) if !e.is_abort() => {
+                        let line = self.current_line;
+                        t.restore(&mut e);
+                        let (function, module) = self.running_function(env);
+                        self.note_frame(&mut e, &function, &module, line);
+                        Exc::Error(e)
+                    }
+                    other => other,
+                };
+            }
+        }
+        self.exec_raise_value(value, cause, env)
+    }
+
+    fn exec_raise_value(&mut self, value: Value, cause: Option<&Expr>, env: &Rc<Env>) -> Exc {
         // `raise … from cause`: the cause is kept on the exception as `__cause__`.
         let cause = match cause {
             Some(c) => match self.eval(c, env) {
@@ -2553,7 +2585,7 @@ impl Interp {
         self.call_depth += 1;
         self.frames.push((f.clone(), frame.clone()));
         let caller_line = self.current_line;
-        let result = match &f.body {
+        let mut result = match &f.body {
             FnBody::Def(d) => self.exec_block(&d.body, &frame),
             FnBody::Lambda(l, line) => match self.tick() {
                 Err(e) => Err(e.into()),
@@ -2568,6 +2600,10 @@ impl Interp {
         };
         self.call_depth -= 1;
         self.frames.pop();
+        if let Err(Exc::Error(e)) = &mut result {
+            let module = function_module(f);
+            self.note_frame(e, &f.display_name(), &module, caller_line);
+        }
         self.recycle(frame);
         if result.is_ok() || matches!(result, Err(Exc::Return(_))) {
             // Back in the caller: an error later in the same line is reported there.
@@ -3648,6 +3684,78 @@ fn plain_method(inst: &Rc<Instance>, name: &str) -> Option<Rc<Function>> {
     match inst.class.lookup(name) {
         Some(Value::Function(f)) if f.signature().simple() => Some(f),
         _ => None,
+    }
+}
+
+/// The `__name__` of the module whose top level [f] closes over.
+pub(crate) fn function_module(f: &Function) -> String {
+    match f.closure.module().vars.borrow().get("__name__") {
+        Some(Value::Str(s)) => s.to_string(),
+        _ => "__main__".to_string(),
+    }
+}
+
+impl Interp {
+    /// Add the frame of [function] in [module] to an error leaving it: on the
+    /// line it was raised for the first frame, else on the line the call it
+    /// came out of was made. [caller_line] is where this call was made.
+    pub(crate) fn note_frame(&self, e: &mut PyError, function: &str, module: &str, caller_line: u32) {
+        let line = if e.frames.is_empty() && e.caller_line.is_none() {
+            e.line.or(Some(self.current_line))
+        } else {
+            e.caller_line.or(Some(self.current_line))
+        }
+        .filter(|l| *l > 0);
+        let file = self.module_files.get(module).cloned();
+        if e.frames.is_empty() && e.file.is_none() {
+            e.file = file.clone();
+        }
+        if e.frames.len() < super::error::MAX_FRAMES {
+            e.frames.insert(0, super::error::Frame { file, line, function: function.to_string() });
+        }
+        e.caller_line = Some(caller_line);
+    }
+
+    /// The function a statement in [env] runs in, and its module: `<module>`
+    /// at a module's top level.
+    pub(crate) fn running_function(&self, env: &Rc<Env>) -> (String, String) {
+        let module = |e: &Env| match e.module().vars.borrow().get("__name__") {
+            Some(Value::Str(s)) => s.to_string(),
+            _ => "__main__".to_string(),
+        };
+        if env.parent.is_none() {
+            return ("<module>".to_string(), module(env));
+        }
+        match self.frames.last() {
+            Some((f, _)) => (f.display_name().to_string(), function_module(f)),
+            None => ("<module>".to_string(), module(env)),
+        }
+    }
+}
+
+/// Where an error an `except` caught came from, kept while its handler runs
+/// so re-raising it keeps its traceback.
+#[derive(Debug)]
+pub(crate) struct Trace {
+    line: Option<u32>,
+    file: Option<String>,
+    frames: Vec<super::error::Frame>,
+    caller_line: Option<u32>,
+}
+
+impl Trace {
+    pub(crate) fn of(e: &PyError) -> Rc<Trace> {
+        Rc::new(Trace { line: e.line, file: e.file.clone(), frames: e.frames.clone(), caller_line: e.caller_line })
+    }
+
+    /// Give [e], raised again, the place and calls the caught error had.
+    pub(crate) fn restore(&self, e: &mut PyError) {
+        if self.line.is_some() {
+            e.line = self.line;
+        }
+        e.file = self.file.clone();
+        e.frames = self.frames.clone();
+        e.caller_line = self.caller_line;
     }
 }
 

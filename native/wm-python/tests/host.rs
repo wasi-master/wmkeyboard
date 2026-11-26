@@ -101,7 +101,7 @@ fn a_plugin_without_render_says_so() {
     let mut s = panel(&[]);
     let r = load(&mut s, "x = 1");
     assert_eq!(r["ok"], false);
-    assert_eq!(r["error"], json!({"kind": "no_render", "message": "", "line": null, "abort": null, "exception": null}));
+    assert_eq!(r["error"], json!({"kind": "no_render", "message": "", "line": null, "file": null, "traceback": [], "abort": null, "exception": null}));
 }
 
 #[test]
@@ -114,7 +114,10 @@ fn compile_and_runtime_errors() {
     let r = load(&mut s, "x = 1\n\ny = int('nope')\ndef render():\n    return []");
     assert_eq!(
         r["error"],
-        json!({"kind": "runtime", "message": "ValueError: invalid literal for int() with base 10: 'nope'", "line": 3, "abort": null, "exception": "ValueError"})
+        json!({
+            "kind": "runtime", "message": "ValueError: invalid literal for int() with base 10: 'nope'", "line": 3, "file": "main.py",
+            "traceback": [{"file": "main.py", "line": 3, "function": "<module>"}], "abort": null, "exception": "ValueError",
+        })
     );
     let r = load(&mut s, "def render():\n    return 1 / 0");
     assert_eq!(r["error"]["kind"], "runtime");

@@ -36,6 +36,18 @@ impl AbortKind {
     }
 }
 
+/// One call an error passed through on its way out, as a traceback shows it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Frame {
+    /// The file of the function's module, such as `helpers.py` or
+    /// `pkg/__init__.py`, when the host named one: None for the bundled modules.
+    pub file: Option<String>,
+    /// The line in that file the call was on (the innermost: where it was raised).
+    pub line: Option<u32>,
+    /// The function's name, or `<module>` for a module's top level.
+    pub function: String,
+}
+
 /// A syntax or runtime error, with a 1-based line when one is known.
 ///
 /// [kind] is the exception name an `except` clause matches. A host function
@@ -50,15 +62,27 @@ pub struct PyError {
     pub line: Option<u32>,
     /// Set for the sandbox's own stops; those report kind "SystemExit".
     pub abort: Option<AbortKind>,
+    /// The file [line] is in, when the host named the module's file.
+    pub file: Option<String>,
+    /// The calls it came out through, outermost first and innermost (where
+    /// it was raised) last, as Python prints a traceback. At most
+    /// [MAX_FRAMES], the innermost ones.
+    pub frames: Vec<Frame>,
+    /// While it unwinds: the line the call it just left was made on, which
+    /// is the next frame's line.
+    pub(crate) caller_line: Option<u32>,
 }
+
+/// How many frames an error keeps: a runaway recursion keeps the innermost.
+pub const MAX_FRAMES: usize = 100;
 
 impl PyError {
     pub fn new(message: impl Into<String>, kind: impl Into<String>) -> Self {
-        PyError { message: message.into(), kind: kind.into(), line: None, abort: None }
+        PyError { message: message.into(), kind: kind.into(), line: None, abort: None, file: None, frames: Vec::new(), caller_line: None }
     }
 
     pub(crate) fn at(message: impl Into<String>, kind: &str, line: Option<u32>) -> Self {
-        PyError { message: message.into(), kind: kind.to_string(), line, abort: None }
+        PyError { message: message.into(), kind: kind.to_string(), line, abort: None, file: None, frames: Vec::new(), caller_line: None }
     }
 
     /// PyMini's default kind, RuntimeError, which prints without a prefix.
@@ -67,7 +91,15 @@ impl PyError {
     }
 
     pub(crate) fn abort(kind: AbortKind, message: impl Into<String>, line: Option<u32>) -> Self {
-        PyError { message: message.into(), kind: "SystemExit".into(), line, abort: Some(kind) }
+        PyError {
+            message: message.into(),
+            kind: "SystemExit".into(),
+            line,
+            abort: Some(kind),
+            file: None,
+            frames: Vec::new(),
+            caller_line: None,
+        }
     }
 
     pub fn is_abort(&self) -> bool {

@@ -59,7 +59,7 @@ use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-pub use error::{AbortKind, PyError};
+pub use error::{AbortKind, Frame, PyError, MAX_FRAMES};
 pub use eval::{Limits, MAX_CALL_DEPTH};
 pub use host::{Call, FromPy, HostFunction, HostModule};
 pub use modules::{exports as module_exports, Clock, SystemClock, NAMES as STANDARD_MODULES, VERSION, VERSION_LINE};
@@ -271,26 +271,47 @@ impl Runtime {
 
     /// Run a module's top level: define its functions, set its globals.
     pub fn load(&mut self, source: &str) -> Result<(), PyError> {
-        let program = parser::parse(source)?;
-        self.perform(|i| i.run(&program))
+        let program = parser::parse(source).map_err(|e| self.in_main_file(e))?;
+        self.perform(|i| {
+            let r = i.run(&program);
+            main_frame(i, r)
+        })
+    }
+
+    /// Name the file a module's source came from (`helpers.py`, or
+    /// `main.py` for `__main__`), so errors and their tracebacks say it.
+    pub fn set_module_file(&mut self, module: &str, file: &str) {
+        self.interp.module_files.insert(module.to_string(), file.to_string());
+    }
+
+    fn in_main_file(&self, mut e: PyError) -> PyError {
+        if e.file.is_none() {
+            e.file = self.interp.module_files.get("__main__").cloned();
+        }
+        e
     }
 
     /// Run a chunk of code and return the value of its last line when that line
     /// is an expression, the way an interactive prompt does. Otherwise None.
     pub fn run(&mut self, source: &str) -> Result<Value, PyError> {
-        let program = parser::parse(source)?;
+        let program = parser::parse(source).map_err(|e| self.in_main_file(e))?;
         match program.last() {
             Some(ast::Stmt { line, kind: ast::StmtKind::Expr(e), .. }) => {
                 let line = *line;
                 self.perform(|i| {
-                    i.run(&program[..program.len() - 1])?;
-                    i.current_line = line;
-                    let g = i.globals.clone();
-                    i.eval(e, &g)
+                    let r = i.run(&program[..program.len() - 1]).and_then(|()| {
+                        i.current_line = line;
+                        let g = i.globals.clone();
+                        i.eval(e, &g)
+                    });
+                    main_frame(i, r)
                 })
             }
             _ => {
-                self.perform(|i| i.run(&program))?;
+                self.perform(|i| {
+            let r = i.run(&program);
+            main_frame(i, r)
+        })?;
                 Ok(Value::None)
             }
         }
@@ -352,4 +373,13 @@ impl Runtime {
         self.interp.flush_print();
         host::flow_to_error(r, self.interp.current_line)
     }
+}
+
+/// An error leaving the main script's top level gets its `<module>` frame.
+fn main_frame<T>(i: &mut Interp, mut r: Result<T, Exc>) -> Result<T, Exc> {
+    if let Err(Exc::Error(e)) = &mut r {
+        let line = i.current_line;
+        i.note_frame(e, "<module>", "__main__", line);
+    }
+    r
 }
