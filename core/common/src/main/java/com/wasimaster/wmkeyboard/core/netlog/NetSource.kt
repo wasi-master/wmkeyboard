@@ -197,6 +197,13 @@ enum class NetSource(
     SWITCHBOT("switchbot", ToolbarTool.HOME_ASSISTANT),
 
     /**
+     * The Remote tool (#1576): presses sent to a TV or player on the local
+     * network, and the SSDP and mDNS searches that find them. Only while its
+     * panel is open or its page is pairing; nothing leaves the local network.
+     */
+    REMOTE("remote", ToolbarTool.REMOTE),
+
+    /**
      * The user's own Immich server, from the gallery (#1205): its timeline and
      * albums, their thumbnails, an original fetched to send, an upload.
      */
