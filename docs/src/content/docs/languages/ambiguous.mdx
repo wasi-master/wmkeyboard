@@ -44,7 +44,7 @@ One key per letter group means you tap a word's length and nothing more. "keyboa
 
 The text field shows the best reading as you type, not the raw keys. Tap the four keys of "home" and "home" is what appears (or "good", if that's the commoner word for those keys, in which case "home" is one tap away on the suggestion strip).
 
-Space commits whatever is showing. There's no confidence threshold here the way there is for autocorrect on a normal keyboard, because there's nothing to be conservative about: the keys on their own aren't a word, so committing "the reading" is the only answer that makes sense.
+Space commits whatever is showing. There's no confidence threshold here the way there is for autocorrect on a normal keyboard, because there's nothing to be conservative about: the keys on their own aren't a word, so committing "the reading" is the only answer that makes sense. Since 0.6.8 the reading always keeps every key you pressed and every letter you picked by hand: a word that drops a key, adds one or changes a picked letter stays on the strip and never goes in on its own. With autocorrect on, the reading can still be a longer word the keys begin ("this" after three keys) or have one letter from the other half of a key. With autocorrect off for the language, it is only what the keys spell, so nothing is completed for you. Keys typed into a word already in the field go in as the letters they spell, and the space repairs apostrophes and a lone "i" the way it does on other layouts.
 
 ### Words the dictionary doesn't know
 
