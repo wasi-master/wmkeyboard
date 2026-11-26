@@ -66,6 +66,7 @@ object ClipPlainLetters {
         // Negative circled and squared capitals have no compatibility mapping.
         if (cp in 0x1F150..0x1F169) return ('A' + (cp - 0x1F150)).toString()
         if (cp in 0x1F170..0x1F189) return ('A' + (cp - 0x1F170)).toString()
+        if (isModifierLetterBlock(cp)) return modifierLetter(cp)
         val decorated = cp in 0x1D400..0x1D7FF || cp in 0xFF01..0xFF5E || cp in 0x2460..0x24FF ||
             cp in 0x1F100..0x1F149 || cp in 0x2100..0x214F
         if (!decorated) return null
@@ -75,6 +76,28 @@ object ClipPlainLetters {
         // digit counts there.
         if (cp in 0x2100..0x214F && !(folded.length == 1 && folded[0].isLetterOrDigit())) return null
         return folded.takeIf { it != String(Character.toChars(cp)) }
+    }
+
+    /**
+     * The blocks the superscript and subscript letters live in: ʰ ʷ ˢ, ᴬ ᵃ ᵉ
+     * ᵒ ᵘ, ᶜ ᶠ ᶻ, ⁱ ⁿ ₐ ₑ ₒ, ⱼ. "Tiny text" generators spell with them, and a
+     * search box reads ᵗⁱⁿʸ as nothing (#612).
+     */
+    private fun isModifierLetterBlock(cp: Int): Boolean =
+        cp in 0x02B0..0x02FF || cp in 0x1D2C..0x1D6A || cp == 0x1D78 || cp in 0x1D9B..0x1DBF ||
+            cp in 0x2070..0x209F || cp in 0x2C7C..0x2C7D
+
+    /**
+     * The plain letter a raised or lowered one stands for, or null. Only a
+     * letter: the digits and signs beside them (x², H₂O, ⁺) say something a
+     * plain 2 does not, and the accents in the same block (˘, ˜) fold to a
+     * space and a mark rather than a letter.
+     */
+    private fun modifierLetter(cp: Int): String? {
+        val own = String(Character.toChars(cp))
+        val folded = java.text.Normalizer.normalize(own, java.text.Normalizer.Form.NFKC)
+        if (folded == own || folded.codePointCount(0, folded.length) != 1) return null
+        return folded.takeIf { Character.isLetter(it.codePointAt(0)) }
     }
 }
 

@@ -90,6 +90,17 @@ class ClipRulesTest {
         assertEquals("Brand™ 20℃ café", ClipPlainLetters.plain("Brand™ 20℃ café"))
     }
 
+    @Test fun `superscript and subscript letters become plain ones`() {
+        assertEquals("aeiou", ClipPlainLetters.plain("ᵃᵉⁱᵒᵘ"))
+        assertEquals("tiny text", ClipPlainLetters.plain("ᵗⁱⁿʸ ᵗᵉˣᵗ"))
+        assertEquals("ABDE", ClipPlainLetters.plain("ᴬᴮᴰᴱ"))
+        assertEquals("aeox", ClipPlainLetters.plain("ₐₑₒₓ"))
+        // Raised and lowered digits and signs keep what they say.
+        assertEquals("x² H₂O 10⁻³", ClipPlainLetters.plain("x² H₂O 10⁻³"))
+        // An accent from the same block is not a letter.
+        assertEquals("a˘", ClipPlainLetters.plain("a˘"))
+    }
+
     @Test fun `nothing to join is null`() {
         assertNull(ClipCombine.combine(listOf("abc"), " ", append = "\\d+"))
         assertNull(ClipCombine.combine(listOf("abc"), " ", append = "[0-9"))
