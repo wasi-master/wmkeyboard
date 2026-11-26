@@ -111,6 +111,7 @@ impl Diag {
         if d.file.is_none() && !d.blame_own_frame() && d.traceback.is_empty() {
             d.file = d.line.map(|_| default_file.to_string());
         }
+        d.note_bundled_raise();
         d.help = hint(d.code.as_deref().unwrap_or(""), &d.message);
         d
     }
@@ -134,6 +135,7 @@ impl Diag {
             }
             d.file = Some(file.to_string());
         }
+        d.note_bundled_raise();
         d.help = hint(&e.kind, &e.message);
         d
     }
@@ -168,18 +170,28 @@ impl Diag {
 
     /// An error raised inside a module that comes with the keyboard has no
     /// file: point at the innermost call in one of the plugin's own files
-    /// instead, which is the line its author can change, and say where it
-    /// came out. False when there is no such frame.
+    /// instead, which is the line its author can change. (Sessions do this
+    /// themselves since ab478eb0c; the interpreter's own errors do not.)
+    /// False when there is no such frame.
     fn blame_own_frame(&mut self) -> bool {
         let Some(own) = self.traceback.iter().rev().find(|f| f.file.is_some()).cloned() else { return false };
         self.file = own.file;
         self.line = own.line;
         self.col = None;
         self.end_col = None;
+        true
+    }
+
+    /// When the error came out of a module that comes with the keyboard
+    /// (the innermost frame has no file) and the headline is a call in the
+    /// plugin's own files, say which function it came out of.
+    fn note_bundled_raise(&mut self) {
+        if self.file.is_none() || !self.traceback.iter().any(|f| f.file.is_some()) {
+            return;
+        }
         if let Some(function) = self.traceback.last().filter(|f| f.file.is_none()).and_then(|f| f.function.as_deref()).filter(|f| *f != "<module>") {
             self.notes.push(format!("raised inside {function}(), in a module that comes with the keyboard"));
         }
-        true
     }
 
     /// A problem the language service found in [file], whose text is [source].
@@ -450,6 +462,26 @@ mod tests {
         let text = d.render(&|_| Some("import requests\n\n\ndef render():\n    requests.get(URL).raise_for_status()\n".into()), false);
         assert!(text.contains("--> main.py:5") && !text.contains("traceback"), "one frame of the plugin's, the headline's: {text}");
         assert!(!text.contains("_render"), "the host's frames stay out: {text}");
+    }
+
+    #[test]
+    fn a_session_that_already_points_at_the_plugins_call_keeps_the_note() {
+        // Sessions since ab478eb0c name the innermost frame with a file;
+        // the raise point stays the traceback's last entry.
+        let err = serde_json::json!({
+            "kind": "runtime", "exception": "NotImplementedError", "message": "NotImplementedError: no mock reply for secrets.get", "line": 35, "file": "grocy.py",
+            "traceback": [
+                {"file": null, "line": 40, "function": "_render"},
+                {"file": "main.py", "line": 9, "function": "render"},
+                {"file": "grocy.py", "line": 35, "function": "token"},
+                {"file": null, "line": 14, "function": "get"},
+            ],
+        });
+        let d = Diag::from_session_error(&err, "main.py");
+        assert_eq!((d.file.as_deref(), d.line), (Some("grocy.py"), Some(35)));
+        assert_eq!(d.notes, ["raised inside get(), in a module that comes with the keyboard"]);
+        let text = d.render(&|_| None, false);
+        assert!(text.contains("traceback (most recent call last):\n  main.py:9 in render\n  grocy.py:35 in token\n"), "{text}");
     }
 
     #[test]
