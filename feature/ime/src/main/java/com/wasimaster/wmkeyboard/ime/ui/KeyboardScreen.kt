@@ -2750,6 +2750,7 @@ private fun DockedKeyboardFrame(
                 val card = state.television && state.settings.oneHandedModeFor(landscape) == OneHandedMode.OFF
                 if (!card) {
                     BoardBackground(LocalKbTheme.current)
+                    IncognitoTint(state)
                     IncognitoWatermark(state)
                     // Under the keys and over the board, so a theme that gives the
                     // gesture bar a colour of its own paints only that band (#109).
@@ -3208,6 +3209,20 @@ private fun BoxScope.IncognitoWatermark(state: KeyboardUiState, docked: Boolean 
     }
 }
 
+/**
+ * Incognito's colour on the board (#1570): the board behind the keys washed
+ * with a colour the user picked under Tools / Incognito, over the theme's own
+ * background and under the keys, so the whole keyboard reads as a different
+ * one at a glance. Off (no colour) by default; the mark and the badge are
+ * the signs then.
+ */
+@Composable
+private fun BoxScope.IncognitoTint(state: KeyboardUiState) {
+    if (!state.incognitoOn) return
+    val tint = state.settings.incognitoTint ?: return
+    Box(Modifier.matchParentSize().background(Color(tint.toInt())))
+}
+
 /** How big [IncognitoWatermark] is drawn, and how faint. */
 private val IncognitoWatermarkSize = 112.dp
 private const val IncognitoWatermarkAlpha = 0.14f
@@ -3566,6 +3581,7 @@ private fun FloatingKeyboardFrame(
         ) {
             Box {
                 BoardBackground(LocalKbTheme.current)
+                IncognitoTint(state)
                 IncognitoWatermark(state, docked = false)
                 val handleAtBottom = state.settings.floatingHandle == FloatingHandlePosition.BOTTOM
                 // One bar, placed above or below the keys; see the frame's KDoc.

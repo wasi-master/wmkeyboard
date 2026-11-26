@@ -1968,6 +1968,8 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.INCOGNITO -> {
+            // Read up here: the group's builder is not composable.
+            val incognitoTint = settings.watch { it.incognitoTint }
             SettingsGroup(stringResource(R.string.tooldetail_incognito_group), level = SettingLevel.STANDARD) {
                 item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
@@ -2013,6 +2015,41 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.incognitoBadge,
                         info = stringResource(R.string.tooldetail_incognito_badge_info),
                     ) { scope.launch { repository.setIncognitoBadge(it) } }
+                }
+                // A colour behind the keys while incognito (#1570): the whole
+                // keyboard looks different, not just a faint sign on it.
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_incognito_tint_title,
+                        stringResource(R.string.tooldetail_incognito_tint_subtitle),
+                        incognitoTint != null,
+                        default = false,
+                        info = stringResource(R.string.tooldetail_incognito_tint_info),
+                    ) { on -> scope.launch { repository.setIncognitoTint(if (on) INCOGNITO_TINT_DEFAULT else null) } }
+                }
+                item(visible = incognitoTint != null) {
+                    val title = stringResource(R.string.tooldetail_incognito_tint_color_title)
+                    var picking by remember { mutableStateOf(false) }
+                    WmRow(
+                        title = title,
+                        icon = SettingsRowIcons[R.string.tooldetail_incognito_tint_color_title],
+                        trailing = { Swatch(incognitoTint ?: INCOGNITO_TINT_DEFAULT) },
+                        onClick = { picking = true },
+                    )
+                    if (picking) {
+                        ColorPickerDialog(
+                            title = title,
+                            initial = incognitoTint ?: INCOGNITO_TINT_DEFAULT,
+                            supportsAlpha = true,
+                            showReset = false,
+                            onPick = { picked ->
+                                scope.launch { repository.setIncognitoTint(picked) }
+                                picking = false
+                            },
+                            onReset = {},
+                            onDismiss = { picking = false },
+                        )
+                    }
                 }
                 item {
                     NavRow(
@@ -6201,3 +6238,10 @@ private fun TrackpadMouseSettings(repository: SettingsRepository, settings: Live
         }
     }
 }
+
+/**
+ * The colour incognito's tint starts with when it is switched on (#1570): a
+ * deep purple at 40%, enough to tell the board apart under any theme while
+ * the keys and their labels stay as they were.
+ */
+private const val INCOGNITO_TINT_DEFAULT = 0x66512DA8L

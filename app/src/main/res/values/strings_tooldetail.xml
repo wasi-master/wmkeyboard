@@ -401,6 +401,11 @@
     <string name="tooldetail_incognito_watermark_info">While incognito mode is on, a large, faint incognito sign shows behind the keys, so you cannot forget that it is on. This setting is on by default.</string>
     <string name="tooldetail_incognito_badge_title">Badge on the toolbar</string>
     <string name="tooldetail_incognito_badge_subtitle">A small incognito sign at the end of the toolbar. Off keeps the tools from shifting over</string>
+    <!-- #1570: a colour washed over the board behind the keys while incognito is on. Off by default. -->
+    <string name="tooldetail_incognito_tint_title">Colour behind the keys</string>
+    <string name="tooldetail_incognito_tint_subtitle">The keyboard takes a colour of its own while incognito is on</string>
+    <string name="tooldetail_incognito_tint_info">While incognito mode is on, the board behind the keys takes the colour you pick, so the whole keyboard looks different and you can see at once that incognito is on. The keys and their labels do not change. This setting is off by default.</string>
+    <string name="tooldetail_incognito_tint_color_title">Incognito colour</string>
     <string name="tooldetail_incognito_badge_info">While incognito mode is on, a small incognito sign shows at the end of the toolbar. Turn this off to stop the tools moving over when the sign appears. This setting is on by default.</string>
 
     <!-- Power saving tool: when power saving runs. -->
