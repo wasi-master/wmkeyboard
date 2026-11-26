@@ -364,6 +364,12 @@ pub struct DuetDecoder {
 }
 
 impl DuetDecoder {
+    /// Gives back the workspace's room, keeping the tuning; the next decode
+    /// grows it again.
+    pub fn trim(&mut self) {
+        self.ws = DuetWorkspace::default();
+    }
+
     /// `decode`: up to `limit` words for `tokens`, best first.
     pub fn decode(
         &mut self,

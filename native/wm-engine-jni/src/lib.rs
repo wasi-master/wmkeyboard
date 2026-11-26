@@ -26,6 +26,8 @@
 //!   gate and the word segmenter for Thai, Lao, Khmer and Burmese.
 //! - [`stem`]: `NativeEngine` again, the light stemmers the text searches
 //!   match word forms with.
+//! - [`idle`]: `NativeEngine` again, the decoders' working memory given
+//!   back while the keyboard is hidden.
 //! - [`gif`]: `GifNative` (core/content), the GIF encoder behind
 //!   `GifEncoder`.
 //! - [`cjk`]: `CjkNative` (core/input), the conversion decoder and its
@@ -50,6 +52,7 @@ mod gif;
 mod glide;
 mod guard;
 mod handles;
+mod idle;
 mod kernels;
 mod lexicon;
 mod lm;

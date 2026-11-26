@@ -12761,6 +12761,12 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         if (!onScreen) BackgroundBitmapCache.evictAll()
+        // The decoders' working memory for the next stroke and keystroke:
+        // the glide workspace a long stroke grew (5.7 MB on each thread that
+        // glided) and the tap decoder's search of the last word (1.3 MB after
+        // a long one). The next glide or word builds them again and reads
+        // the same. Never blocks: a decoder in use lets go when it is done.
+        if (!onScreen) com.wasimaster.wmkeyboard.core.engine.NativeEngine.trimIdle()
         // Theme card pictures, kept on disk too. Not while a settings screen
         // is up: the theme gallery there may be what is showing them.
         if (!onScreen && StartedActivities.count == 0) ThemePreviewCache.trim(ComponentCallbacks2.TRIM_MEMORY_COMPLETE)

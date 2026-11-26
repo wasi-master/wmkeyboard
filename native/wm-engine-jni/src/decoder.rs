@@ -20,7 +20,8 @@
 use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ptr::null_mut;
-use std::sync::{Arc, LazyLock, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, LazyLock, Mutex, TryLockError};
 
 use jni::objects::{JCharArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLongArray, JObjectArray, JString};
 use jni::sys::{jdouble, jint, jlong, jobjectArray};
@@ -212,6 +213,28 @@ fn inputs(
 
 /// The buffer's search, kept between keystrokes.
 static SESSION: LazyLock<Mutex<decoder::Session>> = LazyLock::new(|| Mutex::new(decoder::Session::default()));
+
+/// A trim that found the session in use: the decode holding it drops the
+/// search when it is done.
+static TRIM_SESSION: AtomicBool = AtomicBool::new(false);
+
+/// Drops the kept search (`NativeEngine.trimIdle`): the last buffer's states,
+/// over a megabyte after a long word, held until the next buffer starts. A
+/// session that starts over reads what the kept one would have
+/// ([`decoder::Session`]), so the next keystroke only decodes its buffer
+/// afresh. Whether it was dropped now rather than after the decode in hand.
+pub(crate) fn trim_session() -> bool {
+    TRIM_SESSION.store(true, Ordering::Release);
+    let session = match SESSION.try_lock() {
+        Ok(session) => Some(session),
+        Err(TryLockError::Poisoned(e)) => Some(e.into_inner()),
+        Err(TryLockError::WouldBlock) => None,
+    };
+    let Some(mut session) = session else { return false };
+    *session = decoder::Session::default();
+    TRIM_SESSION.store(false, Ordering::Release);
+    true
+}
 
 /// Everything a kept search depends on besides the taps: the lists (and
 /// how often a user lexicon has changed), the pairs, the words before, the
@@ -419,7 +442,12 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             let key = session_key(&inp, before);
             match SESSION.try_lock() {
                 Ok(mut session) => {
-                    session.decode(key, &inp.taps, &inp.geometry, sources, context, before, &inp.params, &|_, _| false, 6)
+                    let decoded =
+                        session.decode(key, &inp.taps, &inp.geometry, sources, context, before, &inp.params, &|_, _| false, 6);
+                    if TRIM_SESSION.swap(false, Ordering::AcqRel) {
+                        *session = decoder::Session::default();
+                    }
+                    decoded
                 }
                 Err(_) => decoder::decode(&inp.taps, &inp.geometry, sources, context, before, &inp.params, &|_, _| false, 6),
             }

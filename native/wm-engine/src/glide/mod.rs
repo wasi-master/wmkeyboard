@@ -410,6 +410,18 @@ impl Decoder {
         Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default(), open_head: 0, open_tail: 0, pops: 0, cells: 0, remain_cells: 0, skipped: 0 }
     }
 
+    /// Gives back the room a long stroke grew the workspace to (a column of
+    /// samples per state, up to [`workspace::MAX_STATES`] of them: about
+    /// 5 MB at the longest), which stays with the decoder until this. The
+    /// next decode grows it again and reads what it would have read; the
+    /// tuning and the open ends stay. Never between
+    /// [`Decoder::decode_ranked`] and its [`Decoder::finish`], which reads
+    /// the workspace the walk left.
+    pub fn trim(&mut self) {
+        self.ws = Workspace::new();
+        self.scan = LoopScan::default();
+    }
+
     /// `decode`, all of it: when the caller has its learned shapes at hand.
     #[allow(clippy::too_many_arguments)]
     pub fn decode(
@@ -2228,6 +2240,46 @@ mod kernel_parity {
         #[cfg(target_arch = "aarch64")]
         assert!(active().neon, "the kernels must have run");
         assert!(candidates > 1000, "{candidates} candidates");
+    }
+
+    #[test]
+    fn a_trimmed_decoder_reads_what_it_read_before() {
+        use super::ctc::{CtcDecoder, CLASSES};
+        let _pinned = FORCE.lock().unwrap_or_else(|e| e.into_inner());
+        let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../app/dictionaries-src/en.txt")).unwrap();
+        let mut trie = UserTrie::new();
+        for (w, f) in &crate::wordlist::parse(&text) {
+            trie.insert(w, *f);
+        }
+        let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0, scale: RankScale::RAW }];
+        let keys = keymap();
+        let mut r = Rng::new(11);
+        // A long stroke grows the workspace most; the short ones then read
+        // in a workspace bigger than they need.
+        let words = ["internationalization", "characteristically", "the", "keyboard", "nevertheless", "of"];
+        let paths: Vec<Vec<Point>> = words.iter().map(|w| swipe(w, &mut r)).collect();
+        let emissions: Vec<f32> = (0..40 * CLASSES).map(|_| (r.f32().max(1e-6)).ln()).collect();
+        let run = |decoder: &mut Decoder, duet: &mut DuetDecoder, ctc: &mut CtcDecoder| {
+            let mut out = Vec::new();
+            for p in &paths {
+                for ahead in [0, 1] {
+                    out.push(decoder.decode(p, &keys, KEY_W, &sources, 8, None, ahead));
+                }
+                out.push(duet.decode(&[Token::Swipe(p.clone())], &keys, KEY_W, &sources, 8, false));
+            }
+            out.push(ctc.decode(&emissions, 40, &sources, 8, 16));
+            out
+        };
+        let (mut decoder, mut duet, mut ctc) = (Decoder::new(Tuning::default()), DuetDecoder::default(), CtcDecoder::default());
+        let before = run(&mut decoder, &mut duet, &mut ctc);
+        decoder.trim();
+        duet.trim();
+        ctc.trim();
+        let after = run(&mut decoder, &mut duet, &mut ctc);
+        let fresh = run(&mut Decoder::new(Tuning::default()), &mut DuetDecoder::default(), &mut CtcDecoder::default());
+        assert!(before.iter().filter(|c| !c.is_empty()).count() > 10);
+        assert_eq!(before, after);
+        assert_eq!(before, fresh);
     }
 }
 

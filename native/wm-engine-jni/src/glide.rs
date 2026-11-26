@@ -9,9 +9,9 @@
 //! the two stays in this thread's decoder. `ctcDecode` and `ctcFinish` are
 //! the same pair for `CtcGlideBeam`.
 
-use std::cell::RefCell;
 use std::ptr::null_mut;
-use std::sync::{Arc, LazyLock};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, LazyLock, Mutex, TryLockError, Weak};
 
 use jni::objects::{JByteArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLongArray, JObject, JObjectArray, JString};
 use jni::sys::{jboolean, jfloat, jint, jlong, jobjectArray};
@@ -34,14 +34,101 @@ static KEYMAPS: LazyLock<Registry<KeyMap>> = LazyLock::new(Registry::new);
 /// path and the key map.
 type CtcStrokeOf = (Tuning, Vec<Point>, Arc<KeyMap>);
 
-thread_local! {
-    static DECODER: RefCell<Decoder> = RefCell::new(Decoder::new(Tuning::default()));
+/// One thread's glide decoders and the walks waiting on them. A decoder's
+/// workspace keeps the room its longest stroke grew it to, about 5 MB at
+/// the most, which [`trim_lanes`] gives back while the keyboard is hidden.
+struct Lane {
+    decoder: Decoder,
     /// The walk waiting for its shapes, and the key map it ran on.
-    static PENDING: RefCell<Option<(Ranked, Arc<KeyMap>)>> = const { RefCell::new(None) };
-    static CTC: RefCell<CtcDecoder> = RefCell::new(CtcDecoder::default());
+    pending: Option<(Ranked, Arc<KeyMap>)>,
+    ctc: CtcDecoder,
     /// The CTC walk waiting for its shapes, with the stroke it read.
-    static CTC_PENDING: RefCell<Option<(CtcRanked, Option<CtcStrokeOf>, f32)>> = const { RefCell::new(None) };
-    static DUET: RefCell<DuetDecoder> = RefCell::new(DuetDecoder::default());
+    ctc_pending: Option<(CtcRanked, Option<CtcStrokeOf>, f32)>,
+    duet: DuetDecoder,
+}
+
+impl Lane {
+    fn new() -> Lane {
+        Lane {
+            decoder: Decoder::new(Tuning::default()),
+            pending: None,
+            ctc: CtcDecoder::default(),
+            ctc_pending: None,
+            duet: DuetDecoder::default(),
+        }
+    }
+
+    /// The decoders back to the room they started with, unless a phase-1
+    /// walk is waiting on what its decoder holds. Whether it was done.
+    fn trim(&mut self) -> bool {
+        if self.pending.is_some() || self.ctc_pending.is_some() {
+            return false;
+        }
+        self.decoder.trim();
+        self.ctc.trim();
+        self.duet.trim();
+        true
+    }
+}
+
+/// A thread's lane, behind a lock only [`trim_lanes`] ever contends, and
+/// the trim it asked for while the lane was busy.
+struct LaneSlot {
+    lane: Mutex<Lane>,
+    trim: AtomicBool,
+}
+
+/// Every thread's lane, so a trim on any thread reaches them all: a
+/// thread-local alone is out of reach of the thread that trims.
+static LANES: Mutex<Vec<Weak<LaneSlot>>> = Mutex::new(Vec::new());
+
+thread_local! {
+    static LANE: Arc<LaneSlot> = {
+        let slot = Arc::new(LaneSlot { lane: Mutex::new(Lane::new()), trim: AtomicBool::new(false) });
+        let mut all = LANES.lock().unwrap_or_else(|e| e.into_inner());
+        all.retain(|lane| lane.strong_count() > 0);
+        all.push(Arc::downgrade(&slot));
+        slot
+    };
+}
+
+/// `f` over this thread's lane. A trim asked for while it was busy runs
+/// when `f` is done, if nothing is left waiting on the decoders.
+fn with_lane<R>(f: impl FnOnce(&mut Lane) -> R) -> R {
+    LANE.with(|slot| {
+        let mut lane = slot.lane.lock().unwrap_or_else(|e| e.into_inner());
+        let out = f(&mut lane);
+        if slot.trim.load(Ordering::Acquire) && lane.trim() {
+            slot.trim.store(false, Ordering::Release);
+        }
+        out
+    })
+}
+
+/// Every thread's glide decoders back to the room they started with
+/// (`NativeEngine.trimIdle`). A lane in use, or holding a phase-1 walk, is
+/// trimmed by its own thread once that is done. Returns how many lanes were
+/// trimmed now.
+pub(crate) fn trim_lanes() -> usize {
+    let mut all = LANES.lock().unwrap_or_else(|e| e.into_inner());
+    all.retain(|lane| lane.strong_count() > 0);
+    let mut trimmed = 0;
+    for slot in all.iter().filter_map(Weak::upgrade) {
+        // Asked first: a lane finishing now sees it before it lets go.
+        slot.trim.store(true, Ordering::Release);
+        let lane = match slot.lane.try_lock() {
+            Ok(lane) => Some(lane),
+            Err(TryLockError::Poisoned(e)) => Some(e.into_inner()),
+            Err(TryLockError::WouldBlock) => None,
+        };
+        if let Some(mut lane) = lane {
+            if lane.trim() {
+                slot.trim.store(false, Ordering::Release);
+                trimmed += 1;
+            }
+        }
+    }
+    trimmed
 }
 
 fn floats(env: &mut JNIEnv, a: &JFloatArray) -> Option<Vec<f32>> {
@@ -316,27 +403,33 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
         let limit = limit.max(0) as usize;
         let look_ahead = look_ahead.max(0) as usize;
-        let ranked = with_sources(env, &spec, |sources| {
-            DECODER.with_borrow_mut(|decoder| {
+        // The walk and what reads the workspace it leaves, under one hold of
+        // the lane, so no trim lands between them.
+        let decoded = with_sources(env, &spec, |sources| {
+            with_lane(|lane| {
+                let decoder = &mut lane.decoder;
                 decoder.tuning = tuning;
                 decoder.open_head = open_head.max(0) as usize;
                 decoder.open_tail = open_tail.max(0) as usize;
-                decoder.decode_ranked(&path, &keys, key_width, sources, limit, look_ahead)
+                let ranked = decoder.decode_ranked(&path, &keys, key_width, sources, limit, look_ahead)?;
+                if phase == 0 {
+                    return Some(Ok(decoder.finish(ranked, &keys, None, None)));
+                }
+                let mut all: Vec<Candidate> = ranked.read.clone();
+                all.extend(ranked.guesses.iter().cloned());
+                let read_count = ranked.read.len() as i32;
+                // The seeding compares the stroke as the walk left the
+                // workspace, before the shape channel runs, so it is taken now.
+                let drawn = decoder.drawn_shape8();
+                lane.pending = Some((ranked, keys.clone()));
+                Some(Err((all, read_count, drawn)))
             })
         })?;
-        let Some(ranked) = ranked else { return Some(null_mut()) };
-        if phase == 0 {
-            let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, None, None));
-            return give_candidates(env, &found, &[], None);
+        match decoded {
+            None => Some(null_mut()),
+            Some(Ok(found)) => give_candidates(env, &found, &[], None),
+            Some(Err((all, read_count, drawn))) => give_candidates(env, &all, &[read_count], Some(&drawn)),
         }
-        let mut all: Vec<Candidate> = ranked.read.clone();
-        all.extend(ranked.guesses.iter().cloned());
-        let read_count = ranked.read.len() as i32;
-        // The seeding compares the stroke as the walk left the workspace,
-        // before the shape channel runs, so it is taken now.
-        let drawn = DECODER.with_borrow_mut(|decoder| decoder.drawn_shape8());
-        PENDING.with_borrow_mut(|p| *p = Some((ranked, keys.clone())));
-        give_candidates(env, &all, &[read_count], Some(&drawn))
     })
 }
 
@@ -366,6 +459,32 @@ fn learned_shapes(env: &mut JNIEnv, words: &JObjectArray, shapes: &JObjectArray)
     Some(learned)
 }
 
+/// What `glideFinish` reads off its arguments: the learned shapes and the
+/// seeds, or `None` (with a Java exception pending) when a read failed.
+fn glide_finish_inputs(
+    env: &mut JNIEnv,
+    words: &JObjectArray,
+    shapes: &JObjectArray,
+    seeds: &JObjectArray,
+) -> Option<(LearnedShapes, Option<Vec<Vec<u16>>>)> {
+    let learned = learned_shapes(env, words, shapes)?;
+    let near = if seeds.is_null() {
+        None
+    } else {
+        let n = env.get_array_length(seeds).ok()?;
+        let mut near = Vec::with_capacity(n as usize);
+        for i in 0..n {
+            let word = JString::from(env.get_object_array_element(seeds, i).ok()?);
+            let mut units = Vec::new();
+            read_units(env, &word, &mut units)?;
+            env.delete_local_ref(word).ok()?;
+            near.push(units);
+        }
+        Some(near)
+    };
+    Some((learned, near))
+}
+
 /// `glideFinish(words, shapes, seeds)`: the last phase-1 decode on this
 /// thread, finished with each of `words`' learned shapes (`shapes[i]`, a
 /// `byte[][]`, possibly empty) and, when seeding is on, the words whose
@@ -379,25 +498,17 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     seeds: JObjectArray,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
-        let Some((ranked, keys)) = PENDING.with_borrow_mut(|p| p.take()) else {
+        if !with_lane(|lane| lane.pending.is_some()) {
             return throw_state(env, "wm-engine: glideFinish without a phase-1 glideDecode on this thread");
-        };
-        let learned = learned_shapes(env, &words, &shapes)?;
-        let near = if seeds.is_null() {
-            None
-        } else {
-            let n = env.get_array_length(&seeds).ok()?;
-            let mut near = Vec::with_capacity(n as usize);
-            for i in 0..n {
-                let word = JString::from(env.get_object_array_element(&seeds, i).ok()?);
-                let mut units = Vec::new();
-                read_units(env, &word, &mut units)?;
-                env.delete_local_ref(word).ok()?;
-                near.push(units);
-            }
-            Some(near)
-        };
-        let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, Some(&learned), near.as_deref()));
+        }
+        // The walk is spent either way, as when it was taken before these
+        // were read.
+        let read = glide_finish_inputs(env, &words, &shapes, &seeds);
+        let found = with_lane(|lane| {
+            let (ranked, keys) = lane.pending.take()?;
+            let (learned, near) = read?;
+            Some(lane.decoder.finish(ranked, &keys, Some(&learned), near.as_deref()))
+        })?;
         give_candidates(env, &found, &[], None)
     })
 }
@@ -427,9 +538,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         read_units(env, &word, &mut units)?;
         let path = path(env, &xs, &ys, &ts)?;
         let keys = object!(env, KEYMAPS, keymap);
-        let aligned = DECODER.with_borrow_mut(|decoder| {
-            decoder.tuning = tuning;
-            decoder.align(&units, &path, &keys, key_width)
+        let aligned = with_lane(|lane| {
+            lane.decoder.tuning = tuning;
+            lane.decoder.align(&units, &path, &keys, key_width)
         });
         let Some(a) = aligned else { return Some(null_mut()) };
         let mut coords = a.x.clone();
@@ -459,7 +570,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 ) -> jni::sys::jbyteArray {
     guarded(&mut env, null_mut(), |env| {
         let path = path(env, &xs, &ys, &ts)?;
-        let shape = DECODER.with_borrow_mut(|decoder| decoder.sample_shape(&path, key_width));
+        let shape = with_lane(|lane| lane.decoder.sample_shape(&path, key_width));
         let Some(shape) = shape else { return Some(null_mut()) };
         let bytes: Vec<u8> = shape.into_iter().map(|b| b as u8).collect();
         env.byte_array_from_slice(&bytes).ok().map(|a| a.into_raw())
@@ -521,14 +632,13 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         };
         let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
         let (limit, width) = (limit.max(0) as usize, width.max(0) as usize);
-        let marks = stroke.as_ref().and_then(|(tuning, path, keys)| {
-            DECODER.with_borrow_mut(|decoder| {
-                decoder.tuning = tuning.clone();
-                decoder.marks(path, keys, key_width)
-            })
-        });
-        let ranked = with_sources(env, &spec, |sources| {
-            CTC.with_borrow_mut(|ctc| {
+        let decoded = with_sources(env, &spec, |sources| {
+            with_lane(|lane| {
+                let marks = stroke.as_ref().and_then(|(tuning, path, keys)| {
+                    lane.decoder.tuning = tuning.clone();
+                    lane.decoder.marks(path, keys, key_width)
+                });
+                let ctc = &mut lane.ctc;
                 ctc.scoring = Scoring {
                     length_norm: weights_in[0] as f32,
                     length_bonus: weights_in[1] as f32,
@@ -545,18 +655,21 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                     look_ahead: look_ahead.max(0) as usize,
                     marks: marks.zip(keys),
                 };
-                ctc.walk(&lp, steps, sources, limit, width, &stroke_in)
+                let ranked = ctc.walk(&lp, steps, sources, limit, width, &stroke_in);
+                if phase == 0 || stroke.is_none() {
+                    return Ok(ctc.finish(ranked, &mut |_| 0.0));
+                }
+                let mut all: Vec<Candidate> = ranked.read.clone();
+                all.extend(ranked.guesses.iter().cloned());
+                let read_count = ranked.read.len() as i32;
+                lane.ctc_pending = Some((ranked, stroke, key_width));
+                Err((all, read_count))
             })
         })?;
-        if phase == 0 || stroke.is_none() {
-            let found = CTC.with_borrow(|ctc| ctc.finish(ranked, &mut |_| 0.0));
-            return give_candidates(env, &found, &[], None);
+        match decoded {
+            Ok(found) => give_candidates(env, &found, &[], None),
+            Err((all, read_count)) => give_candidates(env, &all, &[read_count], None),
         }
-        let mut all: Vec<Candidate> = ranked.read.clone();
-        all.extend(ranked.guesses.iter().cloned());
-        let read_count = ranked.read.len() as i32;
-        CTC_PENDING.with_borrow_mut(|p| *p = Some((ranked, stroke, key_width)));
-        give_candidates(env, &all, &[read_count], None)
     })
 }
 
@@ -571,20 +684,25 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     shapes: JObjectArray,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
-        let Some((ranked, stroke, key_width)) = CTC_PENDING.with_borrow_mut(|p| p.take()) else {
+        if !with_lane(|lane| lane.ctc_pending.is_some()) {
             return throw_state(env, "wm-engine: ctcFinish without a phase-1 ctcDecode on this thread");
-        };
-        let learned = learned_shapes(env, &words, &shapes)?;
-        let found = match stroke {
-            None => CTC.with_borrow(|ctc| ctc.finish(ranked, &mut |_| 0.0)),
-            Some((tuning, path, keys)) => DECODER.with_borrow_mut(|decoder| {
-                decoder.tuning = tuning;
-                let prepared = decoder.prepare_shape(&path, key_width);
-                CTC.with_borrow(|ctc| {
-                    ctc.finish(ranked, &mut |word| if prepared { decoder.learned_gain(word, &keys, &learned) } else { 0.0 })
-                })
-            }),
-        };
+        }
+        // The walk is spent either way, as when it was taken before these
+        // were read.
+        let read = learned_shapes(env, &words, &shapes);
+        let found = with_lane(|lane| {
+            let (ranked, stroke, key_width) = lane.ctc_pending.take()?;
+            let learned = read?;
+            Some(match stroke {
+                None => lane.ctc.finish(ranked, &mut |_| 0.0),
+                Some((tuning, path, keys)) => {
+                    let decoder = &mut lane.decoder;
+                    decoder.tuning = tuning;
+                    let prepared = decoder.prepare_shape(&path, key_width);
+                    lane.ctc.finish(ranked, &mut |word| if prepared { decoder.learned_gain(word, &keys, &learned) } else { 0.0 })
+                }
+            })
+        })?;
         give_candidates(env, &found, &[], None)
     })
 }
@@ -658,7 +776,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
         let limit = limit.max(0) as usize;
         let found = with_sources(env, &spec, |sources| {
-            DUET.with_borrow_mut(|decoder| {
+            with_lane(|lane| {
+                let decoder = &mut lane.duet;
                 decoder.tuning = tuning;
                 decoder.duet = duet;
                 decoder.decode(&tokens, &keys, key_width, sources, limit, partial != 0)
@@ -724,5 +843,61 @@ mod tests {
         assert_eq!(0.42, t.sigma);
         assert_eq!(2000, t.max_pops);
         assert_eq!(8192, t.max_states);
+    }
+
+    fn asked(slot: &LaneSlot) -> bool {
+        slot.trim.load(Ordering::Acquire)
+    }
+
+    #[test]
+    fn a_trim_reaches_other_threads_lanes_now_or_when_they_are_done() {
+        use std::sync::mpsc::channel;
+        // Idle on its own thread: trimmed from this one, at once.
+        let (ready, wait) = channel();
+        let (go, hold) = channel::<()>();
+        let idle = std::thread::spawn(move || {
+            with_lane(|_| ());
+            ready.send(()).unwrap();
+            hold.recv().unwrap();
+            LANE.with(|slot| asked(slot))
+        });
+        wait.recv().unwrap();
+        assert!(trim_lanes() >= 1);
+        go.send(()).unwrap();
+        assert!(!idle.join().unwrap(), "trimmed now, nothing left asked");
+
+        // Busy: asked, and trimmed by its own thread when the call is done.
+        let (inside, wait) = channel();
+        let (go, hold) = channel::<()>();
+        let busy = std::thread::spawn(move || {
+            with_lane(|_| {
+                inside.send(()).unwrap();
+                hold.recv().unwrap();
+                LANE.with(|slot| assert!(asked(slot), "the trim asked while busy"));
+            });
+            LANE.with(|slot| asked(slot))
+        });
+        wait.recv().unwrap();
+        trim_lanes();
+        go.send(()).unwrap();
+        assert!(!busy.join().unwrap(), "trimmed by its own thread once done");
+
+        // A phase-1 walk waiting: left alone until it is finished.
+        let waiting = std::thread::spawn(|| {
+            let ranked = Ranked { read: Vec::new(), guesses: Vec::new(), look_ahead: 0, limit: 1 };
+            let keys = Arc::new(KeyMap::new(vec![0.0], vec![0.0], vec!['a' as i32], vec![0]));
+            with_lane(|lane| lane.pending = Some((ranked, keys)));
+            let mine = LANE.with(Arc::clone);
+            let still = {
+                let mut lane = mine.lane.lock().unwrap();
+                !lane.trim()
+            };
+            mine.trim.store(true, Ordering::Release);
+            with_lane(|lane| lane.pending.take());
+            (still, asked(&mine))
+        });
+        let (still, left) = waiting.join().unwrap();
+        assert!(still, "a waiting walk keeps its workspace");
+        assert!(!left, "trimmed once the walk was finished");
     }
 }

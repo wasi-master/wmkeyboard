@@ -209,6 +209,12 @@ impl CtcDecoder {
         CtcDecoder { scoring, ..Default::default() }
     }
 
+    /// Gives back the beams' and the slot map's room, keeping the scoring.
+    /// Never between [`CtcDecoder::walk`] and its [`CtcDecoder::finish`].
+    pub fn trim(&mut self) {
+        *self = CtcDecoder::new(self.scoring);
+    }
+
     /// Words for `log_probs` (`steps` rows of [`CLASSES`]) out of `sources`,
     /// best first, at most `limit`. Each source's `min_frequency` is its
     /// vocabulary cap, as the caller read it.

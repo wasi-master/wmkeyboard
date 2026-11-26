@@ -143,6 +143,23 @@ object NativeEngine {
     fun cpuFeatures(): Int = if (loaded) nativeCpuFeatures() else 0
 
     /**
+     * Gives back the working memory the decoders keep for the next stroke
+     * and keystroke, for while the keyboard is hidden: the glide workspace
+     * a long stroke grew (about 5.7 MB on every thread that glided) and the
+     * tap decoder's search of the last word (1.3 MB after a long one). The
+     * next glide or word builds them again and reads the same. A decoder in
+     * use gives its memory back when that call is done. Never blocks.
+     */
+    fun trimIdle() {
+        if (!loaded) return
+        try {
+            nativeTrimIdle()
+        } catch (_: UnsatisfiedLinkError) {
+            // A library from before the trim keeps its decoders as they are.
+        }
+    }
+
+    /**
      * `query · row` for every [dim]-wide row of [matrix] (row-major) into
      * [out], in one call; returns the rows scored. NEON on arm64.
      */
@@ -311,6 +328,7 @@ object NativeEngine {
     private external fun nativeStemTexts(languageTag: String, texts: Array<String>): Array<String>
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
+    private external fun nativeTrimIdle()
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
     private external fun nativeSharpen(src: IntArray, width: Int, first: Int, count: Int, amount: Float, out: IntArray): Int
     private external fun nativeBoxAverageBgr(
