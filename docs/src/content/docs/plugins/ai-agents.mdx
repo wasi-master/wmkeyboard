@@ -1,0 +1,190 @@
+---
+title: "AI agents"
+description: "wmpy mcp lets an AI coding agent such as Claude Code, Cursor or Copilot write, check, run and test WM Keyboard plugins with the tools the editors use."
+sidebar:
+  label: "AI agents"
+  order: 8.5
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+`wmpy mcp` is an [MCP](https://modelcontextprotocol.io/) server. It gives an AI
+coding agent the plugin editor's tools: the checks, the API reference, the
+plugin running headless with pretend answers for the internet, the tests and
+the packer. With it, an agent can write a plugin, see what its panel draws,
+click through it, and fix what the checks find, without a phone.
+
+Everything runs on your computer. The server sends nothing anywhere; the
+only tools that use the network are `pip_check` and `pip_install`, which
+download from PyPI.
+
+## Install wmpy
+
+Build it from the WM Keyboard source with [Rust](https://rustup.rs/), as for
+the [language server](/plugins/language-server/#install-wmpy):
+
+```bash
+git clone https://github.com/wasi-master/wmkeyboard
+cd wmkeyboard/native/wmpy
+cargo install --path .
+```
+
+## Add it to your agent
+
+`wmpy mcp setup <client>` prints what to add. With `--write` it merges the
+server into the client's config file, keeps everything else in it, and saves
+the old file beside it as `*.wmpy-backup`.
+
+<Tabs>
+<TabItem label="Claude Code">
+
+```bash
+claude mcp add wmpy -- wmpy mcp
+```
+
+That adds it for you alone. To share it with everyone who works on the
+project, write it into the project's `.mcp.json`:
+
+```bash
+wmpy mcp setup claude --write
+```
+
+</TabItem>
+<TabItem label="Cursor">
+
+```bash
+wmpy mcp setup cursor --write
+```
+
+This adds the server to `~/.cursor/mcp.json`:
+
+```json title="~/.cursor/mcp.json"
+{
+  "mcpServers": {
+    "wmpy": {"command": "wmpy", "args": ["mcp"]}
+  }
+}
+```
+
+</TabItem>
+<TabItem label="VS Code">
+
+Run this in your project folder:
+
+```bash
+wmpy mcp setup vscode --write
+```
+
+It writes `.vscode/mcp.json`, which Copilot's agent mode reads:
+
+```json title=".vscode/mcp.json"
+{
+  "servers": {
+    "wmpy": {"type": "stdio", "command": "wmpy", "args": ["mcp"]}
+  }
+}
+```
+
+</TabItem>
+<TabItem label="Windsurf">
+
+```bash
+wmpy mcp setup windsurf --write
+```
+
+This adds the server to `~/.codeium/windsurf/mcp_config.json`, under
+`mcpServers`.
+
+</TabItem>
+<TabItem label="Zed">
+
+```bash
+wmpy mcp setup zed
+```
+
+Zed keeps its MCP servers in `settings.json`, under `context_servers`:
+
+```json title="settings.json"
+"context_servers": {
+  "wmpy": {"command": "wmpy", "args": ["mcp"], "env": {}}
+}
+```
+
+Zed's settings file usually has comments, which rewriting it would lose, so
+`--write` refuses a file with comments. Paste the block yourself, or use
+**Add Server** in Zed's agent settings.
+
+</TabItem>
+</Tabs>
+
+When the `wmpy` your shell finds is not the one you ran, the printed config
+uses its full path. Pass `--command /path/to/wmpy` to choose another.
+
+Restart the client, or reload its MCP servers, to pick up the change.
+
+## What the agent gets
+
+| Tool | What it does |
+|---|---|
+| `new_plugin` | Makes a plugin folder from a template, with `wmpy new`. |
+| `check_plugin` | Checks the Python and `plugin.json` without running anything. Each problem has its file, line, column and code, and `help` names the fix when there is one. |
+| `render_plugin` | Loads the plugin, sends a list of events, and returns what the panel draws, every call it made to the keyboard, and what it saved. |
+| `session_start`, `session_event`, `session_render`, `session_settle`, `session_transform`, `session_storage`, `session_calls`, `session_stop` | Keeps a plugin running so the agent can tap through it one event at a time and look at it in between. |
+| `run_tests` | Runs `test.py` and `tests/test_*.py` with `wmpy test`. |
+| `pack_plugin` | Builds the `.wmplugin` file with `wmpy pack`. |
+| `pip_check`, `pip_install` | Checks a PyPI package for use in a plugin, and copies it in. |
+| `api_lookup`, `api_search` | Signatures, docs and permissions from the model the editors complete from. |
+| `list_permissions` | Every permission and its tier, with the risky ones marked. |
+| `read_docs` | These docs as Markdown: the API, `plugin.json`, permissions, testing, error messages and every check code. |
+| `format_file` | Formats a `.py` file the way the editors do. |
+| `write_stubs` | Writes type stubs of the `wm` package, with `wmpy stubs`. |
+
+The same docs are also MCP resources (`wmpy://docs/api`,
+`wmpy://docs/plugin-json`, `wmpy://docs/testing` and others), for clients
+that let you attach them to a conversation.
+
+### Calls to the keyboard
+
+A plugin running here has no phone behind it. Each call it makes to the
+keyboard, such as `http.get` or `ai.ask`, is answered from a mock that the
+agent passes in, the same shape the [test runner](/plugins/guides/testing/#run-once)
+uses:
+
+```json
+{
+  "http.request": {"status": 200, "text": "{\"temp\": 21}", "headers": {}},
+  "ui.toast": null
+}
+```
+
+A call with no answer raises `NotImplementedError` inside the plugin, and the
+result lists every call made, so the agent can see what to add. The plugin
+gets every permission it declares, as in the editors.
+
+### The server's protocol
+
+The server speaks MCP over stdio, and both kinds of client: those that open
+with the `initialize` handshake (revisions up to 2025-11-25) and those that
+send the protocol version with every request (2026-07-28). It needs no
+settings.
+
+## An example
+
+You ask: *"Make a WM Keyboard plugin that shows today's weather for a city,
+from Open-Meteo."* With the server added, an agent works like this:
+
+1. `new_plugin` with the weather template, or a blank one, in `weather/`.
+2. `api_search` for "http" and `read_docs` for `api`, to learn `http.get`,
+   `plugin.state` and the widgets.
+3. Writes `main.py` and `plugin.json`.
+4. `check_plugin`. It reports that `http.get` needs the `network` permission
+   and that `api.open-meteo.com` is not in `hosts`. The agent adds both and
+   checks again until nothing is left.
+5. `render_plugin` with a mock for `http.request` and a click on the
+   refresh button, to see the forecast drawn.
+6. Writes `test.py` with the same mock, and `run_tests` until it passes.
+7. `pack_plugin`, and tells you where the `.wmplugin` file is.
+
+You install that file on the phone. `network` is a
+[risky permission](/plugins/permissions/#risky-permissions), so the keyboard
+asks you to allow it the first time the plugin uses it.

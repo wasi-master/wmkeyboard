@@ -1,0 +1,200 @@
+---
+title: "Language server"
+description: "wmpy lsp gives any editor that speaks LSP the plugin editor's checks, completion, hovers, fixes, preview and test buttons for WM Keyboard plugins."
+sidebar:
+  label: "Language server"
+  order: 8.4
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+`wmpy lsp` is a language server for plugins. It gives a desktop editor what
+the plugin editor on the phone and on the web has: the same checks, the same
+suggestions, the same fixes. It reads your `plugin.json` too, so it knows
+which permissions, hosts, providers and settings your plugin declares.
+
+The [editor extensions](/plugins/editors/) for VS Code, Zed and JetBrains IDEs
+start it for you. This page is for every other editor, and for anyone who
+wants to know what the server does.
+
+## Install wmpy
+
+`wmpy` is one program. Build it from the WM Keyboard source with
+[Rust](https://rustup.rs/):
+
+```bash
+git clone https://github.com/wasi-master/wmkeyboard
+cd wmkeyboard/native/wmpy
+cargo install --path .
+```
+
+Check that your shell finds it with `wmpy --version`. The editor runs
+`wmpy lsp`, which talks over stdin and stdout.
+
+## What it does
+
+The server works on a plugin folder: the nearest folder above a file that
+holds a `plugin.json`. Every `.py` file in it is one of the plugin's modules.
+Open one file and the server checks the whole folder, so problems in files you
+have not opened show up too.
+
+| Feature | What you get |
+|---|---|
+| Problems | Python the keyboard's interpreter refuses, undefined and misspelt names, names the `wm` package does not have, a module used without its permission, an address on a host `plugin.json` does not list, a provider or action declared but not answered, widget arguments that do not exist. They update as you type, a moment after you stop. |
+| Problems in plugin.json | What the app's installer would refuse or change, by its own rules: invalid JSON, a missing field, a permission the keyboard does not know, an API 5 permission on an API 4 plugin, `network` with no `hosts`, an unknown provider list or setting type. |
+| Completion | The `wm` package, widget arguments and the values they take, your own functions, decorators after `@`, your hosts, provider ids, setting keys and keyword in strings. In `plugin.json`: every field, permission names, provider lists, setting types and icon names. |
+| Hover | What a name is, its signature and the permission it needs. In `plugin.json`: what a field or permission means. |
+| Signature help | The parameters of the call you are typing, with the one you are on marked. |
+| Go to definition, references, rename | Across the plugin's modules: rename `total` in `fares.py` and `from fares import total` in `main.py` changes too. `render`, `on_event` and `transform` keep their names, because the keyboard calls them by name. |
+| Quick fixes | The fix the editors offer: correct a typo, add a missing import, write a stub for a provider. Fixes that belong in `plugin.json` (add a permission, a host, a provider, an action, a setting, the keyword) edit `plugin.json` and keep its layout. |
+| Formatting | The plugin editor's formatter. |
+| Outline, folding, highlighting | Your functions and top-level values, foldable blocks, and colours for the API, builtins, parameters and constants. |
+
+Positions are counted in UTF-16, which every LSP client supports.
+
+## Buttons in the code
+
+The server puts two kinds of code lens in a plugin's files:
+
+- **▶ Preview** above `def render()`. It starts `wmpy preview` for the plugin
+  and opens the page in your browser. The preview updates as you save.
+- **▶ Run tests** at the top of `test.py` and `tests/test_*.py`, and **▶ Run test**
+  above each `def test_*`. It runs `wmpy test` and shows a message when a test
+  fails.
+
+Editors that show code lenses (VS Code, Zed, JetBrains, Neovim with
+`vim.lsp.codelens`) draw them above the line.
+
+## Commands
+
+The lenses call these commands. An editor or an extension can call them too,
+with `workspace/executeCommand`. Each takes the plugin folder's URI first; a
+file's URI inside the folder works as well.
+
+| Command | Arguments | Returns |
+|---|---|---|
+| `wmpy.preview` | `[folderUri]` | `{"url": "http://127.0.0.1:PORT/?t=..."}`. Starts one preview server per folder and reuses it. |
+| `wmpy.test` | `[folderUri, filter?]` | What `wmpy test --json` prints: `ok`, `passed`, `failed` and each test. |
+| `wmpy.check` | `[folderUri]` | Publishes the folder's problems again and returns `{"errors", "warnings", "infos", "files"}`. |
+| `wmpy.pack` | `[folderUri]` | `{"path", "sha256", "size"}` of the `.wmplugin` file. |
+| `wmpy.run` | `[folderUri]` | `{"command": ["/path/to/wmpy", "run", "/path/to/plugin"]}`, for the editor to run in a terminal. |
+
+The server stops its preview servers when the editor shuts it down.
+
+### Where the preview opens
+
+Pass `initializationOptions` when the editor starts the server:
+
+```json
+{"preview": "browser"}
+```
+
+| Value | What `wmpy.preview` does |
+|---|---|
+| `"browser"` | Opens the page in your system browser, and returns the URL. The default. |
+| `"client"` | Only returns the URL, for an extension that shows the page itself. |
+| `"none"` | Only returns the URL. |
+
+## Set it up in your editor
+
+<Tabs>
+<TabItem label="Neovim">
+
+Neovim 0.11 and later, in `init.lua`:
+
+```lua
+vim.lsp.config('wmpy', {
+  cmd = { 'wmpy', 'lsp' },
+  filetypes = { 'python', 'json' },
+  root_markers = { 'plugin.json' },
+  init_options = { preview = 'browser' },
+})
+vim.lsp.enable('wmpy')
+
+-- Show the Preview and Run tests lenses, and run the one under the cursor.
+vim.api.nvim_create_autocmd({ 'BufEnter', 'InsertLeave', 'BufWritePost' }, {
+  callback = function() vim.lsp.codelens.refresh({ bufnr = 0 }) end,
+})
+vim.keymap.set('n', '<leader>cl', vim.lsp.codelens.run)
+```
+
+The server only answers for Python files and `plugin.json`, so attaching it
+to other JSON files does no harm.
+
+</TabItem>
+<TabItem label="Helix">
+
+In `~/.config/helix/languages.toml`:
+
+```toml
+[language-server.wmpy]
+command = "wmpy"
+args = ["lsp"]
+config = { preview = "browser" }
+
+[[language]]
+name = "python"
+roots = ["plugin.json"]
+language-servers = ["wmpy"]
+
+[[language]]
+name = "json"
+language-servers = ["wmpy", "vscode-json-language-server"]
+```
+
+Helix uses only the servers you list for a language. To keep another Python
+server, list it after `wmpy`.
+
+</TabItem>
+<TabItem label="Sublime Text">
+
+Install the [LSP](https://packagecontrol.io/packages/LSP) package, then add
+this in **Preferences › Package Settings › LSP › Settings**:
+
+```json
+{
+  "clients": {
+    "wmpy": {
+      "enabled": true,
+      "command": ["wmpy", "lsp"],
+      "selector": "source.python | source.json",
+      "initializationOptions": {"preview": "browser"}
+    }
+  }
+}
+```
+
+</TabItem>
+<TabItem label="Emacs">
+
+With Eglot, built into Emacs 29 and later:
+
+```elisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode)
+                 . ("wmpy" "lsp" :initializationOptions (:preview "browser")))))
+```
+
+Then `M-x eglot` in a plugin's `main.py`. Eglot runs one server per project,
+so open the plugin folder as its own project, or keep it in a Git repository.
+
+</TabItem>
+</Tabs>
+
+Any other editor that can start a language server over stdio works the same
+way: the command is `wmpy lsp`, for Python files and `plugin.json`.
+
+## When something looks wrong
+
+- **No problems show up.** Check that the file is inside a folder with a
+  `plugin.json`. Outside one, the server still checks the Python, but nothing
+  that needs the manifest.
+- **The checks miss a module of yours.** Files the server has not seen yet
+  show up after you save, or when your editor reports new files. Editors that
+  support file watching (most do) report them at once.
+- **Preview does nothing.** The preview runs `wmpy preview`; run
+  `wmpy preview my-plugin/` in a terminal to see its error.
+
+To run the checks without an editor, in a terminal or in CI, use
+`wmpy check my-plugin/`.
