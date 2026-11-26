@@ -59,6 +59,25 @@ class CaseStepTest {
     }
 
     @Test
+    fun `Title Case keeps a capital written after an apostrophe or inside a name`() {
+        // O'Neil is mixed case like iPhone: the capital past the apostrophe is
+        // the user's, and the trip through lowercase gives it back.
+        val origin = "ask O'Neil, D'Angelo and McDonald"
+        val lower = "ask o'neil, d'angelo and mcdonald"
+        assertEquals("Ask O'Neil, D'Angelo And McDonald", toTitleCase(lower, origin))
+        assertEquals("O’Neil", toTitleCase("o’neil", "O’Neil"))
+        var s = origin
+        s = recaseStep(s, origin, firstPress = true, titleFirst = false)
+        assertEquals(lower, s)
+        s = recaseStep(s, origin, firstPress = false, titleFirst = false)
+        assertEquals("Ask O'Neil, D'Angelo And McDonald", s)
+        assertEquals(
+            "Ask O'Neil, D'Angelo And McDonald",
+            recaseStep(origin, origin, firstPress = true, titleFirst = true),
+        )
+    }
+
+    @Test
     fun `shift walks lower Title UPPER and gives the names back`() {
         val origin = "hello SMS"
         var s = origin
