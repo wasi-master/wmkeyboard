@@ -156,6 +156,16 @@ The name has to be the app's whole name as your launcher shows it, in any case a
 
 The switch is **off** by default, because plenty of app names are everyday words (Camera, Clock, Messages) and a chip on each would get in the way.
 
+## Lines from your notes
+
+<SettingsPath path="Typing / Smart chips / Lines from your notes" />
+
+Type the first few words of a line from one of your [notes](/tools/notes/) and the strip offers the whole line, with the words you typed on the left and the line on the right. Tap it and the line takes the place of those words, written the way the note has it. The strip then offers the line after it in the note, which a tap puts on a line of its own, and so on down the note, so a poem, a speech or a set of steps goes into a chat one line at a time. Typing a whole line yourself works too, and so does pressing Enter after one: the chip then offers the next line without a line break before it. Blank lines in the note are skipped.
+
+The words are matched without regard to case or spacing, and a list, task, quote or heading mark at the start of a note's line (`- `, `1. `, `- [ ] `, `> `, `# `) is left out of both the match and the line that goes in. The start you type has to be on a line of its own in the field, ten characters long and two words at least, so a short word in a chat never pulls a line out of a note. When several notes have a line that starts the same way, the first note in your list wins, so a pinned note comes first. The gear on the chip opens Notes; the words you typed stay.
+
+Locked notes, archived notes and the trash are never read. The switch is **off** by default.
+
 ## Repeated text
 
 <SettingsPath path="Typing / Smart chips / Repeated text" />
@@ -232,6 +242,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Convert colour codes**: default **on**. Needs WM Chroma. See [Colour codes](#colour-codes).
 - **Call or text a contact**: default **off**. Needs the contacts permission. See [Calling or texting a contact](#calling-or-texting-a-contact).
 - **Open an app by name**: default **off**. See [Opening an app by name](#opening-an-app-by-name).
+- **Lines from your notes**: default **off**. See [Lines from your notes](#lines-from-your-notes).
 - **Message with**: default **Messages (SMS)**. Only shown while Call or text a contact is on. Messages (SMS), WhatsApp, Telegram, Signal or Ask every time.
 - **Repeated text**: default **on**. See [Repeated text](#repeated-text).
 - **Chip after this many repeats**: 2 to 6, default **3**. Shown while Repeated text is on; the same row lives on the Text repeat tool's page.

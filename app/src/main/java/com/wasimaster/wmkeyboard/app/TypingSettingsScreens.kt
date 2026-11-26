@@ -2312,6 +2312,16 @@ internal fun TypingSmartChipsSettings(
                     default = SettingsDefaults.smartChips.apps,
                 ) { scope.launch { repository.setSmartChipApps(it) } }
             }
+            // #1099: the first words of a line in a note → the line, then the next.
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.typing_smart_note_lines_title,
+                    stringResource(R.string.typing_smart_note_lines_subtitle),
+                    settings.watch { it.smartChips.noteLines },
+                    info = stringResource(R.string.typing_smart_note_lines_info),
+                    default = SettingsDefaults.smartChips.noteLines,
+                ) { scope.launch { repository.setSmartChipNoteLines(it) } }
+            }
             // The same text typed a few times in a row → the Text repeat tool,
             // opened on it with the count already set.
             item(level = SettingLevel.ADVANCED) {

@@ -6802,6 +6802,11 @@ data class SmartChipSettings(
     val searchTriggers: Boolean = true,
     /** The user's shortcuts, in the order they were added. */
     val searchTriggerList: List<SearchTrigger> = SearchTriggers.DEFAULTS,
+    /**
+     * The first words of a line in a note → the whole line, then the line
+     * after it (#1099). Off by default: it reads every unlocked note.
+     */
+    val noteLines: Boolean = false,
 )
 
 /**
@@ -14905,6 +14910,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_CONTACT_MESSAGE_APP = stringPreferencesKey("smart_chip_contact_message_app")
         private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
         private val SMART_CHIP_REPEATS = booleanPreferencesKey("smart_chip_repeats")
+        private val SMART_CHIP_NOTE_LINES = booleanPreferencesKey("smart_chip_note_lines")
         private val SMART_CHIP_SEARCH_TRIGGERS = booleanPreferencesKey("smart_chip_search_triggers")
         private val SMART_CHIP_SEARCH_TRIGGER_LIST = stringPreferencesKey("smart_chip_search_trigger_list")
         private val SMART_CHIP_REPEAT_AFTER = intPreferencesKey("smart_chip_repeat_after")
@@ -17856,6 +17862,7 @@ class SettingsRepository(private val context: Context) {
             searchTriggers = p[SMART_CHIP_SEARCH_TRIGGERS] ?: defaults.smartChips.searchTriggers,
             searchTriggerList = p[SMART_CHIP_SEARCH_TRIGGER_LIST]?.let(SearchTriggers::decode)
                 ?: defaults.smartChips.searchTriggerList,
+            noteLines = p[SMART_CHIP_NOTE_LINES] ?: defaults.smartChips.noteLines,
         )
 
     private fun readSelectionMacros(p: Preferences, defaults: KeyboardSettings) =
@@ -28868,6 +28875,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipRepeats(value: Boolean) =
         editPrefs { it[SMART_CHIP_REPEATS] = value }
+
+    suspend fun setSmartChipNoteLines(value: Boolean) =
+        editPrefs { it[SMART_CHIP_NOTE_LINES] = value }
 
     suspend fun setSearchTriggers(value: Boolean) =
         editPrefs { it[SMART_CHIP_SEARCH_TRIGGERS] = value }

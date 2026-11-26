@@ -561,6 +561,9 @@
     <string name="typing_smart_contact_message_ask">Ask every time</string>
     <string name="typing_smart_apps_title">Open an app by name</string>
     <string name="typing_smart_apps_subtitle">Type the name of an installed app and the strip offers to open it</string>
+    <string name="typing_smart_note_lines_title">Lines from your notes</string>
+    <string name="typing_smart_note_lines_subtitle">Type the first words of a line in a note and the strip offers the line, then the line after it</string>
+    <string name="typing_smart_note_lines_info">Type the first few words of a line from one of your notes and the strip offers the whole line. Tap it and the line goes in, and the strip offers the next line of the note, so a quote, a poem or a set of steps goes in one line at a time. Typing a whole line yourself, or pressing Enter after it, offers the next line too. It takes at least ten characters and two words, case and spacing aside, so a short word typed in a chat never pulls a line out of a note. Locked notes, archived notes and the trash are never read. Off by default.</string>
     <string name="typing_smart_apps_info">Type the full name of an app on your phone, such as WhatsApp or Google Maps, in any case. The strip then shows a chip that opens the app. The name that you typed stays in the text. Names shorter than three letters, and names that two apps share, never raise a chip. Each name is offered one time in each text field. Off by default, because many app names are everyday words.</string>
     <string name="typing_smart_contacts_title">Call or text a contact</string>
     <string name="typing_smart_contacts_subtitle">Type the name of a contact and the strip offers to call or text that person</string>

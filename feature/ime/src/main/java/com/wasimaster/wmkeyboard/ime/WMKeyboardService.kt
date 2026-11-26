@@ -30839,7 +30839,39 @@ open class WMKeyboardService : InputMethodService() {
             repeatAfter = state.settings.smartChips.repeatAfter,
             // A copy, for the same reason as vocabRetired.
             repeatRetired = repeatChipsRetired.toSet(),
+            noteLines = noteLinesFor(state),
         )
+
+    /** The notes' lines for the note-line chip (#1099), with the notes file's stamp they were read at. */
+    @Volatile
+    private var noteLinesCache: Pair<Long, com.wasimaster.wmkeyboard.core.tools.NoteLines>? = null
+    private var noteLinesJob: Job? = null
+
+    /**
+     * The lines of the unlocked notes for [SmartSuggest.Context.noteLines], or
+     * null while that chip is off. Read again off the main thread whenever the
+     * notes file changes; the chip uses the lines it has until then, and the
+     * strip is read again once the new ones are in.
+     */
+    private fun noteLinesFor(state: KeyboardUiState): com.wasimaster.wmkeyboard.core.tools.NoteLines? {
+        if (!state.settings.smartChips.noteLines || !userUnlocked || !state.settings.extensionOn(Extension.NOTES)) return null
+        val stamp = noteStore.lastModified()
+        val cached = noteLinesCache
+        if (cached?.first != stamp && noteLinesJob?.isActive != true) {
+            noteLinesJob = serviceScope.launch {
+                val lines = withContext(Dispatchers.Default) {
+                    com.wasimaster.wmkeyboard.core.tools.NoteLines.build(
+                        noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false))
+                            .filterNot { it.locked }
+                            .map { it.displayTitle() to it.body },
+                    )
+                }
+                noteLinesCache = stamp to lines
+                refreshSmartSuggestion()
+            }
+        }
+        return cached?.second
+    }
 
     /** The active language and its secondaries as locale tags, for the date chip's own-language words. */
     private fun dateLanguages(state: KeyboardUiState): List<String> =
@@ -30927,7 +30959,13 @@ open class WMKeyboardService : InputMethodService() {
         if (hit.replaceSpan > 0) ic.deleteSurroundingText(hit.replaceSpan, 0)
         ic.commitText(insert, 1)
         ic.endBatchEdit()
-        smartMutedAfter = ic.getTextBeforeCursor(smartLookbehind(), 0)?.toString()
+        // A line from a note asks straight away for the line after it (#1099),
+        // so the chip it typed is not muted like an answer's.
+        smartMutedAfter = if (hit.kind == SmartSuggest.Kind.NOTE_LINE) {
+            null
+        } else {
+            ic.getTextBeforeCursor(smartLookbehind(), 0)?.toString()
+        }
         revision = null
         composing = StringBuilder()
         lastGestureWord = null
@@ -31051,8 +31089,10 @@ open class WMKeyboardService : InputMethodService() {
             val keep = _uiState.value.settings.smartChips.keepTextOnOpen
             ic.beginBatchEdit()
             commitComposing(ic, autocorrect = false)
-            // A vocabulary chip opens the card *about* the typed word; the word stays.
-            if (hit.kind != SmartSuggest.Kind.VOCAB && hit.replaceSpan > 0 && !keep) {
+            // A vocabulary chip opens the card *about* the typed word; the word
+            // stays. So do the first words of a note's line (#1099): Notes opens
+            // to look, and the words were typed for the field.
+            if (hit.kind != SmartSuggest.Kind.VOCAB && hit.kind != SmartSuggest.Kind.NOTE_LINE && hit.replaceSpan > 0 && !keep) {
                 val removed = ic.getTextBeforeCursor(hit.replaceSpan, 0)?.toString()
                 ic.deleteSurroundingText(hit.replaceSpan, 0)
                 if (!removed.isNullOrEmpty()) {
@@ -55771,11 +55811,13 @@ open class WMKeyboardService : InputMethodService() {
     /** The lookbehind for smart chips: longer while Send links are watched for, since a link is seventy characters. */
     private fun smartLookbehind(): Int {
         val settings = _uiState.value.settings
-        return if (settings.send.detectLinks && ToolbarTool.SEND_FILES in settings.enabledTools) {
+        val base = if (settings.send.detectLinks && ToolbarTool.SEND_FILES in settings.enabledTools) {
             SmartSuggest.LINK_LOOKBEHIND
         } else {
             SmartSuggest.LOOKBEHIND
         }
+        // A line from a note is matched whole, from where it starts (#1099).
+        return if (settings.smartChips.noteLines) maxOf(base, com.wasimaster.wmkeyboard.core.tools.NoteLines.LOOKBEHIND) else base
     }
 
     /**

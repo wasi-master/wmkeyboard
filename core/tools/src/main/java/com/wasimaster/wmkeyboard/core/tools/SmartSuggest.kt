@@ -113,8 +113,10 @@ object SmartSuggest {
      * text typed several times over), which opens the Text repeat tool.
      * [COLOUR] is an answer too: a colour code written in another format by
      * WM Chroma, which the keyboard asks once the code is recognised here.
+     * [NOTE_LINE] is a line from the user's notes (#1099): the rest of the
+     * line whose first words were typed, or the line after one already there.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH, APP, COLOUR }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK, SEARCH, APP, COLOUR, NOTE_LINE }
 
     /** The kinds that only claim the space their label needs. */
     val narrowKinds: Set<Kind> =
@@ -347,6 +349,12 @@ object SmartSuggest {
         val searchTriggers: List<SearchTrigger> = emptyList(),
         /** Plugin keywords, without the @, to the plugin's id and name; empty while the switch is off. */
         val pluginKeywords: Map<String, Pair<String, String>> = emptyMap(),
+        // ---- lines from notes ----
+        /**
+         * The lines of the user's notes, for a quote typed line by line (#1099);
+         * null while the switch is off. Reads up to [NoteLines.LOOKBEHIND] of the text.
+         */
+        val noteLines: NoteLines? = null,
         // ---- sums with units ----
         /**
          * Numbat, for the sums [CalcEngine] cannot read: "5 ft + 30 cm -> m",
@@ -432,6 +440,9 @@ object SmartSuggest {
         // A search shortcut is asked for by name, so it outranks every guess below.
         if (ctx.searchTriggers.isNotEmpty()) detectSearch(text, ctx)?.let { return it }
         if (ctx.pluginKeywords.isNotEmpty()) detectPluginKeyword(text, ctx)?.let { return it }
+        // A line from a note needs two words and a match in the notes, so a
+        // guess below never reads the same text as something it means more.
+        ctx.noteLines?.let { lines -> detectNoteLine(text, lines)?.let { return it } }
         val tail = text.takeLast(LOOKBEHIND)
         // A colour code says what it is: nothing below reads "#3b82f6" or "rgb(…)" as anything else.
         if (ctx.colourChips) detectColour(tail)?.let { return it }
@@ -473,6 +484,30 @@ object SmartSuggest {
     }
 
     private fun toolOn(tool: ToolbarTool, ctx: Context): Boolean = tool in ctx.enabledTools
+
+    /**
+     * A line from the user's notes (#1099; see [NoteLines]). The chip shows
+     * the words typed, or the note's name for the line after one already in
+     * the field, then the line; a tap types it in their place.
+     */
+    private fun detectNoteLine(text: String, lines: NoteLines): SmartHit? {
+        val hit = lines.match(text, truncated = text.length >= NoteLines.LOOKBEHIND) ?: return null
+        val shown = hit.typed.ifEmpty { hit.source }
+        val short = if (shown.length > NOTE_LINE_SHOWN) shown.take(NOTE_LINE_SHOWN).trimEnd() + "…" else shown
+        return SmartHit(
+            kind = Kind.NOTE_LINE,
+            query = shown,
+            result = hit.line,
+            insert = hit.insert,
+            replaceSpan = hit.replaceSpan,
+            tool = ToolbarTool.NOTES,
+            prefill = null,
+            tiers = listOf(ChipTier(shown, hit.line), ChipTier(short, hit.line)),
+        )
+    }
+
+    /** How much of the typed words or the note's name a note-line chip keeps once the line needs the room. */
+    private const val NOTE_LINE_SHOWN = 12
 
     /**
      * A search shortcut at the end of the text (#1242; see [SearchTriggers]).
