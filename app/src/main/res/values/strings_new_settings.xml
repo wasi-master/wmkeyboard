@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- About: the walk through the settings an update added (#970), and what it does with a new setting that another one hides. -->
+<resources>
+    <string name="new_settings_skip_hidden_title">Skip new settings that are switched off</string>
+    <string name="new_settings_skip_hidden_subtitle">The walk through new settings passes over one that another setting hides</string>
+    <string name="new_settings_skip_hidden_info">Some settings only appear while another one is on, such as the keys of the arrow key row while the row itself is off. When the walk through new settings reaches one of those, it shows it greyed out with a note saying why. Turn this on and the walk goes straight on to the next new setting instead, in the direction you were going. The setting is still there for when you turn on the one it depends on.</string>
+</resources>

@@ -1917,6 +1917,16 @@ internal fun AboutSettings(
             }
         }
         item(level = SettingLevel.STANDARD) {
+            // The walk above, without the new rows a switch that is off hides (#970).
+            ToggleSetting(
+                R.string.new_settings_skip_hidden_title,
+                stringResource(R.string.new_settings_skip_hidden_subtitle),
+                NewSettings.skipHidden,
+                default = false,
+                info = stringResource(R.string.new_settings_skip_hidden_info),
+            ) { NewSettings.setSkipHidden(context, it) }
+        }
+        item(level = SettingLevel.STANDARD) {
             // The licence identifier and the copyright line travel verbatim.
             NavRow(R.string.about_licence_title, "MIT, © 2026 Wasi Master") {
                 onOpenLicenseText("mit-wmkeyboard.txt")

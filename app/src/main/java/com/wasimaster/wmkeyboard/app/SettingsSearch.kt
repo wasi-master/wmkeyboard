@@ -3272,6 +3272,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         about(R.string.about_version_title),
         about(R.string.about_notes_after_update_title, R.string.about_notes_after_update_subtitle),
         about(R.string.about_new_settings_title),
+        about(R.string.new_settings_skip_hidden_title, R.string.new_settings_skip_hidden_subtitle),
         about(R.string.about_licence_title),
         about(R.string.about_source_title),
         about(R.string.about_launcher_name_title, R.string.about_launcher_name_subtitle),

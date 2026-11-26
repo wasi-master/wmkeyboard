@@ -22,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -81,6 +82,9 @@ internal object NewSettings {
     /** Whether the installed version's notes open by themselves after an update (#730). */
     private const val KEY_SHOW_NOTES = "show_notes_after_update"
 
+    /** Whether the walk steps over a new row another setting is hiding (#970 follow-up). */
+    private const val KEY_SKIP_HIDDEN = "skip_hidden"
+
     /** The version whose notes are still to be shown after its update (#730); -1 for none. */
     private const val KEY_NOTES_DUE = "notes_due"
 
@@ -132,6 +136,51 @@ internal object NewSettings {
      * 0. The bar says why the row is grey.
      */
     var hiddenHere: Int by mutableIntStateOf(0)
+
+    /**
+     * Whether a new row another setting is hiding is stepped over rather than
+     * shown greyed (#970 follow-up): the user asked to see what they can use
+     * now, and a setting under a switch they keep off is not that. Off by
+     * default, which is the greyed row [peekHiddenRows] draws. Read at
+     * [load], kept on this phone like the rest of the walk's state.
+     */
+    var skipHidden: Boolean by mutableStateOf(false)
+        private set
+
+    /** Bumped each time the screen the walk opened finds its row hidden and asks to step on. */
+    var skipAsked: Int by mutableIntStateOf(0)
+        private set
+
+    /** Which way the bar last stepped: on, or back. A skip keeps going the same way. */
+    var forward: Boolean = true
+        private set
+
+    /** Steps skipped since the user last pressed; past the whole list, everything is hidden and the walk stops skipping. */
+    private var skippedInARow = 0
+
+    /** The step a skip was already asked for, so a row composed twice asks once. */
+    private var skipAskedAt = -1
+
+    fun setSkipHidden(context: Context, on: Boolean) {
+        skipHidden = on
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_SKIP_HIDDEN, on).apply()
+    }
+
+    /**
+     * The screen the walk opened found the row it points at hidden by another
+     * setting (#970 follow-up). True when the walk will step on past it, and
+     * the row is not to be drawn greyed; false to draw it as before.
+     */
+    fun hiddenFound(titleRes: Int): Boolean {
+        if (!skipHidden) return false
+        if (entries.getOrNull(at)?.titleRes != titleRes) return false
+        if (skippedInARow >= entries.size) return false
+        if (skipAskedAt != at) {
+            skipAskedAt = at
+            skipAsked++
+        }
+        return true
+    }
 
     /**
      * The settings index's destinations, its screens and tool pages, kept from
@@ -210,6 +259,7 @@ internal object NewSettings {
                 .apply()
         }
         notesDue = prefs.getLong(KEY_NOTES_DUE, -1L) == version && prefs.getBoolean(KEY_SHOW_NOTES, true)
+        skipHidden = prefs.getBoolean(KEY_SKIP_HIDDEN, false)
         lastKeys = last
         lastAdded = keyed.filterKeys { it in last }.values.distinctBy { it.titleRes }
         // Only the rows this update or the last one brought: [sighted] and
@@ -273,10 +323,17 @@ internal object NewSettings {
         prefs.edit().putStringSet(KEY_SEEN, seenAt.mapTo(HashSet()) { (k, at) -> "$k\t$at" }).apply()
     }
 
-    /** Moves the bar to [index] and hands back the entry to open there. */
-    fun step(index: Int): SettingsSearchEntry? {
+    /**
+     * Moves the bar to [index] and hands back the entry to open there.
+     * [forward] is the way the user is going; [skip] marks a step the walk
+     * took by itself past a hidden row.
+     */
+    fun step(index: Int, forward: Boolean = true, skip: Boolean = false): SettingsSearchEntry? {
         val entry = entries.getOrNull(index) ?: return null
+        skippedInARow = if (skip) skippedInARow + 1 else 0
+        this.forward = forward
         at = index
+        skipAskedAt = -1
         hiddenHere = 0
         return entry
     }
@@ -344,8 +401,20 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
     if (entries.isEmpty()) return
     val context = LocalContext.current
     val at = NewSettings.at
-    val go = { index: Int -> NewSettings.step(index)?.let(onOpen) }
+    val go = { index: Int, forward: Boolean -> NewSettings.step(index, forward)?.let(onOpen) }
     val open = entries.getOrNull(at)
+    // The page opened found its row hidden by a setting that is off, and the
+    // walk is set to pass over those: on to the next, the same way.
+    val skipAsked = NewSettings.skipAsked
+    LaunchedEffect(skipAsked) {
+        if (skipAsked == 0) return@LaunchedEffect
+        val from = NewSettings.at
+        val size = NewSettings.entries.size
+        if (from < 0 || size == 0) return@LaunchedEffect
+        val forward = NewSettings.forward
+        val next = if (forward) (from + 1) % size else (from - 1 + size) % size
+        NewSettings.step(next, forward, skip = true)?.let(onOpen)
+    }
     DisposableEffect(Unit) { onDispose { NewSettings.barHeight = 0 } }
     Surface(
         modifier = modifier
@@ -364,7 +433,7 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
                     Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(topStart = 24.dp, bottomEnd = 16.dp))
-                        .clickable { go(at.coerceAtLeast(0)) }
+                        .clickable { go(at.coerceAtLeast(0), true) }
                         .padding(start = 20.dp, top = 14.dp, end = 4.dp, bottom = 4.dp),
                 ) {
                     Text(
@@ -420,10 +489,10 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
                         Text(stringResource(R.string.shell_new_settings_clear))
                     }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { go(0) }) { Text(stringResource(R.string.shell_new_settings_show)) }
+                    TextButton(onClick = { go(0, true) }) { Text(stringResource(R.string.shell_new_settings_show)) }
                 } else {
                     TextButton(
-                        onClick = { go(if (at <= 0) entries.lastIndex else at - 1) },
+                        onClick = { go(if (at <= 0) entries.lastIndex else at - 1, false) },
                     ) {
                         Icon(Icons.Outlined.ChevronLeft, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
@@ -431,7 +500,7 @@ internal fun NewSettingsBar(onOpen: (SettingsSearchEntry) -> Unit, modifier: Mod
                     }
                     Spacer(Modifier.weight(1f))
                     TextButton(
-                        onClick = { go(if (at >= entries.lastIndex) 0 else at + 1) },
+                        onClick = { go(if (at >= entries.lastIndex) 0 else at + 1, true) },
                     ) {
                         Text(stringResource(CommonR.string.common_next))
                         Spacer(Modifier.width(4.dp))
@@ -472,8 +541,11 @@ internal fun peekHiddenRows(entries: List<SettingsGroupScope.Entry>): List<Setti
                     key(i) {
                         CompositionLocalProvider(
                             LocalHighlightProbe provides {
-                                if (i !in peeked) peeked += i
-                                NewSettings.hiddenHere = target
+                                // Stepped over instead, when the walk is set to (#970).
+                                if (!NewSettings.hiddenFound(target)) {
+                                    if (i !in peeked) peeked += i
+                                    NewSettings.hiddenHere = target
+                                }
                             },
                             content = entries[i].content,
                         )
