@@ -51,6 +51,7 @@ object ClockNotifications {
     private const val GROUP_STOPWATCH = "clock_stopwatch"
     private const val GROUP_ALARMS = "clock_alarms"
     private const val GROUP_MISSED = "clock_missed"
+    private const val GROUP_SNOOZED = "clock_snoozed"
 
     /** The ring screen, in `:app`, named as a string like the settings activity. */
     const val RING_ACTIVITY = "com.wasimaster.wmkeyboard.app.clock.ClockRingActivity"
@@ -67,7 +68,8 @@ object ClockNotifications {
             wanted += NotificationIds.CLOCK_STOPWATCH
             postStopwatch(context, data.stopwatch)
         }
-        postAlarmNotices(context, data, wanted)
+        val snoozedIds = mutableSetOf<Int>()
+        postAlarmNotices(context, data, wanted, snoozedIds)
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         val active = runCatching { manager.activeNotifications.map { it.id } }.getOrDefault(emptyList())
         active.filter {
@@ -81,7 +83,8 @@ object ClockNotifications {
         val missed = active.any { NotificationIds.isMissedAlarm(it) }
         syncSummary(context, Summary.TIMERS, data.timers.isNotEmpty())
         syncSummary(context, Summary.STOPWATCH, !data.stopwatch.isReset)
-        syncSummary(context, Summary.ALARMS, wanted.any { NotificationIds.isAlarmNotice(it) })
+        syncSummary(context, Summary.ALARMS, wanted.any { NotificationIds.isAlarmNotice(it) && it !in snoozedIds })
+        syncSummary(context, Summary.SNOOZED, snoozedIds.isNotEmpty())
         syncSummary(context, Summary.MISSED, missed)
     }
 
@@ -116,6 +119,13 @@ object ClockNotifications {
             GROUP_MISSED, NotificationIds.CLOCK_MISSED_SUMMARY, R.drawable.core_tools_ic_alarm_off,
             R.string.core_tools_clock_alarm, "history", NotificationSubChannel.CLOCK_MISSED,
         ),
+
+        // Snoozed alarms apart from the ones still to come (#970): their own
+        // channel and group, so each can be set, and bundled, on its own.
+        SNOOZED(
+            GROUP_SNOOZED, NotificationIds.CLOCK_SNOOZED_SUMMARY, R.drawable.core_tools_ic_snooze,
+            R.string.core_tools_clock_alarm, "alarms", NotificationSubChannel.CLOCK_SNOOZED,
+        ),
     }
 
     /** Posts [summary] while its group has [children], and takes it down once it has none. */
@@ -143,8 +153,13 @@ object ClockNotifications {
      * rings next has its notice from the moment it is set, the way alarm apps
      * keep one in the shade, so an alarm set and forgotten does not come as a
      * surprise. Not while it rings: the ring has a notification of its own.
+     *
+     * A snoozed alarm's notice goes in a channel and group apart from the ones
+     * to come (#970); its id goes in [snoozedIds] as well as [wanted], so the
+     * summaries know which group has children. One alarm keeps one id either
+     * way, and a repost moves it between the two.
      */
-    private fun postAlarmNotices(context: Context, data: ClockData, wanted: MutableSet<Int>) {
+    private fun postAlarmNotices(context: Context, data: ClockData, wanted: MutableSet<Int>, snoozedIds: MutableSet<Int>) {
         val config = ClockPrefs.get(context)
         val now = System.currentTimeMillis()
         val zone = java.util.TimeZone.getDefault()
@@ -167,6 +182,7 @@ object ClockNotifications {
             if (!(snoozed && config.snoozedNotice) && !coming) continue
             val id = NotificationIds.forAlarmNotice(alarm.id)
             wanted += id
+            if (snoozed) snoozedIds += id
             val at = if (snoozed) alarm.snoozedUntil else next!!
             val title = alarm.label.ifEmpty { context.getString(R.string.core_tools_clock_alarm) }
             // A day as well once it is not today: an always-on notice can be days ahead.
@@ -179,10 +195,11 @@ object ClockNotifications {
                     ClockFormats.time(at, zone, hour24),
                 )
             }
-            WmNotifications.post(context, NotificationKind.CLOCK, id, NotificationSubChannel.CLOCK_ALARMS) {
+            val channel = if (snoozed) NotificationSubChannel.CLOCK_SNOOZED else NotificationSubChannel.CLOCK_ALARMS
+            WmNotifications.post(context, NotificationKind.CLOCK, id, channel) {
                 // An icon each in the status bar (#970): a snooze, or a ring to come.
                 setSmallIcon(if (snoozed) R.drawable.core_tools_ic_snooze else R.drawable.core_tools_ic_alarm_on)
-                setGroup(GROUP_ALARMS)
+                setGroup(if (snoozed) GROUP_SNOOZED else GROUP_ALARMS)
                 setContentTitle(title)
                 setContentText(
                     context.getString(
