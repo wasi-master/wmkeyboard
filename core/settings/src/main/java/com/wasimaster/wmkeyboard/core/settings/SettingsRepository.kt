@@ -4967,6 +4967,9 @@ data class KeyboardSettings(
 
     /** See [LayoutBehaviorSettings.incognitoBadge]. */
     val incognitoBadge: Boolean get() = layoutBehavior.incognitoBadge
+
+    /** See [LayoutBehaviorSettings.incognitoTint]. */
+    val incognitoTint: Long? get() = layoutBehavior.incognitoTint
 }
 
 /**
@@ -10864,6 +10867,13 @@ data class LayoutBehaviorSettings(
     val secureWindow: Boolean = true,
     val incognitoBadge: Boolean = true,
     /**
+     * While incognito is on, the board behind the keys is washed with this
+     * colour (ARGB, alpha honoured), so the keyboard itself looks different
+     * at a glance (#1570). Null, the default, leaves the board as the theme
+     * draws it. Read through [KeyboardSettings.incognitoTint].
+     */
+    val incognitoTint: Long? = null,
+    /**
      * Long-pressing the ?123 / symbols key opens the numeric keypad panel on
      * any field, instead of the long-press behaving like a plain tap. On by
      * default — the keypad is otherwise buried in the toolbox, and a held ?123
@@ -14627,6 +14637,7 @@ class SettingsRepository(private val context: Context) {
         private val INCOGNITO_PRIVATE_CLIPBOARD = booleanPreferencesKey("incognito_private_clipboard")
         private val INCOGNITO_WATERMARK = booleanPreferencesKey("incognito_watermark")
         private val INCOGNITO_BADGE = booleanPreferencesKey("incognito_badge")
+        private val INCOGNITO_TINT = longPreferencesKey("incognito_tint")
         private val SECURE_WINDOW = booleanPreferencesKey("secure_window")
         private val SENSITIVE_DEFAULT_SETTLED = booleanPreferencesKey("clipboard_sensitive_default_settled")
         private val INCOGNITO_PAUSES_LEARNING = booleanPreferencesKey("incognito_pauses_learning")
@@ -16850,6 +16861,7 @@ class SettingsRepository(private val context: Context) {
         LayoutBehaviorSettings(
             incognitoWatermark = p[INCOGNITO_WATERMARK] ?: defaults.layoutBehavior.incognitoWatermark,
             incognitoBadge = p[INCOGNITO_BADGE] ?: defaults.layoutBehavior.incognitoBadge,
+            incognitoTint = p[INCOGNITO_TINT] ?: defaults.layoutBehavior.incognitoTint,
             secureWindow = p[SECURE_WINDOW] ?: defaults.layoutBehavior.secureWindow,
             symbolsLongPressNumpad =
                 p[SYMBOLS_LONGPRESS_NUMPAD] ?: defaults.layoutBehavior.symbolsLongPressNumpad,
@@ -20018,6 +20030,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setIncognitoBadge(value: Boolean) =
         editPrefs { it[INCOGNITO_BADGE] = value }
+
+    /** See [LayoutBehaviorSettings.incognitoTint]; null takes the colour away. */
+    suspend fun setIncognitoTint(value: Long?) =
+        editPrefs { if (value == null) it.remove(INCOGNITO_TINT) else it[INCOGNITO_TINT] = value }
 
     suspend fun setSecureWindow(value: Boolean) =
         editPrefs { it[SECURE_WINDOW] = value }
