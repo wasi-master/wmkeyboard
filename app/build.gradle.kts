@@ -1116,6 +1116,15 @@ androidComponents {
 // the dex still carries the source's names. See [CheckDexMethodsTask].
 androidComponents {
     onVariants(selector().withBuildType("fast")) { variant ->
+        // Dex stored, not deflated. Without R8 the dex is ~156 MB, and a
+        // compressed dex is inflated again into the install's .vdex, so the
+        // phone held it twice: ~53 MB deflated in the APK plus all 156 MB in
+        // the vdex (~230 MB "app size"). Stored and aligned, ART maps it out
+        // of the APK and writes no copy (Android 10 and up, sideloads too).
+        // The APK grows to ~175 MB; the install shrinks by ~53 MB. Packaging
+        // gets faster, since nothing deflates 156 MB any more. Release keeps
+        // the default (compressed below minSdk 28) for its download size.
+        variant.packaging.dex.useLegacyPackaging.set(false)
         val name = variant.name.replaceFirstChar { it.uppercase() }
         tasks.register<CheckDexMethodsTask>("checkDexMethods$name") {
             group = "verification"
