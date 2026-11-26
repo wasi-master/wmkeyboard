@@ -219,6 +219,7 @@ fn flag(d: &Value, key: &str, default: bool) -> bool {
 fn number(v: &Value) -> Option<f64> {
     match v {
         Value::Int(i) => Some(*i as f64),
+        Value::Big(_) => v.as_float(),
         Value::Float(f) => Some(*f),
         _ => None,
     }
@@ -227,7 +228,7 @@ fn number(v: &Value) -> Option<f64> {
 fn scalar_text(v: &Value) -> Option<String> {
     match v {
         Value::Str(s) => Some(s.to_string()),
-        Value::Int(_) | Value::Float(_) | Value::Bool(_) => Some(v.to_str()),
+        Value::Int(_) | Value::Big(_) | Value::Float(_) | Value::Bool(_) => Some(v.to_str()),
         _ => None,
     }
 }

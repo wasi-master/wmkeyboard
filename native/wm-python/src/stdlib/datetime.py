@@ -82,8 +82,7 @@ def _check_time(h, mi, s, us):
 
 class timedelta:
     """A span of time, kept as days, seconds (0..86399) and microseconds
-    (0..999999), as Python keeps it. Numbers here are 64-bit, so the parts
-    are carried separately rather than as one count of microseconds."""
+    (0..999999), as Python keeps it."""
 
     def __init__(self, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):
         d = days + weeks * 7

@@ -7,8 +7,7 @@
 //!
 //! Strings follow PyMini: `len`, indexing, slicing and iteration count extended
 //! grapheme clusters, and `==`/`<` use canonical equivalence (NFC). Ints are
-//! exact 64-bit; a result past 64 bits carries on as a float (`2**64` prints
-//! `1.8446744073709552e+19`), since there are no big integers.
+//! exact at any size: an i64 while one fits, a `Big` past that (see bigint.rs).
 
 use std::cell::{Cell, RefCell};
 use std::fmt;
@@ -33,6 +32,8 @@ pub enum Value {
     None,
     Bool(bool),
     Int(i64),
+    /// An int past 64 bits. Never one that fits in an i64: those are `Int`.
+    Big(Rc<num_bigint::BigInt>),
     Float(f64),
     Str(Rc<str>),
     List(ListRef),
@@ -511,6 +512,8 @@ pub enum HKey {
     Obj { hash: i64, canon: Value, value: Value },
     /// A builtin such as `int` or `len`, by name.
     Builtin(Rc<str>),
+    /// An int past 64 bits.
+    Big(Rc<num_bigint::BigInt>),
     /// An instance of a `str`, `int`, `float`, `tuple` or `bytes`
     /// subclass: it hashes and compares as the key of its built-in value,
     /// and is the instance again when read back.
@@ -529,7 +532,7 @@ fn whole(k: &HKey) -> Option<i64> {
 }
 
 fn is_number(k: &HKey) -> bool {
-    matches!(k, HKey::Bool(_) | HKey::Int(_) | HKey::Float(_))
+    matches!(k, HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) | HKey::Big(_))
 }
 
 impl HKey {
@@ -558,6 +561,15 @@ impl PartialEq for HKey {
     fn eq(&self, other: &Self) -> bool {
         let (this, other) = (self.base(), other.base());
         if is_number(this) && is_number(other) {
+            // A big int equals only a big int or a float of the same value.
+            match (this, other) {
+                (HKey::Big(a), HKey::Big(b)) => return a == b,
+                (HKey::Big(a), HKey::Float(f)) | (HKey::Float(f), HKey::Big(a)) => {
+                    return super::bigint::cmp_float(a, *f) == Some(std::cmp::Ordering::Equal)
+                }
+                (HKey::Big(_), _) | (_, HKey::Big(_)) => return false,
+                _ => {}
+            }
             return match (whole(this), whole(other)) {
                 (Some(a), Some(b)) => a == b,
                 (None, None) => matches!((this, other), (HKey::Float(a), HKey::Float(b)) if a == b),
@@ -585,6 +597,17 @@ impl Hash for HKey {
     fn hash<H: Hasher>(&self, h: &mut H) {
         match self {
             HKey::Sub(p) => p.0.hash(h),
+            // A float of the same value hashes as this does, so they are one key.
+            HKey::Big(b) => match num_traits::ToPrimitive::to_f64(b.as_ref()).filter(|f| f.is_finite() && super::bigint::cmp_float(b, *f) == Some(std::cmp::Ordering::Equal)) {
+                Some(f) => {
+                    3u8.hash(h);
+                    f.to_bits().hash(h)
+                }
+                None => {
+                    10u8.hash(h);
+                    b.to_signed_bytes_le().hash(h)
+                }
+            },
             HKey::None => 0u8.hash(h),
             HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) => match whole(self) {
                 Some(i) => {
@@ -654,6 +677,7 @@ impl HKey {
             Value::None => HKey::None,
             Value::Bool(b) => HKey::Bool(*b),
             Value::Int(i) => HKey::Int(*i),
+            Value::Big(b) => HKey::Big(b.clone()),
             Value::Float(f) => HKey::Float(*f),
             Value::Str(s) => HKey::Str(s.clone()),
             Value::Bytes(b) => HKey::Bytes(b.clone()),
@@ -675,6 +699,7 @@ impl HKey {
             HKey::None => Value::None,
             HKey::Bool(b) => Value::Bool(*b),
             HKey::Int(i) => Value::Int(*i),
+            HKey::Big(b) => Value::Big(b.clone()),
             HKey::Float(f) => Value::Float(*f),
             HKey::Str(s) => Value::Str(s.clone()),
             HKey::Bytes(b) => Value::Bytes(b.clone()),
@@ -749,6 +774,7 @@ impl Value {
         match self {
             Value::Bool(b) => Some(if *b { 1.0 } else { 0.0 }),
             Value::Int(i) => Some(*i as f64),
+            Value::Big(b) => num_traits::ToPrimitive::to_f64(b.as_ref()),
             Value::Float(f) => Some(*f),
             _ => None,
         }
@@ -795,7 +821,7 @@ impl Value {
         match self {
             Value::None => "NoneType",
             Value::Bool(_) => "bool",
-            Value::Int(_) => "int",
+            Value::Int(_) | Value::Big(_) => "int",
             Value::Float(_) => "float",
             Value::Str(_) => "str",
             Value::List(_) => "list",
@@ -973,6 +999,7 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::None => "None".into(),
         Value::Bool(b) => if *b { "True" } else { "False" }.into(),
         Value::Int(i) => i.to_string(),
+        Value::Big(b) => b.to_string(),
         Value::Float(f) => format_double(*f),
         Value::Str(s) => s.to_string(),
         Value::List(_) | Value::Dict(_) | Value::Tuple(_) | Value::Set(_) | Value::Bytes(_) => py_repr(v),
@@ -1184,6 +1211,12 @@ pub(crate) fn holds_instance(v: &Value) -> bool {
 pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
     match (a, b) {
         (Value::None, Value::None) => true,
+        (Value::Big(x), Value::Big(y)) => x == y,
+        (Value::Big(x), Value::Float(f)) | (Value::Float(f), Value::Big(x)) => {
+            super::bigint::cmp_float(x, *f) == Some(std::cmp::Ordering::Equal)
+        }
+        // A big int is never an i64's value.
+        (Value::Big(_), Value::Int(_) | Value::Bool(_)) | (Value::Int(_) | Value::Bool(_), Value::Big(_)) => false,
         (Value::Str(x), Value::Str(y)) => str_eq(x, y),
         (Value::Bytes(x), Value::Bytes(y)) => x == y,
         (Value::List(x), Value::List(y)) => {

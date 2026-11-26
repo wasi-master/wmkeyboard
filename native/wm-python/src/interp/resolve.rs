@@ -557,7 +557,7 @@ impl Resolver {
     fn expr(&mut self, e: &mut Expr) -> Res<()> {
         match e {
             Expr::Name(n) => self.set_load(n),
-            Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => {}
+            Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => {}
             Expr::FString(parts) => self.fparts(parts)?,
             Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => {
                 for i in items {
@@ -711,7 +711,7 @@ fn header_exprs(kind: &StmtKind) -> Vec<&Expr> {
 fn contains_yield(e: &Expr) -> bool {
     match e {
         Expr::Yield(_) | Expr::YieldFrom(_) => true,
-        Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Lambda(_) => {
+        Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Lambda(_) => {
             false
         }
         Expr::Invalid(..) => false,
@@ -975,7 +975,7 @@ fn collect_expr(e: &Expr, b: &mut Bindings, comp: u32) {
             }
             collect_expr(v, b, comp);
         }
-        Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => {}
+        Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => {}
         Expr::FString(parts) => collect_fparts(parts, b, comp),
         Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => {
             for i in items {

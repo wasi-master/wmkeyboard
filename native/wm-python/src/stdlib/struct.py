@@ -1,8 +1,7 @@
 """struct: values packed into bytes and back, by format strings.
 
 As CPython's: "@" (the default) uses this device's C sizes and alignment,
-"=", "<", ">" and "!" the standard sizes with no padding. Integers past 64
-bits do not exist here, so a "Q" over 2**63 - 1 unpacks as a float.
+"=", "<", ">" and "!" the standard sizes with no padding.
 """
 
 import _native

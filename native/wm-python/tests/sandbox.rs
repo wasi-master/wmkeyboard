@@ -154,9 +154,8 @@ fn case_mapping_follows_swift_and_foundation() {
 
 #[test]
 fn numbers_print_like_pymini() {
-    // Ints are exact 64-bit; past that there is no big integer, so 10**20
-    // goes on as a float.
-    assert_eq!("1e+20", evaluate("10**20"));
+    // Ints are exact at any size, as Python's are.
+    assert_eq!("100000000000000000000", evaluate("10**20"));
     assert_eq!("0.30000000000000004", evaluate("0.1+0.2"));
     assert_eq!("1e+16", evaluate("1e16"));
     assert_eq!("1e-05", evaluate("1e-5"));

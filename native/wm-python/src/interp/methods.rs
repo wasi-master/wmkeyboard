@@ -136,7 +136,7 @@ fn builtin_type(v: &Value) -> Option<&'static str> {
         Value::Set(_) => "set",
         Value::Dict(_) => "dict",
         Value::Bytes(_) => "bytes",
-        Value::Int(_) | Value::Bool(_) => "int",
+        Value::Int(_) | Value::Bool(_) | Value::Big(_) => "int",
         Value::Float(_) => "float",
         _ => return None,
     })
@@ -211,7 +211,7 @@ impl Interp {
             }
         }
         // A str subclass passed to a str method reads as the str it is.
-        let args = if matches!(obj, Value::Str(_) | Value::Bytes(_) | Value::Int(_) | Value::Float(_) | Value::Bool(_))
+        let args = if matches!(obj, Value::Str(_) | Value::Bytes(_) | Value::Int(_) | Value::Big(_) | Value::Float(_) | Value::Bool(_))
             && !matches!(name, "format" | "format_map")
         {
             plain_args(args)
@@ -242,7 +242,7 @@ impl Interp {
             Value::Bytes(b) => self.bytes_method(b, name, &args, &kwargs),
             Value::Builtin(b) if type_member(b, name) => self.call_type_member(&format!("{b}.{name}"), args, kwargs),
             Value::Builtin(b) if b.as_ref() == "int" && name == "from_bytes" => self.int_from_bytes(&args, &kwargs),
-            Value::Int(_) | Value::Bool(_) if INT_METHODS.contains(&name) => self.int_method(obj, name, &args, &kwargs),
+            Value::Int(_) | Value::Bool(_) | Value::Big(_) if INT_METHODS.contains(&name) => self.int_method(obj, name, &args, &kwargs),
             Value::Float(f) if FLOAT_METHODS.contains(&name) => self.float_method(*f, name),
             Value::Builtin(b) if b.as_ref() == "bytes" && name == "fromhex" => {
                 let s = self.arg_str(&args, 0, "fromhex")?;
@@ -412,7 +412,7 @@ impl Interp {
             }
         }
         let fits = match ty {
-            "int" => matches!(receiver, Value::Int(_) | Value::Bool(_)),
+            "int" => matches!(receiver, Value::Int(_) | Value::Bool(_) | Value::Big(_)),
             _ => receiver.static_type_name() == ty,
         };
         if !fits {
@@ -1579,27 +1579,17 @@ impl Interp {
         let data = self.arg_bytes(args, 0, "from_bytes")?;
         let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
         let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
-        let mut bytes = data;
-        if little {
-            bytes.reverse();
+        if data.len() as u64 * 8 > super::bigint::MAX_BITS {
+            return Err(self.error("integer result is too large (more than 2**20 bits)", "OverflowError"));
         }
-        // Leading zero (or, signed, 0xFF sign) bytes past the eighth change nothing.
-        while bytes.len() > 8 && (bytes[0] == 0 || (signed && bytes[0] == 0xFF && bytes[1] >= 0x80)) {
-            bytes.remove(0);
-        }
-        if bytes.len() > 8 || (!signed && bytes.len() == 8 && bytes[0] >= 0x80) {
-            return Err(self.error("int too large: this interpreter's integers are 64-bit", "OverflowError"));
-        }
-        let negative = signed && bytes.first().is_some_and(|b| *b >= 0x80);
-        let mut v: i64 = if negative { -1 } else { 0 };
-        for b in bytes {
-            v = (v << 8) | b as i64;
-        }
-        Ok(Value::Int(v))
+        Ok(super::bigint::from_bytes(&data, little, signed))
     }
 
     /// `n.to_bytes(length, byteorder="big", signed=False)` and `n.bit_length()`.
     fn int_method(&mut self, target: &Value, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        if let Value::Big(b) = target {
+            return self.big_int_method(b, name, args, kwargs);
+        }
         let n = target.as_int().unwrap_or(0);
         match name {
             "bit_length" => return Ok(Value::Int(64 - n.unsigned_abs().leading_zeros() as i64)),
@@ -1629,6 +1619,28 @@ impl Interp {
         Ok(Value::bytes(&out))
     }
 
+    /// The int methods for an int past 64 bits.
+    fn big_int_method(&mut self, b: &Rc<num_bigint::BigInt>, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        match name {
+            "bit_length" => return Ok(Value::Int(b.bits() as i64)),
+            "bit_count" => return Ok(Value::Int(super::bigint::bit_count(b) as i64)),
+            "conjugate" => return Ok(Value::Big(b.clone())),
+            "as_integer_ratio" => return Ok(Value::tuple(vec![Value::Big(b.clone()), Value::Int(1)])),
+            "is_integer" => return Ok(Value::Bool(true)),
+            _ => {}
+        }
+        let length = args.first().or_else(|| kwarg(kwargs, "length")).and_then(Value::as_int).unwrap_or(1);
+        let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
+        let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
+        if !(0..=1 << 17).contains(&length) {
+            return Err(self.error("to_bytes() length must be 0 to 131072", "ValueError"));
+        }
+        match super::bigint::to_bytes(b, length as usize, little, signed) {
+            Ok(v) => Ok(Value::bytes(&v)),
+            Err((m, k)) => Err(self.error(m, k)),
+        }
+    }
+
     fn float_method(&mut self, f: f64, name: &str) -> R<Value> {
         match name {
             "is_integer" => Ok(Value::Bool(f.is_finite() && f.fract() == 0.0)),
@@ -1653,11 +1665,9 @@ impl Interp {
                     m >>= 1;
                     e += 1;
                 }
-                let (num, den) = if e >= 0 { (m.checked_shl(e as u32).unwrap_or(i128::MAX), 1i128) } else { (m, 1i128 << (-e).min(126)) };
-                match (i64::try_from(sign * num), i64::try_from(den)) {
-                    (Ok(a), Ok(b)) if e > -63 => Ok(Value::tuple(vec![Value::Int(a), Value::Int(b)])),
-                    _ => Err(self.error("as_integer_ratio() result does not fit in 64 bits here", "OverflowError")),
-                }
+                let m = num_bigint::BigInt::from(sign * m);
+                let (num, den) = if e >= 0 { (m << e as u64, num_bigint::BigInt::from(1)) } else { (m, num_bigint::BigInt::from(1) << (-e) as u64) };
+                Ok(Value::tuple(vec![super::bigint::int_value(num), super::bigint::int_value(den)]))
             }
             _ => {
                 // hex(): [-]0x1.<13 hex digits>p<exp>

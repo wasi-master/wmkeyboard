@@ -35,29 +35,29 @@ class _Hash:
         return _Hash(self.name, self._data)
 
 
-def new(name, data=b""):
+def new(name, data=b"", *, usedforsecurity=True):
     return _Hash(name.lower(), data)
 
 
-def md5(data=b""):
+def md5(data=b"", *, usedforsecurity=True):
     return _Hash("md5", data)
 
 
-def sha1(data=b""):
+def sha1(data=b"", *, usedforsecurity=True):
     return _Hash("sha1", data)
 
 
-def sha224(data=b""):
+def sha224(data=b"", *, usedforsecurity=True):
     return _Hash("sha224", data)
 
 
-def sha256(data=b""):
+def sha256(data=b"", *, usedforsecurity=True):
     return _Hash("sha256", data)
 
 
-def sha384(data=b""):
+def sha384(data=b"", *, usedforsecurity=True):
     return _Hash("sha384", data)
 
 
-def sha512(data=b""):
+def sha512(data=b"", *, usedforsecurity=True):
     return _Hash("sha512", data)

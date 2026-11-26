@@ -196,6 +196,9 @@ pub(crate) struct Interp {
     pub(crate) print_partial: String,
     /// What `sys.setrecursionlimit` set: how deep calls may nest, under the native stack's own limit.
     pub(crate) recursion_limit: u32,
+    /// What `sys.set_int_max_str_digits` set: the most digits an int's
+    /// decimal text may have, 0 for no limit.
+    pub(crate) int_max_str_digits: usize,
     /// What `sys.stdout` and `sys.stderr` were set to, when not the output itself.
     pub(crate) stdout_target: Option<Value>,
     pub(crate) stderr_target: Option<Value>,
@@ -305,6 +308,7 @@ impl Interp {
             hash_buckets: HashMap::new(),
             print_partial: String::new(),
             recursion_limit: MAX_CALL_DEPTH,
+            int_max_str_digits: super::bigint::MAX_STR_DIGITS,
             stdout_target: None,
             stderr_target: None,
             version_info: Rc::new(vec![Value::Int(3), Value::Int(12), Value::Int(0), Value::str("final"), Value::Int(0)]),
@@ -1274,6 +1278,7 @@ impl Interp {
             Expr::None => Ok(Value::None),
             Expr::Bool(b) => Ok(Value::Bool(*b)),
             Expr::Int(i) => Ok(Value::Int(*i)),
+            Expr::Big(b) => Ok(Value::Big(b.clone())),
             Expr::Float(f) => Ok(Value::Float(*f)),
             Expr::Str(s) => Ok(Value::Str(s.clone())),
             Expr::Bytes(b) => Ok(Value::Bytes(b.clone())),
@@ -2275,6 +2280,11 @@ impl Interp {
                     _ => *n,
                 }))
             }
+            Value::Big(b) if matches!(name, "real" | "imag" | "numerator" | "denominator") => Ok(match name {
+                "imag" => Value::Int(0),
+                "denominator" => Value::Int(1),
+                _ => Value::Big(b.clone()),
+            }),
             Value::Bool(b) if matches!(name, "real" | "imag" | "numerator" | "denominator") => {
                 Ok(Value::Int(match name {
                     "imag" => 0,
@@ -2650,9 +2660,12 @@ impl Interp {
         }
         Ok(match op {
             UnOp::Not => Value::Bool(!v.truthy()),
-            UnOp::Invert => match v.as_int() {
-                Some(i) => Value::Int(!i),
-                None => return Err(self.error(format!("bad operand type for unary ~: '{}'", v.type_name()), "TypeError")),
+            UnOp::Invert => match v {
+                Value::Big(b) => super::bigint::int_value(!b.as_ref()),
+                _ => match v.as_int() {
+                    Some(i) => Value::Int(!i),
+                    None => return Err(self.error(format!("bad operand type for unary ~: '{}'", v.type_name()), "TypeError")),
+                },
             },
             UnOp::Pos => {
                 if v.as_float().is_some() {
@@ -2662,7 +2675,8 @@ impl Interp {
                 }
             }
             UnOp::Neg => match v {
-                Value::Int(i) => i.checked_neg().map_or(Value::Float(-(*i as f64)), Value::Int),
+                Value::Int(i) => i.checked_neg().map_or_else(|| super::bigint::int_value(-num_bigint::BigInt::from(*i)), Value::Int),
+                Value::Big(b) => super::bigint::int_value(-b.as_ref()),
                 Value::Bool(b) => Value::Int(if *b { -1 } else { 0 }),
                 Value::Float(f) => Value::Float(-f),
                 _ => return Err(self.error(format!("bad operand type for unary -: '{}'", v.type_name()), "TypeError")),
@@ -2697,6 +2711,11 @@ impl Interp {
         }
         if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
             return self.instance_binary(op, a, b);
+        }
+        if super::bigint::is_int(a) && super::bigint::is_int(b) {
+            if let Some(v) = self.int_binary(op, a, b)? {
+                return Ok(v);
+            }
         }
         // Keys and items views combine like sets, with any iterable on the other side.
         if matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::Sub | BinOp::BitXor) && (is_set_view(a) || is_set_view(b)) {
@@ -2794,31 +2813,12 @@ impl Interp {
             let union = self.python_builtin("__union__")?;
             return self.call_value(&union, vec![a.clone(), b.clone()], Vec::new());
         }
+        // Two ints have had their bit operation above; anything else has none.
         if matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor | BinOp::LShift | BinOp::RShift) {
-            let (Some(x), Some(y)) = (a.as_int(), b.as_int()) else {
-                return Err(self.error(
-                    format!(
-                        "unsupported operand type(s) for {}: '{}' and '{}'",
-                        op_symbol(op),
-                        a.type_name(),
-                        b.type_name()
-                    ),
-                    "TypeError",
-                ));
-            };
-            return Ok(match op {
-                BinOp::BitAnd => Value::Int(x & y),
-                BinOp::BitOr => Value::Int(x | y),
-                BinOp::BitXor => Value::Int(x ^ y),
-                _ if y < 0 => return Err(self.error("negative shift count", "ValueError")),
-                BinOp::RShift => Value::Int(if y >= 64 { if x < 0 { -1 } else { 0 } } else { x >> y }),
-                // Past 64 bits Python grows a big integer; this one has none, so
-                // it goes on as a float rather than wrapping.
-                _ => match (y < 63).then(|| x.checked_mul(1i64 << y)).flatten() {
-                    Some(v) => Value::Int(v),
-                    None => Value::Float(x as f64 * 2f64.powi(y.min(2000) as i32)),
-                },
-            });
+            return Err(self.error(
+                format!("unsupported operand type(s) for {}: '{}' and '{}'", op_symbol(op), a.type_name(), b.type_name()),
+                "TypeError",
+            ));
         }
         if op == BinOp::MatMul {
             return Err(self.error(
@@ -2826,8 +2826,8 @@ impl Interp {
                 "TypeError",
             ));
         }
-        // Two integers stay exact across the whole 64-bit range, as Python's
-        // do; only past it does the result become a float.
+        // What is left of two ints is division and negative powers, which
+        // give floats; int_op passes those on to the float arithmetic below.
         if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
             if let Some(v) = self.int_op(op, x, y)? {
                 return Ok(v);
@@ -2880,8 +2880,70 @@ impl Interp {
         })
     }
 
+    /// [op] on two ints of any size (bools too), exactly, as Python gives
+    /// it: an i64 while the answer fits, a big int past that. None for what
+    /// the float path answers: true division of i64s, and a negative power.
+    fn int_binary(&mut self, op: BinOp, a: &Value, b: &Value) -> R<Option<Value>> {
+        use super::bigint;
+        if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
+            match op {
+                // `True & False` stays a bool, as in Python.
+                BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor if matches!((a, b), (Value::Bool(_), Value::Bool(_))) => {
+                    let (p, q) = (x != 0, y != 0);
+                    return Ok(Some(Value::Bool(match op {
+                        BinOp::BitAnd => p & q,
+                        BinOp::BitOr => p | q,
+                        _ => p ^ q,
+                    })));
+                }
+                BinOp::BitAnd => return Ok(Some(Value::Int(x & y))),
+                BinOp::BitOr => return Ok(Some(Value::Int(x | y))),
+                BinOp::BitXor => return Ok(Some(Value::Int(x ^ y))),
+                BinOp::RShift if y >= 0 => return Ok(Some(Value::Int(if y >= 64 { if x < 0 { -1 } else { 0 } } else { x >> y }))),
+                BinOp::LShift if (0..63).contains(&y) => {
+                    if let Some(v) = x.checked_mul(1i64 << y) {
+                        return Ok(Some(Value::Int(v)));
+                    }
+                }
+                BinOp::Div | BinOp::MatMul => return Ok(None),
+                BinOp::Pow if y < 0 => return Ok(None),
+                BinOp::LShift | BinOp::RShift => {}
+                _ => {
+                    if let Some(v) = self.int_op(op, x, y)? {
+                        return Ok(Some(v));
+                    }
+                }
+            }
+        }
+        let (Some(x), Some(y)) = (bigint::to_big(a), bigint::to_big(b)) else { return Ok(None) };
+        if op == BinOp::Div {
+            return match bigint::true_div(&x, &y) {
+                Ok(f) => Ok(Some(Value::Float(f))),
+                Err((m, k)) => Err(self.error(m, k)),
+            };
+        }
+        match bigint::binary(op, &x, &y) {
+            Ok(v) => Ok(v),
+            Err((m, k)) => Err(self.error(m, k)),
+        }
+    }
+
+    /// How two numbers of which one is a big int order, exactly; None
+    /// when either is not a number, Some(None) against NaN.
+    pub(crate) fn big_order(&self, a: &Value, b: &Value) -> Option<Option<std::cmp::Ordering>> {
+        use super::bigint::{cmp_float, to_big};
+        if !matches!(a, Value::Big(_)) && !matches!(b, Value::Big(_)) {
+            return None;
+        }
+        match (a, b) {
+            (Value::Float(f), _) => to_big(b).map(|y| cmp_float(&y, *f).map(|o| o.reverse())),
+            (_, Value::Float(f)) => to_big(a).map(|x| cmp_float(&x, *f)),
+            _ => Some(Some(to_big(a)?.cmp(&to_big(b)?))),
+        }
+    }
+
     /// [op] on two integers with Python's results, or None when the answer
-    /// leaves 64 bits and the float path should give it instead.
+    /// leaves 64 bits and the big-int path should give it instead.
     fn int_op(&mut self, op: BinOp, x: i64, y: i64) -> R<Option<Value>> {
         let zero = || "integer division or modulo by zero";
         Ok(match op {
@@ -3084,6 +3146,23 @@ impl Interp {
                 _ => {}
             }
         }
+        if let Some(order) = self.big_order(a, b) {
+            use std::cmp::Ordering::*;
+            let r = match (op, order) {
+                (CmpOp::Ne, None) => Some(true),
+                (CmpOp::Eq | CmpOp::Lt | CmpOp::Le | CmpOp::Gt | CmpOp::Ge, None) => Some(false),
+                (CmpOp::Eq, Some(o)) => Some(o == Equal),
+                (CmpOp::Ne, Some(o)) => Some(o != Equal),
+                (CmpOp::Lt, Some(o)) => Some(o == Less),
+                (CmpOp::Le, Some(o)) => Some(o != Greater),
+                (CmpOp::Gt, Some(o)) => Some(o == Greater),
+                (CmpOp::Ge, Some(o)) => Some(o != Less),
+                _ => None,
+            };
+            if let Some(r) = r {
+                return Ok(r);
+            }
+        }
         let instances = matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_));
         if instances {
             match op {
@@ -3132,6 +3211,9 @@ impl Interp {
         }
         if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
             return Ok(x.cmp(&y) as i32);
+        }
+        if let Some(o) = self.big_order(a, b) {
+            return Ok(o.map_or(0, |o| o as i32));
         }
         if let (Some(x), Some(y)) = (a.as_float(), b.as_float()) {
             return Ok(if x < y {

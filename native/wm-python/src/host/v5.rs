@@ -452,6 +452,8 @@ pub fn to_json(v: &Value, depth: usize) -> Json {
         Value::None => Json::Null,
         Value::Bool(b) => Json::Bool(*b),
         Value::Int(i) => json!(i),
+        // JSON numbers past 64 bits are floats to the host.
+        Value::Big(b) => num_traits::ToPrimitive::to_f64(b.as_ref()).filter(|f| f.is_finite()).map(|f| json!(f)).unwrap_or(Json::Null),
         Value::Float(f) if f.is_finite() => json!(f),
         Value::Float(_) => Json::Null,
         Value::Str(s) => Json::String(s.to_string()),

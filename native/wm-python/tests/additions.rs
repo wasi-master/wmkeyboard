@@ -222,8 +222,10 @@ fn integers_stay_exact_across_64_bits() {
     assert_eq!("3", evaluate("-7 % 5"));
     assert_eq!("-2", evaluate("7 % -3"));
     assert_eq!("0.25", evaluate("2 ** -2"));
-    // Past 64 bits there is no big integer: the answer goes on as a float.
-    assert_eq!("<class 'float'>", evaluate("type(2 ** 64)"));
+    // Past 64 bits an int stays an int, as Python's does.
+    assert_eq!("<class 'int'>", evaluate("type(2 ** 64)"));
+    assert_eq!("18446744073709551616", evaluate("2 ** 64"));
+    assert_eq!("True", evaluate("2 ** 64 - 1 == 18446744073709551615 and (2 ** 64) // (2 ** 32) == 2 ** 32"));
 }
 
 #[test]

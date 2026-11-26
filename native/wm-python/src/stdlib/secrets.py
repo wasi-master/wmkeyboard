@@ -28,8 +28,6 @@ def token_urlsafe(nbytes=None):
 def randbits(k):
     if k < 0:
         raise ValueError("number of bits must be non-negative")
-    if k > 63:
-        raise OverflowError("randbits() past 63 bits: ints here are 64-bit")
     if k == 0:
         return 0
     n = int.from_bytes(_native.urandom((k + 7) // 8), "big")

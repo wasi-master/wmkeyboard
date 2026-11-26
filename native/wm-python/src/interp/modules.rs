@@ -34,12 +34,22 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
             "isfinite", "copysign", "fmod", "comb", "prod", "isclose", "isqrt", "perm", "fsum", "dist", "sinh", "cosh",
             "tanh", "asinh", "acosh", "atanh", "log1p", "expm1", "modf", "cbrt", "exp2", "remainder", "ldexp", "frexp",
         ],
-        "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed"],
+        "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed", "getrandbits"],
         // `_time` is the same clock, under the `time` module written in Python.
         "time" | "_time" => &["time", "monotonic", "parts", "format"],
         "json" => &["dumps", "loads"],
         "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile"],
-        "sys" => &["getrecursionlimit", "setrecursionlimit", "exit", "intern", "getdefaultencoding", "getfilesystemencoding", "exc_info"],
+        "sys" => &[
+            "getrecursionlimit",
+            "setrecursionlimit",
+            "get_int_max_str_digits",
+            "set_int_max_str_digits",
+            "exit",
+            "intern",
+            "getdefaultencoding",
+            "getfilesystemencoding",
+            "exc_info",
+        ],
         "sys.stdout" | "sys.stderr" => &["write", "writelines", "flush", "isatty"],
         "sys.stdin" => &["read", "readline", "readlines", "isatty"],
         "_native" => super::stdlib::NATIVE_FUNCTIONS,
@@ -196,16 +206,6 @@ fn isqrt(n: u64) -> u64 {
     r
 }
 
-fn gcd(a: i64, b: i64) -> i64 {
-    let (mut x, mut y) = (a, b);
-    while y != 0 {
-        let t = x % y;
-        x = y;
-        y = t;
-    }
-    x.abs()
-}
-
 /// C's log2: exact on powers of two, where log(x)/log(2) can miss by an ulp.
 fn log2(x: f64) -> f64 {
     if x > 0.0 && x.is_finite() {
@@ -239,9 +239,24 @@ impl Interp {
         })
     }
 
-    fn sys_call(&mut self, name: &str, args: &[Value]) -> R<Value> {
+    fn sys_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         match name {
             "getrecursionlimit" => Ok(Value::Int(self.recursion_limit as i64)),
+            "get_int_max_str_digits" => Ok(Value::Int(self.int_max_str_digits as i64)),
+            "set_int_max_str_digits" => {
+                let v = args.first().or_else(|| kwarg(kwargs, "maxdigits")).ok_or_else(|| {
+                    self.error("set_int_max_str_digits() missing required argument 'maxdigits' (pos 1)", "TypeError")
+                })?;
+                let Some(n) = v.as_int() else {
+                    return Err(self.error(format!("'{}' object cannot be interpreted as an integer", v.type_name()), "TypeError"));
+                };
+                if n != 0 && n < 640 {
+                    return Err(self.error("maxdigits must be 0 or larger than 640", "ValueError"));
+                }
+                self.int_max_str_digits = n as usize;
+                super::bigint::swap_str_digits(n as usize);
+                Ok(Value::None)
+            }
             "setrecursionlimit" => {
                 let Some(n) = args.first().and_then(Value::as_int) else {
                     return Err(self.error("setrecursionlimit() needs an int", "TypeError"));
@@ -360,7 +375,7 @@ impl Interp {
         let args = plain_args(args);
         let kwargs: Vec<(Rc<str>, Value)> = kwargs.into_iter().map(|(k, v)| (k, plain_value(v))).collect();
         match module {
-            "sys" => self.sys_call(name, &args),
+            "sys" => self.sys_call(name, &args, &kwargs),
             "math" if args.iter().any(|a| matches!(a, Value::Instance(_))) => self.math_with_instances(name, args, kwargs),
             "math" => self.math_call(name, &args, &kwargs),
             "random" => self.random_call(name, &args),
@@ -402,14 +417,14 @@ impl Interp {
                 continue;
             }
             let n = if integer {
-                self.index_of_instance(a)?.map(Value::Int)
+                self.index_value_of_instance(a)?
             } else {
                 match self.dunder(a, "__float__", Vec::new())? {
                     Some(f @ Value::Float(_)) => Some(f),
                     Some(other) => {
                         return Err(self.error(format!("{}.__float__ returned non-float (type {})", a.type_name(), other.type_name()), "TypeError"));
                     }
-                    None => self.index_of_instance(a)?.map(Value::Int),
+                    None => self.index_value_of_instance(a)?,
                 }
             };
             match n {
@@ -432,6 +447,44 @@ impl Interp {
         };
         let overflow = |me: &Interp| me.error(format!("integer overflow in math.{name}()"), "OverflowError");
         let f = |v: f64| Ok(Value::Float(v));
+        let big = |me: &Interp, i: usize| -> R<num_bigint::BigInt> {
+            match args.get(i) {
+                Some(Value::Float(_)) => Err(me.error("'float' object cannot be interpreted as an integer", "TypeError")),
+                Some(v) => super::bigint::to_big(v).ok_or_else(|| me.error(format!("math.{name}() needs an integer"), "TypeError")),
+                None => Err(me.error(format!("math.{name}() needs an integer"), "TypeError")),
+            }
+        };
+        let fail = |me: &Interp, e: super::bigint::Fail| me.error(e.0, e.1);
+        // The logarithms of an int too big for a float, from its bits.
+        if matches!(name, "log" | "log2" | "log10") {
+            if let Some(Value::Big(b)) = args.first() {
+                if num_traits::Signed::is_negative(b.as_ref()) {
+                    return Err(self.error("math domain error", "ValueError"));
+                }
+                let shift = b.bits().saturating_sub(64);
+                let top = num_traits::ToPrimitive::to_f64(&(b.as_ref() >> shift)).unwrap_or(1.0);
+                let ln = top.ln() + shift as f64 * std::f64::consts::LN_2;
+                return f(match name {
+                    "log2" => ln / std::f64::consts::LN_2,
+                    "log10" => ln / std::f64::consts::LN_10,
+                    _ if args.len() > 1 => ln / number(self, 1)?.ln(),
+                    _ => ln,
+                });
+            }
+        }
+        // floor, ceil and trunc of an int are the int; of a float, an int of any size.
+        if matches!(name, "floor" | "ceil" | "trunc") {
+            if let Some(v) = args.first().filter(|v| super::bigint::is_int(v)) {
+                return Ok(super::bigint::to_big(v).map(super::bigint::int_value).unwrap_or(Value::Int(0)));
+            }
+            let x = number(self, 0)?;
+            let whole = match name {
+                "floor" => x.floor(),
+                "ceil" => x.ceil(),
+                _ => x.trunc(),
+            };
+            return self.float_to_int(whole);
+        }
         match name {
             "sqrt" => {
                 let x = number(self, 0)?;
@@ -440,9 +493,6 @@ impl Interp {
                 }
                 f(x.sqrt())
             }
-            "floor" => Ok(Value::Int(self.to_long_exact(number(self, 0)?.floor())?)),
-            "ceil" => Ok(Value::Int(self.to_long_exact(number(self, 0)?.ceil())?)),
-            "trunc" => Ok(Value::Int(self.to_long_exact(number(self, 0)?.trunc())?)),
             "fabs" => f(number(self, 0)?.abs()),
             "pow" => f(number(self, 0)?.powf(number(self, 1)?)),
             "exp" => f(number(self, 0)?.exp()),
@@ -476,23 +526,29 @@ impl Interp {
                 f(total.sqrt())
             }
             "gcd" => {
-                let mut g = integer(self, 0)?.wrapping_abs();
-                for i in 1..args.len().max(1) {
-                    g = gcd(g, integer(self, i)?.wrapping_abs());
+                if args.is_empty() {
+                    return Ok(Value::Int(0));
                 }
-                Ok(Value::Int(g))
+                let mut g = num_traits::Signed::abs(&big(self, 0)?);
+                for i in 1..args.len() {
+                    g = super::bigint::gcd(&g, &big(self, i)?);
+                }
+                Ok(super::bigint::int_value(g))
             }
             "lcm" => {
-                let mut l = integer(self, 0)?.wrapping_abs();
-                for i in 1..args.len().max(1) {
-                    let b = integer(self, i)?.wrapping_abs();
-                    if l == 0 || b == 0 {
+                if args.is_empty() {
+                    return Ok(Value::Int(1));
+                }
+                let mut l = num_traits::Signed::abs(&big(self, 0)?);
+                for i in 1..args.len() {
+                    let b = num_traits::Signed::abs(&big(self, i)?);
+                    if num_traits::Zero::is_zero(&l) || num_traits::Zero::is_zero(&b) {
                         return Ok(Value::Int(0));
                     }
-                    let g = gcd(l, b);
-                    l = (l / g).checked_mul(b).ok_or_else(|| overflow(self))?;
+                    let g = super::bigint::gcd(&l, &b);
+                    l = super::bigint::to_big(&super::bigint::product([l / g, b].into_iter()).map_err(|e| fail(self, e))?).unwrap_or_default();
                 }
-                Ok(Value::Int(l))
+                Ok(super::bigint::int_value(l))
             }
             "factorial" => {
                 let n = integer(self, 0)?;
@@ -502,11 +558,13 @@ impl Interp {
                 if n <= 20 {
                     return Ok(Value::Int((2..=n).product::<i64>().max(1)));
                 }
-                // Past 64 bits there is no big integer: the answer goes on as a float.
-                if n > 170 {
-                    return Err(self.error("factorial() result too large for a float", "OverflowError"));
+                if n > 100_000 {
+                    return Err(self.error("factorial() argument should not exceed 100000 here", "OverflowError"));
                 }
-                Ok(Value::Float((2..=n).fold(1.0f64, |acc, i| acc * i as f64)))
+                for _ in 0..n / 64 {
+                    self.tick()?;
+                }
+                super::bigint::product((2..=n).map(num_bigint::BigInt::from)).map_err(|e| fail(self, e))
             }
             "comb" | "perm" => {
                 let n = integer(self, 0)?;
@@ -518,24 +576,18 @@ impl Interp {
                     return Ok(Value::Int(0));
                 }
                 let steps = if name == "comb" { k.min(n - k) } else { k };
-                let mut exact: Option<i64> = Some(1);
-                let mut approx: f64 = 1.0;
+                let mut r = num_bigint::BigInt::from(1);
                 for i in 0..steps {
                     self.tick()?;
+                    r *= n - i;
                     if name == "comb" {
-                        exact = exact.and_then(|r| r.checked_mul(n - i)).map(|r| r / (i + 1));
-                        approx = approx * (n - i) as f64 / (i + 1) as f64;
-                    } else {
-                        exact = exact.and_then(|r| r.checked_mul(n - i));
-                        approx *= (n - i) as f64;
+                        r /= i + 1;
+                    }
+                    if r.bits() > super::bigint::MAX_BITS {
+                        return Err(overflow(self));
                     }
                 }
-                // Past 64 bits the answer goes on as a float, as other integer results do.
-                Ok(match exact {
-                    Some(r) => Value::Int(r),
-                    None if approx.is_finite() => Value::Float(approx.round()),
-                    None => return Err(overflow(self)),
-                })
+                Ok(super::bigint::int_value(r))
             }
             "isclose" => {
                 let (a, b) = (number(self, 0)?, number(self, 1)?);
@@ -554,6 +606,12 @@ impl Interp {
                 Ok(Value::Bool(diff <= (rel * b.abs()).max(rel * a.abs()) || diff <= abs))
             }
             "isqrt" => {
+                if let Some(Value::Big(b)) = args.first() {
+                    if num_traits::Signed::is_negative(b.as_ref()) {
+                        return Err(self.error("isqrt() argument must be nonnegative", "ValueError"));
+                    }
+                    return Ok(super::bigint::isqrt(b));
+                }
                 let n = integer(self, 0)?;
                 if n < 0 {
                     return Err(self.error("isqrt() argument must be nonnegative", "ValueError"));
@@ -665,10 +723,78 @@ impl Interp {
         (self.next_random_bits() % below as u64) as i64
     }
 
+    /// [k] random bits as a non-negative int.
+    fn random_bits(&mut self, k: u64) -> num_bigint::BigInt {
+        let k = k as usize;
+        let mut bytes = Vec::with_capacity(k.div_ceil(8) + 8);
+        while bytes.len() * 8 < k {
+            bytes.extend_from_slice(&self.next_random_bits().to_le_bytes());
+        }
+        bytes.truncate(k.div_ceil(8));
+        if !k.is_multiple_of(8) {
+            if let Some(last) = bytes.last_mut() {
+                *last &= (1u8 << (k % 8)) - 1;
+            }
+        }
+        num_bigint::BigInt::from_bytes_le(num_bigint::Sign::Plus, &bytes)
+    }
+
+    /// A random int in `0..n` for a positive [n] of any size.
+    fn random_below(&mut self, n: &num_bigint::BigInt) -> num_bigint::BigInt {
+        use num_traits::ToPrimitive;
+        if let Some(small) = n.to_i64() {
+            return num_bigint::BigInt::from(self.random_int(small));
+        }
+        // As CPython's _randbelow: draw as many bits as n has until one falls under it.
+        let k = n.bits();
+        loop {
+            let r = self.random_bits(k);
+            if &r < n {
+                return r;
+            }
+        }
+    }
+
+    /// `randrange(start, stop, step)` for ints of any size; [shown] is how
+    /// the arguments read in the error for an empty range.
+    fn random_range(&mut self, start: &num_bigint::BigInt, stop: &num_bigint::BigInt, step: &num_bigint::BigInt, shown: Option<String>) -> R<Value> {
+        use num_integer::Integer;
+        use num_traits::{Signed, Zero};
+        if step.is_zero() {
+            return Err(self.error("zero step for randrange()", "ValueError"));
+        }
+        let width = stop - start;
+        let one = num_bigint::BigInt::from(1);
+        let n = if step.is_positive() { (width + step - &one).div_floor(step) } else { (width + step + &one).div_floor(step) };
+        if !n.is_positive() {
+            return Err(self.error(
+                match shown {
+                    Some(args) => format!("empty range in randrange({args})"),
+                    None => "empty range for randrange()".to_string(),
+                },
+                "ValueError",
+            ));
+        }
+        let r = self.random_below(&n);
+        Ok(super::bigint::int_value(start + step * r))
+    }
+
     #[inline(never)]
     fn random_call(&mut self, name: &str, args: &[Value]) -> R<Value> {
         match name {
             "random" => Ok(Value::Float(self.next_unit())),
+            // `getrandbits(k)`: a k-bit int, of any size.
+            "getrandbits" => {
+                let k = args.first().and_then(Value::as_int).ok_or_else(|| self.error("getrandbits() needs an int", "TypeError"))?;
+                if k < 0 {
+                    return Err(self.error("number of bits must be non-negative", "ValueError"));
+                }
+                if k as u64 > super::bigint::MAX_BITS {
+                    return Err(self.error("getrandbits() past 2**20 bits", "OverflowError"));
+                }
+                let r = self.random_bits(k as u64);
+                Ok(super::bigint::int_value(r))
+            }
             "seed" => {
                 match args.first() {
                     None => self.random_state = random_seed(),
@@ -687,31 +813,45 @@ impl Interp {
                 };
                 Ok(Value::Float(a + (b - a) * self.next_unit()))
             }
-            "randint" => {
-                let a = args.first().and_then(Value::as_int);
-                let b = args.get(1).and_then(Value::as_int);
-                match (a, b) {
-                    (Some(a), Some(b)) if b >= a => {
-                        let r = self.random_int(b.wrapping_sub(a).wrapping_add(1));
-                        Ok(Value::Int(a.wrapping_add(r)))
+            "randint" | "randrange" => {
+                // Machine-word ranges, the usual kind, with no big-int arithmetic.
+                let small: Option<Vec<i64>> = args.iter().map(|a| if let Value::Int(i) = a { Some(*i) } else { None }).collect();
+                let quick = match (name, small.as_deref()) {
+                    ("randint", Some(&[a, b])) => b.checked_sub(a).and_then(|w| w.checked_add(1)).filter(|n| *n > 0).map(|n| (a, n, 1)),
+                    ("randrange", Some(&[stop])) => (stop > 0).then_some((0, stop, 1)),
+                    ("randrange", Some(&[start, stop])) => stop.checked_sub(start).filter(|n| *n > 0).map(|n| (start, n, 1)),
+                    ("randrange", Some(&[start, stop, step])) if step > 0 => {
+                        stop.checked_sub(start).and_then(|w| w.checked_add(step - 1)).map(|w| w / step).filter(|n| *n > 0).map(|n| (start, n, step))
                     }
-                    _ => Err(self.error("random.randint() needs a <= b", "ValueError")),
+                    _ => None,
+                };
+                if let Some((start, n, step)) = quick {
+                    let r = self.random_int(n);
+                    if let Some(v) = r.checked_mul(step).and_then(|d| start.checked_add(d)) {
+                        return Ok(Value::Int(v));
+                    }
                 }
-            }
-            "randrange" => {
-                let values: Vec<i64> = args.iter().filter_map(Value::as_int).collect();
-                if values.is_empty() {
-                    return Err(self.error("random.randrange() needs an integer", "TypeError"));
+                let mut ints = Vec::with_capacity(args.len());
+                for a in args {
+                    match super::bigint::to_big(a) {
+                        Some(i) => ints.push(i),
+                        None => return Err(self.error(format!("'{}' object cannot be interpreted as an integer", a.type_name()), "TypeError")),
+                    }
                 }
-                let start = if values.len() > 1 { values[0] } else { 0 };
-                let stop = if values.len() > 1 { values[1] } else { values[0] };
-                let step = if values.len() > 2 { values[2] } else { 1 };
-                if step == 0 || stop <= start {
-                    return Err(self.error("empty range for randrange()", "ValueError"));
+                let one = num_bigint::BigInt::from(1);
+                if name == "randint" {
+                    let [a, b] = &ints[..] else {
+                        return Err(self.error(format!("Random.randint() takes 3 positional arguments but {} were given", args.len() + 1), "TypeError"));
+                    };
+                    let stop = b + &one;
+                    return self.random_range(a, &stop, &one, Some(format!("{a}, {stop}")));
                 }
-                let count = (stop - start + step - 1) / step;
-                let r = self.random_int(count);
-                Ok(Value::Int(start + r * step))
+                match &ints[..] {
+                    [stop] => self.random_range(&num_bigint::BigInt::from(0), stop, &one, None),
+                    [start, stop] => self.random_range(start, stop, &one, Some(format!("{start}, {stop}"))),
+                    [start, stop, step] => self.random_range(start, stop, step, Some(format!("{start}, {stop}, {step}"))),
+                    _ => Err(self.error(format!("Random.randrange() takes from 2 to 4 positional arguments but {} were given", args.len() + 1), "TypeError")),
+                }
             }
             "choice" => {
                 let items = match args.first() {

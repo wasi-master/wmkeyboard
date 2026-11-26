@@ -119,6 +119,8 @@ fn int_of(v: &Value) -> Result<i128, StructError> {
     match v {
         Value::Int(i) => Ok(i128::from(*i)),
         Value::Bool(b) => Ok(i128::from(*b)),
+        // Past i128 it is out of every format's range, which the caller reports.
+        Value::Big(b) => Ok(num_traits::ToPrimitive::to_i128(b.as_ref()).unwrap_or(if num_traits::Signed::is_negative(b.as_ref()) { i128::MIN } else { i128::MAX })),
         _ => Err(error("required argument is not an integer")),
     }
 }
@@ -128,6 +130,7 @@ fn float_of(v: &Value) -> Result<f64, StructError> {
         Value::Float(f) => Ok(*f),
         Value::Int(i) => Ok(*i as f64),
         Value::Bool(b) => Ok(f64::from(u8::from(*b))),
+        Value::Big(b) => super::bigint::to_float(b).map_err(|_| error("required argument is not a float")),
         _ => Err(error("required argument is not a float")),
     }
 }
@@ -283,11 +286,7 @@ pub(crate) fn unpack(l: &Layout, data: &[u8]) -> Vec<Value> {
                     } else {
                         raw as i128
                     };
-                    // Past i64 the interpreter has no int: such a value goes on as a float, as `2 ** 64` does.
-                    match i64::try_from(n) {
-                        Ok(i) => Value::Int(i),
-                        Err(_) => Value::Float(n as f64),
-                    }
+                    super::bigint::int_value(num_bigint::BigInt::from(n))
                 }
             };
             out.push(v);

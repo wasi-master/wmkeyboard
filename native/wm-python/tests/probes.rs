@@ -31,12 +31,20 @@ const DIVERGES: &[(&str, &str)] = &[
     // octal escapes. With escapes decoded, the grapheme probes now show the
     // port's grapheme model (len("\r\n") == 1, "e\u0301" == "é") instead of
     // an undecoded backslash.
-    ("022-ints-via-double.py", concat!(r##"[9007199254740992, 9007199254740993, 4611686018427387904, 1e+20, 3, -4, -2, 2, 0.25, 9007199254740993, 2, 2]"##, "\n")),
+    // 2026-11-27: ints past 64 bits are exact too (10**20 is an int, as in CPython).
+    ("022-ints-via-double.py", concat!(r##"[9007199254740992, 9007199254740993, 4611686018427387904, 100000000000000000000, 3, -4, -2, 2, 0.25, 9007199254740993, 2, 2]"##, "\n")),
+    ("008-builtins-abs-round.py", concat!(r##"[3, 2.5, 2, 4, 0, 2.68, 1200.0, 7, 0.12]"##, "\n")),
+    ("100-math-factorial-big.py", "51090942171709440000\n"),
+    ("158-int-overflow-float.py", concat!(r##"[1000000000000000000, 9223372036854775808, -9223372036854775808, 9223372036854775808]"##, "\n")),
+    ("202-edge-large-ints.py", concat!(r##"[9007199254740992, 18014398509481982, 121932631112635269, 18446744073709551616, -9223372036854775808, 1000000000000001, 12157665459056928801]"##, "\n")),
+    // 2026-11-27: a one-line block runs every `;`-separated statement, as
+    // CPython's does; PyMini ran only the first.
+    ("206-edge-semicolon-block.py", "[6, 1, 2]\n"),
     ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
     ("034-strings-split.py", concat!(r##"[['a', 'b', 'c'], ['a', 'b', '', 'c'], ['a', 'b,c'], ['a,b', 'c'], ['', 'a', '', 'b', ''], ['a', 'b', 'c'], ['a', 'b c']]"##, "\n")),
     ("045-strings-graphemes.py", concat!(r##"[2, ['é', 'x'], True, 1, '🇫🇷', 1, ['e', 'f', 'é']]"##, "\n")),
     ("049-escapes.py", concat!(r##"['a\tb', '\\', 'A', 'é', '\\q', '\\n', "it's", 'say "hi"', True]"##, "\n")),
-    ("081-recursion.py", concat!(r##"[610, 2432902008176640000, 1.5511210043330986e+25]"##, "\n")),
+    ("081-recursion.py", concat!(r##"[610, 2432902008176640000, 15511210043330985984000000]"##, "\n")),
     ("113-re-unicode.py", concat!(r##"[['café', 'naïve', '中文'], '--', (3, 4)]"##, "\n")),
     // 2026-11-26: call and division errors in CPython's words, which count
     // and name every missing argument and say which division it was.

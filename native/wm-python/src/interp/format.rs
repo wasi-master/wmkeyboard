@@ -115,7 +115,7 @@ pub(crate) fn py_format(value: &Value, spec: &str) -> Result<String, PyError> {
         Some("f" | "F" | "e" | "E" | "g" | "G" | "%") => float_formatted(value, &s),
         None => match value {
             // No type: numbers format as numbers, everything else (bool too) as text.
-            Value::Int(_) => {
+            Value::Int(_) | Value::Big(_) => {
                 s.ty = Some("d".into());
                 integer_formatted(value, &s)
             }
@@ -131,6 +131,30 @@ pub(crate) fn py_format(value: &Value, spec: &str) -> Result<String, PyError> {
 
 fn integer_formatted(value: &Value, spec: &Spec) -> Result<String, PyError> {
     let ty = spec.ty.as_deref().unwrap_or("d");
+    if let Value::Big(b) = value {
+        if ty == "c" {
+            return Err(PyError::new("%c arg not in range(0x110000)", "OverflowError"));
+        }
+        let mut digits = match ty {
+            "b" => super::bigint::magnitude_radix(b, 2),
+            "o" => super::bigint::magnitude_radix(b, 8),
+            "x" => super::bigint::magnitude_radix(b, 16),
+            "X" => super::bigint::magnitude_radix(b, 16).to_uppercase(),
+            _ => super::bigint::to_decimal(b).map_err(|(m, k)| PyError::new(m, k))?.trim_start_matches('-').to_string(),
+        };
+        if let Some(g) = &spec.grouping {
+            digits = grouped(&digits, g);
+        }
+        let radix_prefix = match (spec.alternate, ty) {
+            (true, "b") => "0b",
+            (true, "o") => "0o",
+            (true, "x") => "0x",
+            (true, "X") => "0X",
+            _ => "",
+        };
+        let prefix = format!("{}{radix_prefix}", sign_prefix(num_traits::Signed::is_negative(b.as_ref()), spec));
+        return Ok(padded(&format!("{prefix}{digits}"), spec, true, prefix.len()));
+    }
     let Some(i) = value.as_int() else {
         if value.as_float().is_some() {
             return Err(PyError::new(format!("cannot format a float with '{ty}'"), "ValueError"));

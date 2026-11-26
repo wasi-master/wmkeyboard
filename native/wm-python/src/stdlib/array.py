@@ -12,10 +12,10 @@ _INFO = {
     "H": (2, 0, 65535, "unsigned short"),
     "i": (4, -2147483648, 2147483647, "signed integer"),
     "I": (4, 0, 4294967295, "unsigned int"),
-    "l": (8, None, None, "signed long"),
-    "L": (8, 0, None, "unsigned long"),
-    "q": (8, None, None, "signed long long"),
-    "Q": (8, 0, None, "unsigned long long"),
+    "l": (8, -(1 << 63), (1 << 63) - 1, "signed long"),
+    "L": (8, 0, (1 << 64) - 1, "unsigned long"),
+    "q": (8, -(1 << 63), (1 << 63) - 1, "signed long long"),
+    "Q": (8, 0, (1 << 64) - 1, "unsigned long long"),
     "u": (4, None, None, "unicode character"),
     "w": (4, None, None, "unicode character"),
     "f": (4, None, None, "float"),
@@ -71,10 +71,22 @@ class array:
             raise TypeError(f"'{type(v).__name__}' object cannot be interpreted as an integer")
         size, lo, hi, name = _INFO[code]
         if lo is not None and v < lo:
-            if code in "LQ":
-                raise OverflowError("can't convert negative int to unsigned" if code == "Q" else f"{name} is less than minimum")
+            if code == "Q":
+                raise OverflowError("can't convert negative int to unsigned")
+            if code == "L":
+                raise OverflowError("can't convert negative value to unsigned int")
+            if code == "q":
+                raise OverflowError("int too big to convert")
+            if code == "l":
+                raise OverflowError("Python int too large to convert to C long")
             raise OverflowError(f"{name} is less than minimum")
         if hi is not None and v > hi:
+            if code in "qQ":
+                raise OverflowError("int too big to convert")
+            if code == "l":
+                raise OverflowError("Python int too large to convert to C long")
+            if code == "L":
+                raise OverflowError("Python int too large to convert to C unsigned long")
             raise OverflowError(f"{name} is greater than maximum")
         return v
 

@@ -1949,6 +1949,248 @@ Pair(a=1, b=2) 2"#
 }
 
 #[test]
+fn integers_of_any_size() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import math, json, struct, sys
+a = 2 ** 64
+print(a, type(a).__name__, a + 1, a - 1, a * a, -a, abs(-a), a // 3, a % 7, a ** 2, 2 ** 100, 10 ** 30)
+print(a == 2.0 ** 64, a + 1 == 2.0 ** 64, a > 2.0 ** 63, 2 ** 64 > 1e300, a < float('inf'), a == a, hash(a) == hash(2.0 ** 64), {a: 1}[2.0 ** 64])
+print(1 << 70, (1 << 70) >> 69, -(1 << 70) >> 3, (2 ** 70) & 0xFF, (2 ** 70) | 1, (2 ** 70) ^ (2 ** 70), ~(2 ** 70), 9223372036854775807 + 1, -9223372036854775808 - 1)
+print(math.factorial(30), math.comb(100, 50), math.perm(30, 20), math.gcd(2 ** 80, 6 ** 40), math.lcm(2 ** 40, 3 ** 30), math.isqrt(10 ** 40), math.prod(range(1, 30)))
+print(int('123456789012345678901234567890'), int('ff' * 20, 16), int(1e30), int(-2.5e20), float(2 ** 80), str(2 ** 100), repr(-(10 ** 25)), hex(2 ** 70), bin(2 ** 65), oct(8 ** 30))
+print(f"{2 ** 70:,}", f"{2 ** 70:x}", f"{-(2 ** 70):>30}", "%d" % (3 ** 50), "{:_}".format(10 ** 20), format(2 ** 64, '#X'), f"{2**70:e}")
+print(json.dumps([2 ** 70, -(3 ** 45)]), json.loads('[123456789012345678901234567890]'), (2 ** 64 - 1).to_bytes(8, 'big'), int.from_bytes(b'\xff' * 16, 'little'), int.from_bytes(b'\x80' + b'\x00' * 15, 'big', signed=True))
+print((2 ** 100).bit_length(), (2 ** 100 - 1).bit_count(), pow(3, 200, 10 ** 9 + 7), pow(2, -1, 7), divmod(10 ** 20, 7), round(123456789012345678901, -5), round(2 ** 70), 7 ** 30 / 7 ** 28)
+print(struct.unpack('<Q', b'\xff' * 8), struct.pack('>Q', 2 ** 64 - 1), sorted([2 ** 70, 5, -2 ** 65, 3.5]), max(2 ** 63, 2 ** 64), sum([2 ** 62] * 8), 0.5 * 2 ** 64, 2 ** 64 / 2)
+print(isinstance(2 ** 70, int), (2 ** 70).__add__(1), int.__mul__(2 ** 40, 2 ** 40), (10 ** 20).real, (2 ** 70).as_integer_ratio(), (0.1).as_integer_ratio(), 12345678901234567890 % 1000, -12345678901234567890 // 1000)
+x = 1
+for i in range(200):
+    x *= 3
+print(x, len(str(x)), x % 1000003, x.bit_length())
+try:
+    int('9' * 5000)
+except ValueError as e:
+    print('ValueError', str(e)[:40])
+try:
+    float(10 ** 400)
+except OverflowError as e:
+    print('OverflowError', e)
+print(10 ** 400 > 1e308, math.log(10 ** 400) > 920, round(math.log10(10 ** 500)), 1 / (10 ** 400), (10 ** 400) // (10 ** 399))
+import array, struct
+for c,v in [('q',2**63),('q',-2**63-1),('Q',2**64),('Q',-1),('l',2**63),('L',2**64),('L',-1)]:
+    try: array.array(c,[v])
+    except Exception as e: print(c, type(e).__name__, e)
+print(array.array('Q',[2**64-1]), array.array('q',[-2**63]))
+a = array.array('Q', [2**64-1, 5]); print(a.tobytes(), array.array('Q', a.tobytes()), sum(a))
+print(struct.unpack('<Q', b'\xff'*8), struct.pack('<d', 2**70), struct.pack('<Q', 2**64-1), struct.unpack('>q', b'\x80'+b'\0'*7))
+for f,v in [('<Q',2**64),('<q',2**63),('<Q',-1), ('<Q', 2**200), ('<d', 2**2000)]:
+    try: struct.pack(f,v)
+    except Exception as e: print(f, type(e).__name__, e)
+class I:
+    def __index__(self): return 2**70
+print(hex(I()), bin(I())[:10], float(I()), int.__index__(5))
+import operator; print(operator.index(I()))
+try: [1,2][I()]
+except Exception as e: print(type(e).__name__, e)
+import uuid
+u = uuid.UUID('{12345678-1234-5678-1234-567812345678}')
+print(u, repr(u), u.int, u.hex, u.urn, u.version, u.variant)
+print(u.fields, u.time, u.clock_seq, u.node)
+print(u.bytes, u.bytes_le)
+print(uuid.UUID(bytes_le=u.bytes_le) == u, uuid.UUID(int=u.int) == u, uuid.UUID(fields=u.fields) == u)
+print(uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org'), uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org'), uuid.uuid5(uuid.NAMESPACE_URL, b'https://example.com'))
+r = uuid.uuid4()
+print(r.version, r.variant, len(str(r)), uuid.UUID(str(r)) == r)
+t = uuid.uuid1()
+print(t.version, t.variant, t.node == uuid.getnode(), uuid.uuid1().time > t.time)
+print(sorted([uuid.UUID(int=5), uuid.UUID(int=2**127), uuid.UUID(int=1)]), int(uuid.UUID(int=2**100)), hash(uuid.UUID(int=7)) == hash(7))
+try:
+    u.int = 3
+except TypeError as e:
+    print('TypeError', e)
+for bad in [dict(hex='xyz'), dict(int=-1), dict(int=2**128), dict(fields=(2**32,0,0,0,0,0)), dict(bytes=b'abc'), {}]:
+    try:
+        uuid.UUID(**bad)
+    except (ValueError, TypeError) as e:
+        print(type(e).__name__, e)
+print(uuid.UUID(int=0, version=4), uuid.SafeUUID.unknown, u.is_safe, u.__getstate__())
+'\n'.join(_out)"#),
+        r#"18446744073709551616 int 18446744073709551617 18446744073709551615 340282366920938463463374607431768211456 -18446744073709551616 18446744073709551616 6148914691236517205 2 340282366920938463463374607431768211456 1267650600228229401496703205376 1000000000000000000000000000000
+True False True False True True True 1
+1180591620717411303424 2 -147573952589676412928 0 1180591620717411303425 0 -1180591620717411303425 9223372036854775808 -9223372036854775809
+265252859812191058636308480000000 100891344545564193334812497256 73096577329197271449600000 1099511627776 226379693794030958489370624 100000000000000000000 8841761993739701954543616000000
+123456789012345678901234567890 1461501637330902918203684832716283019655932542975 1000000000000000019884624838656 -250000000000000000000 1.2089258196146292e+24 1267650600228229401496703205376 -10000000000000000000000000 0x400000000000000000 0b100000000000000000000000000000000000000000000000000000000000000000 0o1000000000000000000000000000000
+1,180,591,620,717,411,303,424 400000000000000000        -1180591620717411303424 717897987691852588770249 100_000_000_000_000_000_000 0X10000000000000000 1.180592e+21
+[1180591620717411303424, -2954312706550833698643] [123456789012345678901234567890] b'\xff\xff\xff\xff\xff\xff\xff\xff' 340282366920938463463374607431768211455 -170141183460469231731687303715884105728
+101 100 136318165 4 (14285714285714285714, 2) 123456789012345700000 1180591620717411303424 49.0
+(18446744073709551615,) b'\xff\xff\xff\xff\xff\xff\xff\xff' [-36893488147419103232, 3.5, 5, 1180591620717411303424] 18446744073709551616 36893488147419103232 9.223372036854776e+18 9.223372036854776e+18
+True 1180591620717411303425 1208925819614629174706176 100000000000000000000 (1180591620717411303424, 1) (3602879701896397, 36028797018963968) 890 -12345678901234568
+265613988875874769338781322035779626829233452653394495974574961739092490901302182994384699044001 96 333986 317
+ValueError Exceeds the limit (4300 digits) for inte
+OverflowError int too large to convert to float
+True True 500 0.0 10
+q OverflowError int too big to convert
+q OverflowError int too big to convert
+Q OverflowError int too big to convert
+Q OverflowError can't convert negative int to unsigned
+l OverflowError Python int too large to convert to C long
+L OverflowError Python int too large to convert to C unsigned long
+L OverflowError can't convert negative value to unsigned int
+array('Q', [18446744073709551615]) array('q', [-9223372036854775808])
+b'\xff\xff\xff\xff\xff\xff\xff\xff\x05\x00\x00\x00\x00\x00\x00\x00' array('Q', [18446744073709551615, 5]) 18446744073709551620
+(18446744073709551615,) b'\x00\x00\x00\x00\x00\x00PD' b'\xff\xff\xff\xff\xff\xff\xff\xff' (-9223372036854775808,)
+<Q error 'Q' format requires 0 <= number <= 18446744073709551615
+<q error 'q' format requires -9223372036854775808 <= number <= 9223372036854775807
+<Q error 'Q' format requires 0 <= number <= 18446744073709551615
+<Q error 'Q' format requires 0 <= number <= 18446744073709551615
+<d error required argument is not a float
+0x400000000000000000 0b10000000 1.1805916207174113e+21 5
+1180591620717411303424
+IndexError cannot fit 'I' into an index-sized integer
+12345678-1234-5678-1234-567812345678 UUID('12345678-1234-5678-1234-567812345678') 24197857161011715162171839636988778104 12345678123456781234567812345678 urn:uuid:12345678-1234-5678-1234-567812345678 None reserved for NCS compatibility
+(305419896, 4660, 22136, 18, 52, 95073701484152) 466142576285865592 4660 95073701484152
+b'\x124Vx\x124Vx\x124Vx\x124Vx' b'xV4\x124\x12xV\x124Vx\x124Vx'
+True True True
+6fa459ea-ee8a-3ca4-894e-db77e160355e 886313e1-3b8a-5372-9b90-0c9aee199e5d 4fd35a71-71ef-5a55-a9d9-aa75c889a6d0
+4 specified in RFC 4122 36 True
+1 specified in RFC 4122 True True
+[UUID('00000000-0000-0000-0000-000000000001'), UUID('00000000-0000-0000-0000-000000000005'), UUID('80000000-0000-0000-0000-000000000000')] 1267650600228229401496703205376 True
+TypeError UUID objects are immutable
+ValueError badly formed hexadecimal UUID string
+ValueError int is out of range (need a 128-bit value)
+ValueError int is out of range (need a 128-bit value)
+ValueError field 1 out of range (need a 32-bit value)
+ValueError bytes is not a 16-char string
+TypeError one of the hex, bytes, bytes_le, fields, or int arguments must be given
+00000000-0000-4000-8000-000000000000 SafeUUID.unknown SafeUUID.unknown {'int': 24197857161011715162171839636988778104}"#
+    );
+}
+
+#[test]
+fn semicolons_in_one_line_blocks() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+try: a = 1; print(a)
+except Exception as e: print(e)
+if True: x = 1; print(x);
+else: print(2)
+for i in []: pass; print(i)
+else: print("done")
+def f(): return 3;
+print(f()); y = 2;
+while y: y -= 1; print("w", y)
+class K: a = 1; b = 2
+print(K.b)
+if 0: pass
+elif 1: print("e"); print("e2")
+with open if False else __import__("contextlib").nullcontext(): print("in"); print("in2")
+import math; print(math.pi > 3)
+x = [1,
+ 2]; print(x)
+'\n'.join(_out)"#),
+        r#"1
+1
+done
+3
+w 1
+w 0
+2
+e
+e2
+in
+in2
+True
+[1, 2]"#
+    );
+}
+
+#[test]
+fn the_int_digit_limit() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import sys
+print(sys.get_int_max_str_digits())
+for v in [100, -1, 0, 640]:
+    try: sys.set_int_max_str_digits(v); print('ok', v, sys.get_int_max_str_digits())
+    except Exception as e: print(type(e).__name__, e)
+sys.set_int_max_str_digits(640)
+try: str(10**700)
+except ValueError as e: print(e)
+try: int('1'*700)
+except ValueError as e: print(e)
+sys.set_int_max_str_digits(maxdigits=5000); print(sys.get_int_max_str_digits(), len(str(10**4500)))
+try: sys.set_int_max_str_digits('a')
+except Exception as e: print(type(e).__name__, e)
+sys.set_int_max_str_digits(0); print(len(str(7**20000)))
+'\n'.join(_out)"#),
+        r#"4300
+ValueError maxdigits must be 0 or larger than 640
+ValueError maxdigits must be 0 or larger than 640
+ok 0 0
+ok 640 640
+Exceeds the limit (640 digits) for integer string conversion; use sys.set_int_max_str_digits() to increase the limit
+Exceeds the limit (640 digits) for integer string conversion: value has 700 digits; use sys.set_int_max_str_digits() to increase the limit
+5000 4501
+TypeError 'str' object cannot be interpreted as an integer
+16902"#
+    );
+}
+
+#[test]
+fn random_ranges_of_any_size() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import random
+for a in [(0,), (5,2), (10,0,-1), (0,10,0), (0,10,-1), (10.5,), (-3,), (1,2,3,4)]:
+    try:
+        r = random.randrange(*a)
+        print(a, 'ok', r in range(*a))
+    except Exception as e: print(a, type(e).__name__, e)
+for a in [(5,2), (0, 2**100), (-2**63, 2**63-1), (3, 3)]:
+    try:
+        r = random.randint(*a); print(a, 'ok', a[0] <= r <= a[1])
+    except Exception as e: print(a, type(e).__name__, e)
+xs = [random.randrange(2**70, 2**70 + 10) for _ in range(200)]
+print(min(xs) >= 2**70, max(xs) < 2**70 + 10, len(set(xs)) > 5)
+ys = [random.randrange(100, 0, -7) for _ in range(300)]
+print(set(ys) <= set(range(100, 0, -7)), len(set(ys)))
+big = [random.randrange(10**30) for _ in range(50)]
+print(all(0 <= b < 10**30 for b in big), max(big) > 10**28)
+print(random.getrandbits(100) < 2**100, random.getrandbits(0))
+'\n'.join(_out)"#),
+        r#"(0,) ValueError empty range for randrange()
+(5, 2) ValueError empty range in randrange(5, 2)
+(10, 0, -1) ok True
+(0, 10, 0) ValueError zero step for randrange()
+(0, 10, -1) ValueError empty range in randrange(0, 10, -1)
+(10.5,) TypeError 'float' object cannot be interpreted as an integer
+(-3,) ValueError empty range for randrange()
+(1, 2, 3, 4) TypeError Random.randrange() takes from 2 to 4 positional arguments but 5 were given
+(5, 2) ValueError empty range in randrange(5, 3)
+(0, 1267650600228229401496703205376) ok True
+(-9223372036854775808, 9223372036854775807) ok True
+(3, 3) ok True
+True True True
+True 15
+True True
+True 0"#
+    );
+}
+
+#[test]
 fn print_takes_sep_and_end() {
     let lines = big_stack(|| {
         let mut rt = Runtime::default();

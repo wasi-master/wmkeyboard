@@ -999,12 +999,21 @@ impl Interp {
     /// What an instance's `__index__` gives, as `operator.index` reads it;
     /// None for anything that is not an instance or has none.
     pub(crate) fn index_of_instance(&mut self, v: &Value) -> R<Option<i64>> {
+        match self.index_value_of_instance(v)? {
+            Some(Value::Int(i)) => Ok(Some(i)),
+            Some(_) => Err(self.error(format!("cannot fit '{}' into an index-sized integer", v.type_name()), "IndexError")),
+            None => Ok(None),
+        }
+    }
+
+    /// [index_of_instance] for an int of any size.
+    pub(crate) fn index_value_of_instance(&mut self, v: &Value) -> R<Option<Value>> {
         if !matches!(v, Value::Instance(_)) {
             return Ok(None);
         }
         match self.dunder(v, "__index__", Vec::new())? {
-            Some(Value::Int(i)) => Ok(Some(i)),
-            Some(Value::Bool(b)) => Ok(Some(b as i64)),
+            Some(r @ (Value::Int(_) | Value::Big(_))) => Ok(Some(r)),
+            Some(Value::Bool(b)) => Ok(Some(Value::Int(b as i64))),
             Some(other) => Err(self.error(format!("__index__ returned non-int (type {})", other.type_name()), "TypeError")),
             None => Ok(None),
         }
@@ -1022,7 +1031,7 @@ impl Interp {
                 for hook in ["__int__", "__index__", "__trunc__"] {
                     if let Some(r) = self.dunder(first, hook, Vec::new())? {
                         return match r {
-                            Value::Int(_) => Ok(Some(r)),
+                            Value::Int(_) | Value::Big(_) => Ok(Some(r)),
                             Value::Bool(b) => Ok(Some(Value::Int(b as i64))),
                             other => Err(self.error(format!("{hook} returned non-int (type {})", other.type_name()), "TypeError")),
                         };
@@ -1043,8 +1052,8 @@ impl Interp {
                         )),
                     };
                 }
-                if let Some(i) = self.index_of_instance(first)? {
-                    return Ok(Some(Value::Float(i as f64)));
+                if let Some(i) = self.index_value_of_instance(first)? {
+                    return self.call_builtin("float", &[i], &[]).map(Some);
                 }
                 Err(self.error(format!("float() argument must be a string or a real number, not '{}'", first.type_name()), "TypeError"))
             }
@@ -1070,8 +1079,8 @@ impl Interp {
                 Some(r) => Ok(Some(r)),
                 None => Err(self.error(format!("type {} doesn't define __round__ method", first.type_name()), "TypeError")),
             },
-            "hex" | "oct" | "bin" | "chr" if args.len() == 1 && is_inst(first) => match self.index_of_instance(first)? {
-                Some(i) => self.call_builtin(name, &[Value::Int(i)], kwargs).map(Some),
+            "hex" | "oct" | "bin" | "chr" if args.len() == 1 && is_inst(first) => match self.index_value_of_instance(first)? {
+                Some(i) => self.call_builtin(name, &[i], kwargs).map(Some),
                 None => Err(not_int(self, first)),
             },
             "divmod" if args.len() == 2 => {
@@ -1410,6 +1419,7 @@ impl Interp {
             }
             Value::List(_) | Value::Tuple(_) | Value::Dict(_) | Value::Set(_) => self.to_repr(v),
             Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) => self.to_repr(v),
+            Value::Big(b) => super::bigint::to_decimal(b).map_err(|(m, k)| self.error(m, k)),
             Value::Class(c) if c.meta.is_some() => {
                 for name in ["__str__", "__repr__"] {
                     if let Some(m) = self.meta_method(c, name) {
@@ -1443,6 +1453,7 @@ impl Interp {
 
     fn repr_inner(&mut self, v: &Value) -> R<String> {
         Ok(match v {
+            Value::Big(b) => super::bigint::to_decimal(b).map_err(|(m, k)| self.error(m, k))?,
             Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) => {
                 let Object::DictView(k, d) = o.as_ref() else { unreachable!() };
                 format!("{}({})", k.type_name(), self.to_repr(&Value::list(view_items(*k, d)))?)
@@ -2069,7 +2080,7 @@ impl Interp {
             Value::Builtin(name) if matches!(value, Value::Instance(i) if i.class.builtin_base.as_deref() == Some(name.as_ref())) => true,
             Value::Builtin(name) => match name.as_ref() {
                 "str" => matches!(value, Value::Str(_)),
-                "int" => matches!(value, Value::Int(_) | Value::Bool(_)),
+                "int" => matches!(value, Value::Int(_) | Value::Bool(_) | Value::Big(_)),
                 "float" => matches!(value, Value::Float(_)),
                 "bool" => matches!(value, Value::Bool(_)),
                 "list" => matches!(value, Value::List(_)),
@@ -2186,12 +2197,12 @@ impl Interp {
                     Value::Set(_) => super::methods::SET_METHODS,
                     Value::Dict(_) => super::methods::DICT_METHODS,
                     Value::Bytes(_) => super::methods::BYTES_METHODS,
-                    Value::Int(_) | Value::Bool(_) => super::methods::INT_METHODS,
+                    Value::Int(_) | Value::Bool(_) | Value::Big(_) => super::methods::INT_METHODS,
                     Value::Float(_) => super::methods::FLOAT_METHODS,
                     _ => &[],
                 };
                 names.extend(table.iter().map(|s| s.to_string()));
-                if matches!(other, Value::Int(_) | Value::Bool(_)) {
+                if matches!(other, Value::Int(_) | Value::Bool(_) | Value::Big(_)) {
                     names.extend(["real", "imag", "numerator", "denominator"].map(String::from));
                 }
                 if let Value::Float(_) = other {

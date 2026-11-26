@@ -26,6 +26,10 @@ md5 = { package = "md-5", version = "0.11", default-features = false }
 base64 = { version = "0.22", default-features = false, features = ["alloc"] }
 # gzip, zlib and zip entries for plugin file previews. Pure Rust.
 miniz_oxide = { version = "0.8", default-features = false, features = ["with-alloc"] }
+# Integers past 64 bits, as Python's are. Pure Rust.
+num-bigint = { version = "0.4", default-features = false }
+num-integer = { version = "0.1", default-features = false }
+num-traits = { version = "0.2", default-features = false }
 
 [profile.release]
 opt-level = "s"

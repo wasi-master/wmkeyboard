@@ -93,6 +93,10 @@ fn write(v: &Value, out: &mut String, options: &EncodeOptions, depth: u32, limit
             out.push_str(&i.to_string());
             return Ok(());
         }
+        Value::Big(b) => {
+            out.push_str(&super::bigint::to_decimal(b).map_err(|(m, k)| PyError::new(m, k))?);
+            return Ok(());
+        }
         Value::Float(f) => {
             out.push_str(&if f.is_finite() { format_double(*f) } else { "null".into() });
             return Ok(());
@@ -381,6 +385,18 @@ impl Parser<'_, '_> {
         if !is_double {
             if let Some(i) = parse_swift_int(&text, 10) {
                 return Ok(Value::Int(i));
+            }
+            // A whole number past 64 bits is an int, as Python's json reads it.
+            let (negative, digits) = match text.strip_prefix('-') {
+                Some(d) => (true, d),
+                None => (false, text.as_str()),
+            };
+            if !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()) {
+                match super::bigint::parse_digits(digits, 10, negative) {
+                    Ok(Some(v)) => return Ok(v),
+                    Ok(None) => {}
+                    Err((m, k)) => return Err(PyError::new(m, k)),
+                }
             }
         }
         parse_swift_double(&text).map(Value::Float).ok_or_else(|| verr("invalid number in JSON"))

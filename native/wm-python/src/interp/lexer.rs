@@ -20,6 +20,8 @@ pub(crate) enum FRawPart {
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Tok {
     Int(i64),
+    /// An int literal past 64 bits.
+    Big(Rc<num_bigint::BigInt>),
     Float(f64),
     Str(String),
     /// `b"…"` (an addition to PyMini).
@@ -28,7 +30,7 @@ pub(crate) enum Tok {
     Name(Rc<str>),
     /// A literal this interpreter reads but cannot make, kept until it runs:
     /// it raises (kind, message) there, so the rest of the module still loads.
-    /// An int past 64 bits, a complex number, an unknown `\N{name}`.
+    /// A complex number, an unknown `\N{name}`.
     Invalid(&'static str, String),
     Keyword(&'static str),
     Op(&'static str),
@@ -485,10 +487,10 @@ impl<'a> Lexer<'a> {
                     }
                     match parse_swift_int(&digits, radix) {
                         Some(v) => self.push(Tok::Int(v), self.line),
-                        None => {
-                            let message = format!("int literal 0{p}{digits} is past 64 bits, which this interpreter's ints are");
-                            self.push(Tok::Invalid("OverflowError", message), self.line);
-                        }
+                        None => match num_bigint::BigInt::parse_bytes(digits.as_bytes(), radix) {
+                            Some(b) => self.push(Tok::Big(Rc::new(b)), self.line),
+                            None => return Err(perr("invalid number", self.line)),
+                        },
                     }
                     return Ok(());
                 }
@@ -539,6 +541,8 @@ impl<'a> Lexer<'a> {
             self.push(Tok::Float(d), self.line);
         } else if let Some(i) = parse_swift_int(&s, 10) {
             self.push(Tok::Int(i), self.line);
+        } else if let Some(b) = s.bytes().all(|c| c.is_ascii_digit()).then(|| num_bigint::BigInt::parse_bytes(s.as_bytes(), 10)).flatten() {
+            self.push(Tok::Big(Rc::new(b)), self.line);
         } else {
             let d = parse_swift_double(&s).ok_or_else(|| perr(format!("invalid number '{s}'"), self.line))?;
             self.push(Tok::Float(d), self.line);

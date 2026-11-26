@@ -29,6 +29,7 @@
 //! at least 8 MB of stack.
 
 mod ast;
+mod bigint;
 mod builtins;
 mod bytes;
 mod charnames;
@@ -367,7 +368,9 @@ impl Runtime {
         // has gone is measured from here.
         let marker = 0u8;
         let saved = std::mem::replace(&mut self.interp.stack_base, std::hint::black_box(&marker) as *const u8 as usize);
+        let digits = bigint::swap_str_digits(self.interp.int_max_str_digits);
         let r = body(&mut self.interp);
+        bigint::swap_str_digits(digits);
         self.interp.stack_base = saved;
         // A last `print(..., end="")` still shows, as a line of its own.
         self.interp.flush_print();

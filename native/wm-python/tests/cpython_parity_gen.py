@@ -1396,6 +1396,145 @@ Pair = NamedTuple('Pair', [('a', int), ('b', int)])
 print(Pair(1, 2), Pair(1, 2).b)
 '\n'.join(_out)
 '''),
+    ('integers_of_any_size', "numbers", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import math, json, struct, sys
+a = 2 ** 64
+print(a, type(a).__name__, a + 1, a - 1, a * a, -a, abs(-a), a // 3, a % 7, a ** 2, 2 ** 100, 10 ** 30)
+print(a == 2.0 ** 64, a + 1 == 2.0 ** 64, a > 2.0 ** 63, 2 ** 64 > 1e300, a < float('inf'), a == a, hash(a) == hash(2.0 ** 64), {a: 1}[2.0 ** 64])
+print(1 << 70, (1 << 70) >> 69, -(1 << 70) >> 3, (2 ** 70) & 0xFF, (2 ** 70) | 1, (2 ** 70) ^ (2 ** 70), ~(2 ** 70), 9223372036854775807 + 1, -9223372036854775808 - 1)
+print(math.factorial(30), math.comb(100, 50), math.perm(30, 20), math.gcd(2 ** 80, 6 ** 40), math.lcm(2 ** 40, 3 ** 30), math.isqrt(10 ** 40), math.prod(range(1, 30)))
+print(int('123456789012345678901234567890'), int('ff' * 20, 16), int(1e30), int(-2.5e20), float(2 ** 80), str(2 ** 100), repr(-(10 ** 25)), hex(2 ** 70), bin(2 ** 65), oct(8 ** 30))
+print(f"{2 ** 70:,}", f"{2 ** 70:x}", f"{-(2 ** 70):>30}", "%d" % (3 ** 50), "{:_}".format(10 ** 20), format(2 ** 64, '#X'), f"{2**70:e}")
+print(json.dumps([2 ** 70, -(3 ** 45)]), json.loads('[123456789012345678901234567890]'), (2 ** 64 - 1).to_bytes(8, 'big'), int.from_bytes(b'\xff' * 16, 'little'), int.from_bytes(b'\x80' + b'\x00' * 15, 'big', signed=True))
+print((2 ** 100).bit_length(), (2 ** 100 - 1).bit_count(), pow(3, 200, 10 ** 9 + 7), pow(2, -1, 7), divmod(10 ** 20, 7), round(123456789012345678901, -5), round(2 ** 70), 7 ** 30 / 7 ** 28)
+print(struct.unpack('<Q', b'\xff' * 8), struct.pack('>Q', 2 ** 64 - 1), sorted([2 ** 70, 5, -2 ** 65, 3.5]), max(2 ** 63, 2 ** 64), sum([2 ** 62] * 8), 0.5 * 2 ** 64, 2 ** 64 / 2)
+print(isinstance(2 ** 70, int), (2 ** 70).__add__(1), int.__mul__(2 ** 40, 2 ** 40), (10 ** 20).real, (2 ** 70).as_integer_ratio(), (0.1).as_integer_ratio(), 12345678901234567890 % 1000, -12345678901234567890 // 1000)
+x = 1
+for i in range(200):
+    x *= 3
+print(x, len(str(x)), x % 1000003, x.bit_length())
+try:
+    int('9' * 5000)
+except ValueError as e:
+    print('ValueError', str(e)[:40])
+try:
+    float(10 ** 400)
+except OverflowError as e:
+    print('OverflowError', e)
+print(10 ** 400 > 1e308, math.log(10 ** 400) > 920, round(math.log10(10 ** 500)), 1 / (10 ** 400), (10 ** 400) // (10 ** 399))
+import array, struct
+for c,v in [('q',2**63),('q',-2**63-1),('Q',2**64),('Q',-1),('l',2**63),('L',2**64),('L',-1)]:
+    try: array.array(c,[v])
+    except Exception as e: print(c, type(e).__name__, e)
+print(array.array('Q',[2**64-1]), array.array('q',[-2**63]))
+a = array.array('Q', [2**64-1, 5]); print(a.tobytes(), array.array('Q', a.tobytes()), sum(a))
+print(struct.unpack('<Q', b'\xff'*8), struct.pack('<d', 2**70), struct.pack('<Q', 2**64-1), struct.unpack('>q', b'\x80'+b'\0'*7))
+for f,v in [('<Q',2**64),('<q',2**63),('<Q',-1), ('<Q', 2**200), ('<d', 2**2000)]:
+    try: struct.pack(f,v)
+    except Exception as e: print(f, type(e).__name__, e)
+class I:
+    def __index__(self): return 2**70
+print(hex(I()), bin(I())[:10], float(I()), int.__index__(5))
+import operator; print(operator.index(I()))
+try: [1,2][I()]
+except Exception as e: print(type(e).__name__, e)
+import uuid
+u = uuid.UUID('{12345678-1234-5678-1234-567812345678}')
+print(u, repr(u), u.int, u.hex, u.urn, u.version, u.variant)
+print(u.fields, u.time, u.clock_seq, u.node)
+print(u.bytes, u.bytes_le)
+print(uuid.UUID(bytes_le=u.bytes_le) == u, uuid.UUID(int=u.int) == u, uuid.UUID(fields=u.fields) == u)
+print(uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org'), uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org'), uuid.uuid5(uuid.NAMESPACE_URL, b'https://example.com'))
+r = uuid.uuid4()
+print(r.version, r.variant, len(str(r)), uuid.UUID(str(r)) == r)
+t = uuid.uuid1()
+print(t.version, t.variant, t.node == uuid.getnode(), uuid.uuid1().time > t.time)
+print(sorted([uuid.UUID(int=5), uuid.UUID(int=2**127), uuid.UUID(int=1)]), int(uuid.UUID(int=2**100)), hash(uuid.UUID(int=7)) == hash(7))
+try:
+    u.int = 3
+except TypeError as e:
+    print('TypeError', e)
+for bad in [dict(hex='xyz'), dict(int=-1), dict(int=2**128), dict(fields=(2**32,0,0,0,0,0)), dict(bytes=b'abc'), {}]:
+    try:
+        uuid.UUID(**bad)
+    except (ValueError, TypeError) as e:
+        print(type(e).__name__, e)
+print(uuid.UUID(int=0, version=4), uuid.SafeUUID.unknown, u.is_safe, u.__getstate__())
+'\n'.join(_out)
+'''),
+    ('semicolons_in_one_line_blocks', "syntax", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+try: a = 1; print(a)
+except Exception as e: print(e)
+if True: x = 1; print(x);
+else: print(2)
+for i in []: pass; print(i)
+else: print("done")
+def f(): return 3;
+print(f()); y = 2;
+while y: y -= 1; print("w", y)
+class K: a = 1; b = 2
+print(K.b)
+if 0: pass
+elif 1: print("e"); print("e2")
+with open if False else __import__("contextlib").nullcontext(): print("in"); print("in2")
+import math; print(math.pi > 3)
+x = [1,
+ 2]; print(x)
+'\n'.join(_out)
+'''),
+    ('the_int_digit_limit', "numbers", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import sys
+print(sys.get_int_max_str_digits())
+for v in [100, -1, 0, 640]:
+    try: sys.set_int_max_str_digits(v); print('ok', v, sys.get_int_max_str_digits())
+    except Exception as e: print(type(e).__name__, e)
+sys.set_int_max_str_digits(640)
+try: str(10**700)
+except ValueError as e: print(e)
+try: int('1'*700)
+except ValueError as e: print(e)
+sys.set_int_max_str_digits(maxdigits=5000); print(sys.get_int_max_str_digits(), len(str(10**4500)))
+try: sys.set_int_max_str_digits('a')
+except Exception as e: print(type(e).__name__, e)
+sys.set_int_max_str_digits(0); print(len(str(7**20000)))
+'\n'.join(_out)
+'''),
+    ('random_ranges_of_any_size', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import random
+for a in [(0,), (5,2), (10,0,-1), (0,10,0), (0,10,-1), (10.5,), (-3,), (1,2,3,4)]:
+    try:
+        r = random.randrange(*a)
+        print(a, 'ok', r in range(*a))
+    except Exception as e: print(a, type(e).__name__, e)
+for a in [(5,2), (0, 2**100), (-2**63, 2**63-1), (3, 3)]:
+    try:
+        r = random.randint(*a); print(a, 'ok', a[0] <= r <= a[1])
+    except Exception as e: print(a, type(e).__name__, e)
+xs = [random.randrange(2**70, 2**70 + 10) for _ in range(200)]
+print(min(xs) >= 2**70, max(xs) < 2**70 + 10, len(set(xs)) > 5)
+ys = [random.randrange(100, 0, -7) for _ in range(300)]
+print(set(ys) <= set(range(100, 0, -7)), len(set(ys)))
+big = [random.randrange(10**30) for _ in range(50)]
+print(all(0 <= b < 10**30 for b in big), max(big) > 10**28)
+print(random.getrandbits(100) < 2**100, random.getrandbits(0))
+'\n'.join(_out)
+'''),
 ]
 
 

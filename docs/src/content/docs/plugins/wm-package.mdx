@@ -99,9 +99,8 @@ needs:
 - subclasses of `dict`, `list`, `str`, `int`, `float`, `tuple`, `set` and
   `bytes`, with `super()` reaching the type's methods and `__missing__` for a
   dict subclass
-- exact 64-bit integers with `<<`, `>>` and the other bit operators,
-  `int.from_bytes` and `n.to_bytes` for binary formats; past 64 bits a result
-  becomes a float, since there are no big integers
+- integers of any size, as Python's are, with `<<`, `>>` and the other bit
+  operators, and `int.from_bytes` and `n.to_bytes` for binary formats
 - Python's string escapes, `\x41`, `\u00e9`, `\U0001F600` and `\N{BULLET}`
   included
 - Python's sorting (stable, with `key` and `reverse`), dict keys (`1` and
@@ -115,8 +114,7 @@ needs:
   hooks (`__index__`, `__int__`, `__float__`, `__abs__`, `__round__` and the
   rest) that the builtins and `math` ask
 
-Not there: `compile`, `open`, big integers, complex numbers and `%` formatting
-of bytes.
+Not there: `compile`, `open`, complex numbers and `%` formatting of bytes.
 
 **Modules you can import:**
 
@@ -165,7 +163,9 @@ signatures and kinds of object but has no source to show, `ast` has only
 `literal_eval`, `importlib.import_module` imports by name, and
 `importlib.metadata` finds no installed packages. A `weakref` keeps its object
 alive, since there is no garbage collector to watch it go. `secrets` draws on
-a seed taken once from the system's random source.
+a seed taken once from the system's random source. `uuid` has `uuid1`,
+`uuid3`, `uuid4` and `uuid5`; with no hardware address to read, `uuid1` uses
+a random node, as CPython does when it finds none.
 
 The [classic reference](/plugins/api-reference/#the-python-you-get) has more
 detail on the built-in modules, strings and dicts.

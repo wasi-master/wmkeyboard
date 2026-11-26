@@ -433,12 +433,16 @@ octal `\101`, `\x41`, `\u00e9`, `\U0001F600`, `\N{BULLET}` (a character by its
 Unicode name), `\\` and the quotes. An escape Python does not know, such as
 `\q`, keeps its backslash.
 
-**Numbers:** integers are exact across 64 bits, with `<<`, `>>`, `&`, `|`, `^`
-and `~` and their `<<=`-style assignments; `int.from_bytes`, `n.to_bytes` and
-`n.bit_length()` read and write binary fields. There are no big integers, so a
-result past 64 bits, such as `2 ** 64` or `math.factorial(25)`, carries on as a
-float. Integers compare exactly too, so `2 ** 53 + 1 > 2 ** 53`, and nothing
-is less than, greater than or equal to `float("nan")`. `1 is True` is false, as
+**Numbers:** integers are exact at any size, as in Python: `2 ** 100`,
+`math.factorial(50)` and a UUID's 128-bit `.int` are whole numbers, not
+floats. `<<`, `>>`, `&`, `|`, `^` and `~` work on them, with their
+`<<=`-style assignments, and `int.from_bytes`, `n.to_bytes` and
+`n.bit_length()` read and write binary fields. An integer may grow to `2 ** 20`
+bits, about 315,000 digits, and past that an `OverflowError` says so. Turning
+one into decimal text or back stops at 4,300 digits, CPython's own limit,
+which `sys.set_int_max_str_digits` moves. Integers compare exactly with floats
+too, so `2 ** 53 + 1 > 2 ** 53`, and nothing is less than, greater than or
+equal to `float("nan")`. `1 is True` is false, as
 in Python. `int()` reads text as Python does: `_` between digits, digits of
 any script (`int("৩")` is 3), and with base 0 a `0x`, `0o` or `0b` prefix.
 Format specs take `#` for that prefix: `f"{255:#x}"` is `"0xff"`. Dividing by
@@ -502,8 +506,8 @@ on an event. Writing still takes brackets: `d["name"] = value`.
 | `json` | `dumps` and `loads`. `dumps` takes `indent`, `sort_keys`, `separators` and `ensure_ascii`. Unlike Python, `ensure_ascii` is off unless you turn it on, so text in other scripts is written as it is. Bad JSON raises an error. |
 | `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape` and `compile`, whose pattern objects have the same methods; the flags `I`, `M`, `S`, `X` (verbose: spaces and `#` comments in the pattern are skipped), `A` (`\d`, `\w` and `\s` match ASCII only) and `U`, also spelled out, or written at the start of the pattern as `(?i)`, `(?m)`, `(?s)`, `(?x)`, `(?a)`. Patterns take lookahead `(?=…)` `(?!…)`, fixed-width lookbehind `(?<=…)` `(?<!…)` and backreferences `\1` `(?P=name)`; not possessive quantifiers or atomic groups. Matching spends steps like any loop. |
 | `time` | `time()` and `monotonic()` in seconds; `parts()` or `parts(seconds)`, a dict of `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday` (Monday is 0) and `yearday` in the phone's time zone; `format(pattern)` or `format(pattern, seconds)` with a Unicode date pattern such as `"EEE d MMM yyyy"`, which writes day and month names in English. Left out, `seconds` is now. |
-| `random` | `random`, `randint`, `randrange`, `choice`, `choices`, `shuffle`, `sample`, `uniform`, `seed` |
-| `sys` | `version`, `version_info` (3.12, readable as `.major` and so on), `hexversion`, `platform` (`"android"`), `maxsize`, `maxunicode`, `byteorder`, `argv`, `path`, `modules`, `exit`, `exc_info`, `intern`, `getrecursionlimit`, `setrecursionlimit`, and `stdout`, `stderr` and `stdin`. Both output streams write to the plugin's log, a line at a time, as `print` does; `stdin` has nothing to read. Setting `sys.stdout` to an object with a `write` method sends `print` there. |
+| `random` | `random`, `randint`, `randrange`, `getrandbits`, `choice`, `choices`, `shuffle`, `sample`, `uniform`, `seed` |
+| `sys` | `version`, `version_info` (3.12, readable as `.major` and so on), `hexversion`, `platform` (`"android"`), `maxsize`, `maxunicode`, `byteorder`, `argv`, `path`, `modules`, `exit`, `exc_info`, `intern`, `getrecursionlimit`, `setrecursionlimit`, `get_int_max_str_digits`, `set_int_max_str_digits`, and `stdout`, `stderr` and `stdin`. Both output streams write to the plugin's log, a line at a time, as `print` does; `stdin` has nothing to read. Setting `sys.stdout` to an object with a `write` method sends `print` there. |
 
 `time.format` takes the patterns Android and Java use (`yyyy`, `MM`, `d`, `HH`,
 `mm`, `EEE`, `MMMM` and so on), not C's `%Y-%m-%d`.

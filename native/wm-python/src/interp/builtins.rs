@@ -12,7 +12,9 @@ use super::eval::Interp;
 use super::format::py_format;
 use super::generators::{iterator_object, Iter};
 use super::text::{decimal_value, grapheme_count, longer_than, parse_swift_double, trim_whitespaces};
+use super::bigint::{int_value, to_big};
 use super::value::*;
+use num_traits::Signed;
 
 /// The exception names scripts can raise and catch.
 pub(crate) const EXCEPTION_KINDS: &[&str] = &[
@@ -304,7 +306,10 @@ impl Interp {
             "abs" => {
                 self.arity(name, args, 1)?;
                 if let Value::Int(i) = args[0] {
-                    return Ok(Value::Int(i.wrapping_abs()));
+                    return Ok(i.checked_abs().map_or_else(|| int_value(num_bigint::BigInt::from(i).abs()), Value::Int));
+                }
+                if let Value::Big(b) = &args[0] {
+                    return Ok(int_value(b.abs()));
                 }
                 let d = args[0].as_float().ok_or_else(|| self.error("bad operand type for abs()", "TypeError"))?;
                 Ok(Value::Float(d.abs()))
@@ -441,6 +446,12 @@ impl Interp {
             "pow" => {
                 if args.len() != 2 && args.len() != 3 {
                     return Err(self.error("pow() takes 2 or 3 arguments", "TypeError"));
+                }
+                // pow(a, b, m) on ints works modulo m all the way, as Python's does.
+                if args.len() == 3 {
+                    if let (Some(a), Some(b), Some(m)) = (to_big(&args[0]), to_big(&args[1]), to_big(&args[2])) {
+                        return super::bigint::modpow(&a, &b, &m).map_err(|(m, k)| self.error(m, k));
+                    }
                 }
                 let p = self.binary_op(BinOp::Pow, &args[0], &args[1])?;
                 if args.len() != 3 {
@@ -614,17 +625,23 @@ impl Interp {
     }
 
     fn radix_string(&self, args: &[Value], radix: u32, prefix: &str) -> R<Value> {
+        if let Some(Value::Big(b)) = args.first() {
+            let sign = if b.is_negative() { "-" } else { "" };
+            return Ok(Value::str(format!("{sign}{prefix}{}", super::bigint::magnitude_radix(b, radix))));
+        }
         let i = args.first().and_then(Value::as_int).ok_or_else(|| self.error("expected an integer", "TypeError"))?;
         let body = to_radix(i.unsigned_abs(), radix);
         Ok(Value::str(format!("{}{prefix}{body}", if i < 0 { "-" } else { "" })))
     }
 
-    /// Swift's `Int(d)` traps past the i64 range; here that's a catchable error instead.
-    pub(crate) fn to_long_exact(&self, d: f64) -> R<i64> {
-        if d.is_nan() || d >= 9.223372036854775807E18 || d < -9.223372036854775808E18 {
-            return Err(self.error(format!("cannot convert float {} to integer", format_double(d)), "OverflowError"));
+    /// `int(d)` for a float: the whole number it truncates to, of any size.
+    pub(crate) fn float_to_int(&self, d: f64) -> R<Value> {
+        // 2**63: every float below it in size fits an i64.
+        const LIMIT: f64 = 9_223_372_036_854_775_808.0;
+        if (-LIMIT..LIMIT).contains(&d) {
+            return Ok(Value::Int(d as i64));
         }
-        Ok(d as i64)
+        super::bigint::from_float(d).map_err(|(m, k)| self.error(m, k))
     }
 
     fn to_int(&self, args: &[Value]) -> R<Value> {
@@ -650,22 +667,23 @@ impl Interp {
             let Value::Str(s) = a else {
                 return Err(self.error("int() can't convert non-string with explicit base", "TypeError"));
             };
-            return parse_int_literal(trim_whitespaces(s), base as u32)
-                .map(Value::Int)
+            return parse_int_value(trim_whitespaces(s), base as u32)
+                .map_err(|(m, k)| self.error(m, k))?
                 .ok_or_else(|| self.error(format!("invalid literal for int() with base {base}: {}", py_repr(a)), "ValueError"));
         }
         match a {
             Value::Int(_) | Value::Bool(_) => Ok(Value::Int(a.as_int().unwrap())),
-            Value::Float(f) => Ok(Value::Int(self.to_long_exact(*f)?)),
+            Value::Big(_) => Ok(a.clone()),
+            Value::Float(f) => self.float_to_int(*f),
             Value::Str(s) => {
                 let t = trim_whitespaces(s);
-                if let Some(i) = parse_int_literal(t, 10) {
-                    return Ok(Value::Int(i));
+                if let Some(v) = parse_int_value(t, 10).map_err(|(m, k)| self.error(m, k))? {
+                    return Ok(v);
                 }
                 // CPython refuses "3.5" here; PyMini reads it.
                 let d = parse_swift_double(t)
                     .ok_or_else(|| self.error(format!("invalid literal for int() with base 10: {}", py_repr(a)), "ValueError"))?;
-                Ok(Value::Int(self.to_long_exact(d)?))
+                self.float_to_int(d)
             }
             _ => Err(self.error("int() argument must be a string or a number", "TypeError")),
         }
@@ -673,6 +691,9 @@ impl Interp {
 
     fn to_float(&self, args: &[Value]) -> R<Value> {
         let Some(a) = args.first() else { return Ok(Value::Float(0.0)) };
+        if let Value::Big(b) = a {
+            return super::bigint::to_float(b).map(Value::Float).map_err(|(m, k)| self.error(m, k));
+        }
         if let Some(d) = a.as_float() {
             return Ok(Value::Float(d));
         }
@@ -685,9 +706,28 @@ impl Interp {
     }
 
     fn round_builtin(&self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let ndigits = args.get(1).or_else(|| kwarg(kwargs, "ndigits")).filter(|v| !v.is_none());
+        // An int rounds to an int: itself, or to tens, hundreds and so on, halves to even.
+        if let Some(n) = args.first().and_then(to_big) {
+            let digits = ndigits.and_then(Value::as_int).unwrap_or(0);
+            if digits >= 0 {
+                return Ok(int_value(n));
+            }
+            let m = num_traits::pow(num_bigint::BigInt::from(10), (-digits).min(400_000) as usize);
+            let (q, r) = num_integer::Integer::div_mod_floor(&n, &m);
+            let twice = &r * 2;
+            let up = twice > m || (twice == m && num_integer::Integer::is_odd(&q));
+            return Ok(int_value((if up { q + 1 } else { q }) * m));
+        }
         let d = args.first().and_then(Value::as_float).ok_or_else(|| self.error("round() needs a number", "TypeError"))?;
-        let digits = match args.get(1).or_else(|| kwarg(kwargs, "ndigits")) {
-            None => return Ok(Value::Int(self.to_long_exact(d.round_ties_even())?)),
+        let digits = match ndigits {
+            None => return self.float_to_int(d.round_ties_even()).and_then(|v| {
+                if d.is_infinite() {
+                    Err(self.error("cannot convert float infinity to integer", "OverflowError"))
+                } else {
+                    Ok(v)
+                }
+            }),
             Some(v) => v.as_int().unwrap_or(0),
         };
         let m = 10f64.powf(digits as f64);
@@ -949,9 +989,32 @@ impl Interp {
     }
 }
 
+/// [parse_int_literal] for an int of any size.
+pub(crate) fn parse_int_value(text: &str, base: u32) -> Result<Option<Value>, super::bigint::Fail> {
+    if let Some(i) = parse_int_literal(text, base) {
+        return Ok(Some(Value::Int(i)));
+    }
+    let Some((negative, radix, clean)) = int_literal_digits(text, base) else { return Ok(None) };
+    super::bigint::parse_digits(&clean, radix, negative)
+}
+
 /// An integer literal as `int(text, base)` reads it: a sign, `_` between
 /// digits, and with base 0 (or the matching base) a `0x`, `0o` or `0b` prefix.
 pub(crate) fn parse_int_literal(text: &str, base: u32) -> Option<i64> {
+    let (negative, radix, clean) = int_literal_digits(text, base)?;
+    let magnitude = u64::from_str_radix(&clean, radix).ok()?;
+    if negative {
+        if magnitude == 1 << 63 {
+            return Some(i64::MIN);
+        }
+        i64::try_from(magnitude).ok().map(|v| -v)
+    } else {
+        i64::try_from(magnitude).ok()
+    }
+}
+
+/// The sign, radix and bare digits of an integer literal, checked.
+fn int_literal_digits(text: &str, base: u32) -> Option<(bool, u32, String)> {
     let (negative, body) = match text.as_bytes().first() {
         Some(b'-') => (true, &text[1..]),
         Some(b'+') => (false, &text[1..]),
@@ -984,15 +1047,7 @@ pub(crate) fn parse_int_literal(text: &str, base: u32) -> Option<i64> {
     if !clean.chars().all(|c| c.is_digit(radix)) {
         return None;
     }
-    let magnitude = u64::from_str_radix(&clean, radix).ok()?;
-    if negative {
-        if magnitude == 1 << 63 {
-            return Some(i64::MIN);
-        }
-        i64::try_from(magnitude).ok().map(|v| -v)
-    } else {
-        i64::try_from(magnitude).ok()
-    }
+    Some((negative, radix, clean))
 }
 
 pub(crate) fn to_radix(mut n: u64, radix: u32) -> String {
