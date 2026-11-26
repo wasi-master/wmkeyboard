@@ -5083,6 +5083,18 @@ private fun ThemeEditorContent(
                 onChange = { update { t -> t.copy(keyGradient = it) } },
             )
         }
+        item(level = SettingLevel.STANDARD) {
+            // The same gradient on Shift, ?123, Enter and the rest (#1578),
+            // kept in step with the letter keys' rather than copied once, so
+            // reshaping it reshapes them all. Only with a gradient to spread.
+            val hasGradient = look.watch { it.keyGradient != null }
+            ToggleSetting(
+                R.string.theme_key_gradient_every_key_title,
+                stringResource(R.string.theme_key_gradient_every_key_subtitle),
+                checked = look.watch { it.keyGradientEveryKey },
+                enabled = hasGradient,
+            ) { on -> update { t -> t.copy(keyGradientEveryKey = on) } }
+        }
         item {
             ColorRow(R.string.theme_key_text_title, look.watch { it.keyText }) {
                 update { t -> t.copy(keyText = it) }

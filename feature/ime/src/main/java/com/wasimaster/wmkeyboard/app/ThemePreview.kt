@@ -732,7 +732,8 @@ private fun Modifier.previewKeyGrid(
                     // A brush per key: a gradient brush rebuilds its shader
                     // whenever it is drawn at a different size, and the rows'
                     // keys are not all one width.
-                    sheen = if (letterFace) theme.keyGradient?.brush() else null,
+                    // Every key's, when the theme spreads it (#1578).
+                    sheen = if (letterFace || (faces && theme.keyGradientEveryKey)) theme.keyGradient?.brush() else null,
                     textureClip = if (letterFace && texture != null && outline != null) {
                         Path().apply { addOutline(outline) }
                     } else {

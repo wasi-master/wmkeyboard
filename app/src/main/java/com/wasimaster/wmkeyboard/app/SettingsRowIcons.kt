@@ -2092,6 +2092,7 @@ internal object SettingsRowIcons {
         put(R.string.theme_key_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_letter_keys_title) { Icons.Outlined.Keyboard }
         put(R.string.theme_key_gradient_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_key_gradient_every_key_title) { Icons.Outlined.Gradient }
         put(R.string.theme_key_background_title) { Icons.Outlined.FormatColorFill }
         put(R.string.theme_key_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_modifier_keys_title) { Icons.Outlined.KeyboardCapslock }

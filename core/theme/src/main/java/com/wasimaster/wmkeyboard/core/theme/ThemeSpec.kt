@@ -382,6 +382,13 @@ data class ThemeSpec(
     val keyTextureOpacity: Float = 1f,
     /** Painted over letter keys when set (subtle sheen); stops may be translucent. */
     val keyGradient: GradientSpec? = null,
+    /**
+     * Paints [keyGradient] over every key with a face, not the letter keys
+     * alone: Shift, delete, `?123`, the emoji and tool keys, the space bar and
+     * Enter take the same gradient, and follow it when it changes (#1578).
+     * A key's own gradient face still wins on that key.
+     */
+    val keyGradientEveryKey: Boolean = false,
     val keyBackground: Long = 0xFF303338,
     val keyText: Long = 0xFFE9E9EE,
     /**

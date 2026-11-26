@@ -29583,10 +29583,11 @@ internal fun KeyButton(
                 // colour and its own texture, which is how the key still shows
                 // that it was hit.
                 val faces = kb.keysHaveFaces
-                // Sheen over letter keys only; pressed/enter/modifier states keep
-                // their solid colors so state changes stay legible.
+                // Sheen over letter keys only, unless the theme asks for it on
+                // every key (#1578); a press keeps its solid colour either way,
+                // so the hit stays legible.
                 val sheen = kb.keyGradient
-                    ?.takeIf { faces && key.action == KeyAction.Text }
+                    ?.takeIf { faces && (kb.keyGradientEveryKey || key.action == KeyAction.Text) }
                     ?.brush()
                 // This key's own gradient face, which a theme names outright
                 // and so draws whether or not the board's keys have faces.

@@ -216,6 +216,8 @@ data class KbTheme(
     val backgroundAnimated: Boolean,
     val keyShapeKind: KeyShapeKind,
     val keyGradient: GradientSpec?,
+    /** [keyGradient] on every key with a face; see [ThemeSpec.keyGradientEveryKey]. */
+    val keyGradientEveryKey: Boolean = false,
     /** Image drawn over the letter-key colour, clipped to the key shape. */
     val keyTexture: String?,
     /** Modifier-key texture; null falls back to [keyTexture]. */
@@ -1210,6 +1212,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         backgroundAnimated = spec.backgroundAnimated && spec.backgroundImageBlur == 0f,
         keyShapeKind = spec.keyShape,
         keyGradient = spec.keyGradient,
+        keyGradientEveryKey = spec.keyGradientEveryKey,
         keyTexture = spec.keyTexture,
         keyTextureModifier = spec.keyTextureModifier,
         keyTextureEnter = spec.keyTextureEnter,
@@ -2245,6 +2248,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         toolbar = lerpColorOrNull(a.toolbar, b.toolbar, t),
         navigationBar = lerpColorOrNull(a.navigationBar, b.navigationBar, t),
         keyGradient = lerpGradient(a.keyGradient, b.keyGradient, t, a.key, b.key),
+        keyGradientEveryKey = if (past) b.keyGradientEveryKey else a.keyGradientEveryKey,
         // Discrete like the background image: a texture is a decoded file.
         keyTexture = if (past) b.keyTexture else a.keyTexture,
         keyTextureModifier = if (past) b.keyTextureModifier else a.keyTextureModifier,

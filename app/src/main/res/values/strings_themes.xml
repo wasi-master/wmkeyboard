@@ -404,6 +404,9 @@
     <string name="theme_letter_keys_title">Letter keys</string>
     <string name="theme_key_gradient_title">Key gradient</string>
     <string name="theme_key_gradient_subtitle">The keyboard paints this sheen over the letter keys</string>
+    <!-- Switch under Key gradient (#1578): the letter keys' gradient on every other key too, kept in step. -->
+    <string name="theme_key_gradient_every_key_title">Key gradient on every key</string>
+    <string name="theme_key_gradient_every_key_subtitle">Shift, ?123, Enter, the space bar and the other keys take the letter keys\' gradient and follow it when you change it</string>
     <string name="theme_key_text_title">Key text</string>
     <!-- Shift, backspace, symbols and the other keys that are not letters. -->
     <string name="theme_modifier_keys_title">Modifier keys</string>
