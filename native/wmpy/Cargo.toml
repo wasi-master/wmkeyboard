@@ -17,6 +17,19 @@ base64 = { version = "0.22", default-features = false, features = ["alloc"] }
 clap = { version = "4.6.10", features = ["derive", "wrap_help"] }
 clap_complete = "4.6.12"
 wm-python-tooling = { version = "0.1.0", path = "../wm-python-tooling" }
+wm-python-pip = { version = "0.1.0", path = "../wm-python-pip" }
+ratatui = { version = "0.30.2", default-features = false, features = ["crossterm"] }
+tiny_http = "0.12.0"
+ureq = "3"
+getrandom = "0.4.3"
+lsp-server = "0.10.0"
+lsp-types = "0.97.0"
+unicode-width = "0.2"
+miniz_oxide = { version = "0.8", default-features = false, features = ["with-alloc"] }
+sha2 = { version = "0.11", default-features = false }
+zip = { version = "9", default-features = false, features = ["deflate-flate2"] }
+flate2 = "1"
+tar = { version = "0.4", default-features = false }
 
 [profile.release]
 opt-level = 3

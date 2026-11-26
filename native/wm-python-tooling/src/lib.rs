@@ -27,10 +27,12 @@ pub(crate) mod infer;
 pub mod keyboard;
 pub mod signature;
 pub mod lexer;
+pub mod manifest;
 pub mod navigate;
 pub mod package;
 pub mod parser;
 pub mod structure;
+pub mod stubs;
 pub mod text;
 
 pub use document::{Document, Host, Verdict};

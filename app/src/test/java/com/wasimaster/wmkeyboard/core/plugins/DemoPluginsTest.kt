@@ -21,7 +21,7 @@ import kotlinx.serialization.json.JsonPrimitive
  * documentation bug shipped to every reader.
  *
  * The scripts are mirrored from `plugins-src/` in the addon repository, whose
- * `test.py` files test the same plugins on `wm-python-cli`. What only this
+ * `test.py` files test the same plugins on `wmpy test`. What only this
  * side proves is the trip through the app: the session's JSON, the widget
  * codec, events as the keyboard sends them, and the storage and reminders
  * files the app reads afterwards.

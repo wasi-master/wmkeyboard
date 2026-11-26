@@ -1,0 +1,304 @@
+---
+title: "The wmpy command line"
+description: "Install wmpy, then make, check, test and pack WM Keyboard plugins on your computer, with the same interpreter and checks the keyboard uses."
+sidebar:
+  label: "wmpy on your computer"
+  order: 8.3
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+`wmpy` is a command-line tool for plugins. It runs on your computer, in a
+folder of plain files you edit in any editor, and it uses the same
+interpreter and the same checks as the keyboard and the plugin editors.
+
+```bash
+wmpy new my-tool        # a plugin folder to start from
+cd my-tool
+wmpy check              # what the keyboard would refuse
+wmpy test               # run the tests
+wmpy pack               # build my-tool's .wmplugin file
+```
+
+You do not need it to write a plugin. The [plugin editor](/addons/new?type=plugin)
+in the browser and the one on the phone do everything here except the
+command line. wmpy is for people who prefer their own editor, keep plugins
+in Git, or test them in CI.
+
+## Install
+
+<Tabs syncKey="install">
+<TabItem label="macOS, Linux">
+
+```bash
+brew tap wasi-master/wmpy https://github.com/wasi-master/wmpy
+brew install wmpy
+```
+
+Or, without Homebrew:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wasi-master/wmpy/main/install.sh | sh
+```
+
+</TabItem>
+<TabItem label="Windows">
+
+```powershell
+scoop bucket add wmpy https://github.com/wasi-master/wmpy
+scoop install wmpy
+```
+
+Or, without Scoop, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/wasi-master/wmpy/main/install.ps1 | iex
+```
+
+</TabItem>
+<TabItem label="Python, Node">
+
+```bash
+pipx install wmpy
+# or
+uv tool install wmpy
+```
+
+With Node.js, run it without installing:
+
+```bash
+npx wmpy --help
+```
+
+</TabItem>
+<TabItem label="From source">
+
+Install [Rust](https://rustup.rs/), then:
+
+```bash
+cargo install --git https://github.com/wasi-master/wmkeyboard wmpy
+```
+
+</TabItem>
+</Tabs>
+
+Check it works with `wmpy --version`. It prints its own version, the
+interpreter's, and the plugin API level it runs.
+
+Every command takes the plugin folder as its first argument, and uses the
+folder you are in when you leave it out. A command exits with 0 when all
+went well, 1 when the plugin failed (a check, a test), and 2 when wmpy could
+not do the work, such as a folder that does not exist.
+
+## wmpy new
+
+```bash
+wmpy new my-tool
+wmpy new weather --template weather --name "Weather" --author "Your Name"
+```
+
+Makes a folder with a working plugin in it. Run in a terminal with no
+options, it asks for the name, the template and the author. In a script it
+takes the defaults: a blank plugin named after the folder.
+
+| Option | Does |
+|---|---|
+| `--template` | What to start from: `blank`, `text-tools`, `cipher`, `todo`, `kitchen-sink`, `text-generator`, `weather` or `text-actions`. The same plugins the editors offer under **Start from**. |
+| `--name` | The plugin's name, shown in the keyboard. |
+| `--id` | The plugin's id. By default `my.` and the name, such as `my.weather`. |
+| `--author` | Shown on the install screen. |
+| `--force` | Write into a folder that already has files in it. |
+| `--json` | Print what it made as JSON. |
+
+The folder it makes:
+
+```
+my-tool/
+├── plugin.json
+├── main.py
+├── test.py
+├── .gitignore               leaves out .wmpy/ and built .wmplugin files
+├── pyrightconfig.json       points Pylance and pyright at the stubs
+├── .vscode/extensions.json  suggests the wmpy extension in VS Code
+└── .wmpy/stubs/             the wm package, for editors (see wmpy stubs)
+```
+
+Some templates are written for API 4, the older `wm` and `ui` globals, and
+keep that `apiVersion`. Change it to 5 when you move one to `from wm import`.
+
+## wmpy check
+
+```bash
+wmpy check
+wmpy check my-tool --strict
+```
+
+Finds what the keyboard would refuse or trip over, without running the
+plugin:
+
+- `plugin.json`, by the rules the app uses when it installs a plugin: the
+  id, name and version, `apiVersion`, every permission, `hosts`, `tool`,
+  `settings`, `providers`, `actions`, `previews` and `syntax`. Each problem
+  points at its line in the file, and an error the install screen would
+  show says so in the app's own words.
+- The archive the folder becomes: the entry script, other modules, files in
+  `assets/` and `locales/`, and the size limits.
+- Every `.py` file the plugin ships, with the checks the editors run:
+  misspelt names, a module used without its permission, an address not in
+  `hosts`, a provider or action `plugin.json` does not declare, and Python
+  plugins cannot run. Test files are checked for syntax only.
+
+```text
+error[unknown_permission]: WM Keyboard does not know the permission "netwrok"
+ --> plugin.json:8:30
+  |
+8 |   "permissions": ["storage", "netwrok"],
+  |                              ^^^^^^^^^
+  = note: the app refuses it: This version of WM Keyboard does not know the permission “netwrok”. …
+  = help: did you mean "network"? The permissions: https://wmkeyboard.pages.dev/plugins/permissions/
+```
+
+It ends with a line such as `checked plugin.json and 3 Python files: 1 error,
+0 warnings`. It exits with 1 when there is an error. `--strict` fails on
+warnings too, and `--json` prints `{"ok", "errors", "warnings", "problems"}`
+for other tools.
+
+## wmpy test
+
+```bash
+wmpy test
+wmpy test -k rot13
+wmpy test --junit results.xml
+wmpy test --watch
+```
+
+Runs `test.py` and every `tests/test_*.py`, each in a fresh interpreter. A
+file's top level runs first. Then each top-level function whose name starts
+with `test_` runs on its own, and fails if it raises. A file with no test
+functions is one test, as `test.py` always was.
+
+```python title="test.py"
+import json
+
+
+def test_it_loads():
+    s = plugin_test.session()
+    r = s["load"]()
+    assert r["ok"], r["error"]
+
+
+def test_rot13():
+    s = plugin_test.session()
+    s["load"]()
+    assert s["transform"]("Hello", "rot13")["value"] == "Uryyb"
+```
+
+What the tests print goes to the terminal as they run. Each test's result
+and each failure, with the line it stopped on, go after it, and the last line
+is the count: `2 passed, 0 failed in 0.05 s`.
+
+| Option | Does |
+|---|---|
+| `-k TEXT` | Runs only the tests whose `file::name` contains the text, such as `-k rot13` or `-k tests/test_api.py`. |
+| `--json` | Prints `{"ok", "passed", "failed", "durationMs", "tests"}`, each test with its output and its error. |
+| `--junit FILE` | Also writes the results as JUnit XML, which most CI services show as a table. |
+| `--watch` | Runs again each time a file in the folder changes. Stop it with Ctrl-C. |
+
+[Testing and debugging](/plugins/guides/testing/#automatic-tests) explains
+`plugin_test`: sessions, mock answers for host calls, events, previews and
+the rest.
+
+## wmpy render
+
+```bash
+wmpy render my-tool --mock mock.json
+```
+
+Loads the plugin as a panel and prints its first draw as JSON, with host
+calls answered from the mock file. It is the quickest way to see what a
+change does to the widget tree.
+
+## wmpy pack
+
+```bash
+wmpy pack
+wmpy pack -o dist/weather.wmplugin
+wmpy pack --entry-json
+```
+
+Builds the `.wmplugin` file the keyboard installs. It checks the plugin first
+and refuses to pack one with an error. The file goes in the plugin folder as
+`<Name>-<version>.wmplugin`, the name the editors give it, and the command
+prints its size and SHA-256.
+
+What goes in: `plugin.json`, the entry script, and for API 5 the other `.py`
+files, `assets/` and `locales/`. The `licenses/` folder goes in too, with the
+licence of each package `wmpy pip` added. The keyboard does not keep those
+files when it installs the plugin, but they stay in the file you share.
+Tests, `tests/`, dotfiles, `__pycache__`, `pyrightconfig.json`, `wmpy.lock`
+and other `.wmplugin` files stay out. The
+archive is the same byte for byte each time you pack the same files, so its
+SHA-256 only changes when the plugin does.
+
+| Option | Does |
+|---|---|
+| `-o FILE` | Where to write it. |
+| `--no-check` | Packs without checking first. |
+| `--no-shake`, `--shake-symbols` | Tree shaking of packages from `wmpy pip`: off, or also inside modules. See [Python packages](/plugins/guides/python-packages/). |
+| `--json` | Prints `{"path", "size", "sha256", "entry", "shake"}`. |
+| `--entry-json` | Prints only the entry for an addon repository's `wmkeyboard-repo.json`, with the `sha256` and `sizeBytes` filled in. See [Publishing](/plugins/publishing/). |
+
+## wmpy stubs
+
+```bash
+wmpy stubs
+```
+
+Writes type stubs of the `wm` package to `.wmpy/stubs/`, so Pylance,
+pyright, mypy and PyCharm know `from wm import plugin, ui`: every function
+and its arguments, with the reference's text as its help. They also cover
+`plugin_test` in test files, and the `wm` and `ui` globals of an API 4
+plugin. `wmpy new` writes them for you; run this again after updating wmpy.
+
+The `pyrightconfig.json` from `wmpy new` has `"stubPath": ".wmpy/stubs"`.
+For mypy, set `MYPYPATH=.wmpy/stubs`. In PyCharm, mark `.wmpy/stubs` as a
+sources root.
+
+The stubs give names, arguments and help. Whether a call is allowed, such as
+a module used without its permission, is what `wmpy check` and the
+[language server](/plugins/language-server/) tell you.
+
+## wmpy run and wmpy preview
+
+`wmpy run` runs the plugin in the terminal: its panel, its buttons and its
+log. `wmpy preview` opens it in the browser and draws it again each time you
+save. See [Terminal and browser preview](/plugins/guides/terminal-and-preview/).
+
+## wmpy pip
+
+`wmpy pip install` copies a pure-Python package from PyPI into the plugin, after
+checking that it can run in the keyboard. `wmpy pack` then leaves out the
+parts the plugin never imports. See [Python packages](/plugins/guides/python-packages/).
+
+## wmpy publish
+
+`wmpy publish` sends the plugin to the community repository, or to an addon
+repository of your own. See [Publishing](/plugins/publishing/).
+
+## wmpy lsp, wmpy mcp and wmpy editor
+
+`wmpy lsp` is the language server editors talk to, with the same suggestions,
+checks and fixes as the plugin editor. See [Language server](/plugins/language-server/).
+
+`wmpy mcp` gives an AI coding agent the same tools. See [AI agents](/plugins/ai-agents/).
+
+`wmpy editor` installs the wmpy extension for VS Code, Zed or a JetBrains
+IDE. See [Editors](/plugins/editors/).
+
+## wmpy completions
+
+```bash
+wmpy completions zsh > ~/.zfunc/_wmpy
+```
+
+Prints tab completion for `bash`, `zsh`, `fish`, `elvish` or `powershell`.

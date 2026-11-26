@@ -17,7 +17,7 @@ import java.io.File
  * lives in `plugins/math-mode.cases.txt`; every row goes in through an
  * `input_changed` event and must come back out of the output blocks exactly.
  * The script and the corpus are mirrored from `plugins-src/math-mode/` in the
- * addon repository, where `test.py` runs the same rows on `wm-python-cli`:
+ * addon repository, where `test.py` runs the same rows on `wmpy test`:
  * edit them there and copy across.
  *
  * Two things only this side can prove: that the app's codec and caps are

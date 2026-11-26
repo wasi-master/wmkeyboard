@@ -224,7 +224,7 @@ the list can read it. The editor also offers `request["` keys as you type,
 flags a provider `plugin.json` does not declare, and writes a stub for one
 it declares that nothing answers.
 
-`wm-python-cli` calls a provider the way the keyboard does: through
+[`wmpy test`](/plugins/wmpy/#wmpy-test) calls a provider the way the keyboard does: through
 `transform`, with the action id `provider:<tool>/<id>` and the request as
 JSON. The reply comes back wrapped as `{"value": ...}`.
 
