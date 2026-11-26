@@ -4630,10 +4630,14 @@ private fun TopBar(
                             !(if (toolsOwnRow) toolsRowOpen else wantToolbar),
                     )
                     // Swipe down to hide keeps its flick; the toolbar's own
-                    // toolbox button still puts the tools away then.
+                    // toolbox button still puts the tools away then. A tools
+                    // row over the words is the toolbox buttons' to close too,
+                    // the same as the swipe up (#1410): caught anywhere on the
+                    // strip, the swipe down meant for the pages of more words
+                    // closed the row instead.
                     val toolsDown = rememberUpdatedState(
                         swipeTools && !state.settings.toolbarBehavior.swipeDownHide &&
-                            (if (toolsOwnRow) toolsRowOpen else toolbarOverride),
+                            (if (toolsOwnRow) toolsRowOpen && !stripButtonSwipes else toolbarOverride),
                     )
                     // Over the tools in the strip's place there are no words to
                     // swipe for, so a swipe up anywhere still puts them away.
