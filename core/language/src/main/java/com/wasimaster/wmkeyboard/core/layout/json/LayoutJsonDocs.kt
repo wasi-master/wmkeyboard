@@ -111,7 +111,8 @@ object LayoutJsonDocs {
         "LayerSpec.persistent" to
             "Keeps this layer on screen when the keyboard closes and opens again, instead of going back to the letters.",
         "LayerSpec.bottomRowAsLaidOut" to
-            "Draws the bottom row exactly as it is here. The Bottom row settings do not hide, move, swap or change its keys.",
+            "Keeps every bottom-row key where it is here. The Bottom row settings that move keys leave it alone; the emoji " +
+                "settings and a hidden 🌐 key still change a key in its own place.",
         "LayerSpec.themeId" to "A theme for while this layer is on screen, over the layout's theme and the settings.",
         "LayerSpec.flickHints" to
             "Whether this layer's flick keys draw their arms on the key face. Leave it out to follow the keyboard's setting.",

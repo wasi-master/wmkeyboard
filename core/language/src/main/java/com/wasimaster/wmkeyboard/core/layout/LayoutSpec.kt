@@ -125,9 +125,14 @@ data class LayerSpec(
      */
     val persistent: Boolean = false,
     /**
-     * Draw this grid exactly as it is laid out here, whatever the Bottom row
-     * settings would do to it: no 🌐 key hidden, moved to its shared slot or
-     * swapped with the comma, and no key turned into the emoji key (issue #420).
+     * Keep every key of this grid where it is laid out here, whatever the
+     * Bottom row settings would do to it: no 🌐 key taken out, moved to its
+     * shared slot or swapped with the comma, and no preset row (issue #420).
+     * The settings that only change what a key is still apply, each in the
+     * key's own seat: the 🌐 or comma key as the emoji key, and a hidden 🌐
+     * key as the emoji key in its place. Those move nothing, and frozen out
+     * too they did nothing at all on a layout that had ever had a bottom-row
+     * key edited (Telegram, 2026-11-27).
      *
      * Those settings act on every layout at draw time, so the editor showed one
      * bottom row and the keyboard drew another, and a key moved in the editor

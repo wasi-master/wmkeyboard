@@ -5680,9 +5680,7 @@
     <string name="layout_editor_arrow_row_title">방향키 행</string>
     <string name="layout_editor_autosave_label">앱이 모든 변경 사항을 저장합니다</string>
     <string name="layout_editor_bottom_row_caption">하단 행 키 설정으로 인해 키보드가 이 레이어의 하단 행을 다르게 표시합니다. 위의 그리드는 키보드와 동일하게 행을 보여줍니다:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">하단 행 키 설정은 모든 레이아웃의 하단 행을 변경합니다. 🌐 키를 숨기거나 이동하고, 쉼표와 위치를 바꾸거나 이모지 키로 만들 수 있습니다. 이 옵션을 켜면 여기에서 설정한 하단 행이 유지되며, 일반 설정의 영향을 받지 않습니다. 이 옵션을 켜거나 설정에 의해 변경된 키를 이동/수정하면 레이어는 키보드에 표시된 대로 행을 유지하므로 키가 움직이지 않습니다. 일반 설정에 따라 행이 다시 변경되도록 하려면 이 옵션을 끄세요.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">설정으로 변경된 키를 이동하거나 수정하면 이 기능이 켜집니다</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">맨 아래 행 키 설정은 이 레이어에 적용되지 않습니다</string>
     <string name="layout_editor_bottom_row_laid_out_title">이 하단 행을 현재 상태로 유지</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: 끔</string>
     <string name="layout_editor_bottom_row_settings_subtitle">모든 레이아웃의 맨 아래 행에 대한 키보드 동작을 변경합니다</string>

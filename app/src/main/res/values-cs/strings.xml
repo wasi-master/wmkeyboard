@@ -5681,9 +5681,7 @@
     <string name="layout_editor_arrow_row_title">Řada se šipkami</string>
     <string name="layout_editor_autosave_label">Aplikace ukládá každou změnu</string>
     <string name="layout_editor_bottom_row_caption">Klávesnice zobrazuje spodní řadu této vrstvy odlišně kvůli nastavení spodní řady kláves. Mřížka výše zobrazuje řadu tak, jak ji zobrazuje klávesnice:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Nastavení kláves spodního řádku mění spodní řádek každého rozložení. Můžete skrýt klávesu 🌐, přesunout ji, zaměnit ji s čárkou nebo z ní udělat klávesu pro emoji. Pokud je toto zapnuto, tato vrstva si zachová spodní řádek tak, jak jste jej zde vytvořili, a tato nastavení jej nezmění. Když toto zapnete nebo přesunete či změníte klávesu, kterou nastavení změnilo, vrstva si zachová řádek tak, jak jej klávesnice zobrazila, takže se žádná klávesa nepohne. Vypněte toto, aby nastavení mohla řádek opět měnit.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Přesunutí nebo změna klávesy, kterou nastavení změnilo, toto zapne</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Nastavení kláves spodního řádku tuto vrstvu nemění</string>
     <string name="layout_editor_bottom_row_laid_out_title">Ponechat tuto spodní řadu tak, jak je zde</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: vypnuto</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Změňte chování klávesnice pro spodní řádek v každém rozvržení</string>

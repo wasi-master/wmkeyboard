@@ -868,7 +868,7 @@ data class KeyboardLayout(
      */
     val persistent: Boolean = false,
     /**
-     * Whether the Bottom row settings leave this grid alone; see
+     * Whether the Bottom row settings leave this grid's keys where they are; see
      * [LayerSpec.bottomRowAsLaidOut]. On the compiled grid because
      * [arrangedBy] is handed the grid, not the spec.
      */

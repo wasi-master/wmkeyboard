@@ -5692,9 +5692,7 @@
     <string name="layout_editor_arrow_row_title">Vrstica s smernimi tipkami</string>
     <string name="layout_editor_autosave_label">Aplikacija shrani vsako spremembo</string>
     <string name="layout_editor_bottom_row_caption">Tipkovnica prikazuje spodnjo vrstico te plasti drugače zaradi teh nastavitev tipk v spodnji vrstici. Mreža zgoraj prikazuje vrstico tako, kot jo prikazuje tipkovnica:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Nastavitve tipk v spodnji vrstici spremenijo spodnjo vrstico vsake razporeditve. Lahko skrijejo tipko 🌐, jo premaknejo, zamenjajo z vejico ali spremenijo v tipko za emojije. Ko je to vklopljeno, ta plast ohrani svojo spodnjo vrstico takšno, kot ste jo ustvarili tukaj, in te nastavitve je ne spremenijo. Ko to vklopite ali premaknete oziroma spremenite tipko, ki so jo nastavitve spremenile, plast ohrani vrstico takšno, kot jo je prikazala tipkovnica, zato se nobena tipka ne premakne. Izklopite to, da dovolite nastavitvam, da znova spremenijo vrstico.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Premikanje ali spreminjanje tipke, ki so jo spremenile nastavitve, to vklopi</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Nastavitve tipk v spodnji vrstici ne spremenijo te plasti</string>
     <string name="layout_editor_bottom_row_laid_out_title">Ohranite to spodnjo vrstico takšno, kot je tukaj</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: izklopljeno</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Spremenite, kaj tipkovnica naredi s spodnjo vrstico vsake postavitve</string>

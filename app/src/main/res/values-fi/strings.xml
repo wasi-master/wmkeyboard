@@ -5681,9 +5681,7 @@
     <string name="layout_editor_arrow_row_title">Nuolinäppäinrivi</string>
     <string name="layout_editor_autosave_label">Sovellus tallentaa jokaisen muutoksen</string>
     <string name="layout_editor_bottom_row_caption">Näppäimistö näyttää tämän tason alarivin eri tavalla näiden alarivin näppäinasetusten vuoksi. Yllä oleva ruudukko näyttää rivin samalla tavalla kuin näppäimistö:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Alarivin näppäinten asetukset muuttavat jokaisen asettelun alariviä. Ne voivat piilottaa 🌐-näppäimen, siirtää sitä, vaihtaa sen paikkaa pilkun kanssa tai muuttaa sen emojinäppäimeksi. Kun tämä on päällä, tämä taso säilyttää alarivinsä sellaisena kuin olet sen tässä tehnyt, eivätkä kyseiset asetukset muuta sitä. Kun otat tämän käyttöön tai siirrät tai muutat näppäintä, jota asetukset muuttivat, taso säilyttää rivin sellaisena kuin näppäimistö sen näytti, joten mikään näppäin ei liiku. Kytke tämä pois päältä, jotta asetukset voivat muuttaa riviä uudelleen.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Näppäimen siirtäminen tai muuttaminen asetuksista kytkee tämän päälle</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Alarivin näppäinten asetukset eivät muuta tätä tasoa</string>
     <string name="layout_editor_bottom_row_laid_out_title">Pidä tämä alarivi sellaisena kuin se on tässä</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: pois</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Muuta sitä, mitä näppäimistö tekee jokaisen asettelun alariville</string>

@@ -5684,9 +5684,7 @@
     <string name="layout_editor_arrow_row_title">Baris tombol panah</string>
     <string name="layout_editor_autosave_label">Aplikasi menyimpan setiap perubahan</string>
     <string name="layout_editor_bottom_row_caption">Keyboard menampilkan baris bawah lapisan ini secara berbeda, karena pengaturan tombol Baris bawah ini. Kisi di atas menampilkan baris seperti yang dilakukan keyboard:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Pengaturan tombol Baris bawah mengubah baris bawah dari setiap tata letak. Pengaturan ini dapat menyembunyikan tombol 🌐, memindahkannya, menukarnya dengan koma, atau menjadikannya tombol emoji. Dengan mengaktifkan ini, lapisan ini mempertahankan baris bawahnya sebagaimana Anda buat di sini, dan pengaturan tersebut tidak mengubahnya. Saat Anda mengaktifkan ini, atau memindahkan maupun mengubah tombol yang diubah oleh pengaturan, lapisan tersebut mempertahankan baris sebagaimana keyboard menampilkannya, jadi tidak ada tombol yang berpindah. Nonaktifkan ini untuk membiarkan pengaturan mengubah baris lagi.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Memindahkan atau mengubah tombol yang diubah oleh pengaturan akan mengaktifkan ini</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Pengaturan tombol baris bawah tidak mengubah lapisan ini</string>
     <string name="layout_editor_bottom_row_laid_out_title">Pertahankan baris bawah ini seperti yang ada di sini</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: mati</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Ubah tindakan papan ketik pada baris bawah setiap tata letak</string>

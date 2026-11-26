@@ -5684,9 +5684,7 @@
     <string name="layout_editor_arrow_row_title">Fila de tecles de fletxa</string>
     <string name="layout_editor_autosave_label">L\'aplicació desa cada canvi</string>
     <string name="layout_editor_bottom_row_caption">El teclat mostra la fila inferior d\'aquesta capa de manera diferent, a causa d\'aquests paràmetres de les tecles de la fila inferior. La graella de dalt mostra la fila tal com ho fa el teclat:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">La configuració de les tecles de la fila inferior canvia la fila inferior de cada disposició. Poden amagar la tecla 🌐, moure-la, intercanviar-la amb la coma o convertir-la en una tecla d\'emojis. Amb això activat, aquesta capa manté la seva fila inferior tal com la configureu aquí, i aquesta configuració no la canvia. Quan activeu aquesta opció, o moveu o canvieu una tecla que la configuració havia alterat, la capa manté la fila tal com la mostrava el teclat, de manera que cap tecla es mou. Desactiveu-ho per permetre que la configuració torni a canviar la fila.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Moure o canviar una tecla que la configuració hagi modificat activa aquesta opció</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">La configuració de les tecles de la fila inferior no canvia aquesta capa</string>
     <string name="layout_editor_bottom_row_laid_out_title">Manté aquesta fila inferior tal com està aquí</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: desactivat</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Canvia el que fa el teclat a la fila inferior de cada disposició</string>

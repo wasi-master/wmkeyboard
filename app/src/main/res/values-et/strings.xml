@@ -5689,9 +5689,7 @@
     <string name="layout_editor_arrow_row_title">Noolenuppude rida</string>
     <string name="layout_editor_autosave_label">Rakendus salvestab iga muudatuse</string>
     <string name="layout_editor_bottom_row_caption">Klaviatuur näitab selle kihi alumist rida erinevalt, tänu nendele alumise rea klahvide seadetele. Ülaltoodud ruudustik näitab rida nii, nagu klaviatuur seda kuvab:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Alumise rea klahvide sätted muudavad iga paigutuse alumist rida. Saate peita 🌐 klahvi, seda teisaldada, vahetada selle komaga või muuta see emotikoniklahviks. Kui see on sisse lülitatud, säilitab see kiht oma alumise rea nii, nagu te selle siin kujundate, ja need sätted seda ei muuda. Kui lülitate selle sisse või teisaldate või muudate klahvi, mida sätted on muutnud, säilitab kiht rea nii, nagu klaviatuur seda näitas, seega ükski klahv ei liigu. Lülitage see välja, et sätted saaksid rida uuesti muuta.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Selle sisselülitamine toimub klahvi liigutamisel või muutmisel, mida seaded on muutnud</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Alumise rea klahvide sätted seda kihti ei muuda</string>
     <string name="layout_editor_bottom_row_laid_out_title">Jäta see alumine rida selliseks, nagu see siin on</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: väljas</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Muuda, mida klaviatuur iga paigutuse alumise reaga teeb</string>

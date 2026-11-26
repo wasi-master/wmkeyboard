@@ -5687,9 +5687,7 @@
     <string name="layout_editor_arrow_row_title">Rodyklių klavišų eilutė</string>
     <string name="layout_editor_autosave_label">Programa išsaugo kiekvieną pakeitimą</string>
     <string name="layout_editor_bottom_row_caption">Klaviatūra rodo šio sluoksnio apatinę eilutę kitaip dėl šių apatinės eilutės klavišų nustatymų. Aukščiau esantis tinklelis rodo eilutę taip, kaip ją rodo klaviatūra:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Apatinės eilutės klavišų nustatymai keičia kiekvieno išdėstymo apatinę eilutę. Jie gali paslėpti 🌐 klavišą, perkelti jį, sukeisti vietomis su kableliu arba paversti jaustukų klavišu. Kai šis nustatymas įjungtas, šis sluoksnis išlaiko savo apatinę eilutę tokią, kokią čia sukūrėte, ir tie nustatymai jos nekeičia. Kai įjungiate šią funkciją arba perkeliate ar pakeičiate klavišą, kurį pakeitė nustatymai, sluoksnis išlaiko eilutę tokią, kokią rodė klaviatūra, todėl joks klavišas nejuda. Išjunkite tai, kad nustatymai vėl galėtų keisti eilutę.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Tai įsijungia perkėlus arba pakeitus klavišą, kurį pakeitė nustatymai</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Apatinės eilutės klavišų nustatymai nekeičia šio sluoksnio</string>
     <string name="layout_editor_bottom_row_laid_out_title">Palikite šią apatinę eilutę tokią, kokia ji yra čia</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: išjungta</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Pakeiskite, ką klaviatūra daro su apatine kiekvieno išdėstymo eilute</string>

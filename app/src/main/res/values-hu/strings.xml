@@ -5680,9 +5680,7 @@
     <string name="layout_editor_arrow_row_title">Nyílbillentyűk sora</string>
     <string name="layout_editor_autosave_label">Az alkalmazás minden változtatást elment</string>
     <string name="layout_editor_bottom_row_caption">A billentyűzet eltérően jeleníti meg ennek a rétegnek az alsó sorát az Alsó sor billentyűi beállítások miatt. A fenti rács úgy mutatja a sort, ahogy a billentyűzet:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Az alsó sor billentyűinek beállításai az összes kiosztás alsó sorára vonatkoznak. Elrejtheted az 🌐 billentyűt, áthelyezheted, felcserélheted a vesszővel, vagy emoji-billentyűvé alakíthatod. Ha ezt bekapcsolod, ez a réteg megőrzi az itt kialakított alsó sort, és az általános beállítások nem módosítják. Amikor ezt bekapcsolod, vagy elmozgatsz, illetve megváltoztatsz egy olyan billentyűt, amelyet a beállítások módosítottak, a réteg megőrzi a billentyűzet szerinti sorrendet, így semelyik billentyű nem mozdul el. Kapcsold ki, ha azt szeretnéd, hogy a beállítások ismét módosíthassák a sort.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Olyan billentyű mozgatása vagy megváltoztatása, amelyet a beállítások módosítottak, bekapcsolja ezt</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Az alsó sor billentyűinek beállításai nem módosítják ezt a réteget</string>
     <string name="layout_editor_bottom_row_laid_out_title">Hagyja ezt az alsó sort olyannak, amilyen itt</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: ki</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Módosítsa, hogy a billentyűzet mit tegyen az alsó sorral minden elrendezésben</string>

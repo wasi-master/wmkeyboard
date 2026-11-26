@@ -5680,9 +5680,7 @@
     <string name="layout_editor_arrow_row_title">Hàng phím mũi tên</string>
     <string name="layout_editor_autosave_label">Ứng dụng tự động lưu mọi thay đổi</string>
     <string name="layout_editor_bottom_row_caption">Bàn phím hiển thị hàng dưới cùng của lớp này theo cách khác do cài đặt Phím hàng dưới cùng. Lưới ở trên hiển thị hàng như cách bàn phím thực hiện:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Cài đặt các phím hàng dưới cùng làm thay đổi hàng dưới cùng của mọi bố cục. Bạn có thể ẩn phím 🌐, di chuyển, hoán đổi phím này với dấu phẩy hoặc biến nó thành phím biểu tượng cảm xúc. Khi bật tùy chọn này, lớp này giữ nguyên hàng dưới cùng như cách bạn đã tạo, và các cài đặt chung sẽ không thay đổi nó. Khi bạn bật tùy chọn này, hoặc di chuyển/thay đổi phím đã được cài đặt chung sửa đổi, lớp sẽ giữ hàng đó như bàn phím đã hiển thị, đảm bảo không có phím nào di chuyển. Hãy tắt tùy chọn này để các cài đặt chung thay đổi lại hàng.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Việc di chuyển hoặc thay đổi một phím mà cài đặt đã thay đổi sẽ bật tính năng này</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Cài đặt phím hàng dưới cùng không thay đổi lớp này</string>
     <string name="layout_editor_bottom_row_laid_out_title">Giữ nguyên hàng dưới cùng này như hiện tại</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: tắt</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Thay đổi chức năng hàng dưới cùng của bàn phím trên mỗi bố cục</string>

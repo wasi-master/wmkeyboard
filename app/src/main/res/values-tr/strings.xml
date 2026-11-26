@@ -5681,9 +5681,7 @@
     <string name="layout_editor_arrow_row_title">Ok tuşları satırı</string>
     <string name="layout_editor_autosave_label">Uygulama her değişikliği kaydeder</string>
     <string name="layout_editor_bottom_row_caption">Klavye, bu katmanın alt satırını Alt satır tuşları ayarları nedeniyle farklı gösterir. Yukarıdaki ızgara, satırı klavyede göründüğü gibi gösterir:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Alt satır tuşları ayarları, her düzenin alt satırını değiştirir. 🌐 tuşunu gizleyebilir, taşıyabilir, virgülle değiştirebilir veya bir emoji tuşu yapabilirsiniz. Bu açıkken, bu katman alt satırını burada yaptığınız gibi korur ve bu ayarlar onu değiştirmez. Bunu açtığınızda veya ayarların değiştirdiği bir tuşu taşıyıp değiştirdiğinizde, katman satırı klavyenin gösterdiği gibi tutar, böylece hiçbir tuş hareket etmez. Ayarların satırı tekrar değiştirmesine izin vermek için bunu kapatın.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Ayarlar tarafından değiştirilen bir tuşu taşımak veya değiştirmek bunu etkinleştirir</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Alt satır tuş ayarları bu katmanı değiştirmez</string>
     <string name="layout_editor_bottom_row_laid_out_title">Bu alt satırı olduğu gibi tut</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: kapalı</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Klavyenin her düzenin alt satırına ne yapacağını değiştirin</string>

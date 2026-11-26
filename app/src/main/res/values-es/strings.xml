@@ -5690,9 +5690,7 @@
     <string name="layout_editor_arrow_row_title">Fila de teclas de flecha</string>
     <string name="layout_editor_autosave_label">La aplicación guarda cada cambio</string>
     <string name="layout_editor_bottom_row_caption">El teclado muestra la fila inferior de esta capa de forma diferente debido a la configuración de las teclas de la fila inferior. La cuadrícula de arriba muestra la fila tal como la muestra el teclado:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Los ajustes de las teclas de la fila inferior cambian la fila inferior de cada diseño. Pueden ocultar la tecla 🌐, moverla, intercambiarla con la coma o convertirla en una tecla de emoji. Con esto activado, esta capa mantiene su fila inferior tal como la creas aquí, y esos ajustes no la cambian. Cuando activas esto, o mueves o cambias una tecla que los ajustes cambiaron, la capa mantiene la fila tal como la mostró el teclado, por lo que ninguna tecla se mueve. Desactiva esto para permitir que los ajustes cambien la fila de nuevo.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Mover o cambiar una tecla que los ajustes cambiaron activa esto</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">La configuración de las teclas de la fila inferior no cambia esta capa</string>
     <string name="layout_editor_bottom_row_laid_out_title">Mantener esta fila inferior tal como está aquí</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: desactivado</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Cambia lo que hace el teclado en la fila inferior de cada diseño</string>

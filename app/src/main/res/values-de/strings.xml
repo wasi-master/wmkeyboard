@@ -5687,9 +5687,7 @@
     <string name="layout_editor_arrow_row_title">Pfeiltasten-Reihe</string>
     <string name="layout_editor_autosave_label">Die App speichert jede Änderung</string>
     <string name="layout_editor_bottom_row_caption">Die Tastatur zeigt die untere Zeile dieser Ebene aufgrund dieser Einstellungen für die untere Zeile anders an. Das Raster oben zeigt die Zeile so, wie die Tastatur sie darstellt:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Die Einstellungen für die Tasten der unteren Reihe ändern die untere Reihe jedes Layouts. Sie können die 🌐-Taste ausblenden, verschieben, mit dem Komma vertauschen oder zu einer Emoji-Taste machen. Wenn dies aktiviert ist, behält diese Ebene ihre untere Reihe so bei, wie Sie sie hier erstellen, und diese Einstellungen ändern sie nicht. Wenn Sie dies aktivieren oder eine Taste verschieben oder ändern, die durch die Einstellungen geändert wurde, behält die Ebene die Reihe so bei, wie die Tastatur sie angezeigt hat, sodass sich keine Taste bewegt. Deaktivieren Sie dies, damit die Einstellungen die Reihe wieder ändern können.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Das Verschieben oder ndern einer Taste, die durch die Einstellungen gendert wurde, schaltet dies ein.</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Die Einstellungen für die Tasten der unteren Reihe ändern diese Ebene nicht</string>
     <string name="layout_editor_bottom_row_laid_out_title">Behalte diese untere Reihe genau so bei</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: aus</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Lege fest, was die Tastatur mit der unteren Reihe jedes Layouts machen soll</string>

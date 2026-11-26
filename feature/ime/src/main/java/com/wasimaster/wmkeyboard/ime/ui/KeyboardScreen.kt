@@ -27095,7 +27095,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // it, since a 🌐 key there can be the only way back out of it, and an
     // expanded tablet grid arranges its own bottom row. A layer laid out by
     // hand in the editor is left alone by every one of these; see
-    // [LayerSpec.bottomRowAsLaidOut].
+    // [LayerSpec.bottomRowAsLaidOut]. The emoji rewrites below still reach it,
+    // each key in its own seat.
     //
     // The Bottom row preset (competitor gap list item 15) draws a whole row in
     // place of the letters page's own before any of that, and only there: the
@@ -27198,11 +27199,16 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val tabletGrid = state.layouts.gridWidth != null
     // Optional Gboard-style emoji key: the letter layouts' comma key becomes
     // an emoji-panel key, with comma demoted to its long-press alternates.
-    // Neither on a row the With emoji preset drew, which has its own.
-    val commaAsEmoji = state.settings.commaAsEmoji && !tabletGrid && !laidOut &&
+    // Neither on a row the With emoji preset drew, which has its own, nor on a
+    // laid-out row whose hidden 🌐 key already became one.
+    //
+    // Both reach a row laid out by hand: they change what a key is, in its own
+    // seat, and move nothing. Gated off it, they did nothing on any layout that
+    // had ever had a bottom-row key edited (Telegram, 2026-11-27).
+    val commaAsEmoji = state.settings.commaAsEmoji && !tabletGrid &&
         state.layoutMode == LayoutMode.LETTERS && !arrangement.ownEmojiKey
     // 🌐 → emoji key: language switching lives on spacebar swipes instead.
-    val globeAsEmoji = state.settings.globeAsEmoji && !tabletGrid && !laidOut && !arrangement.ownEmojiKey
+    val globeAsEmoji = state.settings.globeAsEmoji && !tabletGrid && !arrangement.ownEmojiKey
     // What the digits on the letters' long press become (issue #672). Auto is
     // the long-standing rule: with the dedicated number row on they are
     // redundant, so they go and those keys lead with their accents (or lose

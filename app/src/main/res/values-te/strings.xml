@@ -5691,9 +5691,7 @@
     <string name="layout_editor_arrow_row_title">బాణం కీలు వరుస</string>
     <string name="layout_editor_autosave_label">యాప్ ప్రతి మార్పును సేవ్ చేస్తుంది</string>
     <string name="layout_editor_bottom_row_caption">ఈ బాటమ్ రో కీస్ సెట్టింగ్‌ల కారణంగా కీబోర్డ్ ఈ లేయర్ యొక్క దిగువ వరుసను భిన్నంగా చూపుతుంది. పైన ఉన్న గ్రిడ్ కీబోర్డ్ చూపిన విధంగా వరుసను చూపుతుంది:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">దిగువ వరుస కీ సెట్టింగ్‌లు ప్రతి లేఅవుట్ యొక్క దిగువ వరుసను మారుస్తాయి. అవి 🌐 కీని దాచగలవు, తరలించగలవు, కామాతో మార్చుకోగలవు లేదా ఎమోజి కీగా మార్చగలవు. ఇది ఆన్‌లో ఉన్నప్పుడు, మీరు ఇక్కడ చేసినట్లుగా ఈ లేయర్ దాని దిగువ వరుసను అలాగే ఉంచుకుంటుంది మరియు ఆ సెట్టింగ్‌లు దానిని మార్చవు. మీరు దీన్ని ఆన్ చేసినప్పుడు లేదా సెట్టింగ్‌లు మార్చిన కీని తరలించినప్పుడు లేదా మార్చినప్పుడు, కీబోర్డ్ చూపిన విధంగానే లేయర్ వరుసను ఉంచుకుంటుంది, కాబట్టి ఏ కీ కదలదు. సెట్టింగ్‌లు మళ్లీ వరుసను మార్చడానికి దీన్ని ఆఫ్ చేయండి.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">సెట్టింగ్‌లు మార్చిన కీని తరలించడం లేదా మార్చడం వల్ల ఇది ఆన్ అవుతుంది</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">దిగువ వరుస కీ సెట్టింగ్‌లు ఈ లేయర్‌ను మార్చవు</string>
     <string name="layout_editor_bottom_row_laid_out_title">ఈ దిగువ వరుసను ఇక్కడ ఉన్నట్లుగానే ఉంచండి</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: ఆఫ్</string>
     <string name="layout_editor_bottom_row_settings_subtitle">ప్రతి లేఅవుట్‌లోని దిగువ వరుసకు కీబోర్డ్ ఏమి చేయాలో మార్చండి</string>

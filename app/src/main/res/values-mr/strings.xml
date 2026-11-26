@@ -5688,9 +5688,7 @@
     <string name="layout_editor_arrow_row_title">ॲरो कीज रो</string>
     <string name="layout_editor_autosave_label">ॲप प्रत्येक बदल सेव्ह करते</string>
     <string name="layout_editor_bottom_row_caption">कीबोर्ड या लेयरची खालची ओळ वेगळ्या प्रकारे दाखवतो, कारण या तळ ओळीच्या कीज (Bottom row keys) सेटिंग्ज आहेत. वरील ग्रिड कीबोर्ड जशी ओळ दाखवतो तशी दर्शवते:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">तळ ओळीच्या कीज (Bottom row keys) सेटिंग्ज प्रत्येक लेआउटची खालची ओळ बदलतात. त्या 🌐 की लपवू शकतात, हलवू शकतात, स्वल्पविरामाशी अदलाबदल करू शकतात किंवा तिला इमोजी की बनवू शकतात. हे चालू असताना, हा लेयर त्याची खालची ओळ तशीच ठेवतो जशी तुम्ही येथे बनवली आहे आणि त्या सेटिंग्ज ती बदलत नाहीत. जेव्हा तुम्ही हे चालू करता, किंवा सेटिंग्जने बदललेली की हलवता किंवा बदलता, तेव्हा लेयर ती ओळ तशीच ठेवतो जशी कीबोर्डने दाखवली होती, त्यामुळे कोणतीही की हलत नाही. सेटिंग्जला पुन्हा ओळ बदलू देण्यासाठी हे बंद करा.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">सेटिंग्जद्वारे बदललेली की हलवणे किंवा बदलणे हे वैशिष्ट्य सुरू करते</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">तळ ओळीच्या कीज (Bottom row keys) सेटिंग्ज या लेयरला बदलत नाहीत</string>
     <string name="layout_editor_bottom_row_laid_out_title">ही खालची ओळ जशी आहे तशीच ठेवा</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: बंद</string>
     <string name="layout_editor_bottom_row_settings_subtitle">प्रत्येक लेआउटच्या खालच्या ओळीसाठी कीबोर्ड काय करतो ते बदला</string>

@@ -5691,9 +5691,7 @@
     <string name="layout_editor_arrow_row_title">Bulttaustiņu rinda</string>
     <string name="layout_editor_autosave_label">Lietotne saglabā katru izmaiņu</string>
     <string name="layout_editor_bottom_row_caption">Tastatūra parāda šī slāņa apakšējo rindu citādi, pateicoties šiem apakšējās rindas taustiņu iestatījumiem. Režģis augstāk parāda rindu tā, kā to dara tastatūra:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Apakšējās rindas taustiņu iestatījumi maina katra izkārtojuma apakšējo rindu. Tie var paslēpt 🌐 taustiņu, pārvietot to, apmainīt ar komatu vai padarīt par emocijzīmju taustiņu. Kad šis ir ieslēgts, šis slānis saglabā savu apakšējo rindu tādu, kādu jūs to izveidojat šeit, un minētie iestatījumi to nemaina. Kad ieslēdzat šo opciju vai pārvietojat/maināt taustiņu, kuru iestatījumi ir mainījuši, slānis saglabā rindu tādu, kādu to rādīja tastatūra, tāpēc neviens taustiņš netiek pārvietots. Izslēdziet šo opciju, lai ļautu iestatījumiem atkal mainīt rindu.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Taustiņa pārvietošana vai mainīšana, ko iestatījumi ir mainījuši, ieslēdz šo funkciju</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Apakšējās rindas taustiņu iestatījumi nemaina šo slāni</string>
     <string name="layout_editor_bottom_row_laid_out_title">Atstāt šo apakšējo rindu tādu, kāda tā ir šeit</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: izslēgts</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Mainiet, ko tastatūra dara ar katra izkārtojuma apakšējo rindu</string>

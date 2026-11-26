@@ -5686,9 +5686,7 @@
     <string name="layout_editor_arrow_row_title">Række med piletaster</string>
     <string name="layout_editor_autosave_label">Appen gemmer hver ændring</string>
     <string name="layout_editor_bottom_row_caption">Tastaturet viser den nederste række af dette lag anderledes på grund af disse indstillinger for nederste række. Gitteret ovenfor viser rækken, som tastaturet gør:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Indstillingerne for taster i nederste række ændrer den nederste række i hvert layout. De kan skjule 🌐-tasten, flytte den, bytte den ud med kommaet eller gøre den til en emoji-tast. Når denne er slået til, beholder dette lag sin nederste række, som du har lavet den her, og disse indstillinger ændrer den ikke. Når du slår dette til, eller flytter eller ændrer en tast, som indstillingerne har ændret, beholder laget rækken, som tastaturet viste den, så ingen tast flytter sig. Slå dette fra for at lade indstillingerne ændre rækken igen.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Flytning eller ændring af en tast, som indstillingerne har ændret, slår dette til</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Indstillingerne for nederste række ændrer ikke dette lag</string>
     <string name="layout_editor_bottom_row_laid_out_title">Behold denne nederste række, som den er</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: fra</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Skift hvad tastaturet gør ved den nederste række i hvert layout</string>

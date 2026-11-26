@@ -5696,9 +5696,7 @@
     <string name="layout_editor_arrow_row_title">Safu ya vitufe vya mishale</string>
     <string name="layout_editor_autosave_label">Programu huhifadhi kila mabadiliko</string>
     <string name="layout_editor_bottom_row_caption">Kibodi inaonyesha safu ya chini ya safu hii kwa njia tofauti, kwa sababu ya mipangilio hii ya funguo za safu ya Chini. Gridi iliyo hapo juu inaonyesha safu kama kibodi inavyofanya:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Mipangilio ya funguo za safu ya chini hubadilisha safu ya chini ya kila mpangilio. Zinaweza kuficha ufunguo wa 🌐, kuuhamaisha, kuubadilisha na koma, au kuufanya uwe ufunguo wa emoji. Hii ikiwa imewashwa, safu hii huhifadhi safu yake ya chini kama unavyoiunda hapa, na mipangilio hiyo haibadilishi. Unapowasha hii, au kuhamaisha au kubadilisha ufunguo ambao mipangilio ilibadilisha, safu huhifadhi safu mlalo kama kibodi ilivyoionyesha, kwa hivyo hakuna ufunguo unaohamia. Zima hii ili kuruhusu mipangilio kubadilisha safu mlalo tena.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Kusogeza au kubadilisha ufunguo ambao mipangilio ilibadilisha huwasha hii</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Mipangilio ya funguo za safu ya Chini haibadilishi safu hii</string>
     <string name="layout_editor_bottom_row_laid_out_title">Weka safu hii ya chini kama ilivyo hapa</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: imezimwa</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Badilisha kile kibodi hufanya kwenye safu ya chini ya kila mpangilio</string>

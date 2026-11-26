@@ -5686,9 +5686,7 @@
     <string name="layout_editor_arrow_row_title">שורת מקשי חצים</string>
     <string name="layout_editor_autosave_label">האפליקציה שומרת כל שינוי</string>
     <string name="layout_editor_bottom_row_caption">המקלדת מציגה את השורה התחתונה של שכבה זו בצורה שונה, בגלל הגדרות מקשי השורה התחתונה האלו. הרשת למעלה מציגה את השורה כפי שהיא מופיעה במקלדת:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">הגדרות מקשי השורה התחתונה משנות את השורה התחתונה של כל פריסה. הן יכולות להסתיר את מקש ה-🌐, להזיז אותו, להחליף אותו בפסיק, או להפוך אותו למקש אימוג\'י. כשהגדרה זו מופעלת, שכבה זו שומרת על השורה התחתונה כפי שעיצבת אותה כאן, וההגדרות ההן לא משנות אותה. כשאתה מפעיל זאת, או מזיז/משנה מקש שההגדרות שינו, השכבה שומרת על השורה כפי שהמקלדת הציגה אותה, כך שאף מקש לא זז. כבה זאת כדי לאפשר להגדרות לשנות את השורה שוב.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">הזזה או שינוי של מקש שהגדרות המערכת שינו מפעילים זאת</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">הגדרות מקשי השורה התחתונה אינן משנות שכבה זו</string>
     <string name="layout_editor_bottom_row_laid_out_title">השאר את השורה התחתונה הזו כפי שהיא כאן</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: כבוי</string>
     <string name="layout_editor_bottom_row_settings_subtitle">שנה את פעולת המקלדת בשורה התחתונה של כל פריסה</string>

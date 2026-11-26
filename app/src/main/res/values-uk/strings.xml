@@ -5690,9 +5690,7 @@
     <string name="layout_editor_arrow_row_title">Рядок клавіш зі стрілками</string>
     <string name="layout_editor_autosave_label">Додаток зберігає кожну зміну</string>
     <string name="layout_editor_bottom_row_caption">Клавіатура відображає нижній рядок цього шару інакше через налаштування клавіш нижнього рядка. Сітка вище показує рядок так, як він виглядає на клавіатурі:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Налаштування клавіш нижнього ряду змінюють нижній ряд кожної розкладки. Ви можете приховати клавішу 🌐, перемістити її, поміняти місцями з комою або зробити клавішею емодзі. Якщо цей параметр увімкнено, цей шар зберігає свій нижній ряд у тому вигляді, у якому ви його створили, і ці налаштування не змінюють його. Коли ви вмикаєте цей параметр або переміщуєте чи змінюєте клавішу, яку змінили налаштування, шар зберігає ряд таким, яким його показувала клавіатура, тому жодна клавіша не зміщується. Вимкніть це, щоб дозволити налаштуванням знову змінити ряд.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Переміщення або зміна клавіші, яку змінили налаштування, вмикає це</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Налаштування клавіш нижнього рядка не змінюють цей шар</string>
     <string name="layout_editor_bottom_row_laid_out_title">Залишити цей нижній рядок таким, як він є</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: вимк.</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Змінити поведінку клавіатури для нижнього рядка кожного макета</string>

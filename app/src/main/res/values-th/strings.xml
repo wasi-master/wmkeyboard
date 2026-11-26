@@ -5679,9 +5679,7 @@
     <string name="layout_editor_arrow_row_title">แถวปุ่มลูกศร</string>
     <string name="layout_editor_autosave_label">แอปจะบันทึกทุกการเปลี่ยนแปลง</string>
     <string name="layout_editor_bottom_row_caption">แป้นพิมพ์จะแสดงแถวล่างของเลเยอร์นี้แตกต่างออกไป เนื่องจากการตั้งค่าปุ่มแถวล่างเหล่านี้ ตารางด้านบนแสดงแถวดังกล่าวตามที่แป้นพิมพ์แสดง:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">การตั้งค่าแถวล่างสุดจะเปลี่ยนแถวล่างของทุกเลย์เอาต์ คุณสามารถซ่อนปุ่ม 🌐 ย้ายตำแหน่ง สลับกับเครื่องหมายจุลภาค หรือเปลี่ยนเป็นปุ่มอีโมจิได้ เมื่อเปิดใช้งานนี้ เลเยอร์นี้จะคงแถวล่างไว้ตามที่คุณตั้งค่าไว้ที่นี่ โดยการตั้งค่าเหล่านั้นจะไม่เปลี่ยนแปลง เมื่อคุณเปิดใช้งานนี้ หรือย้ายหรือเปลี่ยนปุ่มที่การตั้งค่าเคยเปลี่ยนไป เลเยอร์จะคงแถวไว้ตามที่คีย์บอร์ดแสดง เพื่อไม่ให้ปุ่มเคลื่อนที่ ปิดใช้งานนี้เพื่อให้การตั้งค่าเปลี่ยนแถวได้อีกครั้ง</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">การย้ายหรือเปลี่ยนปุ่มที่การตั้งค่าได้เปลี่ยนไปแล้วจะเปิดใช้งานสิ่งนี้</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">การตั้งค่าปุ่มแถวล่างสุดไม่มีผลกับเลเยอร์นี้</string>
     <string name="layout_editor_bottom_row_laid_out_title">คงแถวล่างนี้ไว้ตามที่แสดงที่นี่</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: ปิด</string>
     <string name="layout_editor_bottom_row_settings_subtitle">เปลี่ยนการทำงานของแป้นพิมพ์สำหรับแถวล่างสุดของทุกเลย์เอาต์</string>

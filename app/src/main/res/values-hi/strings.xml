@@ -5694,9 +5694,7 @@
     <string name="layout_editor_arrow_row_title">एरो कीज़ पंक्ति</string>
     <string name="layout_editor_autosave_label">ऐप हर बदलाव को सहेजता है</string>
     <string name="layout_editor_bottom_row_caption">कीबोर्ड इस लेयर की निचली पंक्ति को अलग तरह से दिखाता है, क्योंकि ये \'निचली पंक्ति की कुंजियाँ\' सेटिंग्स हैं। ऊपर दिया गया ग्रिड पंक्ति को वैसे ही दिखाता है जैसे कीबोर्ड दिखाता है:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">नीचे की पंक्ति की कुंजियाँ हर लेआउट की नीचे की पंक्ति को बदल देती हैं। वे 🌐 कुंजी को छिपा सकते हैं, उसे स्थानांतरित कर सकते हैं, उसे अल्पविराम के साथ बदल सकते हैं या उसे इमोजी कुंजी बना सकते हैं। इसे चालू करने पर, यह लेयर अपनी नीचे की पंक्ति को वैसे ही बनाए रखती है जैसे आपने इसे यहाँ बनाया है, और वे सेटिंग्स इसे बदलती नहीं हैं। जब आप इसे चालू करते हैं, या कोई ऐसी कुंजी ले जाते हैं या बदलते हैं जिसे सेटिंग्स ने बदल दिया था, तो लेयर पंक्ति को वैसा ही बनाए रखती है जैसा कि कीबोर्ड ने दिखाया था, इसलिए कोई भी कुंजी अपनी जगह से नहीं हिलती है। सेटिंग्स को फिर से पंक्ति बदलने देने के लिए इसे बंद करें।</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">सेटिंग्स द्वारा बदली गई किसी कुंजी को हिलाने या बदलने से यह चालू हो जाता है</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">नीचे वाली पंक्ति (Bottom row) की कुंजियों की सेटिंग इस लेयर को नहीं बदलती</string>
     <string name="layout_editor_bottom_row_laid_out_title">इस निचली पंक्ति को वैसा ही रखें जैसा यह यहाँ है</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: बंद</string>
     <string name="layout_editor_bottom_row_settings_subtitle">प्रत्येक लेआउट की निचली पंक्ति के लिए कीबोर्ड क्या करता है, इसे बदलें</string>

@@ -5679,9 +5679,7 @@
     <string name="layout_editor_arrow_row_title">Ligne des touches fléchées</string>
     <string name="layout_editor_autosave_label">L\'application enregistre chaque modification</string>
     <string name="layout_editor_bottom_row_caption">Le clavier affiche la ligne inférieure de cette couche différemment en raison de ces paramètres de touches de ligne inférieure. La grille ci-dessus montre la ligne telle que le clavier l\'affiche :</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Les paramètres des touches de la rangée inférieure modifient la rangée inférieure de chaque disposition. Ils permettent de masquer la touche 🌐, de la déplacer, de l\'échanger avec la virgule ou d\'en faire une touche emoji. Si cette option est activée, cette couche conserve sa rangée inférieure telle que vous l\'avez configurée ici, et ces paramètres ne la modifieront pas. Lorsque vous activez cette option, ou que vous déplacez ou modifiez une touche affectée par les paramètres, la couche conserve la rangée telle qu\'elle était affichée sur le clavier, afin qu\'aucune touche ne bouge. Désactivez cette option pour permettre aux paramètres de modifier à nouveau la rangée.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Déplacer ou modifier une touche que les paramètres ont modifiée active cette option</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Les paramètres des touches de la rangée inférieure ne modifient pas cette couche</string>
     <string name="layout_editor_bottom_row_laid_out_title">Conserver cette rangée inférieure telle quelle</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s : désactivé</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Modifier l\'action du clavier sur la rangée inférieure de chaque disposition</string>

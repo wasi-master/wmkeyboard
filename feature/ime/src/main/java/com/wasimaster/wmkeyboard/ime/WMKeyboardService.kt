@@ -3772,6 +3772,7 @@ open class WMKeyboardService : InputMethodService() {
      * not a nag, and a language kept without one is a choice.
      */
     private val glideWordListNoticed by lazy { WordListOfferPrefs(this) }
+    private val globeEmojiNoticed by lazy { BottomRowNoticePrefs(this) }
     private val findHistory by lazy { FindHistoryPrefs(this) }
 
     /**
@@ -10494,6 +10495,41 @@ open class WMKeyboardService : InputMethodService() {
         trace(ImeTrace.START_INPUT_VIEW) { startInputView(info, restarting) }
         // A field the trackpad's mouse was left up over gets it back (#1411).
         resumeTrackpadPointer()
+        tellGlobeOpensEmoji()
+    }
+
+    /**
+     * Says once per layout that its own 🌐 key now opens emoji, on a layout
+     * that keeps its bottom row as laid out (a Japanese flick pad, an imported
+     * frame, a row edited in the layout editor).
+     *
+     * "Emoji key instead of 🌐" never reached those rows until 2026-11-27, so
+     * their 🌐 key stayed a language key while every other layout's turned
+     * into the emoji key. It reaches them now (Telegram, 2026-11-27), which on
+     * the shipped settings takes a language key away from someone who may have
+     * been using it. Only someone with a second layout to switch to loses
+     * anything, so only they are told, and with the way to keep the key.
+     *
+     * A row an editor edit wrote down with the emoji key already in the 🌐
+     * key's seat looked like this before and after, so has no 🌐 key here
+     * and is not told about.
+     */
+    private fun tellGlobeOpensEmoji() {
+        val state = _uiState.value
+        val settings = state.settings
+        if (!settings.globeAsEmoji || !settings.showGlobeKey) return
+        // The expanded tablet grid keeps its 🌐 key; see currentLayout.
+        if (state.layouts.gridWidth != null) return
+        val letters = state.layouts.letters
+        if (!letters.bottomRowAsLaidOut) return
+        if (letters.rows.none { row -> row.any { it.action == KeyAction.LanguageSwitch } }) return
+        if (settings.switchLayoutIds().size < 2) return
+        if (!globeEmojiNoticed.add(state.layoutId)) return
+        Toast.makeText(
+            this,
+            getString(R.string.ime_service_globe_opens_emoji_toast, state.layoutName),
+            Toast.LENGTH_LONG,
+        ).show()
     }
 
     private fun startInputView(info: EditorInfo?, restarting: Boolean) {
@@ -23406,6 +23442,7 @@ open class WMKeyboardService : InputMethodService() {
         // not working.
         preloadLayoutSoundPack(from, spec.id)
         refreshKarContext()
+        tellGlobeOpensEmoji()
         // The engine follows the switch in the same frame, and the strip is
         // rebuilt off it. Left to the settings write at the bottom of this
         // function to come back round, both went on answering in the language

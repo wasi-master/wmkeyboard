@@ -5680,9 +5680,7 @@
     <string name="layout_editor_arrow_row_title">Riga dei tasti freccia</string>
     <string name="layout_editor_autosave_label">L\'app salva ogni modifica</string>
     <string name="layout_editor_bottom_row_caption">La tastiera mostra la riga inferiore di questo livello in modo diverso, a causa di queste impostazioni dei tasti della riga inferiore. La griglia sopra mostra la riga come fa la tastiera:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Le impostazioni dei tasti della riga inferiore modificano la riga inferiore di ogni layout. Possono nascondere il tasto 🌐, spostarlo, scambiarlo con la virgola o trasformarlo in un tasto emoji. Con questa opzione attiva, questo livello mantiene la sua riga inferiore così come la crei qui, e le impostazioni non la cambiano. Quando attivi questa opzione, o sposti/modifichi un tasto che le impostazioni hanno cambiato, il livello mantiene la riga come mostrato dalla tastiera, in modo che nessun tasto si sposti. Disattivala per consentire alle impostazioni di modificare nuovamente la riga.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Spostare o modificare un tasto che le impostazioni hanno cambiato attiva questa opzione</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Le impostazioni dei tasti della riga inferiore non modificano questo livello</string>
     <string name="layout_editor_bottom_row_laid_out_title">Mantieni questa riga inferiore così com\'è</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: disattivato</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Cambia l\'effetto della tastiera sulla riga inferiore di ogni layout</string>

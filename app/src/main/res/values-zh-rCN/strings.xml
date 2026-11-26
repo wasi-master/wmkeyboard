@@ -5675,9 +5675,7 @@
     <string name="layout_editor_arrow_row_title">方向键行</string>
     <string name="layout_editor_autosave_label">应用会自动保存每一次更改</string>
     <string name="layout_editor_bottom_row_caption">由于底行按键设置的原因，键盘显示此层底行的方式有所不同。上方的网格展示了键盘显示的底行效果：</string>
-    <string name="layout_editor_bottom_row_laid_out_info">“底行按键”设置会更改每个布局的底行。您可以隐藏 🌐 键、移动它、将其与逗号交换，或者将其设为表情符号键。开启此选项后，该层将保留您在此处设置的底行布局，不受全局设置的影响。当您启用此选项，或移动/更改了全局设置所涉及的按键时，该层将保持键盘当前显示的行布局，确保按键位置不变。关闭此选项可允许全局设置再次更改该行。</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">移动或更改设置已修改过的按键会开启此功能</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">底部按键行设置不会更改此层</string>
     <string name="layout_editor_bottom_row_laid_out_title">保持此底行原样</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s：关</string>
     <string name="layout_editor_bottom_row_settings_subtitle">更改键盘对每个布局底行的操作</string>

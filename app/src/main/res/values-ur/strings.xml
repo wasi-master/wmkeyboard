@@ -5684,9 +5684,7 @@
     <string name="layout_editor_arrow_row_title">تیر والی کلیدوں کی قطار</string>
     <string name="layout_editor_autosave_label">ایپ ہر تبدیلی کو محفوظ کرتی ہے</string>
     <string name="layout_editor_bottom_row_caption">کی بورڈ اس لیئر کی نچلی قطار کو مختلف طریقے سے دکھاتا ہے، ان نچلی قطار کی کلیدوں کی ترتیبات کی وجہ سے۔ اوپر دیا گیا گرڈ قطار کو ویسا ہی دکھاتا ہے جیسا کہ کی بورڈ دکھاتا ہے:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">نچلی قطار کی کلیدوں کی ترتیبات ہر لے آؤٹ کی نچلی قطار کو تبدیل کر دیتی ہیں۔ وہ 🌐 کلید کو چھپا سکتی ہیں، اسے منتقل کر سکتی ہیں، کوما کے ساتھ تبدیل کر سکتی ہیں، یا اسے ایموجی کلید بنا سکتی ہیں۔ اسے آن کرنے سے، یہ تہہ اپنی نچلی قطار کو اسی طرح رکھتی ہے جیسا آپ اسے یہاں ترتیب دیتے ہیں، اور وہ ترتیبات اسے تبدیل نہیں کرتیں۔ جب آپ اسے آن کرتے ہیں، یا کسی ایسی کلید کو منتقل یا تبدیل کرتے ہیں جسے ترتیبات نے تبدیل کیا ہو، تو تہہ قطار کو ویسا ہی رکھتی ہے جیسا کی بورڈ پر دکھایا گیا تھا، تاکہ کوئی کلید اپنی جگہ سے نہ ہلے۔ ترتیبات کو دوبارہ قطار تبدیل کرنے کی اجازت دینے کے لیے اسے آف کریں۔</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">ترتیبات کے ذریعے تبدیل شدہ کلید کو منتقل یا تبدیل کرنے سے یہ آن ہو جاتا ہے</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">نچلی قطار (Bottom row) کی کلیدوں کی ترتیبات اس تہہ کو تبدیل نہیں کرتیں</string>
     <string name="layout_editor_bottom_row_laid_out_title">اس نچلی قطار کو ویسا ہی رکھیں جیسا یہ یہاں ہے</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: بند</string>
     <string name="layout_editor_bottom_row_settings_subtitle">تبدیل کریں کہ کی بورڈ ہر لے آؤٹ کی نچلی قطار کے ساتھ کیا کرتا ہے</string>

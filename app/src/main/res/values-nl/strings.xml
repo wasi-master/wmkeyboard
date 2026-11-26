@@ -5687,9 +5687,7 @@
     <string name="layout_editor_arrow_row_title">Pijltjestoetsenrij</string>
     <string name="layout_editor_autosave_label">De app slaat elke wijziging op</string>
     <string name="layout_editor_bottom_row_caption">Het toetsenbord toont de onderste rij van deze laag anders vanwege de instellingen voor de onderste rij. Het raster hierboven toont de rij zoals het toetsenbord deze weergeeft:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">De instellingen voor de onderste rij toetsen veranderen de onderste rij van elke lay-out. Ze kunnen de 🌐-toets verbergen, verplaatsen, omwisselen met de komma of er een emoji-toets van maken. Als dit is ingeschakeld, behoudt deze laag de onderste rij zoals je die hier maakt, en veranderen die instellingen deze niet. Wanneer je dit inschakelt, of een toets verplaatst of wijzigt die door de instellingen is gewijzigd, behoudt de laag de rij zoals het toetsenbord deze toonde, zodat er geen toetsen verschuiven. Schakel dit uit om de instellingen de rij weer te laten wijzigen.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Het verplaatsen of wijzigen van een toets die door de instellingen is aangepast, schakelt dit in</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">De instellingen voor toetsen op de onderste rij wijzigen deze laag niet</string>
     <string name="layout_editor_bottom_row_laid_out_title">Houd deze onderste rij zoals hij hier is</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: uit</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Wijzig wat het toetsenbord doet met de onderste rij van elke lay-out</string>

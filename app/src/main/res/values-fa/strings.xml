@@ -5692,9 +5692,7 @@
     <string name="layout_editor_arrow_row_title">ردیف کلیدهای جهت‌نما</string>
     <string name="layout_editor_autosave_label">برنامه هر تغییر را ذخیره می‌کند</string>
     <string name="layout_editor_bottom_row_caption">صفحه‌کلید به دلیل این تنظیمات کلیدهای ردیف پایین، ردیف پایینی این لایه را به شکل متفاوتی نمایش می‌دهد. شبکه‌ای که در بالا می‌بینید، این ردیف را همان‌طور که در صفحه‌کلید نمایش داده می‌شود، نشان می‌دهد:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">تنظیمات کلیدهای ردیف پایین، ردیف پایین همه طرح‌بندی‌ها را تغییر می‌دهد. آن‌ها می‌توانند کلید 🌐 را مخفی کنند، جابجا کنند، با کاما عوض کنند یا آن را به یک کلید ایموجی تبدیل کنند. با فعال بودن این گزینه، این لایه ردیف پایین خود را همان‌طور که اینجا تنظیم می‌کنید حفظ می‌کند و آن تنظیمات دیگر آن را تغییر نمی‌دهند. وقتی این گزینه را روشن می‌کنید، یا کلیدی را که تنظیمات تغییر داده‌اند جابجا یا عوض می‌کنید، لایه ردیف را همان‌طور که صفحه‌کلید نشان داده حفظ می‌کند تا هیچ کلیدی جابجا نشود. این گزینه را خاموش کنید تا اجازه دهید تنظیمات دوباره ردیف را تغییر دهند.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">جابه‌جایی یا تغییر کلیدی که تنظیمات آن را اصلاح کرده است، باعث روشن شدن این گزینه می‌شود</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">تنظیمات کلیدهای ردیف پایین این لایه را تغییر نمی‌دهد</string>
     <string name="layout_editor_bottom_row_laid_out_title">این ردیف پایین را همان‌طور که هست نگه دار</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: خاموش</string>
     <string name="layout_editor_bottom_row_settings_subtitle">تغییر عملکرد صفحه‌کلید در ردیف پایین همه طرح‌بندی‌ها</string>

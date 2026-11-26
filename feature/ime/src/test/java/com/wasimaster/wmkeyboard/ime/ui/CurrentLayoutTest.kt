@@ -579,19 +579,43 @@ class CurrentLayoutTest {
         assertEquals(shared.map { it.width }, drawn.map { it.width })
     }
 
-    /** Issue #420: a layer laid out by hand in the editor is past every bottom-row setting. */
+    /**
+     * Issue #420: a layer laid out by hand in the editor is past every
+     * bottom-row setting that moves keys. The 🌐 key here stays a 🌐 key
+     * because "Emoji key instead of 🌐" is off.
+     */
     @Test
     fun `a layer laid out by hand is drawn as it is stored`() {
-        val qwerty = BuiltInLayouts.QWERTY
-        val letters = requireNotNull(qwerty.layer(LayoutLayer.LETTERS))
-        val spec = qwerty.copy(
-            layers = qwerty.layers + (LayoutLayer.LETTERS.key to letters.copy(bottomRowAsLaidOut = true)),
-        )
-        val s = state(spec = spec, settings = KeyboardSettings(showGlobeKey = false, commaAsEmoji = true))
+        val s = state(spec = laidOutQwerty(), settings = KeyboardSettings(globeAsEmoji = false))
         val stored = s.layouts.letters.rows.last()
         val drawn = currentLayout(s).rows.last()
         assertEquals(stored.map { it.label to it.action }, drawn.map { it.label to it.action })
         assertEquals(stored.map { it.width }, drawn.map { it.width })
+    }
+
+    /**
+     * The emoji settings still reach a layer laid out by hand, in the key's own
+     * seat (Telegram, 2026-11-27): they used to do nothing on any layout that
+     * had ever had a bottom-row key edited.
+     */
+    @Test
+    fun `a layer laid out by hand still takes the emoji key in the globe's seat`() {
+        val s = state(spec = laidOutQwerty(), settings = KeyboardSettings(globeAsEmoji = true))
+        val stored = s.layouts.letters.rows.last()
+        val drawn = currentLayout(s).rows.last()
+        val globeAt = stored.indexOfFirst { it.action == KeyAction.LanguageSwitch }
+        assertTrue("QWERTY's bottom row has a 🌐 key", globeAt >= 0)
+        assertEquals(KeyAction.Emoji, drawn[globeAt].action)
+        assertEquals(stored.map { it.width }, drawn.map { it.width })
+        assertEquals(stored.size, drawn.size)
+    }
+
+    private fun laidOutQwerty(): com.wasimaster.wmkeyboard.core.layout.LayoutSpec {
+        val qwerty = BuiltInLayouts.QWERTY
+        val letters = requireNotNull(qwerty.layer(LayoutLayer.LETTERS))
+        return qwerty.copy(
+            layers = qwerty.layers + (LayoutLayer.LETTERS.key to letters.copy(bottomRowAsLaidOut = true)),
+        )
     }
 
     /**

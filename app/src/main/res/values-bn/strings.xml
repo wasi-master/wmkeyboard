@@ -5705,9 +5705,7 @@
     <string name="layout_editor_arrow_row_title">অ্যারো কী-এর সারি</string>
     <string name="layout_editor_autosave_label">অ্যাপটি প্রতিটি পরিবর্তন সংরক্ষণ করে</string>
     <string name="layout_editor_bottom_row_caption">এই লেয়ারের নিচের সারিটি কিবোর্ডে ভিন্নভাবে দেখানো হয়েছে, কারণ এই \'নিচের সারির কী\' (Bottom row keys) সেটিংসটি চালু আছে। উপরের গ্রিডটি কিবোর্ডের মতোই সারিটি প্রদর্শন করছে:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">নিচের সারির কি সেটিংস প্রতিটি লেআউটের নিচের সারি পরিবর্তন করে। এগুলো 🌐 কি লুকাতে পারে, সরাতে পারে, কমার সাথে অদলবদল করতে পারে বা এটিকে একটি ইমোজি কি-তে পরিণত করতে পারে। এটি চালু থাকলে, এই লেয়ারটি তার নিচের সারিটিকে এখানে যেভাবে তৈরি করেছেন সেভাবেই রাখে এবং সেই সেটিংসগুলো এটিকে পরিবর্তন করে না। আপনি যখন এটি চালু করেন, অথবা সেটিংস দ্বারা পরিবর্তিত কোনো কি সরান বা পরিবর্তন করেন, তখন লেয়ারটি সারিটিকে কিবোর্ডে যেভাবে দেখানো হয়েছিল সেভাবেই রাখে, তাই কোনো কি সরে না। সেটিংসকে আবার সারি পরিবর্তন করতে দিতে এটি বন্ধ করুন।</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">সেটিংস দ্বারা পরিবর্তিত কোনো কি সরানো বা পরিবর্তন করলে এটি চালু হয়ে যায়</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">বটম রো কী-এর সেটিংস এই লেয়ারকে পরিবর্তন করে না</string>
     <string name="layout_editor_bottom_row_laid_out_title">এই নিচের সারিটি যেমন আছে তেমনই রাখুন</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: বন্ধ</string>
     <string name="layout_editor_bottom_row_settings_subtitle">প্রতিটি লেআউটের নিচের সারিতে কিবোর্ড কী কাজ করবে তা পরিবর্তন করুন</string>

@@ -5690,9 +5690,7 @@
     <string name="layout_editor_arrow_row_title">Rând taste săgeți</string>
     <string name="layout_editor_autosave_label">Aplicația salvează fiecare modificare</string>
     <string name="layout_editor_bottom_row_caption">Tastatura afișează diferit rândul de jos al acestui strat, din cauza acestor setări ale tastelor din rândul de jos. Grila de mai sus arată rândul așa cum îl afișează tastatura:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Setările tastelor de pe rândul de jos modifică rândul de jos al fiecărui layout. Acestea pot ascunde tasta 🌐, o pot muta, o pot schimba cu virgula sau o pot transforma într-o tastă emoji. Cu această opțiune activată, acest strat își păstrează rândul de jos așa cum îl creezi aici, iar acele setări nu îl modifică. Când activezi acest lucru, sau muți ori schimbi o tastă pe care setările au modificat-o, stratul păstrează rândul așa cum l-a afișat tastatura, deci nicio tastă nu se mișcă. Dezactivează acest lucru pentru a permite setărilor să modifice din nou rândul.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Mutarea sau modificarea unei taste pe care setările au schimbat-o activează această opțiune</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Setările tastelor din rândul de jos nu modifică acest strat</string>
     <string name="layout_editor_bottom_row_laid_out_title">Păstrați acest rând de jos așa cum este aici</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: oprit</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Schimbă ceea ce face tastatura în rândul de jos al fiecărui aspect</string>

@@ -5695,9 +5695,7 @@
     <string name="layout_editor_arrow_row_title">Ulayini wezinkinobho zomcibisholo</string>
     <string name="layout_editor_autosave_label">Uhlelo lokusebenza lulondoloza zonke izinguquko</string>
     <string name="layout_editor_bottom_row_caption">Ikhibhodi ikhombisa umugqa ongezansi walolu lwembo ngendlela ehlukile, ngenxa yalezi zilungiselelo zezinkinobho zomugqa ongezansi. Igridi engenhla ikhombisa umugqa njengoba ikhibhodi yenza:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Izilungiselelo zokhiye bomugqa ongezansi zishintsha umugqa ongezansi wayo yonke isakhiwo. Zikwazi ukufihla ukhiye u-🌐, ukuwuhambisa, ukuwushintshanisa nesikhafula, noma ukuwenza ube ukhiye we-emoji. Uma lokhu kuvuliwe, lo lera ugcina umugqa wawo ongezansi njengoba uwenze lapha, futhi lezo zilungiselelo azikuwushintshi. Uma uvula lokhu, noma uhambisa noma ushintsha ukhiye owashintshwa izilungiselelo, ilera igcina umugqa njengoba ikhibhodi iwuvezile, ngakho awukho ukhiye ohambayo. Cisha lokhu ukuze uvumele izilungiselelo ukuthi zishintshe umugqa futhi.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Ukuhambisa noma ukushintsha inkinobho eshintshwe yizilungiselelo kuvula lokhu</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Izilungiselelo zokhiye bomugqa ongezansi azishintshi lo lera</string>
     <string name="layout_editor_bottom_row_laid_out_title">Gcina lo mugqa ongezansi njengoba unjalo lapha</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: ivaliwe</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Shintsha ukuthi ikhibhodi ikwenzani emgqeni ophansi wayo yonke imidwebo</string>

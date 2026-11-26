@@ -5691,9 +5691,7 @@
     <string name="layout_editor_arrow_row_title">صف مفاتيح الأسهم</string>
     <string name="layout_editor_autosave_label">يقوم التطبيق بحفظ كل تغيير</string>
     <string name="layout_editor_bottom_row_caption">تعرض لوحة المفاتيح الصف السفلي من هذه الطبقة بشكل مختلف، بسبب إعدادات مفاتيح الصف السفلي هذه. توضح الشبكة أعلاه الصف كما تظهره لوحة المفاتيح:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">تغير إعدادات مفاتيح الصف السفلي الصف السفلي لكل تخطيط. يمكنها إخفاء مفتاح 🌐، أو نقله، أو تبديله بالفاصلة، أو جعله مفتاح رموز تعبيرية. عند تفعيل هذا الخيار، تحتفظ هذه الطبقة بصفها السفلي كما قمت بتصميمه هنا، ولا تغيره تلك الإعدادات. عند تشغيل هذا الخيار، أو نقل أو تغيير مفتاح قامت الإعدادات بتغييره، تحتفظ الطبقة بالصف كما أظهرته لوحة المفاتيح، فلا تتحرك أي مفاتيح. قم بإيقاف تشغيله للسماح للإعدادات بتغيير الصف مرة أخرى.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">يؤدي نقل أو تغيير مفتاح عدّلت عليه الإعدادات إلى تفعيل هذا الخيار</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">إعدادات مفاتيح الصف السفلي لا تغير هذه الطبقة</string>
     <string name="layout_editor_bottom_row_laid_out_title">احتفظ بهذا الصف السفلي كما هو عليه هنا</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: إيقاف</string>
     <string name="layout_editor_bottom_row_settings_subtitle">تغيير وظائف لوحة المفاتيح للصف السفلي في كل تخطيط</string>

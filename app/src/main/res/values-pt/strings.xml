@@ -5685,9 +5685,7 @@
     <string name="layout_editor_arrow_row_title">Linha de teclas de seta</string>
     <string name="layout_editor_autosave_label">O aplicativo salva todas as alterações</string>
     <string name="layout_editor_bottom_row_caption">O teclado mostra a linha inferior desta camada de forma diferente, devido a estas configurações de teclas da linha inferior. A grade acima mostra a linha como o teclado a exibe:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">As definições das teclas da linha inferior alteram a linha inferior de todos os esquemas. Podem ocultar a tecla 🌐, movê-la, trocá-la pela vírgula ou transformá-la numa tecla de emojis. Com esta opção ativada, esta camada mantém a sua linha inferior conforme a configurou aqui, e as definições globais não a alteram. Quando ativa esta opção, ou move/altera uma tecla que as definições modificaram, a camada mantém a linha como o teclado a mostrava, para que nenhuma tecla se mova. Desative para permitir que as definições alterem a linha novamente.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Mover ou alterar uma tecla que as definições alteraram ativa esta opção</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">As configurações das teclas da linha inferior não alteram esta camada</string>
     <string name="layout_editor_bottom_row_laid_out_title">Manter esta linha inferior como está aqui</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: desativado</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Altere o que o teclado faz na linha inferior de cada layout</string>

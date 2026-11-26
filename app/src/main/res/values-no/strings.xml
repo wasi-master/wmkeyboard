@@ -5690,9 +5690,7 @@
     <string name="layout_editor_arrow_row_title">Rad med piltaster</string>
     <string name="layout_editor_autosave_label">Appen lagrer hver endring</string>
     <string name="layout_editor_bottom_row_caption">Tastaturet viser den nederste raden i dette laget annerledes på grunn av disse innstillingene for nederste rad. Rutenettet ovenfor viser raden slik tastaturet gjør:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Innstillinger for nederste rad endrer den nederste raden i hvert oppsett. De kan skjule 🌐-tasten, flytte den, bytte plass med komma, eller gjøre den til en emoji-tast. Når dette er på, beholder dette laget sin nederste rad slik du lager den her, og disse innstillingene endrer den ikke. Når du slår dette på, eller flytter eller endrer en tast som innstillingene endret, beholder laget raden slik tastaturet viste den, så ingen taster flyttes. Slå dette av for å la innstillingene endre raden igjen.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Å flytte eller endre en tast som innstillingene har endret, slår dette på</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Innstillinger for nederste rad med taster endrer ikke dette laget</string>
     <string name="layout_editor_bottom_row_laid_out_title">Behold denne nederste raden slik den er her</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: av</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Endre hva tastaturet gjør med den nederste raden i hvert oppsett</string>

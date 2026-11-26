@@ -2211,6 +2211,14 @@ internal fun editorBottomRowRules(
     )
 }
 
+/**
+ * These rules without the ones that only change what a key is (the 🌐 and
+ * comma keys as the emoji key): what [laidOutAsDrawn] writes a row down by.
+ * Each of those acts on a key in its own seat, so leaving them out moves no
+ * key, and they keep acting on the laid-out row at draw time.
+ */
+private fun BottomRowRules.keysInPlace(): BottomRowRules = copy(globeAsEmoji = false, globeTool = null, commaAsEmoji = false)
+
 /** The setting that each [BottomRowRule] is, by the title its row carries. */
 @StringRes
 private fun BottomRowRule.titleRes(): Int = when (this) {
@@ -2455,12 +2463,20 @@ internal fun KeyLayoutEditorScreen(
      * again, and the key the user just placed would jump somewhere else. A
      * layer already laid out by hand, or one the settings do not change, comes
      * back as it is, so a second edit a frame later does no harm.
+     *
+     * Written down as the settings that move keys draw it, not the ones that
+     * only change what a key is: a 🌐 key the emoji setting turned into the
+     * emoji key stays a 🌐 key here. Those settings still reach a laid-out
+     * row, in the key's own seat, so nothing on screen changes; written down
+     * as the emoji key, the row had no 🌐 key left for "Show the 🌐 language
+     * key" to act on, and turning the emoji setting off did nothing
+     * (Telegram, 2026-11-27).
      */
     fun laidOutAsDrawn(spec: LayoutSpec): LayoutSpec {
         val base = baseLayerOf(spec)
         if (base.bottomRowAsLaidOut || base.rows.isEmpty()) return spec
         val arranged = spec.compile(layer, borrowedSymbolsPage())
-            .arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary))
+            .arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary).keysInPlace())
         if (arranged.applied.isEmpty()) return spec
         val laidOut = base.copy(rows = arranged.layout.rows, bottomRowAsLaidOut = true)
         return spec.copy(layers = spec.layers + (layer.key to laidOut))
@@ -2479,7 +2495,7 @@ internal fun KeyLayoutEditorScreen(
         val without = spec.copy(layers = spec.layers - layer.key)
         if (BuiltInLayouts.default.layer(layer) != null) {
             val inherited = without.compile(layer, borrowedSymbolsPage())
-            val drawn = inherited.arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary)).layout
+            val drawn = inherited.arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary).keysInPlace()).layout
             if (cleared == LayerSpec(rows = drawn.rows, rowHeights = inherited.rowHeights)) return without
         }
         return spec.copy(layers = spec.layers + (layer.key to cleared))

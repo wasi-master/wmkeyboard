@@ -5689,9 +5689,7 @@
     <string name="layout_editor_arrow_row_title">Riadok so šípkami</string>
     <string name="layout_editor_autosave_label">Aplikácia uloží každú zmenu</string>
     <string name="layout_editor_bottom_row_caption">Klávesnica zobrazuje spodný riadok tejto vrstvy inak, kvôli týmto nastaveniam klávesov spodného riadku. Mriežka vyššie zobrazuje riadok tak, ako ho zobrazuje klávesnica:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Nastavenia klávesov spodného riadka menia spodný riadok každého rozloženia. Môžu skryť kláves 🌐, presunúť ho, vymeniť za čiarku alebo z neho urobiť kláves emoji. Keď je toto zapnuté, táto vrstva si zachová svoj spodný riadok tak, ako ste ho tu vytvorili, a tieto nastavenia ho nezmenia. Keď toto zapnete alebo presuniete či zmeníte kláves, ktorý nastavenia zmenili, vrstva si zachová riadok tak, ako ho zobrazila klávesnica, takže sa žiadny kláves nepohne. Vypnite túto možnosť, aby nastavenia mohli opäť zmeniť riadok.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Presunutie alebo zmena klávesu, ktorý bol zmenený v nastaveniach, túto funkciu zapne</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Nastavenia klávesov spodného riadka túto vrstvu nemenia</string>
     <string name="layout_editor_bottom_row_laid_out_title">Ponechať tento spodný riadok tak, ako je tu</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: vypnuté</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Zmeňte funkciu klávesnice v spodnom riadku každého rozloženia</string>

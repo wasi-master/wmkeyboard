@@ -5694,9 +5694,7 @@
     <string name="layout_editor_arrow_row_title">Redak tipki sa strelicama</string>
     <string name="layout_editor_autosave_label">Aplikacija sprema svaku promjenu</string>
     <string name="layout_editor_bottom_row_caption">Tipkovnica drugačije prikazuje donji red ovog sloja zbog ovih postavki tipki donjeg reda. Mreža iznad prikazuje red kako ga prikazuje i tipkovnica:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Postavke donjeg reda tipki mijenjaju donji red svakog rasporeda. Mogu sakriti 🌐 tipku, pomaknuti je, zamijeniti je zarezom ili pretvoriti u tipku za emojije. Kada je ovo uključeno, ovaj sloj zadržava donji red kakvim ga ovdje napravite, a te ga postavke ne mijenjaju. Kada ovo uključite, ili pomaknete odnosno promijenite tipku koju su postavke izmijenile, sloj zadržava red onako kako ga je tipkovnica prikazala, tako da se nijedna tipka ne pomiče. Isključite ovo kako biste dopustili postavkama da ponovno mijenjaju red.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Pomicanje ili promjena tipke koju su postavke izmijenile uključuje ovo</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Postavke tipki donjeg reda ne mijenjaju ovaj sloj</string>
     <string name="layout_editor_bottom_row_laid_out_title">Zadrži ovaj donji red kakav jest ovdje</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: isključeno</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Promijenite što tipkovnica radi s donjim redom svakog rasporeda</string>

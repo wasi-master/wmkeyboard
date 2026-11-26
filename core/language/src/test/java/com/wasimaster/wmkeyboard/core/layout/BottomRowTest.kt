@@ -100,17 +100,83 @@ class BottomRowTest {
     }
 
     @Test
-    fun `a layer laid out by hand is left alone by every rule but the hidden globe`() {
+    fun `a layer laid out by hand keeps its keys where they are`() {
         val layout = builtIn(laidOut = true)
-        val every = BottomRowRules(
+        val moving = BottomRowRules(
+            preset = BottomRowPreset.MINIMAL,
             globeInOnePlace = true,
             swapCommaAndGlobe = true,
-            globeAsEmoji = true,
-            commaAsEmoji = true,
         )
-        val arranged = layout.arrangedBy(every)
+        val arranged = layout.arrangedBy(moving)
         assertSame(layout, arranged.layout)
         assertTrue(arranged.applied.isEmpty())
+    }
+
+    /**
+     * The emoji settings change what a key is, not where it is, so they reach a
+     * row laid out by hand too (Telegram, 2026-11-27): the 🌐 key opens emoji in
+     * its own seat, and nothing moves.
+     */
+    @Test
+    fun `a laid-out row's globe becomes the emoji key in its own seat`() {
+        val layout = builtIn(laidOut = true)
+        val arranged = layout.arrangedBy(defaults)
+        val row = arranged.bottom()
+        assertEquals(listOf("?123", ",", "🌐", " ", ".", "⏎"), row.map { it.label })
+        assertEquals(KeyAction.Emoji, row[2].action)
+        assertEquals(layout.rows.last().map { it.width }, row.map { it.width })
+        assertEquals(setOf(BottomRowRule.GLOBE_AS_EMOJI), arranged.applied)
+        assertTrue(arranged.rewritten(1, 2))
+        assertFalse(arranged.rewritten(1, 1))
+    }
+
+    @Test
+    fun `a laid-out row's comma becomes the emoji key in its own seat`() {
+        val layout = builtIn(laidOut = true)
+        val arranged = layout.arrangedBy(BottomRowRules(commaAsEmoji = true))
+        val row = arranged.bottom()
+        assertEquals(KeyAction.Emoji, row[1].action)
+        assertEquals(listOf(",", "!", "?"), row[1].longPress)
+        assertEquals(KeyAction.LanguageSwitch, row[2].action)
+        assertEquals(setOf(BottomRowRule.COMMA_AS_EMOJI), arranged.applied)
+    }
+
+    /**
+     * A row an editor edit wrote down before 2026-11-27 holds the 🌐 key as
+     * the emoji key it was drawn as. It is read back as the 🌐 key, so turning
+     * "Emoji key instead of 🌐" off gives it back.
+     */
+    @Test
+    fun `a globe written down as the emoji key is read back as the globe`() {
+        val baked = globe.asEmojiKey()
+        val layout = grid(symbols, comma, baked, space, period, enter, laidOut = true)
+        val arranged = layout.arrangedBy(BottomRowRules())
+        assertEquals(KeyAction.LanguageSwitch, arranged.bottom()[2].action)
+        assertEquals("🌐", arranged.bottom()[2].label)
+        assertTrue(arranged.applied.isEmpty())
+        // On again, it is the emoji key it was, and the only one.
+        val emoji = layout.arrangedBy(BottomRowRules(globeAsEmoji = true)).bottom()
+        assertEquals(baked, emoji[2])
+        // Hidden, its seat opens emoji, as a laid-out 🌐 key's does.
+        val hidden = layout.arrangedBy(BottomRowRules(hideGlobe = true)).bottom()
+        assertEquals(KeyAction.Emoji, hidden[2].action)
+    }
+
+    @Test
+    fun `a comma written down as the emoji key is read back as the comma`() {
+        val baked = comma.asEmojiKey()
+        val layout = grid(symbols, baked, globe, space, period, enter, laidOut = true)
+        val key = layout.arrangedBy(BottomRowRules()).bottom()[1]
+        assertEquals(comma, key)
+    }
+
+    /** An emoji key the layout means, with its own face and hold, stays one. */
+    @Test
+    fun `an emoji key laid out on purpose is left as it is`() {
+        val emoji = Key("☺", action = KeyAction.Emoji, longPress = listOf("☺"))
+        val layout = grid(symbols, emoji, globe, space, period, enter, laidOut = true)
+        val arranged = layout.arrangedBy(BottomRowRules())
+        assertSame(layout, arranged.layout)
     }
 
     /** A 12-key pad's columns are the layout, so the hidden 🌐 key's seat stays and opens emoji (Telegram 11205). */

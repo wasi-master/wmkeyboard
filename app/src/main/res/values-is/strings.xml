@@ -5681,9 +5681,7 @@
     <string name="layout_editor_arrow_row_title">Örvalyklaröð</string>
     <string name="layout_editor_autosave_label">Forritið vistar allar breytingar</string>
     <string name="layout_editor_bottom_row_caption">Lyklaborðið sýnir neðstu röð þessa lags öðruvísi, vegna þessara stillinga fyrir neðstu röð. Ritið hér að ofan sýnir röðina eins og lyklaborðið gerir:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Stillingar fyrir neðstu röð hnappa breyta neðstu röð hvers lyklaborðs. Hægt er að fela 🌐-hnappinn, færa hann, skipta honum út fyrir kommu eða gera hann að broskallahnapp. Með þessu kveiktu heldur þetta lag neðstu röð sinni eins og þú útbýrð hana hér, og þær stillingar breyta henni ekki. Þegar þú kveikir á þessu, eða færir eða breytir hnappi sem stillingarnar breyttu, heldur lagið röðinni eins og lyklaborðið sýndi hana, svo enginn hnappur færist. Slökktu á þessu til að leyfa stillingunum að breyta röðinni aftur.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Að færa eða breyta lykli sem stillingarnar breyttu kveikir á þessu</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Stillingar fyrir neðstu röð takka breyta ekki þessu lagi</string>
     <string name="layout_editor_bottom_row_laid_out_title">Hafa þessa neðstu röð eins og hún er hér</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: slökkt</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Breyttu því sem hljómborðið gerir við neðstu röð hvers lyklaborðs</string>

@@ -5690,9 +5690,7 @@
     <string name="layout_editor_arrow_row_title">Rad med piltangenter</string>
     <string name="layout_editor_autosave_label">Appen sparar varje ändring</string>
     <string name="layout_editor_bottom_row_caption">Tangentbordet visar den nedersta raden i detta lager annorlunda på grund av inställningarna för nedersta radens tangenter. Rutnätet ovan visar raden precis så som tangentbordet gör:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Inställningarna för nedersta raden ändrar den nedersta raden i varje layout. De kan dölja 🌐-tangenten, flytta den, byta plats på den med kommatecknet eller göra den till en emoji-tangent. Med detta aktiverat behåller detta lager sin nedersta rad som du skapar den här, och dessa inställningar ändrar den inte. När du aktiverar detta, eller flyttar eller ändrar en tangent som inställningarna ändrade, behåller lagret raden som tangentbordet visade den, så ingen tangent flyttas. Stäng av detta för att låta inställningarna ändra raden igen.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Om du flyttar eller ändrar en tangent som har påverkats av inställningarna slås detta på</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Inställningarna för nedersta radens tangenter ändrar inte detta lager</string>
     <string name="layout_editor_bottom_row_laid_out_title">Behåll den här nedersta raden som den är</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: av</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Ändra vad tangentbordet gör med den nedersta raden i varje layout</string>

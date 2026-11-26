@@ -5688,9 +5688,7 @@
     <string name="layout_editor_arrow_row_title">Rząd klawiszy strzałek</string>
     <string name="layout_editor_autosave_label">Aplikacja zapisuje każdą zmianę</string>
     <string name="layout_editor_bottom_row_caption">Klawiatura wyświetla dolny rząd tej warstwy inaczej ze względu na ustawienia klawiszy dolnego rzędu. Powyższa siatka pokazuje rząd tak, jak robi to klawiatura:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">Ustawienia klawiszy dolnego rzędu zmieniają dolny rząd każdego układu. Pozwalają na ukrycie klawisza 🌐, jego przesunięcie, zamianę miejscami z przecinkiem lub ustawienie go jako klawisz emoji. Po włączeniu tej opcji warstwa zachowuje swój dolny rząd w takiej postaci, w jakiej go skonfigurowano, a wspomniane ustawienia nie wpływają na niego. Po włączeniu tej funkcji lub przesunięciu/zmianie klawisza, który był wcześniej zmodyfikowany przez ustawienia, warstwa zachowuje układ rzędu, więc żaden klawisz się nie przesuwa. Wyłącz tę opcję, aby umożliwić ustawieniom ponowną zmianę rzędu.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">Przeniesienie lub zmiana klawisza, który został zmieniony przez ustawienia, włącza tę opcję</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">Ustawienia dolnego rzędu klawiszy nie zmieniają tej warstwy</string>
     <string name="layout_editor_bottom_row_laid_out_title">Zachowaj ten dolny rząd w takiej formie, jak jest tutaj</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: wyłączone</string>
     <string name="layout_editor_bottom_row_settings_subtitle">Zmień działanie klawiatury w dolnym rzędzie każdego układu</string>

@@ -5685,9 +5685,7 @@
     <string name="layout_editor_arrow_row_title">એરો કીની હરોળ</string>
     <string name="layout_editor_autosave_label">એપ દરેક ફેરફાર સાચવે છે</string>
     <string name="layout_editor_bottom_row_caption">કીબોર્ડ આ લેયરની નીચેની હરોળને અલગ રીતે બતાવે છે, કારણ કે આ નીચેની હરોળની કી સેટિંગ્સ છે. ઉપરનું ગ્રીડ કીબોર્ડની જેમ જ હરોળ દર્શાવે છે:</string>
-    <string name="layout_editor_bottom_row_laid_out_info">બોટમ રો કી સેટિંગ્સ દરેક લેઆઉટની નીચેની હરોળને બદલે છે. તેઓ 🌐 કીને છુપાવી શકે છે, તેને ખસેડી શકે છે, તેને અલ્પવિરામ સાથે બદલી શકે છે અથવા તેને ઇમોજી કી બનાવી શકે છે. આ ચાલુ હોવાથી, આ લેયર તેની નીચેની હરોળને તે રીતે જ રાખે છે જે રીતે તમે તેને અહીં બનાવો છો, અને તે સેટિંગ્સ તેને બદલતા નથી. જ્યારે તમે આને ચાલુ કરો છો, અથવા સેટિંગ્સ દ્વારા બદલાયેલી કીને ખસેડો છો અથવા બદલો છો, ત્યારે લેયર હરોળને તે રીતે જ રાખે છે જે રીતે કીબોર્ડ તેને બતાવે છે, જેથી કોઈ કી ખસતી નથી. સેટિંગ્સને ફરીથી હરોળ બદલવા દેવા માટે આને બંધ કરો.</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">સેટિંગ્સ દ્વારા બદલાયેલી કીને ખસેડવાથી અથવા બદલવાથી આ ચાલુ થાય છે</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">બોટમ રો કી સેટિંગ્સ આ લેયરને બદલતી નથી</string>
     <string name="layout_editor_bottom_row_laid_out_title">આ નીચેની હરોળને અહીં છે તેમ જ રાખો</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: બંધ</string>
     <string name="layout_editor_bottom_row_settings_subtitle">દરેક લેઆઉટની નીચેની હરોળ પર કીબોર્ડ શું કરે છે તે બદલો</string>

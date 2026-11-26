@@ -5682,9 +5682,7 @@
     <string name="layout_editor_arrow_row_title">矢印キーの行</string>
     <string name="layout_editor_autosave_label">アプリは変更を自動保存します</string>
     <string name="layout_editor_bottom_row_caption">「一番下の行のキー」設定により、キーボードはこのレイヤーの一番下の行を異なる形式で表示します。上のグリッドはキーボードと同じ行を表示しています：</string>
-    <string name="layout_editor_bottom_row_laid_out_info">「最下段のキー」設定は、すべてのレイアウトの最下段を変更します。🌐キーを非表示にしたり、移動したり、カンマと入れ替えたり、絵文字キーに変更したりできます。これをオンにすると、このレイヤーはここで設定した最下段の状態を維持し、全体設定の影響を受けなくなります。これをオンにするか、設定によって変更されたキーを移動または変更すると、キーボードに表示されていた通りの行が維持されるため、キーは移動しません。これをオフにすると、全体設定によって再び行が変更されるようになります。</string>
     <string name="layout_editor_bottom_row_laid_out_off_subtitle">設定が変更されたキーを移動または変更すると、これが有効になります</string>
-    <string name="layout_editor_bottom_row_laid_out_on_subtitle">「一番下の行のキー」設定は、このレイヤーを変更しません</string>
     <string name="layout_editor_bottom_row_laid_out_title">この一番下の行をそのまま保持する</string>
     <string name="layout_editor_bottom_row_setting_off">%1$s: オフ</string>
     <string name="layout_editor_bottom_row_settings_subtitle">すべてのレイアウトの最下段に対するキーボードの動作を変更します</string>
