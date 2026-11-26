@@ -1,6 +1,5 @@
-# CPython 3.13's Lib/copyreg.py. Python Software Foundation License
-# Version 2; the text ships as app/src/main/assets/licenses/psf-2.0.txt.
-# Changed: the complex reducer is registered only where complex exists.
+# CPython 3.13's Lib/copyreg.py, unchanged. Python Software Foundation
+# License Version 2; the text ships as app/src/main/assets/licenses/psf-2.0.txt.
 
 """Helper to provide extensibility for pickle.
 
@@ -32,10 +31,7 @@ def constructor(object):
 def pickle_complex(c):
     return complex, (c.real, c.imag)
 
-try:
-    pickle(complex, pickle_complex, complex)
-except NameError:  # no complex numbers in this interpreter
-    pass
+pickle(complex, pickle_complex, complex)
 
 def pickle_union(obj):
     import functools, operator

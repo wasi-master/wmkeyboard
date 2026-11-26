@@ -267,12 +267,9 @@ fn lexical(doc: &Document, out: &mut Vec<Diagnostic>) {
             }
             TokenKind::Number => {
                 let text = t.text(i);
-                let (valid, complex) = number_shape(&text);
-                if !valid {
+                if !number_shape(&text) {
                     let shown: String = text.chars().take(MAX_SHOWN).collect();
                     out.push(Diagnostic::new(Code::BadNumber, t.span(i), &[&shown]));
-                } else if complex {
-                    out.push(Diagnostic::new(Code::Unsupported, t.span(i), &["complex numbers"]));
                 }
             }
             _ => {}

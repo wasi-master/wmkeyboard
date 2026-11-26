@@ -764,13 +764,12 @@ pub fn string_value(tokens: &Tokens, index: usize) -> Option<String> {
     Some(String::from_utf16_lossy(&out))
 }
 
-/// Whether a number token's text is a number Python reads, and whether it is
-/// complex (`2j`), which PyMini does not have.
-pub fn number_shape(text: &str) -> (bool, bool) {
+/// Whether a number token's text is a number Python reads, an imaginary
+/// one (`2j`) included.
+pub fn number_shape(text: &str) -> bool {
     let bytes = text.as_bytes();
-    let complex = bytes.last().is_some_and(|b| *b == b'j' || *b == b'J');
-    let body = if complex { &text[..text.len() - 1] } else { text };
-    (valid_number(body), complex)
+    let imaginary = bytes.last().is_some_and(|b| *b == b'j' || *b == b'J');
+    valid_number(if imaginary { &text[..text.len() - 1] } else { text })
 }
 
 fn valid_number(text: &str) -> bool {

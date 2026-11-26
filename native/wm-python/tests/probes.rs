@@ -43,6 +43,10 @@ const DIVERGES: &[(&str, &str)] = &[
     // 2026-11-27: a match object's repr is CPython's.
     ("115-re-backref-err.py", "<re.Match object; span=(0, 2), match='aa'>\n"),
     ("180-edge-regex-lookahead.py", "<re.Match object; span=(0, 1), match='a'>\n"),
+    // 2026-11-27: comparison and JSON errors read as CPython's do.
+    ("013-builtins-sorted-mixed.py", "ERROR: Line 1: TypeError: '<' not supported between instances of 'str' and 'int'\n"),
+    ("029-compare-err.py", "ERROR: Line 1: TypeError: '<' not supported between instances of 'int' and 'str'\n"),
+    ("105-json-dumps-err.py", "ERROR: TypeError: Object of type function is not JSON serializable\n"),
     ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
     ("034-strings-split.py", concat!(r##"[['a', 'b', 'c'], ['a', 'b', '', 'c'], ['a', 'b,c'], ['a,b', 'c'], ['', 'a', '', 'b', ''], ['a', 'b', 'c'], ['a', 'b c']]"##, "\n")),
     ("045-strings-graphemes.py", concat!(r##"[2, ['é', 'x'], True, 1, '🇫🇷', 1, ['e', 'f', 'é']]"##, "\n")),

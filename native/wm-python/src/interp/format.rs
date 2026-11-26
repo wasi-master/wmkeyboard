@@ -108,6 +108,9 @@ pub(crate) fn py_format(value: &Value, spec: &str) -> Result<String, PyError> {
     if spec.is_empty() {
         return Ok(py_str(value));
     }
+    if let Value::Complex(re, im) = value {
+        return complex_formatted(*re, *im, spec);
+    }
     let mut s = parse_spec(spec)?;
     match s.ty.as_deref() {
         Some("s") => Ok(padded(&py_str(value), &s, false, 0)),
@@ -127,6 +130,84 @@ pub(crate) fn py_format(value: &Value, spec: &str) -> Result<String, PyError> {
         },
         Some(t) => Err(PyError::new(format!("unknown format code '{t}'"), "ValueError")),
     }
+}
+
+/// `format(z, spec)`, as complex's `__format__`: both parts in the spec's
+/// type, the imaginary one always signed. With no type it reads as str(z)
+/// does, parentheses and all, unless a precision asks for `g`.
+fn complex_formatted(re: f64, im: f64, spec: &str) -> Result<String, PyError> {
+    let s = parse_spec(spec)?;
+    if s.align == Some("=") {
+        let message = if s.fill == "0" && !spec.contains('=') {
+            "Zero padding is not allowed in complex format specifier"
+        } else {
+            "'=' alignment flag is not allowed in complex format specifier"
+        };
+        return Err(PyError::new(message, "ValueError"));
+    }
+    let (mut ty, mut skip_re, mut parens) = (s.ty.clone(), false, false);
+    if ty.is_none() {
+        if re == 0.0 && re.is_sign_positive() {
+            skip_re = true;
+        } else {
+            parens = true;
+        }
+        if s.precision.is_some() {
+            ty = Some("g".into());
+        }
+    }
+    let ty = match ty.as_deref() {
+        Some("n") => Some("g".to_string()),
+        Some(t @ ("e" | "E" | "f" | "F" | "g" | "G")) => Some(t.to_string()),
+        None => None,
+        Some(t) => return Err(PyError::new(format!("Unknown format code '{t}' for object of type 'complex'"), "ValueError")),
+    };
+    let one = |x: f64, sign: &'static str| -> Result<String, PyError> {
+        match &ty {
+            // No type and no precision: repr's digits, as str(z) writes them.
+            None => {
+                let body = super::complex::part(x);
+                Ok(match sign {
+                    "+" if !body.starts_with('-') => format!("+{body}"),
+                    " " if !body.starts_with('-') => format!(" {body}"),
+                    _ => body,
+                })
+            }
+            Some(t) => {
+                let part_spec = Spec {
+                    fill: " ".into(),
+                    align: None,
+                    sign,
+                    alternate: s.alternate,
+                    width: None,
+                    grouping: s.grouping.clone(),
+                    precision: s.precision,
+                    ty: Some(t.clone()),
+                };
+                float_formatted(&Value::Float(x), &part_spec)
+            }
+        }
+    };
+    let mut out = String::new();
+    if parens {
+        out.push('(');
+    }
+    if !skip_re {
+        out.push_str(&one(re, s.sign)?);
+    }
+    let im_text = if skip_re { one(im, s.sign)? } else { one(im, "+")? };
+    // A NaN carries no sign of its own; the imaginary part still shows one.
+    if !skip_re && !im_text.starts_with(['+', '-']) {
+        out.push('+');
+    }
+    out.push_str(&im_text);
+    out.push('j');
+    if parens {
+        out.push(')');
+    }
+    let mut width_only = s;
+    width_only.ty = None;
+    Ok(padded(&out, &width_only, true, 0))
 }
 
 fn integer_formatted(value: &Value, spec: &Spec) -> Result<String, PyError> {

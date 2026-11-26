@@ -1344,7 +1344,13 @@ impl Interp {
                 return self.truth(&r);
             }
         }
-        Err(self.error(format!("'{forward}' not supported between '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
+        let symbol = match op {
+            CmpOp::Lt => "<",
+            CmpOp::Le => "<=",
+            CmpOp::Gt => ">",
+            _ => ">=",
+        };
+        Err(self.error(format!("'{symbol}' not supported between instances of '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
     }
 
     /// `Cls[key]`: the class's `__class_getitem__`, implicitly a classmethod.
@@ -2113,6 +2119,7 @@ impl Interp {
                 "str" => matches!(value, Value::Str(_)),
                 "int" => matches!(value, Value::Int(_) | Value::Bool(_) | Value::Big(_)),
                 "float" => matches!(value, Value::Float(_)),
+                "complex" => matches!(value, Value::Complex(..)),
                 "bool" => matches!(value, Value::Bool(_)),
                 "list" => matches!(value, Value::List(_)),
                 "tuple" => matches!(value, Value::Tuple(_)),

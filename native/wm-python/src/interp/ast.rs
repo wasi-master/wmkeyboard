@@ -211,6 +211,8 @@ pub(crate) enum Expr {
     Bool(bool),
     Int(i64),
     /// An int literal past 64 bits.
+    /// An imaginary literal, `2j`.
+    Imag(f64),
     Big(Rc<num_bigint::BigInt>),
     Float(f64),
     Str(Rc<str>),
@@ -266,7 +268,7 @@ pub(crate) fn each_child_mut(e: &mut Expr, f: &mut dyn FnMut(&mut Expr)) {
         }
     }
     match e {
-        Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Name(_) => {}
+        Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Imag(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Name(_) => {}
         Expr::Invalid(..) | Expr::Lambda(_) | Expr::Comprehension(_) | Expr::Yield(None) => {}
         Expr::FString(parts) => fparts(parts, f),
         Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => items.iter_mut().for_each(f),

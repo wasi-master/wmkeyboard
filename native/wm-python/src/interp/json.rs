@@ -143,7 +143,7 @@ fn write(v: &Value, out: &mut String, options: &EncodeOptions, depth: u32, limit
         Value::List(l) => l.borrow().clone(),
         Value::Tuple(t) => t.as_ref().clone(),
         Value::Set(s) => s.borrow().iter().map(HKey::to_value).collect(),
-        other => return Err(PyError::new(format!("{} is not JSON serializable", other.type_name()), "TypeError")),
+        other => return Err(PyError::new(format!("Object of type {} is not JSON serializable", other.type_name()), "TypeError")),
     };
     if items.is_empty() {
         out.push_str("[]");

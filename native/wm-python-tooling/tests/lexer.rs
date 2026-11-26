@@ -96,10 +96,10 @@ fn numbers_names_keywords_and_operators() {
         ]
     );
     assert_eq!(kinds("নাম = 1")[0], (TokenKind::Name, "নাম".into()));
-    assert_eq!(number_shape("1.5e-3"), (true, false));
-    assert_eq!(number_shape("1__0"), (false, false));
-    assert_eq!(number_shape("012"), (false, false));
-    assert_eq!(number_shape("2j"), (true, true));
+    assert!(number_shape("1.5e-3"));
+    assert!(!number_shape("1__0"));
+    assert!(!number_shape("012"));
+    assert!(number_shape("2j"));
     assert_eq!(kinds("a ! b")[1].0, TokenKind::Unknown);
 }
 

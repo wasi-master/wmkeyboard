@@ -73,6 +73,7 @@ pub(crate) const PYTHON_MODULES: &[(&str, &[u8], bool)] = &[
     ("enum", packed!("enum.py"), false),
     ("errno", packed!("errno.py"), false),
     ("fnmatch", packed!("fnmatch.py"), false),
+    ("fractions", packed!("fractions.py"), false),
     ("functools", packed!("functools.py"), false),
     ("gzip", packed!("gzip.py"), false),
     ("hashlib", packed!("hashlib.py"), false),

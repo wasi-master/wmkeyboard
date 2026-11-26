@@ -2630,6 +2630,117 @@ s = io.StringIO('a\r\nb\r\nc'); print([s.readline(), s.readline(), s.readline(),
 }
 
 #[test]
+fn complex_numbers() {
+    assert_eq!(
+        py(r#"z = complex(3, -4)
+w = 1.5 + 2j
+parts = (z.real, z.imag, abs(z), z.conjugate(), -z, +w, z == 3 - 4j, z != w, 2j == complex(0, 2))
+arith = (z + w, z - w, z * w, z / w, z ** 2, (1j) ** 2, 2 ** 1j == 2 ** complex(0, 1), 1 + 0j == 1)
+texts = (complex("1+2j"), complex(" (3-1j) "), complex("-j"), complex("2.5e1J"), complex(1, 2) * 0, complex(-0.0, -0.0), complex(real=1, imag=2))
+fmt = (repr(1j), repr(complex(-0.0, 0)), str(1 + 2j), f"{z:.2f}", format(w, "10.3g"), f"{z:^20}", repr(complex(float("inf"), float("nan"))))
+errs = []
+for bad in [lambda: 1j < 2j, lambda: complex("1+"), lambda: 1j % 2, lambda: int(1j), lambda: 0j ** -1, lambda: round(1j), lambda: complex("1", 2), lambda: 1 / 0j]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((parts, arith, texts, fmt, errs, hash(2 + 0j) == hash(2), {1j: "a"}[complex(0, 1)], isinstance(1j, complex), type(1j).__name__))"#),
+        r#"((3.0, -4.0, 5.0, (3+4j), (-3+4j), (1.5+2j), True, True, True), ((4.5-2j), (1.5-6j), (12.5+0j), (-0.56-1.92j), (-7-24j), (-1+0j), True, True), ((1+2j), (3-1j), -1j, 25j, 0j, (-0-0j), (1+2j)), ('1j', '(-0+0j)', '(1+2j)', '3.00-4.00j', '    1.5+2j', '       (3-4j)       ', '(inf+nanj)'), [('TypeError', "'<' not supported between instances of 'complex' and 'complex'"), ('ValueError', 'complex() arg is a malformed string'), ('TypeError', "unsupported operand type(s) for %: 'complex' and 'int'"), ('TypeError', "int() argument must be a string, a bytes-like object or a real number, not 'complex'"), ('ZeroDivisionError', '0.0 to a negative or complex power'), ('TypeError', "type complex doesn't define __round__ method"), ('TypeError', "complex() can't take second arg if first is a string"), ('ZeroDivisionError', 'complex division by zero')], True, 'a', True, 'complex')"#
+    );
+}
+
+#[test]
+fn cmath_functions() {
+    assert_eq!(
+        py(r#"import cmath, math
+def r(z):
+    return complex(round(z.real, 10), round(z.imag, 10))
+funcs = ["sqrt", "exp", "log", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"]
+vals = [complex(0.5, 0.25), complex(-2, 1), complex(3, -0.5), complex(-0.25, -1.5), 4, -3]
+table = [[r(getattr(cmath, f)(v)) for v in vals] for f in funcs]
+special = (cmath.sqrt(-0.0), cmath.sqrt(complex(-0.0, -0.0)), cmath.sqrt(complex(-math.inf, 1)), cmath.exp(complex(-math.inf, 0)),
+           cmath.log(complex(0, math.inf)), cmath.acos(complex(math.inf, math.nan)), cmath.polar(-1), round(cmath.phase(-1j), 12),
+           cmath.rect(math.inf, 0), cmath.isinf(complex(1, math.inf)), cmath.isnan(complex(math.nan, 1)), cmath.isclose(1j, 1.0000000001j))
+errs = []
+for bad in [lambda: cmath.log(0), lambda: cmath.exp(1000), lambda: cmath.atanh(1), lambda: cmath.sqrt("x"), lambda: cmath.log(2, 1), lambda: cmath.rect(1, math.inf), lambda: cmath.sqrt(1, 2)]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((table, special, errs, cmath.log(0, 2), cmath.infj, cmath.nanj, r(cmath.log(8, 2)), cmath.pi == math.pi))"#),
+        r#"([[(0.7276733451+0.1717803749j), (0.3435607497+1.4553466902j), (1.7380134155-0.143842388j), (0.7970855138-0.9409279017j), (2+0j), 1.7320508076j], [(1.5974665191+0.4079001701j), (0.0731219656+0.1138807141j), (17.62671695-9.6295193576j), (0.0550901881-0.7768498767j), (54.5981500331+0j), (0.0497870684+0j)], [(-0.5815754049+0.463647609j), (0.8047189562+2.6779450446j), (1.1123117758-0.1651486774j), (0.4191645952-1.7359450042j), (1.3862943611+0j), (1.0986122887+3.1415926536j)], [(-0.2525749892+0.2013595981j), (0.3494850022+1.1630167557j), (0.4830708664-0.0717231593j), (0.1820408707-0.7539113362j), (0.6020599913+0j), (0.4771212547+1.3643763538j)], [(0.4944857809+0.2216881641j), (-1.4031192506-0.489056259j), (0.1591305853+0.5158804425j), (-0.5819954526-2.0630853133j), (-0.7568024953-0j), (-0.1411200081-0j)], [(0.9051501506-0.121108796j), (-0.6421481247+1.0686074214j), (-1.1163412445+0.0735369737j), (2.2792788972-0.5267921675j), (-0.6536436209+0j), (-0.9899924966+0j)], [(0.5045007027+0.3124206925j), (0.2434582012+1.1667362572j), (-0.1116210508-0.4694699934j), (-0.0438021769-0.9152719133j), (1.1578212823+0j), (0.1425465431+0j)], [(0.5016088533+0.2813960562j), (-1.0634400236+1.4693517444j), (1.3961498617-1.7789904938j), (-0.1381951711-1.2027455516j), (1.5707963268+2.0634370689j), (-1.5707963268+1.762747174j)], [(1.0691874735-0.2813960562j), (2.6342363504-1.4693517444j), (0.1746464651+1.7789904938j), (1.7089914979+1.2027455516j), -2.0634370689j, (3.1415926536-1.762747174j)], [(0.4842544903+0.2005866181j), (-1.1780972451+0.1732867951j), (1.2563981836-0.0489361443j), (-1.3888068485-0.7514206511j), (1.3258176637+0j), (-1.2490457724+0j)], [(0.5048957144+0.2789791284j), (-1.9596010414+3.1657785132j), (8.7915123435-4.8266942748j), (-0.0178690884-1.0288293962j), (27.2899171971+0j), (-10.0178749274+0j)], [(1.0925708047+0.1289210417j), (2.032723007-3.0518977992j), (8.8352046065-4.8028250827j), (0.0729592764+0.2519795196j), (27.308232836+0j), (10.0676619958-0j)], [(0.485487281+0.19805545j), (-1.0147936161+0.0338128261j), (0.9973163653-0.0041604266j), (-3.7861089368-1.0253320612j), (0.9993292997+0j), (-0.9950547537+0j)], [(0.4926756834+0.2243284526j), (-1.5285709195+0.4270785864j), (1.8301947623-0.1570045948j), (-0.993730466-1.3546256105j), (2.0947125473+0j), (-1.8184464592+0j)], [(0.2813960562+1.0691874735j), (1.4693517444+2.6342363504j), (1.7789904938-0.1746464651j), (1.2027455516-1.7089914979j), (2.0634370689+0j), (1.762747174+3.1415926536j)], [(0.5003700001+0.3143981432j), (-0.4023594781+1.3389725223j), (0.3352934815-1.5104844925j), (-0.0760528436-0.9916033842j), (0.2554128119+1.5707963268j), (-0.3465735903+1.5707963268j)]], (0j, -0j, infj, 0j, (inf+1.5707963267948966j), (nan+infj), (1.0, 3.141592653589793), -1.570796326795, (inf+0j), True, True, True), [('ValueError', 'math domain error'), ('OverflowError', 'math range error'), ('ValueError', 'math domain error'), ('TypeError', 'must be real number, not str'), ('ValueError', 'math domain error'), ('ValueError', 'math domain error'), ('TypeError', 'cmath.sqrt() takes exactly one argument (2 given)')], (-inf+nanj), infj, nanj, (3+0j), True)"#
+    );
+}
+
+#[test]
+fn math_parity() {
+    assert_eq!(
+        py(r#"import math
+def r(x):
+    return round(x, 10) if isinstance(x, float) else x
+exact = (math.fsum([1e-16, 1, 1e16]), math.fsum([0.1] * 10), math.hypot(3, 4, 12), math.hypot(5e-324, 5e-324), math.dist((1, 2), (4, 6)),
+         math.sumprod([1, 2, 3], [4, 5, 6]), math.sumprod([0.1, 0.2, 0.3], [1, 2, 3]), math.prod([1.5, 2], start=3), math.ldexp(1.5, -1074),
+         math.frexp(5e-324), math.modf(-3.0), math.modf(math.inf), math.nextafter(1.0, 2.0), math.nextafter(0.0, -1.0, steps=3), math.ulp(1.0),
+         math.fma(2.0, 3.0, 1.0), math.remainder(5, 2), math.remainder(-7, 2), math.fmod(-7, 2), math.copysign(0.0, -1), math.atan2(0.0, -0.0),
+         math.pow(-2, 3), math.pow(math.nan, 0), math.comb(10**20, 2), math.perm(5), math.isqrt(10**40 + 1), math.log(2**10000),
+         math.log2(2**1100), math.log10(10**400), math.gamma(5), math.lgamma(3), math.degrees(math.pi), math.radians(180))
+approx = [r(f(x)) for f in (math.gamma, math.lgamma, math.erf, math.erfc, math.asinh, math.atanh, math.cbrt, math.expm1, math.log1p) for x in (0.5, -0.25, 0.75)]
+errs = []
+for bad in [lambda: math.sqrt(-1), lambda: math.log(0), lambda: math.exp(1000), lambda: math.gamma(0), lambda: math.gamma(-2), lambda: math.lgamma(-1),
+            lambda: math.pow(0, -1), lambda: math.fmod(1, 0), lambda: math.ldexp(1, 5000), lambda: math.fsum([math.inf, -math.inf]),
+            lambda: math.fsum([1e308, 1e308]), lambda: math.fma(math.inf, 0, 1), lambda: math.sumprod([1], [1, 2]), lambda: math.comb(-1, 2),
+            lambda: math.log(2, 1), lambda: math.sqrt(), lambda: math.atan2(1), lambda: math.sqrt(x=1), lambda: math.isclose(1), lambda: math.trunc("x"),
+            lambda: math.nextafter(1, 2, steps=-1), lambda: math.factorial(2.5), lambda: math.erf("x"), lambda: math.sin(math.inf)]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((exact, approx, errs, math.sqrt(math.nan) != math.sqrt(math.nan), math.sqrt.__name__, repr(math.sqrt), math.__name__))"#),
+        r#"((1.0000000000000002e+16, 1.0, 13.0, 5e-324, 5.0, 32, 1.4, 9.0, 1e-323, (0.5, -1073), (-0.0, -3.0), (0.0, inf), 1.0000000000000002, -1.5e-323, 2.220446049250313e-16, 7.0, 1.0, 1.0, -1.0, -0.0, 3.141592653589793, -8.0, 1.0, 4999999999999999999950000000000000000000, 120, 100000000000000000000, 6931.471805599453, 1100.0, 400.0, 24.0, 0.693147180559945, 180.0, 3.141592653589793), [1.7724538509, -4.9016668099, 1.2254167025, 0.5723649429, 1.5895753126, 0.2032809514, 0.5204998778, -0.2763263902, 0.7111556337, 0.4795001222, 1.2763263902, 0.2888443663, 0.4812118251, -0.2474664615, 0.6931471806, 0.5493061443, -0.2554128119, 0.9729550745, 0.793700526, -0.6299605249, 0.9085602964, 0.6487212707, -0.2211992169, 1.1170000166, 0.4054651081, -0.2876820725, 0.5596157879], [('ValueError', 'math domain error'), ('ValueError', 'math domain error'), ('OverflowError', 'math range error'), ('ValueError', 'math domain error'), ('ValueError', 'math domain error'), ('ValueError', 'math domain error'), ('ValueError', 'math domain error'), ('ValueError', 'math domain error'), ('OverflowError', 'math range error'), ('ValueError', '-inf + inf in fsum'), ('OverflowError', 'intermediate overflow in fsum'), ('ValueError', 'invalid operation in fma'), ('ValueError', 'Inputs are not the same length'), ('ValueError', 'n must be a non-negative integer'), ('ZeroDivisionError', 'float division by zero'), ('TypeError', 'math.sqrt() takes exactly one argument (0 given)'), ('TypeError', 'atan2 expected 2 arguments, got 1'), ('TypeError', 'math.sqrt() takes no keyword arguments'), ('TypeError', "isclose() missing required argument 'b' (pos 2)"), ('TypeError', "type str doesn't define __trunc__ method"), ('ValueError', 'steps must be a non-negative integer'), ('TypeError', "'float' object cannot be interpreted as an integer"), ('TypeError', 'must be real number, not str'), ('ValueError', 'math domain error')], True, 'sqrt', '<built-in function sqrt>', 'math')"#
+    );
+}
+
+#[test]
+fn fractions_and_numbers() {
+    assert_eq!(
+        py(r#"from fractions import Fraction
+from decimal import Decimal
+import numbers, math, pickle
+f = Fraction(3, 4)
+out = (f + Fraction(1, 4), Fraction("3.1415"), Fraction(0.1).limit_denominator(100), Fraction(7, -21), str(Fraction(22, 7)), f ** 2, f ** -2,
+       Fraction(1, 3) < 0.34, hash(Fraction(1, 2)) == hash(0.5), round(Fraction(7, 2)), round(Fraction(22, 7), 2), math.floor(Fraction(-7, 2)),
+       Fraction(Decimal("1.25")), f"{Fraction(1, 3):.5f}", f"{Fraction(22, 7):>10}", divmod(Fraction(7, 2), 2), Fraction(1, 2) + 1j,
+       pickle.loads(pickle.dumps(Fraction(3, 8))), sum(Fraction(1, n) for n in range(1, 6)), Fraction(" -1.5e3 "), sorted([Fraction(1, 2), 0.3, 1]))
+abc = ([isinstance(x, numbers.Complex) for x in (1, 1.5, 1j, True, "x")], [isinstance(x, numbers.Real) for x in (1, 1.5, 1j)],
+       issubclass(complex, numbers.Number), issubclass(Fraction, numbers.Rational), isinstance(Fraction(1, 2), numbers.Real))
+errs = []
+for bad in [lambda: Fraction(1, 0), lambda: Fraction("abc"), lambda: Fraction(1.5, 2)]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((out, abc, errs, pickle.loads(pickle.dumps(1 + 2j))))"#),
+        r#"((Fraction(1, 1), Fraction(6283, 2000), Fraction(1, 10), Fraction(-1, 3), '22/7', Fraction(9, 16), Fraction(16, 9), True, True, 4, Fraction(157, 50), -4, Fraction(5, 4), '0.33333', '      22/7', (1, Fraction(3, 2)), (0.5+1j), Fraction(3, 8), Fraction(137, 60), Fraction(-1500, 1), [0.3, Fraction(1, 2), 1]), ([True, True, True, True, False], [True, True, False], True, True, True), [('ZeroDivisionError', 'Fraction(1, 0)'), ('ValueError', "Invalid literal for Fraction: 'abc'"), ('TypeError', 'both arguments should be Rational instances')], (1+2j))"#
+    );
+}
+
+#[test]
+fn match_subscript_skipped_group() {
+    assert_eq!(
+        py(r#"import re
+m = re.fullmatch(r"(?P<a>x)?(?P<b>y)", "y")
+out = [m["a"], m["b"], m[0], m[1], m.group("a", "b")]
+for bad in [lambda: m["zz"], lambda: m[3], lambda: m.group(1, 5)]:
+    try:
+        bad()
+    except IndexError as e:
+        out.append(str(e))
+repr(out)"#),
+        r#"[None, 'y', 'y', None, (None, 'y'), 'no such group', 'no such group', 'no such group']"#
+    );
+}
+
+#[test]
 fn print_takes_sep_and_end() {
     let lines = big_stack(|| {
         let mut rt = Runtime::default();

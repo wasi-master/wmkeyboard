@@ -54,18 +54,18 @@ fn parse_expression(source: &str, depth: u32) -> Result<Expr, PyError> {
 pub(crate) fn check_literal(source: &str) -> Result<Result<(), &'static str>, PyError> {
     fn literal(e: &Expr) -> Result<(), &'static str> {
         match e {
-            Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => Ok(()),
+            Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Big(_) | Expr::Imag(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => Ok(()),
             Expr::Tuple(items) | Expr::List(items) | Expr::Set(items) => items.iter().try_for_each(literal),
             Expr::Dict(pairs) => pairs.iter().try_for_each(|(k, v)| literal(k).and_then(|_| literal(v))),
-            Expr::Unary(UnOp::Neg | UnOp::Pos, x) if matches!(**x, Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Bool(_) | Expr::Invalid(..)) => Ok(()),
+            Expr::Unary(UnOp::Neg | UnOp::Pos, x) if matches!(**x, Expr::Int(_) | Expr::Big(_) | Expr::Imag(_) | Expr::Float(_) | Expr::Bool(_) | Expr::Invalid(..)) => Ok(()),
             Expr::Call(f, args, kwargs) if args.is_empty() && kwargs.is_empty() && matches!(&**f, Expr::Name(n) if &*n.id == "set") => Ok(()),
             Expr::Name(_) => Err("ast.Name"),
             Expr::Call(..) => Err("ast.Call"),
             // As CPython: `a + 1` names the operand that is not a number.
             Expr::Binary(BinOp::Add | BinOp::Sub, l, r) => {
                 let number = |e: &Expr| match e {
-                    Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Bool(_) | Expr::Invalid(..) => true,
-                    Expr::Unary(UnOp::Neg | UnOp::Pos, x) => matches!(**x, Expr::Int(_) | Expr::Big(_) | Expr::Float(_) | Expr::Bool(_) | Expr::Invalid(..)),
+                    Expr::Int(_) | Expr::Big(_) | Expr::Imag(_) | Expr::Float(_) | Expr::Bool(_) | Expr::Invalid(..) => true,
+                    Expr::Unary(UnOp::Neg | UnOp::Pos, x) => matches!(**x, Expr::Int(_) | Expr::Big(_) | Expr::Imag(_) | Expr::Float(_) | Expr::Bool(_) | Expr::Invalid(..)),
                     _ => false,
                 };
                 if !number(l) {
@@ -1506,6 +1506,10 @@ impl Parser {
             Tok::Big(v) => {
                 self.advance();
                 Ok(Expr::Big(v))
+            }
+            Tok::Imag(v) => {
+                self.advance();
+                Ok(Expr::Imag(v))
             }
             Tok::Float(v) => {
                 self.advance();

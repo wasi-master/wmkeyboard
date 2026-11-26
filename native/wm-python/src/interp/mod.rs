@@ -30,6 +30,8 @@
 
 mod ast;
 mod bigint;
+mod cmath;
+mod complex;
 mod hashing;
 mod builtins;
 mod bytes;
@@ -45,6 +47,8 @@ mod generators;
 mod host;
 mod json;
 mod lexer;
+mod maths;
+mod mathmod;
 mod methods;
 mod modules;
 mod parser;
@@ -242,8 +246,11 @@ impl Runtime {
     /// typing, string, textwrap, html, base64, hashlib, hmac, uuid,
     /// urllib.parse, statistics, abc and copy. Each loads on first import.
     pub fn enable_python_stdlib(&mut self) {
-        if !self.interp.enabled_modules.contains(&"_native") {
-            self.interp.enabled_modules.push("_native");
+        // cmath only computes, as the Python-written modules do.
+        for native in ["_native", "cmath"] {
+            if !self.interp.enabled_modules.contains(&native) {
+                self.interp.enabled_modules.push(native);
+            }
         }
         // The `time` written in Python stands in for the built-in one, which
         // it reads as `_time`, but only where the host allowed `time`.

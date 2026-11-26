@@ -20,7 +20,7 @@ pub use super::fxhash::{DictMap, KeySet, NameMap};
 use super::fxhash::name_map;
 use super::host::HostFunction;
 use super::regex::Match;
-use super::text::{c_fixed, c_general, str_eq, str_hash};
+use super::text::{str_eq, str_hash};
 
 pub type ListRef = Rc<RefCell<Vec<Value>>>;
 pub type DictRef = Rc<RefCell<DictMap>>;
@@ -35,6 +35,8 @@ pub enum Value {
     /// An int past 64 bits. Never one that fits in an i64: those are `Int`.
     Big(Rc<num_bigint::BigInt>),
     Float(f64),
+    /// A complex number: its real and imaginary parts (see complex.rs).
+    Complex(f64, f64),
     Str(Rc<str>),
     List(ListRef),
     /// Immutable and hashable: `(1, 2)`, the pairs `enumerate` hands back, dict keys.
@@ -516,6 +518,9 @@ pub enum HKey {
     Builtin(Rc<str>),
     /// An int past 64 bits.
     Big(Rc<num_bigint::BigInt>),
+    /// A complex number. With no imaginary part it is the key its real
+    /// part is, as `{1: "x"}[1+0j]` finds the entry.
+    Complex(f64, f64),
     /// An instance of a `str`, `int`, `float`, `tuple` or `bytes`
     /// subclass: it hashes and compares as the key of its built-in value,
     /// and is the instance again when read back.
@@ -534,7 +539,7 @@ fn whole(k: &HKey) -> Option<i64> {
 }
 
 fn is_number(k: &HKey) -> bool {
-    matches!(k, HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) | HKey::Big(_))
+    matches!(k, HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) | HKey::Big(_) | HKey::Complex(..))
 }
 
 impl HKey {
@@ -563,6 +568,12 @@ impl PartialEq for HKey {
     fn eq(&self, other: &Self) -> bool {
         let (this, other) = (self.base(), other.base());
         if is_number(this) && is_number(other) {
+            match (this, other) {
+                (HKey::Complex(a, b), HKey::Complex(c, d)) => return a == c && b == d,
+                // With no imaginary part, the real part's key.
+                (HKey::Complex(re, im), x) | (x, HKey::Complex(re, im)) => return *im == 0.0 && HKey::Float(*re) == *x,
+                _ => {}
+            }
             // A big int equals only a big int or a float of the same value.
             match (this, other) {
                 (HKey::Big(a), HKey::Big(b)) => return a == b,
@@ -611,6 +622,13 @@ impl Hash for HKey {
                 }
             },
             HKey::None => 0u8.hash(h),
+            HKey::Complex(re, im) if *im == 0.0 => HKey::Float(*re).hash(h),
+            HKey::Complex(re, im) => {
+                11u8.hash(h);
+                // +0.0 and -0.0 are equal, so they hash alike.
+                (re + 0.0).to_bits().hash(h);
+                (im + 0.0).to_bits().hash(h);
+            }
             HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) => match whole(self) {
                 Some(i) => {
                     2u8.hash(h);
@@ -681,6 +699,7 @@ impl HKey {
             Value::Int(i) => HKey::Int(*i),
             Value::Big(b) => HKey::Big(b.clone()),
             Value::Float(f) => HKey::Float(*f),
+            Value::Complex(re, im) => HKey::Complex(*re, *im),
             Value::Str(s) => HKey::Str(s.clone()),
             Value::Bytes(b) => HKey::Bytes(b.clone()),
             Value::Tuple(items) => {
@@ -703,6 +722,7 @@ impl HKey {
             HKey::Int(i) => Value::Int(*i),
             HKey::Big(b) => Value::Big(b.clone()),
             HKey::Float(f) => Value::Float(*f),
+            HKey::Complex(re, im) => Value::Complex(*re, *im),
             HKey::Str(s) => Value::Str(s.clone()),
             HKey::Bytes(b) => Value::Bytes(b.clone()),
             HKey::Tuple(t) => Value::Tuple(Rc::new(t.iter().map(HKey::to_value).collect())),
@@ -825,6 +845,7 @@ impl Value {
             Value::Bool(_) => "bool",
             Value::Int(_) | Value::Big(_) => "int",
             Value::Float(_) => "float",
+            Value::Complex(..) => "complex",
             Value::Str(_) => "str",
             Value::List(_) => "list",
             Value::Tuple(_) => "tuple",
@@ -861,6 +882,7 @@ impl Value {
             Value::Bool(b) => *b,
             Value::Int(i) => *i != 0,
             Value::Float(f) => *f != 0.0,
+            Value::Complex(re, im) => *re != 0.0 || *im != 0.0,
             Value::Str(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
             Value::Tuple(t) => !t.is_empty(),
@@ -1004,6 +1026,7 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::Int(i) => i.to_string(),
         Value::Big(b) => b.to_string(),
         Value::Float(f) => format_double(*f),
+        Value::Complex(re, im) => super::complex::repr(*re, *im),
         Value::Str(s) => s.to_string(),
         Value::List(_) | Value::Dict(_) | Value::Tuple(_) | Value::Set(_) | Value::Bytes(_) => py_repr(v),
         Value::Function(f) => format!("<function {}>", f.qualified_name()),
@@ -1015,7 +1038,7 @@ pub(crate) fn py_str(v: &Value) -> String {
         },
         Value::HostFunction(f) => format!("<builtin {}>", f.name),
         Value::Module(n) => format!("<module '{n}'>"),
-        Value::ModuleFunction(mf) => format!("<builtin {}.{}>", mf.0, mf.1),
+        Value::ModuleFunction(mf) => format!("<built-in function {}>", mf.1),
         Value::Exception(e) => e.message.clone(),
         Value::Match(m) => {
             let (s, e) = m.spans.first().copied().flatten().unwrap_or((0, 0));
@@ -1175,8 +1198,10 @@ pub(crate) fn py_repr(v: &Value) -> String {
     }
 }
 
-/// Print an f64 the way Python does: whole numbers keep their `.0`, and
-/// everything else gets the shortest `%g` form that reads back as the same value.
+/// Print an f64 the way Python's repr does: the fewest digits that read back
+/// as the same value, laid out as float_repr_style "short" lays them out:
+/// plain positions while the decimal point falls between 10**-4 and 10**16,
+/// an exponent of at least two digits past that, and `.0` on whole numbers.
 pub(crate) fn format_double(d: f64) -> String {
     if d.is_nan() {
         return "nan".into();
@@ -1184,16 +1209,37 @@ pub(crate) fn format_double(d: f64) -> String {
     if d.is_infinite() {
         return if d < 0.0 { "-inf".into() } else { "inf".into() };
     }
-    if d == d.round_ties_even() && d.abs() < 1e16 {
-        return c_fixed(d, 1);
+    if d == 0.0 {
+        return if d.is_sign_negative() { "-0.0".into() } else { "0.0".into() };
     }
-    for p in 1..=17 {
-        let s = c_general(d, p);
-        if s.parse::<f64>().ok() == Some(d) {
-            return s;
+    // Rust's `{:e}` finds how few digits round-trip, as dtoa's mode 0 does.
+    // Where two such strings are equally near, dtoa takes the even one: the
+    // exactly rounded string of that length (half to even), when it reads back.
+    let sign = if d < 0.0 { "-" } else { "" };
+    let split = |sci: String| -> (String, i32) {
+        let (mantissa, exp) = sci.split_once('e').unwrap_or((&sci, "0"));
+        (mantissa.chars().filter(|c| *c != '.').collect(), exp.parse().unwrap_or(0))
+    };
+    let (mut digits, mut exp) = split(format!("{:e}", d.abs()));
+    let exact = format!("{:.*e}", digits.len() - 1, d.abs());
+    if exact.parse::<f64>().ok() == Some(d.abs()) {
+        (digits, exp) = split(exact);
+    }
+    let decpt = exp + 1;
+    let n = digits.len() as i32;
+    if -4 < decpt && decpt <= 16 {
+        if decpt <= 0 {
+            format!("{sign}0.{}{digits}", "0".repeat((-decpt) as usize))
+        } else if decpt >= n {
+            format!("{sign}{digits}{}.0", "0".repeat((decpt - n) as usize))
+        } else {
+            format!("{sign}{}.{}", &digits[..decpt as usize], &digits[decpt as usize..])
         }
+    } else {
+        let rest = if n > 1 { format!(".{}", &digits[1..]) } else { String::new() };
+        let esign = if exp < 0 { '-' } else { '+' };
+        format!("{sign}{}{rest}e{esign}{:02}", &digits[..1], exp.abs())
     }
-    c_general(d, 17)
 }
 
 /// Whether a container holds an instance anywhere inside it, so `==` on it
@@ -1224,6 +1270,11 @@ pub(crate) fn holds_instance(v: &Value) -> bool {
 pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
     match (a, b) {
         (Value::None, Value::None) => true,
+        (Value::Complex(a, b), Value::Complex(c, d)) => a == c && b == d,
+        (Value::Complex(re, im), x @ (Value::Int(_) | Value::Bool(_) | Value::Float(_) | Value::Big(_)))
+        | (x @ (Value::Int(_) | Value::Bool(_) | Value::Float(_) | Value::Big(_)), Value::Complex(re, im)) => {
+            *im == 0.0 && py_equals(&Value::Float(*re), x)
+        }
         (Value::Big(x), Value::Big(y)) => x == y,
         (Value::Big(x), Value::Float(f)) | (Value::Float(f), Value::Big(x)) => {
             super::bigint::cmp_float(x, *f) == Some(std::cmp::Ordering::Equal)

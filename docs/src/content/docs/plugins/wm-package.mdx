@@ -101,6 +101,8 @@ needs:
   dict subclass
 - integers of any size, as Python's are, with `<<`, `>>` and the other bit
   operators, and `int.from_bytes` and `n.to_bytes` for binary formats
+- complex numbers: `1 + 2j`, `complex("1+2j")`, `z.real`, `z.imag`,
+  `abs(z)`, and `cmath` for their square roots, logarithms and the rest
 - Python's string escapes, `\x41`, `\u00e9`, `\U0001F600` and `\N{BULLET}`
   included
 - Python's sorting (stable, with `key` and `reverse`), dict keys (`1` and
@@ -117,14 +119,14 @@ needs:
 `hash()` of a number or a tuple is CPython's, so `hash(2)` is 2 and
 `hash(2.5)` is the same on the phone as on a computer.
 
-Not there: `compile`, `open`, complex numbers and `%` formatting of bytes.
+Not there: `compile`, `open` and `%` formatting of bytes.
 
 **Modules you can import:**
 
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `enum`, `errno`, `fnmatch`, `functools`, `gzip`, `hashlib`, `heapq`, `hmac`, `html`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pickle`, `pprint`, `secrets`, `shlex`, `statistics`, `string`, `struct`, `textwrap`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `zlib` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `enum`, `errno`, `fnmatch`, `fractions`, `functools`, `gzip`, `hashlib`, `heapq`, `hmac`, `html`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pickle`, `pprint`, `secrets`, `shlex`, `statistics`, `string`, `struct`, `textwrap`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `zlib` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 

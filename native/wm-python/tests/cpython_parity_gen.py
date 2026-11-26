@@ -1771,6 +1771,92 @@ t3 = io.TextIOWrapper(io.BytesIO(b'x\ny\n')); print(list(t3), io.TextIOWrapper(i
 s = io.StringIO('a\r\nb\r\nc'); print([s.readline(), s.readline(), s.readline(), s.readline()], io.StringIO('p\nq').readlines())
 '\n'.join(_out)
 '''),
+    ("complex_numbers", "numbers", r'''
+z = complex(3, -4)
+w = 1.5 + 2j
+parts = (z.real, z.imag, abs(z), z.conjugate(), -z, +w, z == 3 - 4j, z != w, 2j == complex(0, 2))
+arith = (z + w, z - w, z * w, z / w, z ** 2, (1j) ** 2, 2 ** 1j == 2 ** complex(0, 1), 1 + 0j == 1)
+texts = (complex("1+2j"), complex(" (3-1j) "), complex("-j"), complex("2.5e1J"), complex(1, 2) * 0, complex(-0.0, -0.0), complex(real=1, imag=2))
+fmt = (repr(1j), repr(complex(-0.0, 0)), str(1 + 2j), f"{z:.2f}", format(w, "10.3g"), f"{z:^20}", repr(complex(float("inf"), float("nan"))))
+errs = []
+for bad in [lambda: 1j < 2j, lambda: complex("1+"), lambda: 1j % 2, lambda: int(1j), lambda: 0j ** -1, lambda: round(1j), lambda: complex("1", 2), lambda: 1 / 0j]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((parts, arith, texts, fmt, errs, hash(2 + 0j) == hash(2), {1j: "a"}[complex(0, 1)], isinstance(1j, complex), type(1j).__name__))
+'''),
+    ("cmath_functions", "stdlib", r'''
+import cmath, math
+def r(z):
+    return complex(round(z.real, 10), round(z.imag, 10))
+funcs = ["sqrt", "exp", "log", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"]
+vals = [complex(0.5, 0.25), complex(-2, 1), complex(3, -0.5), complex(-0.25, -1.5), 4, -3]
+table = [[r(getattr(cmath, f)(v)) for v in vals] for f in funcs]
+special = (cmath.sqrt(-0.0), cmath.sqrt(complex(-0.0, -0.0)), cmath.sqrt(complex(-math.inf, 1)), cmath.exp(complex(-math.inf, 0)),
+           cmath.log(complex(0, math.inf)), cmath.acos(complex(math.inf, math.nan)), cmath.polar(-1), round(cmath.phase(-1j), 12),
+           cmath.rect(math.inf, 0), cmath.isinf(complex(1, math.inf)), cmath.isnan(complex(math.nan, 1)), cmath.isclose(1j, 1.0000000001j))
+errs = []
+for bad in [lambda: cmath.log(0), lambda: cmath.exp(1000), lambda: cmath.atanh(1), lambda: cmath.sqrt("x"), lambda: cmath.log(2, 1), lambda: cmath.rect(1, math.inf), lambda: cmath.sqrt(1, 2)]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((table, special, errs, cmath.log(0, 2), cmath.infj, cmath.nanj, r(cmath.log(8, 2)), cmath.pi == math.pi))
+'''),
+    ("math_parity", "stdlib", r'''
+import math
+def r(x):
+    return round(x, 10) if isinstance(x, float) else x
+exact = (math.fsum([1e-16, 1, 1e16]), math.fsum([0.1] * 10), math.hypot(3, 4, 12), math.hypot(5e-324, 5e-324), math.dist((1, 2), (4, 6)),
+         math.sumprod([1, 2, 3], [4, 5, 6]), math.sumprod([0.1, 0.2, 0.3], [1, 2, 3]), math.prod([1.5, 2], start=3), math.ldexp(1.5, -1074),
+         math.frexp(5e-324), math.modf(-3.0), math.modf(math.inf), math.nextafter(1.0, 2.0), math.nextafter(0.0, -1.0, steps=3), math.ulp(1.0),
+         math.fma(2.0, 3.0, 1.0), math.remainder(5, 2), math.remainder(-7, 2), math.fmod(-7, 2), math.copysign(0.0, -1), math.atan2(0.0, -0.0),
+         math.pow(-2, 3), math.pow(math.nan, 0), math.comb(10**20, 2), math.perm(5), math.isqrt(10**40 + 1), math.log(2**10000),
+         math.log2(2**1100), math.log10(10**400), math.gamma(5), math.lgamma(3), math.degrees(math.pi), math.radians(180))
+approx = [r(f(x)) for f in (math.gamma, math.lgamma, math.erf, math.erfc, math.asinh, math.atanh, math.cbrt, math.expm1, math.log1p) for x in (0.5, -0.25, 0.75)]
+errs = []
+for bad in [lambda: math.sqrt(-1), lambda: math.log(0), lambda: math.exp(1000), lambda: math.gamma(0), lambda: math.gamma(-2), lambda: math.lgamma(-1),
+            lambda: math.pow(0, -1), lambda: math.fmod(1, 0), lambda: math.ldexp(1, 5000), lambda: math.fsum([math.inf, -math.inf]),
+            lambda: math.fsum([1e308, 1e308]), lambda: math.fma(math.inf, 0, 1), lambda: math.sumprod([1], [1, 2]), lambda: math.comb(-1, 2),
+            lambda: math.log(2, 1), lambda: math.sqrt(), lambda: math.atan2(1), lambda: math.sqrt(x=1), lambda: math.isclose(1), lambda: math.trunc("x"),
+            lambda: math.nextafter(1, 2, steps=-1), lambda: math.factorial(2.5), lambda: math.erf("x"), lambda: math.sin(math.inf)]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((exact, approx, errs, math.sqrt(math.nan) != math.sqrt(math.nan), math.sqrt.__name__, repr(math.sqrt), math.__name__))
+'''),
+    ("fractions_and_numbers", "stdlib", r'''
+from fractions import Fraction
+from decimal import Decimal
+import numbers, math, pickle
+f = Fraction(3, 4)
+out = (f + Fraction(1, 4), Fraction("3.1415"), Fraction(0.1).limit_denominator(100), Fraction(7, -21), str(Fraction(22, 7)), f ** 2, f ** -2,
+       Fraction(1, 3) < 0.34, hash(Fraction(1, 2)) == hash(0.5), round(Fraction(7, 2)), round(Fraction(22, 7), 2), math.floor(Fraction(-7, 2)),
+       Fraction(Decimal("1.25")), f"{Fraction(1, 3):.5f}", f"{Fraction(22, 7):>10}", divmod(Fraction(7, 2), 2), Fraction(1, 2) + 1j,
+       pickle.loads(pickle.dumps(Fraction(3, 8))), sum(Fraction(1, n) for n in range(1, 6)), Fraction(" -1.5e3 "), sorted([Fraction(1, 2), 0.3, 1]))
+abc = ([isinstance(x, numbers.Complex) for x in (1, 1.5, 1j, True, "x")], [isinstance(x, numbers.Real) for x in (1, 1.5, 1j)],
+       issubclass(complex, numbers.Number), issubclass(Fraction, numbers.Rational), isinstance(Fraction(1, 2), numbers.Real))
+errs = []
+for bad in [lambda: Fraction(1, 0), lambda: Fraction("abc"), lambda: Fraction(1.5, 2)]:
+    try:
+        bad()
+    except Exception as e:
+        errs.append((type(e).__name__, str(e)))
+repr((out, abc, errs, pickle.loads(pickle.dumps(1 + 2j))))
+'''),
+    ("match_subscript_skipped_group", "regex", r'''
+import re
+m = re.fullmatch(r"(?P<a>x)?(?P<b>y)", "y")
+out = [m["a"], m["b"], m[0], m[1], m.group("a", "b")]
+for bad in [lambda: m["zz"], lambda: m[3], lambda: m.group(1, 5)]:
+    try:
+        bad()
+    except IndexError as e:
+        out.append(str(e))
+repr(out)
+'''),
 ]
 
 

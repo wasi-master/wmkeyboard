@@ -78,7 +78,7 @@ pub(crate) const EXCEPTION_KINDS: &[&str] = &[
 
 /// Names that resolve to a builtin when nothing else is bound to them.
 pub(crate) const BUILTIN_NAMES: &[&str] = &[
-    "len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted",
+    "len", "str", "repr", "print", "int", "float", "complex", "bool", "abs", "round", "min", "max", "sum", "range", "sorted",
     "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map",
     "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "Exception",
     "ValueError", "TypeError", "KeyError", "IndexError", "NameError", "ZeroDivisionError", "AttributeError",
@@ -96,7 +96,7 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
 pub(crate) fn is_type_name(name: &str) -> bool {
     matches!(
         name,
-        "int" | "float" | "str" | "bool" | "list" | "dict" | "set" | "tuple" | "bytes" | "object" | "type" | "range"
+        "int" | "float" | "complex" | "str" | "bool" | "list" | "dict" | "set" | "tuple" | "bytes" | "object" | "type" | "range"
             | "slice" | "NoneType" | "function" | "builtin_function_or_method" | "module" | "method" | "generator"
             | "map" | "filter" | "zip" | "enumerate" | "reversed" | "property" | "staticmethod" | "classmethod"
             | "super" | "re.Match" | "re.Pattern" | "ellipsis" | "NotImplementedType" | "dict_keys" | "dict_values"
@@ -120,7 +120,7 @@ pub(crate) const PYTHON_BUILTINS: &[&str] =
 /// The builtins that take keyword arguments.
 pub(crate) const KWARG_BUILTINS: &[&str] = &[
     "sorted", "min", "max", "round", "property", "print", "enumerate", "dict", "sum", "int", "zip", "str", "bytes",
-    "__import__", "__base_init__", "__object_new__",
+    "complex", "__import__", "__base_init__", "__object_new__",
 ];
 
 /// The special methods a numeric builtin asks an instance for.
@@ -311,7 +311,14 @@ impl Interp {
                 if let Value::Big(b) = &args[0] {
                     return Ok(int_value(b.abs()));
                 }
-                let d = args[0].as_float().ok_or_else(|| self.error("bad operand type for abs()", "TypeError"))?;
+                if let Value::Complex(re, im) = args[0] {
+                    let h = re.hypot(im);
+                    if h.is_infinite() && re.is_finite() && im.is_finite() {
+                        return Err(self.error("absolute value too large", "OverflowError"));
+                    }
+                    return Ok(Value::Float(h));
+                }
+                let d = args[0].as_float().ok_or_else(|| self.error(format!("bad operand type for abs(): '{}'", args[0].type_name()), "TypeError"))?;
                 Ok(Value::Float(d.abs()))
             }
             "round" => self.round_builtin(args, kwargs),
@@ -357,6 +364,7 @@ impl Interp {
                 Ok(acc)
             }
             "range" => self.range_builtin(args),
+            "complex" => self.complex_builtin(args, kwargs),
             "sorted" => self.sorted_builtin(args, kwargs),
             "reversed" => {
                 self.arity(name, args, 1)?;
@@ -436,6 +444,12 @@ impl Interp {
             }
             "divmod" => {
                 self.arity(name, args, 2)?;
+                if matches!(args[0], Value::Complex(..)) || matches!(args[1], Value::Complex(..)) {
+                    return Err(self.error(
+                        format!("unsupported operand type(s) for divmod(): '{}' and '{}'", args[0].type_name(), args[1].type_name()),
+                        "TypeError",
+                    ));
+                }
                 // One message for both halves, as CPython gives.
                 if args[1].as_float() == Some(0.0) && args[0].as_float().is_some() {
                     let message = if matches!(&args[0], Value::Float(_)) || matches!(&args[1], Value::Float(_)) {
@@ -458,6 +472,9 @@ impl Interp {
                     if let (Some(a), Some(b), Some(m)) = (to_big(&args[0]), to_big(&args[1]), to_big(&args[2])) {
                         return super::bigint::modpow(&a, &b, &m).map_err(|(m, k)| self.error(m, k));
                     }
+                }
+                if args.len() == 3 && args.iter().any(|a| matches!(a, Value::Complex(..))) {
+                    return Err(self.error("complex modulo", "ValueError"));
                 }
                 let p = self.binary_op(BinOp::Pow, &args[0], &args[1])?;
                 if args.len() != 3 {
@@ -696,7 +713,10 @@ impl Interp {
                     .ok_or_else(|| self.error(format!("invalid literal for int() with base 10: {}", py_repr(a)), "ValueError"))?;
                 self.float_to_int(d)
             }
-            _ => Err(self.error("int() argument must be a string or a number", "TypeError")),
+            other => Err(self.error(
+                format!("int() argument must be a string, a bytes-like object or a real number, not '{}'", other.type_name()),
+                "TypeError",
+            )),
         }
     }
 
@@ -714,15 +734,95 @@ impl Interp {
             Value::Bytes(b) => Some(Rc::from(String::from_utf8_lossy(b).as_ref())),
             _ => None,
         };
-        if let Some(s) = text {
-            if let Some(d) = parse_swift_double(trim_python_space(&s)) {
-                return Ok(Value::Float(d));
-            }
+        let Some(s) = text else {
+            return Err(self.error(format!("float() argument must be a string or a real number, not '{}'", a.type_name()), "TypeError"));
+        };
+        if let Some(d) = parse_swift_double(trim_python_space(&s)) {
+            return Ok(Value::Float(d));
         }
         Err(self.error(format!("could not convert string to float: {}", py_repr(a)), "ValueError"))
     }
 
+    /// `complex(real=0, imag=0)`, or `complex("1+2j")`.
+    fn complex_builtin(&mut self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let real = args.first().or_else(|| kwarg(kwargs, "real")).cloned();
+        let imag = args.get(1).or_else(|| kwarg(kwargs, "imag")).cloned();
+        if args.len() > 2 {
+            return Err(self.error(format!("complex() takes at most 2 arguments ({} given)", args.len()), "TypeError"));
+        }
+        for (name, _) in kwargs {
+            let at = match name.as_ref() {
+                "real" => 0,
+                "imag" => 1,
+                other => return Err(self.error(format!("complex() got an unexpected keyword argument '{other}'"), "TypeError")),
+            };
+            if at < args.len() {
+                return Err(self.error(format!("argument for complex() given by name ('{name}') and position ({})", at + 1), "TypeError"));
+            }
+        }
+        if let Some(Value::Str(s)) = &real {
+            if imag.is_some() {
+                return Err(self.error("complex() can't take second arg if first is a string", "TypeError"));
+            }
+            return match super::complex::parse(s) {
+                Some((re, im)) => Ok(Value::Complex(re, im)),
+                None => Err(self.error("complex() arg is a malformed string", "ValueError")),
+            };
+        }
+        if matches!(imag, Some(Value::Str(_))) {
+            return Err(self.error("complex() second arg can't be a string", "TypeError"));
+        }
+        // Each part as (real, imaginary, whether it was complex).
+        let part = |me: &mut Self, v: &Option<Value>, which: &str| -> R<(f64, f64, bool)> {
+            let Some(v) = v else { return Ok((0.0, 0.0, false)) };
+            match v {
+                Value::Complex(re, im) => Ok((*re, *im, true)),
+                Value::Int(_) | Value::Bool(_) | Value::Float(_) => Ok((v.as_float().unwrap_or(0.0), 0.0, false)),
+                Value::Big(b) => Ok((super::bigint::to_float(b).map_err(|(m, k)| me.error(m, k))?, 0.0, false)),
+                Value::Instance(_) => {
+                    if let Some(c) = me.dunder(v, "__complex__", Vec::new())? {
+                        return match c {
+                            Value::Complex(re, im) => Ok((re, im, true)),
+                            other => Err(me.error(format!("__complex__ returned non-complex (type {})", other.type_name()), "TypeError")),
+                        };
+                    }
+                    match me.call_builtin("float", std::slice::from_ref(v), &[]) {
+                        Ok(Value::Float(f)) => Ok((f, 0.0, false)),
+                        _ => Err(me.error(format!("complex() {which} must be a number, not '{}'", v.type_name()), "TypeError")),
+                    }
+                }
+                other => Err(me.error(
+                    if which == "first argument" {
+                        format!("complex() first argument must be a string or a number, not '{}'", other.type_name())
+                    } else {
+                        format!("complex() second argument must be a number, not '{}'", other.type_name())
+                    },
+                    "TypeError",
+                )),
+            }
+        };
+        let r = part(self, &real, "first argument")?;
+        // real + imag * 1j, as complex_new puts the parts together: a part
+        // that was not complex adds nothing, so complex(-0.0, -0.0) keeps
+        // both signs.
+        let (mut re, mut im) = (r.0, r.1);
+        if imag.is_some() {
+            let i = part(self, &imag, "second argument")?;
+            im = i.0;
+            if i.2 {
+                re -= i.1;
+            }
+            if r.2 {
+                im += r.1;
+            }
+        }
+        Ok(Value::Complex(re, im))
+    }
+
     fn round_builtin(&self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        if let Some(v @ Value::Complex(..)) = args.first() {
+            return Err(self.error(format!("type {} doesn't define __round__ method", v.type_name()), "TypeError"));
+        }
         let ndigits = args.get(1).or_else(|| kwarg(kwargs, "ndigits")).filter(|v| !v.is_none());
         // An int rounds to an int: itself, or to tens, hundreds and so on, halves to even.
         if let Some(n) = args.first().and_then(to_big) {
@@ -777,7 +877,7 @@ impl Interp {
                 Some(f) => self.invoke(f, vec![v.clone()])?,
                 None => v.clone(),
             };
-            let c = self.order(&k, &best_key)?;
+            let c = self.order_as(&k, &best_key, if want_max { ">" } else { "<" })?;
             if (want_max && c > 0) || (!want_max && c < 0) {
                 best = v;
                 best_key = k;

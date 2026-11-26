@@ -34,6 +34,7 @@ pub(crate) const SET_METHODS: &[&str] = &[
 ];
 pub(crate) const INT_METHODS: &[&str] = &["to_bytes", "bit_length", "bit_count", "conjugate", "as_integer_ratio", "is_integer"];
 pub(crate) const FLOAT_METHODS: &[&str] = &["is_integer", "as_integer_ratio", "conjugate", "hex"];
+pub(crate) const COMPLEX_METHODS: &[&str] = &["conjugate"];
 pub(crate) const DICT_METHODS: &[&str] = &["keys", "values", "items", "get", "pop", "popitem", "setdefault", "update", "clear", "copy"];
 pub(crate) const BYTES_METHODS: &[&str] = &[
     "capitalize", "center", "count", "decode", "endswith", "expandtabs", "find", "hex", "index", "isalnum", "isalpha",
@@ -107,6 +108,7 @@ fn type_methods(ty: &str) -> &'static [&'static str] {
         "bytes" => BYTES_METHODS,
         "int" => INT_METHODS,
         "float" => FLOAT_METHODS,
+        "complex" => COMPLEX_METHODS,
         _ => &[],
     }
 }
@@ -141,6 +143,7 @@ fn builtin_type(v: &Value) -> Option<&'static str> {
         Value::Bytes(_) => "bytes",
         Value::Int(_) | Value::Bool(_) | Value::Big(_) => "int",
         Value::Float(_) => "float",
+        Value::Complex(..) => "complex",
         _ => return None,
     })
 }
@@ -247,6 +250,7 @@ impl Interp {
             Value::Builtin(b) if b.as_ref() == "int" && name == "from_bytes" => self.int_from_bytes(&args, &kwargs),
             Value::Int(_) | Value::Bool(_) | Value::Big(_) if INT_METHODS.contains(&name) => self.int_method(obj, name, &args, &kwargs),
             Value::Float(f) if FLOAT_METHODS.contains(&name) => self.float_method(*f, name),
+            Value::Complex(re, im) if name == "conjugate" => Ok(Value::Complex(*re, -im)),
             Value::Builtin(b) if b.as_ref() == "bytes" && name == "fromhex" => {
                 let s = self.arg_str(&args, 0, "fromhex")?;
                 match from_hex(&s) {
@@ -1476,7 +1480,11 @@ impl Interp {
                 }
                 let mut out = Vec::new();
                 for a in args {
-                    out.push(group_value(group_index(self, a)?));
+                    let i = group_index(self, a)?;
+                    if i < 0 || i as usize >= m.spans.len().max(1) {
+                        return Err(self.error("no such group", "IndexError"));
+                    }
+                    out.push(group_value(i));
                 }
                 Ok(Value::tuple(out))
             }

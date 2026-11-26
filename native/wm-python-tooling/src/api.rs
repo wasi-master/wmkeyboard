@@ -105,12 +105,12 @@ pub const MODULES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// Standard library modules written in Python that API 5 plugins can import.
 /// Their members are not modelled, so code using them is not checked name by name.
 pub const LIBRARY: &[&str] = &[
-    "abc", "argparse", "array", "ast", "asyncio", "base64", "binascii", "bisect", "builtins", "calendar", "codecs",
+    "abc", "argparse", "array", "ast", "asyncio", "base64", "binascii", "bisect", "builtins", "calendar", "cmath", "codecs",
     "collections", "collections.abc", "configparser", "contextlib", "contextvars", "copy", "copyreg", "csv",
     "dataclasses", "datetime", "decimal", "difflib", "email", "email.charset", "email.errors", "email.header",
     "email.message", "email.mime", "email.mime.application", "email.mime.audio", "email.mime.base",
     "email.mime.image", "email.mime.message", "email.mime.multipart", "email.mime.nonmultipart", "email.mime.text",
-    "email.parser", "email.policy", "email.utils", "enum", "errno", "fnmatch", "functools", "gzip", "hashlib",
+    "email.parser", "email.policy", "email.utils", "enum", "errno", "fnmatch", "fractions", "functools", "gzip", "hashlib",
     "heapq", "hmac", "html", "importlib", "importlib.metadata", "importlib.resources", "importlib.util", "inspect",
     "io", "ipaddress", "itertools", "keyword", "logging", "mimetypes", "numbers", "operator", "os", "os.path",
     "pickle", "pprint", "secrets", "shlex", "statistics", "string", "struct", "textwrap", "token", "tokenize",
@@ -139,7 +139,7 @@ pub const EXCEPTIONS: &[&str] = &[
 pub const REMOVED_BUILTINS: &[&str] = &["open", "input", "compile", "breakpoint", "exit", "quit", "help"];
 
 /// Builtins Python has and PyMini does not.
-pub const MISSING_BUILTINS: &[&str] = &["complex"];
+pub const MISSING_BUILTINS: &[&str] = &["BaseExceptionGroup", "ExceptionGroup"];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
 /// typed text or reach the file system. (The network, the clipboard and the
@@ -332,6 +332,7 @@ fn build() -> Model {
     add("ascii", Builtin, Some("ascii(value)"), None, "repr(value) with every character past ASCII written as an escape: ascii(\"é\") gives '\\xe9'.");
     add("int", Builtin, Some("int(value=0, base=10)"), None, "value as a whole number. Text may have _ between digits and digits of any script; \"3.5\" reads as 3. A base reads text in base 2 to 36, and base 0 reads a 0x, 0o or 0b prefix.");
     add("float", Builtin, Some("float(value=0.0)"), None, "value as a floating-point number.");
+    add("complex", Builtin, Some("complex(real=0, imag=0)"), None, "A complex number: complex(1, 2) is (1+2j), as is 1 + 2j. Text reads too: complex(\"1+2j\"). Its parts are .real and .imag; cmath has its functions.");
     add("bool", Builtin, Some("bool(value=False)"), None, "Whether value is true: not zero, not empty, not None.");
     add("bytes", Builtin, Some("bytes(values)"), None, "Bytes from a list of numbers from 0 to 255. str.encode() gives the UTF-8 bytes of text, and bytes.fromhex() reads hex.");
     add("bytearray", Builtin, Some("bytearray(values=b\"\")"), None, "Bytes you can change: b[0] = 65, append, extend, pop. Takes bytes, a list of numbers from 0 to 255, a length, or text and an encoding.");
@@ -476,7 +477,7 @@ fn build() -> Model {
         ("hypot", "hypot(*xs)", "The length of a vector: the square root of the sum of squares."),
         ("gcd", "gcd(*xs)", "The greatest common divisor."),
         ("lcm", "lcm(*xs)", "The least common multiple."),
-        ("factorial", "factorial(n)", "n!: an int up to 20!, past that a float, up to 170!."),
+        ("factorial", "factorial(n)", "n!, an int of any size."),
         ("isnan", "isnan(x)", "Whether x is not a number."),
         ("isinf", "isinf(x)", "Whether x is infinite."),
         ("isfinite", "isfinite(x)", "Whether x is neither infinite nor not a number."),
@@ -484,7 +485,7 @@ fn build() -> Model {
         ("fmod", "fmod(x, y)", "The remainder of x / y, with the sign of x."),
         ("comb", "comb(n, k)", "How many ways to choose k of n."),
         ("perm", "perm(n, k=None)", "How many ways to arrange k of n in order."),
-        ("prod", "prod(values)", "The product of the items."),
+        ("prod", "prod(values, *, start=1)", "The product of the items, times start."),
         ("isclose", "isclose(a, b, rel_tol=1e-09, abs_tol=0.0)", "Whether a and b are equal within a tolerance: isclose(0.1 + 0.2, 0.3) is True."),
         ("isqrt", "isqrt(n)", "The whole-number square root: the largest r with r * r <= n."),
         ("fsum", "fsum(values)", "The sum of floats without the rounding a plain sum gathers."),
@@ -503,6 +504,14 @@ fn build() -> Model {
         ("remainder", "remainder(x, y)", "x minus the multiple of y nearest to it."),
         ("ldexp", "ldexp(x, i)", "x times 2 to the power i."),
         ("frexp", "frexp(x)", "(mantissa, exponent) with x = mantissa * 2 ** exponent."),
+        ("erf", "erf(x)", "The error function at x."),
+        ("erfc", "erfc(x)", "1 - erf(x), exact where erf(x) is near 1."),
+        ("gamma", "gamma(x)", "The gamma function at x: gamma(n) is (n - 1)! for whole n."),
+        ("lgamma", "lgamma(x)", "The natural logarithm of abs(gamma(x))."),
+        ("nextafter", "nextafter(x, y, *, steps=None)", "The next float after x towards y, or the one steps floats along."),
+        ("ulp", "ulp(x)", "The gap between abs(x) and the next float away from zero."),
+        ("fma", "fma(x, y, z)", "x * y + z, rounded once."),
+        ("sumprod", "sumprod(p, q)", "The sum of the products of matching items of p and q, with little rounding."),
     ] {
         add(leak(format!("math.{name}")), Function, Some(leak(sig.to_string())), None, doc);
     }

@@ -6,7 +6,6 @@
 
 use std::rc::Rc;
 
-use super::ast::BinOp;
 use super::datefmt::{civil, format_pattern};
 use super::error::R;
 use super::eval::Interp;
@@ -20,7 +19,7 @@ pub const NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// [NAMES] and the Rust half of the Python standard library modules
 /// ([`super::stdlib`]), which a host turns on with
 /// `Runtime::enable_python_stdlib`.
-pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native", "_time"];
+pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native", "_time", "cmath"];
 
 /// PyMini's version, and the line `sys.version` holds.
 pub const VERSION: &str = "2.0.1";
@@ -28,12 +27,8 @@ pub const VERSION_LINE: &str = "pymini 2.0.1";
 
 pub(crate) fn functions(module: &str) -> &'static [&'static str] {
     match module {
-        "math" => &[
-            "sqrt", "floor", "ceil", "trunc", "fabs", "pow", "exp", "log", "log2", "log10", "sin", "cos", "tan", "asin",
-            "acos", "atan", "atan2", "degrees", "radians", "hypot", "gcd", "lcm", "factorial", "isnan", "isinf",
-            "isfinite", "copysign", "fmod", "comb", "prod", "isclose", "isqrt", "perm", "fsum", "dist", "sinh", "cosh",
-            "tanh", "asinh", "acosh", "atanh", "log1p", "expm1", "modf", "cbrt", "exp2", "remainder", "ldexp", "frexp",
-        ],
+        "math" => super::mathmod::MATH_FUNCTIONS,
+        "cmath" => super::mathmod::CMATH_FUNCTIONS,
         "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed", "getrandbits"],
         // `_time` is the same clock, under the `time` module written in Python.
         "time" | "_time" => &["time", "monotonic", "parts", "format"],
@@ -62,6 +57,7 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
 pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
     match module {
         "math" => &["pi", "e", "tau", "inf", "nan"],
+        "cmath" => &["pi", "e", "tau", "inf", "nan", "infj", "nanj"],
         "re" => &[
             "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG", "Pattern", "Match",
             "error", "PatternError",
@@ -77,11 +73,13 @@ pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
 
 fn constant(module: &str, name: &str) -> Option<Value> {
     Some(match (module, name) {
-        ("math", "pi") => Value::Float(std::f64::consts::PI),
-        ("math", "e") => Value::Float(std::f64::consts::E),
-        ("math", "tau") => Value::Float(std::f64::consts::PI * 2.0),
-        ("math", "inf") => Value::Float(f64::INFINITY),
-        ("math", "nan") => Value::Float(f64::NAN),
+        ("math" | "cmath", "pi") => Value::Float(std::f64::consts::PI),
+        ("math" | "cmath", "e") => Value::Float(std::f64::consts::E),
+        ("math" | "cmath", "tau") => Value::Float(std::f64::consts::TAU),
+        ("math" | "cmath", "inf") => Value::Float(f64::INFINITY),
+        ("math" | "cmath", "nan") => Value::Float(f64::NAN),
+        ("cmath", "infj") => Value::Complex(0.0, f64::INFINITY),
+        ("cmath", "nanj") => Value::Complex(0.0, f64::NAN),
         ("re", "I" | "IGNORECASE") => Value::Int(IGNORE_CASE),
         ("re", "M" | "MULTILINE") => Value::Int(MULTILINE),
         ("re", "S" | "DOTALL") => Value::Int(DOT_ALL),
@@ -195,31 +193,6 @@ fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
 
 /// What a compiled pattern answers to, as `pattern.search(text)`.
 pub(crate) const PATTERN_METHODS: &[&str] = &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split"];
-
-/// The integer square root: the largest r with r * r <= n.
-fn isqrt(n: u64) -> u64 {
-    let mut r = (n as f64).sqrt() as u64;
-    while r > 0 && r.checked_mul(r).is_none_or(|sq| sq > n) {
-        r -= 1;
-    }
-    while (r + 1).checked_mul(r + 1).is_some_and(|sq| sq <= n) {
-        r += 1;
-    }
-    r
-}
-
-/// C's log2: exact on powers of two, where log(x)/log(2) can miss by an ulp.
-fn log2(x: f64) -> f64 {
-    if x > 0.0 && x.is_finite() {
-        let bits = x.to_bits();
-        let mantissa = bits & ((1u64 << 52) - 1);
-        let exp = ((bits >> 52) & 0x7ff) as i64;
-        if mantissa == 0 && exp != 0 {
-            return (exp - 1023) as f64;
-        }
-    }
-    x.ln() / 2f64.ln()
-}
 
 impl Interp {
     #[inline(never)]
@@ -383,326 +356,13 @@ impl Interp {
             "sys" => self.sys_call(name, &args, &kwargs),
             "math" if args.iter().any(|a| matches!(a, Value::Instance(_))) => self.math_with_instances(name, args, kwargs),
             "math" => self.math_call(name, &args, &kwargs),
+            "cmath" => self.cmath_call(name, &args, &kwargs),
             "random" => self.random_call(name, &args),
             "time" | "_time" => self.time_call(name, &args),
             "json" => self.json_call(name, &args, &kwargs),
             "re" => self.regex_call(name, &args, &kwargs),
             "_native" => self.native_call(name, &args),
             _ => Err(self.error(format!("no module named '{module}'"), "ImportError")),
-        }
-    }
-
-    // MARK: - math
-
-    #[inline(never)]
-    /// `math.floor(x)` and the like for an instance: its `__floor__`,
-    /// `__ceil__` or `__trunc__`, else the number its `__float__` (or, for
-    /// the integer functions, `__index__`) gives.
-    fn math_with_instances(&mut self, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
-        let hook = match name {
-            "floor" => Some("__floor__"),
-            "ceil" => Some("__ceil__"),
-            "trunc" => Some("__trunc__"),
-            _ => None,
-        };
-        if let (Some(hook), Some(first)) = (hook, args.first()) {
-            if let Some(r) = self.dunder(first, hook, Vec::new())? {
-                return Ok(r);
-            }
-        }
-        // These take iterables, which an instance may be.
-        if matches!(name, "prod" | "fsum" | "sumprod" | "dist") {
-            return self.math_call(name, &args, &kwargs);
-        }
-        let integer = matches!(name, "isqrt" | "factorial" | "gcd" | "lcm" | "comb" | "perm");
-        let mut numbers = Vec::with_capacity(args.len());
-        for a in &args {
-            if !matches!(a, Value::Instance(_)) {
-                numbers.push(a.clone());
-                continue;
-            }
-            let n = if integer {
-                self.index_value_of_instance(a)?
-            } else {
-                match self.dunder(a, "__float__", Vec::new())? {
-                    Some(f @ Value::Float(_)) => Some(f),
-                    Some(other) => {
-                        return Err(self.error(format!("{}.__float__ returned non-float (type {})", a.type_name(), other.type_name()), "TypeError"));
-                    }
-                    None => self.index_value_of_instance(a)?,
-                }
-            };
-            match n {
-                Some(n) => numbers.push(n),
-                None if integer => {
-                    return Err(self.error(format!("'{}' object cannot be interpreted as an integer", a.type_name()), "TypeError"));
-                }
-                None => return Err(self.error(format!("must be real number, not {}", a.type_name()), "TypeError")),
-            }
-        }
-        self.math_call(name, &numbers, &kwargs)
-    }
-
-    fn math_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
-        let number = |me: &Interp, i: usize| -> R<f64> {
-            args.get(i).and_then(Value::as_float).ok_or_else(|| me.error(format!("math.{name}() needs a number"), "TypeError"))
-        };
-        let integer = |me: &Interp, i: usize| -> R<i64> {
-            args.get(i).and_then(Value::as_int).ok_or_else(|| me.error(format!("math.{name}() needs an integer"), "TypeError"))
-        };
-        let overflow = |me: &Interp| me.error(format!("integer overflow in math.{name}()"), "OverflowError");
-        let f = |v: f64| Ok(Value::Float(v));
-        let big = |me: &Interp, i: usize| -> R<num_bigint::BigInt> {
-            match args.get(i) {
-                Some(Value::Float(_)) => Err(me.error("'float' object cannot be interpreted as an integer", "TypeError")),
-                Some(v) => super::bigint::to_big(v).ok_or_else(|| me.error(format!("math.{name}() needs an integer"), "TypeError")),
-                None => Err(me.error(format!("math.{name}() needs an integer"), "TypeError")),
-            }
-        };
-        let fail = |me: &Interp, e: super::bigint::Fail| me.error(e.0, e.1);
-        // The logarithms of an int too big for a float, from its bits.
-        if matches!(name, "log" | "log2" | "log10") {
-            if let Some(Value::Big(b)) = args.first() {
-                if num_traits::Signed::is_negative(b.as_ref()) {
-                    return Err(self.error("math domain error", "ValueError"));
-                }
-                let shift = b.bits().saturating_sub(64);
-                let top = num_traits::ToPrimitive::to_f64(&(b.as_ref() >> shift)).unwrap_or(1.0);
-                let ln = top.ln() + shift as f64 * std::f64::consts::LN_2;
-                return f(match name {
-                    "log2" => ln / std::f64::consts::LN_2,
-                    "log10" => ln / std::f64::consts::LN_10,
-                    _ if args.len() > 1 => ln / number(self, 1)?.ln(),
-                    _ => ln,
-                });
-            }
-        }
-        // floor, ceil and trunc of an int are the int; of a float, an int of any size.
-        if matches!(name, "floor" | "ceil" | "trunc") {
-            if let Some(v) = args.first().filter(|v| super::bigint::is_int(v)) {
-                return Ok(super::bigint::to_big(v).map(super::bigint::int_value).unwrap_or(Value::Int(0)));
-            }
-            let x = number(self, 0)?;
-            let whole = match name {
-                "floor" => x.floor(),
-                "ceil" => x.ceil(),
-                _ => x.trunc(),
-            };
-            return self.float_to_int(whole);
-        }
-        match name {
-            "sqrt" => {
-                let x = number(self, 0)?;
-                if x.is_nan() || x < 0.0 {
-                    return Err(self.error("math domain error", "ValueError"));
-                }
-                f(x.sqrt())
-            }
-            "fabs" => f(number(self, 0)?.abs()),
-            "pow" => f(number(self, 0)?.powf(number(self, 1)?)),
-            "exp" => f(number(self, 0)?.exp()),
-            "log" => {
-                let x = number(self, 0)?;
-                if x.is_nan() || x <= 0.0 {
-                    return Err(self.error("math domain error", "ValueError"));
-                }
-                if args.len() > 1 {
-                    f(x.ln() / number(self, 1)?.ln())
-                } else {
-                    f(x.ln())
-                }
-            }
-            "log2" => f(log2(number(self, 0)?)),
-            "log10" => f(number(self, 0)?.log10()),
-            "sin" => f(number(self, 0)?.sin()),
-            "cos" => f(number(self, 0)?.cos()),
-            "tan" => f(number(self, 0)?.tan()),
-            "asin" => f(number(self, 0)?.asin()),
-            "acos" => f(number(self, 0)?.acos()),
-            "atan" => f(number(self, 0)?.atan()),
-            "atan2" => f(number(self, 0)?.atan2(number(self, 1)?)),
-            "degrees" => f(number(self, 0)? * 180.0 / std::f64::consts::PI),
-            "radians" => f(number(self, 0)? * std::f64::consts::PI / 180.0),
-            "hypot" => {
-                let mut total = 0.0;
-                for i in 0..args.len() {
-                    total += number(self, i)?.powf(2.0);
-                }
-                f(total.sqrt())
-            }
-            "gcd" => {
-                if args.is_empty() {
-                    return Ok(Value::Int(0));
-                }
-                let mut g = num_traits::Signed::abs(&big(self, 0)?);
-                for i in 1..args.len() {
-                    g = super::bigint::gcd(&g, &big(self, i)?);
-                }
-                Ok(super::bigint::int_value(g))
-            }
-            "lcm" => {
-                if args.is_empty() {
-                    return Ok(Value::Int(1));
-                }
-                let mut l = num_traits::Signed::abs(&big(self, 0)?);
-                for i in 1..args.len() {
-                    let b = num_traits::Signed::abs(&big(self, i)?);
-                    if num_traits::Zero::is_zero(&l) || num_traits::Zero::is_zero(&b) {
-                        return Ok(Value::Int(0));
-                    }
-                    let g = super::bigint::gcd(&l, &b);
-                    l = super::bigint::to_big(&super::bigint::product([l / g, b].into_iter()).map_err(|e| fail(self, e))?).unwrap_or_default();
-                }
-                Ok(super::bigint::int_value(l))
-            }
-            "factorial" => {
-                let n = integer(self, 0)?;
-                if n < 0 {
-                    return Err(self.error("factorial() not defined for negative values", "ValueError"));
-                }
-                if n <= 20 {
-                    return Ok(Value::Int((2..=n).product::<i64>().max(1)));
-                }
-                if n > 100_000 {
-                    return Err(self.error("factorial() argument should not exceed 100000 here", "OverflowError"));
-                }
-                for _ in 0..n / 64 {
-                    self.tick()?;
-                }
-                super::bigint::product((2..=n).map(num_bigint::BigInt::from)).map_err(|e| fail(self, e))
-            }
-            "comb" | "perm" => {
-                let n = integer(self, 0)?;
-                let k = if name == "perm" && args.len() < 2 { n } else { integer(self, 1)? };
-                if n < 0 || k < 0 {
-                    return Err(self.error(format!("{name}() needs non-negative values"), "ValueError"));
-                }
-                if k > n {
-                    return Ok(Value::Int(0));
-                }
-                let steps = if name == "comb" { k.min(n - k) } else { k };
-                let mut r = num_bigint::BigInt::from(1);
-                for i in 0..steps {
-                    self.tick()?;
-                    r *= n - i;
-                    if name == "comb" {
-                        r /= i + 1;
-                    }
-                    if r.bits() > super::bigint::MAX_BITS {
-                        return Err(overflow(self));
-                    }
-                }
-                Ok(super::bigint::int_value(r))
-            }
-            "isclose" => {
-                let (a, b) = (number(self, 0)?, number(self, 1)?);
-                let rel = kwarg(kwargs, "rel_tol").and_then(Value::as_float).unwrap_or(1e-9);
-                let abs = kwarg(kwargs, "abs_tol").and_then(Value::as_float).unwrap_or(0.0);
-                if rel < 0.0 || abs < 0.0 {
-                    return Err(self.error("tolerances must be non-negative", "ValueError"));
-                }
-                if a == b {
-                    return Ok(Value::Bool(true));
-                }
-                if a.is_infinite() || b.is_infinite() {
-                    return Ok(Value::Bool(false));
-                }
-                let diff = (a - b).abs();
-                Ok(Value::Bool(diff <= (rel * b.abs()).max(rel * a.abs()) || diff <= abs))
-            }
-            "isqrt" => {
-                if let Some(Value::Big(b)) = args.first() {
-                    if num_traits::Signed::is_negative(b.as_ref()) {
-                        return Err(self.error("isqrt() argument must be nonnegative", "ValueError"));
-                    }
-                    return Ok(super::bigint::isqrt(b));
-                }
-                let n = integer(self, 0)?;
-                if n < 0 {
-                    return Err(self.error("isqrt() argument must be nonnegative", "ValueError"));
-                }
-                Ok(Value::Int(isqrt(n as u64) as i64))
-            }
-            "fsum" => {
-                // Neumaier's compensated sum: exact enough that 0.1 * 10 gives 1.0.
-                let items = match args.first() {
-                    Some(a) => self.iterate(a)?,
-                    None => Vec::new(),
-                };
-                let (mut sum, mut c) = (0.0f64, 0.0f64);
-                for v in items {
-                    let x = v.as_float().ok_or_else(|| self.error("fsum() needs numbers", "TypeError"))?;
-                    let t = sum + x;
-                    c += if sum.abs() >= x.abs() { (sum - t) + x } else { (x - t) + sum };
-                    sum = t;
-                }
-                f(sum + c)
-            }
-            "dist" => {
-                let (Some(p), Some(q)) = (args.first(), args.get(1)) else {
-                    return Err(self.error("dist() needs two points", "TypeError"));
-                };
-                let (p, q) = (self.iterate(p)?, self.iterate(q)?);
-                if p.len() != q.len() {
-                    return Err(self.error("both points must have the same number of dimensions", "ValueError"));
-                }
-                let mut total = 0.0;
-                for (a, b) in p.iter().zip(q.iter()) {
-                    let (a, b) = (a.as_float(), b.as_float());
-                    let (Some(a), Some(b)) = (a, b) else {
-                        return Err(self.error("dist() needs numbers", "TypeError"));
-                    };
-                    total += (a - b) * (a - b);
-                }
-                f(total.sqrt())
-            }
-            "sinh" => f(number(self, 0)?.sinh()),
-            "cosh" => f(number(self, 0)?.cosh()),
-            "tanh" => f(number(self, 0)?.tanh()),
-            "asinh" => f(number(self, 0)?.asinh()),
-            "acosh" => f(number(self, 0)?.acosh()),
-            "atanh" => f(number(self, 0)?.atanh()),
-            "log1p" => f(number(self, 0)?.ln_1p()),
-            "expm1" => f(number(self, 0)?.exp_m1()),
-            "cbrt" => f(number(self, 0)?.cbrt()),
-            "exp2" => f(number(self, 0)?.exp2()),
-            "modf" => {
-                let x = number(self, 0)?;
-                Ok(Value::tuple(vec![Value::Float(x.fract()), Value::Float(x.trunc())]))
-            }
-            "remainder" => {
-                let (x, y) = (number(self, 0)?, number(self, 1)?);
-                if y == 0.0 {
-                    return Err(self.error("math domain error", "ValueError"));
-                }
-                f(x - (x / y).round_ties_even() * y)
-            }
-            "ldexp" => f(number(self, 0)? * 2f64.powi(integer(self, 1)?.clamp(-2000, 2000) as i32)),
-            "frexp" => {
-                let x = number(self, 0)?;
-                if x == 0.0 || !x.is_finite() {
-                    return Ok(Value::tuple(vec![Value::Float(x), Value::Int(0)]));
-                }
-                let e = x.abs().log2().floor() as i32 + 1;
-                Ok(Value::tuple(vec![Value::Float(x / 2f64.powi(e)), Value::Int(e as i64)]))
-            }
-            "prod" => {
-                let mut acc = Value::Int(1);
-                let items = match args.first() {
-                    Some(a) => self.iterate(a)?,
-                    None => Vec::new(),
-                };
-                for v in items {
-                    acc = self.binary_op(BinOp::Mul, &acc, &v)?;
-                }
-                Ok(acc)
-            }
-            "isnan" => Ok(Value::Bool(number(self, 0)?.is_nan())),
-            "isinf" => Ok(Value::Bool(number(self, 0)?.is_infinite())),
-            "isfinite" => Ok(Value::Bool(number(self, 0)?.is_finite())),
-            "copysign" => f(number(self, 0)?.copysign(number(self, 1)?)),
-            "fmod" => f(number(self, 0)? % number(self, 1)?),
-            _ => Err(self.error(format!("module 'math' has no attribute '{name}'"), "AttributeError")),
         }
     }
 

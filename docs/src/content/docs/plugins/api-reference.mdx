@@ -447,6 +447,9 @@ in Python. `int()` reads text as Python does: `_` between digits, digits of
 any script (`int("৩")` is 3), and with base 0 a `0x`, `0o` or `0b` prefix.
 Format specs take `#` for that prefix: `f"{255:#x}"` is `"0xff"`. Dividing by
 zero raises `ZeroDivisionError` in CPython's words, and so does `0 ** -1`.
+A float prints with the fewest digits that read back as the same float, as
+Python prints it: `0.1 + 0.2` is `0.30000000000000004` and `1e16 + 2` is
+`1.0000000000000002e+16`.
 
 **Built-in functions:** `abs`, `all`, `any`, `bin`, `bool`, `callable`, `chr`,
 `classmethod`, `delattr`, `dict`, `divmod`, `enumerate`, `filter`, `float`,
@@ -502,7 +505,7 @@ on an event. Writing still takes brackets: `d["name"] = value`.
 
 | Module | What it has |
 |---|---|
-| `math` | `sqrt`, `isqrt`, `floor`, `ceil`, `trunc`, `fabs`, `pow`, `exp`, `exp2`, `expm1`, `log`, `log2`, `log10`, `log1p`, the trigonometric and hyperbolic functions, `degrees`, `radians`, `hypot`, `dist`, `gcd`, `lcm`, `factorial`, `comb`, `perm`, `prod`, `fsum`, `isclose`, `isnan`, `isinf`, `isfinite`, `copysign`, `fmod`, `remainder`, `modf`, `frexp`, `ldexp`, `cbrt`, and `pi`, `e`, `tau`, `inf`, `nan` |
+| `math` | `sqrt`, `isqrt`, `floor`, `ceil`, `trunc`, `fabs`, `pow`, `exp`, `exp2`, `expm1`, `log`, `log2`, `log10`, `log1p`, the trigonometric and hyperbolic functions, `degrees`, `radians`, `hypot`, `dist`, `gcd`, `lcm`, `factorial`, `comb`, `perm`, `prod`, `fsum`, `isclose`, `isnan`, `isinf`, `isfinite`, `copysign`, `fmod`, `remainder`, `modf`, `frexp`, `ldexp`, `cbrt`, `erf`, `erfc`, `gamma`, `lgamma`, `nextafter`, `ulp`, `fma`, `sumprod`, and `pi`, `e`, `tau`, `inf`, `nan`. A value a function does not have raises CPython's `ValueError: math domain error` (`math.sqrt(-1)`), and one too big for a float `OverflowError: math range error` (`math.exp(1000)`). |
 | `json` | `dumps` and `loads`. `dumps` takes `indent`, `sort_keys`, `separators` and `ensure_ascii`. Unlike Python, `ensure_ascii` is off unless you turn it on, so text in other scripts is written as it is. Bad JSON raises an error. |
 | `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape` and `compile`, whose pattern objects have the same methods; the flags `I`, `M`, `S`, `X` (verbose: spaces and `#` comments in the pattern are skipped), `A` (`\d`, `\w` and `\s` match ASCII only) and `U`, also spelled out, or written at the start of the pattern as `(?i)`, `(?m)`, `(?s)`, `(?x)`, `(?a)`. Patterns take lookahead `(?=…)` `(?!…)`, fixed-width lookbehind `(?<=…)` `(?<!…)`, backreferences `\1` `(?P=name)`, and the escapes `\x41`, `\u00e9`, `\N{BULLET}` and octal `\101`; not possessive quantifiers or atomic groups. A pattern made from bytes, `re.compile(rb"\d+")`, searches bytes and gives bytes back. Matching spends steps like any loop. |
 | `time` | `time()` and `monotonic()` in seconds; `parts()` or `parts(seconds)`, a dict of `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday` (Monday is 0) and `yearday` in the phone's time zone; `format(pattern)` or `format(pattern, seconds)` with a Unicode date pattern such as `"EEE d MMM yyyy"`, which writes day and month names in English. Left out, `seconds` is now. |

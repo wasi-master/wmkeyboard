@@ -1132,6 +1132,7 @@ impl Interp {
             Value::Int(i) => return Ok(super::hashing::of_int(*i)),
             Value::Bool(b) => return Ok(*b as i64),
             Value::Float(f) => return Ok(super::hashing::of_float(*f)),
+            Value::Complex(re, im) => return Ok(super::complex::hash(*re, *im)),
             Value::Big(b) => return Ok(super::hashing::of_big(b)),
             Value::None => return Ok(super::hashing::NONE),
             Value::Tuple(items) => {
@@ -1342,6 +1343,7 @@ impl Interp {
             Expr::Bool(b) => Ok(Value::Bool(*b)),
             Expr::Int(i) => Ok(Value::Int(*i)),
             Expr::Big(b) => Ok(Value::Big(b.clone())),
+            Expr::Imag(v) => Ok(Value::Complex(0.0, *v)),
             Expr::Float(f) => Ok(Value::Float(*f)),
             Expr::Str(s) => Ok(Value::Str(s.clone())),
             Expr::Bytes(b) => Ok(Value::Bytes(b.clone())),
@@ -2302,9 +2304,14 @@ impl Interp {
                 None => Ok(Value::Str(b.clone())),
             },
             Value::Module(m) if name == "__dict__" => self.module_dict(m),
-            Value::Module(m) => self
-                .member(m, name)
-                .ok_or_else(|| self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
+            Value::Module(m) => match self.member(m, name) {
+                Some(v) => Ok(v),
+                None if name == "__name__" => Ok(Value::Str(m.clone())),
+                None => Err(self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
+            },
+            // `math.sqrt.__name__` and the like.
+            Value::ModuleFunction(mf) if matches!(name, "__name__" | "__qualname__") => Ok(Value::Str(mf.1.clone())),
+            Value::ModuleFunction(mf) if name == "__module__" => Ok(Value::Str(mf.0.clone())),
             // `sys.version_info.major` and the rest of its fields.
             Value::Tuple(t) if self.struct_seqs.iter().any(|(_, _, v)| Rc::ptr_eq(t, v)) => {
                 let (seq, fields, values) = self.struct_seqs.iter().find(|(_, _, v)| Rc::ptr_eq(t, v)).unwrap();
@@ -2375,6 +2382,7 @@ impl Interp {
                 }))
             }
             Value::Float(f) if matches!(name, "real" | "imag") => Ok(Value::Float(if name == "real" { *f } else { 0.0 })),
+            Value::Complex(re, im) if matches!(name, "real" | "imag") => Ok(Value::Float(if name == "real" { *re } else { *im })),
             // PyMini's type() answers with a name, so `type(x).__name__` reads it back.
             Value::Str(s) if name == "__name__" => Ok(Value::Str(s.clone())),
             _ if super::methods::has_builtin_method(obj, name) => Ok(self.method_value(obj, name)),
@@ -2727,6 +2735,19 @@ impl Interp {
 
     // MARK: - Operators
 
+    /// [v] as a complex number's parts when it is a number: an int, bool,
+    /// float or complex. An int too big for a float is refused, as CPython does.
+    fn complex_operand(&self, v: &Value) -> R<Option<(f64, f64)>> {
+        Ok(match v {
+            Value::Complex(re, im) => Some((*re, *im)),
+            Value::Int(i) => Some((*i as f64, 0.0)),
+            Value::Bool(b) => Some((*b as i64 as f64, 0.0)),
+            Value::Float(f) => Some((*f, 0.0)),
+            Value::Big(b) => Some((super::bigint::to_float(b).map_err(|(m, k)| self.error(m, k))?, 0.0)),
+            _ => None,
+        })
+    }
+
     pub(crate) fn unary_op(&mut self, op: UnOp, v: &Value) -> R<Value> {
         if let Value::Instance(_) = v {
             let name = match op {
@@ -2750,7 +2771,7 @@ impl Interp {
                 },
             },
             UnOp::Pos => {
-                if v.as_float().is_some() {
+                if v.as_float().is_some() || matches!(v, Value::Complex(..)) {
                     v.clone()
                 } else {
                     return Err(self.error(format!("bad operand type for unary +: '{}'", v.type_name()), "TypeError"));
@@ -2761,6 +2782,7 @@ impl Interp {
                 Value::Big(b) => super::bigint::int_value(-b.as_ref()),
                 Value::Bool(b) => Value::Int(if *b { -1 } else { 0 }),
                 Value::Float(f) => Value::Float(-f),
+                Value::Complex(re, im) => Value::Complex(-re, -im),
                 _ => return Err(self.error(format!("bad operand type for unary -: '{}'", v.type_name()), "TypeError")),
             },
         })
@@ -2793,6 +2815,18 @@ impl Interp {
         }
         if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
             return self.instance_binary(op, a, b);
+        }
+        if matches!(a, Value::Complex(..)) || matches!(b, Value::Complex(..)) {
+            if let (Some(x), Some(y)) = (self.complex_operand(a)?, self.complex_operand(b)?) {
+                return match super::complex::binary(op, x, y) {
+                    Ok(Some((re, im))) => Ok(Value::Complex(re, im)),
+                    Ok(None) => Err(self.error(
+                        format!("unsupported operand type(s) for {}: '{}' and '{}'", op_symbol(op), a.type_name(), b.type_name()),
+                        "TypeError",
+                    )),
+                    Err((m, k)) => Err(self.error(m, k)),
+                };
+            }
         }
         if super::bigint::is_int(a) && super::bigint::is_int(b) {
             if let Some(v) = self.int_binary(op, a, b)? {
@@ -3276,15 +3310,20 @@ impl Interp {
             CmpOp::IsNot => !py_identical(a, b),
             CmpOp::In => self.contains(b, a)?,
             CmpOp::NotIn => !self.contains(b, a)?,
-            CmpOp::Lt => self.order(a, b)? < 0,
-            CmpOp::Le => self.order(a, b)? <= 0,
-            CmpOp::Gt => self.order(a, b)? > 0,
-            CmpOp::Ge => self.order(a, b)? >= 0,
+            CmpOp::Lt => self.order_as(a, b, "<")? < 0,
+            CmpOp::Le => self.order_as(a, b, "<=")? <= 0,
+            CmpOp::Gt => self.order_as(a, b, ">")? > 0,
+            CmpOp::Ge => self.order_as(a, b, ">=")? >= 0,
         })
     }
 
     /// Three-way ordering for numbers, strings and sequences (lexicographic).
     pub fn order(&mut self, a: &Value, b: &Value) -> R<i32> {
+        self.order_as(a, b, "<")
+    }
+
+    /// [order], naming [symbol] when the two cannot be ordered.
+    pub(crate) fn order_as(&mut self, a: &Value, b: &Value, symbol: &str) -> R<i32> {
         if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
             if self.instance_compare(CmpOp::Lt, a, b)? {
                 return Ok(-1);
@@ -3313,7 +3352,7 @@ impl Interp {
         if let (Some(xs), Some(ys)) = (sequence_items(a), sequence_items(b)) {
             if seq(a) && seq(b) {
                 for (x, y) in xs.iter().zip(ys.iter()) {
-                    let c = self.order(x, y)?;
+                    let c = self.order_as(x, y, symbol)?;
                     if c != 0 {
                         return Ok(c);
                     }
@@ -3321,7 +3360,7 @@ impl Interp {
                 return Ok((xs.len() as i64 - ys.len() as i64).signum() as i32);
             }
         }
-        Err(self.error(format!("'<' not supported between '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
+        Err(self.error(format!("'{symbol}' not supported between instances of '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
     }
 
     pub(crate) fn contains(&mut self, container: &Value, item: &Value) -> R<bool> {
@@ -3662,8 +3701,11 @@ impl Interp {
                     Value::Str(name) => m.names.get(name.as_ref()).map(|i| *i as i64),
                     other => other.as_int(),
                 };
-                let text = group.and_then(|i| if i < 0 { None } else { m.text(i as usize) });
-                text.map(|t| m.subject.piece(&t)).ok_or_else(|| self.error("no such group", "IndexError"))
+                // A group the pattern has but the match skipped is None, as m.group() gives.
+                match group.filter(|i| *i >= 0 && (*i as usize) < m.spans.len().max(1)) {
+                    Some(i) => Ok(m.text(i as usize).map(|t| m.subject.piece(&t)).unwrap_or(Value::None)),
+                    None => Err(self.error("no such group", "IndexError")),
+                }
             }
             Value::Class(c) => {
                 let c = c.clone();

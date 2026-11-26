@@ -15,6 +15,7 @@ bytes = bytes
 callable = callable
 chr = chr
 classmethod = classmethod
+complex = complex
 delattr = delattr
 dict = dict
 dir = dir

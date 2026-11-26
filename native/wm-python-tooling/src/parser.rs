@@ -4,8 +4,8 @@
 //! spreads past its own line: the line becomes an [`StmtKind::Error`] that
 //! keeps its names, and the next line parses as if nothing had happened. A
 //! block header that does not parse still owns the lines indented under it.
-//! Python the interpreter does not run (`except*` and complex numbers) is
-//! parsed as well as it can be and listed in [`Module::unsupported`].
+//! Python the interpreter does not run (`except*`) is parsed as well as it
+//! can be and listed in [`Module::unsupported`].
 //! Classes, `with`, decorators, `nonlocal`, `assert`, annotations,
 //! `**kwargs`, spreads, generators, `async` and `await`, `@`, `match`, `:=`,
 //! `...`, `import *` and any expression after `except` run, so they parse

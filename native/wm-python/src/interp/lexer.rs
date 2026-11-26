@@ -20,6 +20,8 @@ pub(crate) enum FRawPart {
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Tok {
     Int(i64),
+    /// An imaginary literal, `2j`: its value.
+    Imag(f64),
     /// An int literal past 64 bits.
     Big(Rc<num_bigint::BigInt>),
     Float(f64),
@@ -533,7 +535,8 @@ impl<'a> Lexer<'a> {
         }
         if matches!(self.chars.get(self.pos), Some(&"j") | Some(&"J")) {
             self.pos += 1;
-            self.push(Tok::Invalid("NotImplementedError", format!("complex numbers ({s}j) are not supported")), self.line);
+            let v = if s.is_empty() { 0.0 } else { parse_swift_double(&s).ok_or_else(|| perr(format!("invalid number '{s}j'"), self.line))? };
+            self.push(Tok::Imag(v), self.line);
             return Ok(());
         }
         if is_double {
