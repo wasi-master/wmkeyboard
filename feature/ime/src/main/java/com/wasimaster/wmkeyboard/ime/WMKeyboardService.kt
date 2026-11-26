@@ -311,6 +311,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordSegments
 import com.wasimaster.wmkeyboard.core.prediction.WordContext
 import com.wasimaster.wmkeyboard.core.prediction.WordOrigin
 import com.wasimaster.wmkeyboard.core.prediction.WordRevision
+import com.wasimaster.wmkeyboard.core.prediction.AmbiguousReading
 import com.wasimaster.wmkeyboard.core.prediction.KeySets
 import com.wasimaster.wmkeyboard.core.prediction.TouchPoint
 import com.wasimaster.wmkeyboard.core.prediction.LanguageMixConfidence
@@ -23645,20 +23646,34 @@ open class WMKeyboardService : InputMethodService() {
      * async pass is about to make anyway, and it makes it against the same
      * buffer, the same taps and the same key sets — so that pass finds it in
      * the engine's ranked-walk cache rather than repeating it.
+     *
+     * Which of the ranked words it is, [AmbiguousReading] decides (#1572):
+     * one that keeps every key pressed and every letter picked by hand, and
+     * with autocorrect off ([corrects]) only what the keys spell, never a
+     * longer word they begin.
      */
-    private fun ambiguousDecode(buffer: String): String? {
+    private fun ambiguousDecode(buffer: String, corrects: Boolean = ambiguousCorrects(_uiState.value)): String? {
         if (_uiState.value.composer.phoneticLanguage != null) return null
         val engine = suggestionEngine ?: return null
         val keys = composingKeyFrame()?.takeIf { it.isAmbiguous } ?: return null
-        return engine.suggest(
+        val ranked = engine.suggest(
             composing = buffer,
             previousWord = previousWord,
             previousWord2 = previousWord2,
-            limit = 1,
+            limit = AMBIGUOUS_READING_POOL,
             touch = composingTouchFrame(),
             keys = keys,
-        ).firstOrNull()
+        )
+        return AmbiguousReading.pick(ranked, buffer, keys, corrects)
     }
+
+    /**
+     * Whether an ambiguous board's reading may be more than the keys spell —
+     * a longer word they begin, or one letter from a neighbouring key's place
+     * — the way autocorrect may change a typed word on another board.
+     */
+    private fun ambiguousCorrects(state: KeyboardUiState): Boolean =
+        state.settings.correction.enabledFor(state.language.id) && state.correctsWords
 
     /**
      * A phonetic buffer as its keys spelled it: [buffer] itself on every board
@@ -24338,8 +24353,10 @@ open class WMKeyboardService : InputMethodService() {
         // Which route the language takes — English's table of contractions,
         // an elision language's own word lists — is the engine's to know
         // (#215, #240).
+        // Not on an ambiguous board, whose buffer is anchor letters: its
+        // reading is repaired instead, in the commit below.
         val apostrophized =
-            if (fixApostrophes && state.allowsTypingIntelligence && !gluedToWord) {
+            if (fixApostrophes && state.allowsTypingIntelligence && !gluedToWord && !state.layouts.ambiguousKeys) {
                 suggestionEngine?.elide(typed)
             } else {
                 null
@@ -24355,6 +24372,8 @@ open class WMKeyboardService : InputMethodService() {
                 null
             }
         var corrected: String? = null
+        // An ambiguous board's reading with its apostrophe put back, when it took one.
+        var ambiguousApostrophe: String? = null
         // A candidate that came close to being applied without getting there.
         // Published as a chip below, once the word is actually in the field.
         var offered: String? = null
@@ -24467,8 +24486,22 @@ open class WMKeyboardService : InputMethodService() {
             // picking another from the strip. The anchors stand only when
             // nothing decodes at all, which is a word the dictionary has never
             // seen and the long-press letters exist to spell.
-            state.layouts.ambiguousKeys && !gluedToWord ->
-                (pre?.ambiguousTop ?: ambiguousDecode(typed)) ?: typed
+            state.layouts.ambiguousKeys && !gluedToWord -> {
+                val reading = (pre?.ambiguousTop ?: ambiguousDecode(typed)) ?: typed
+                // The apostrophe and the lone "I" the other boards repair
+                // (#1572): read off the reading, since the buffer holds
+                // anchor letters no table knows.
+                ambiguousApostrophe = if (fixApostrophes && state.allowsTypingIntelligence) {
+                    suggestionEngine?.elide(reading)
+                } else {
+                    null
+                }
+                ambiguousApostrophe ?: reading
+            }
+            // Keys typed into a word already in the field (#1572): what they
+            // spell, no more, and never the anchor letters themselves, which
+            // stood for other letters and went in as a jumble.
+            state.layouts.ambiguousKeys -> ambiguousDecode(typed, corrects = false) ?: typed
             apostrophized != null -> apostrophized
             autocorrect && state.correctsWords && !gluedToWord -> {
                 val decision = if (pre != null && !pre.isPhonetic) {
@@ -24532,7 +24565,7 @@ open class WMKeyboardService : InputMethodService() {
                 original = correctedReading ?: fieldWord,
                 committed = it,
             )
-        } ?: apostrophized?.takeIf { it == output }?.let {
+        } ?: (apostrophized ?: ambiguousApostrophe)?.takeIf { it == output }?.let {
             // A repaired apostrophe — or the lone "i" made "I" — is the
             // keyboard rewriting a word just as surely, and one backspace has
             // to take it back the same way (#402). Its undo is remembered
@@ -33169,7 +33202,11 @@ open class WMKeyboardService : InputMethodService() {
                         isPhonetic = false,
                         phoneticTop = null,
                         correction = null,
-                        ambiguousTop = words.firstOrNull(),
+                        // The field's own rule ([ambiguousDecode]), over the
+                        // deeper list, so the space commits what it shows.
+                        ambiguousTop = keyFrame?.takeIf { it.isAmbiguous && words.isNotEmpty() }
+                            ?.let { AmbiguousReading.pick(deepAll, typed, it, ambiguousCorrects(state)) }
+                            ?: words.firstOrNull(),
                     )
                     // Worked out by [resolveCommitAhead] as the key landed,
                     // without this pass's debounce; left as it stands.
@@ -69092,6 +69129,13 @@ private const val BRAILLE_PATTERNS_BASE = 0x2800
 
 /** How deep the pages of suggestions go (#385). */
 private const val SUGGEST_PAGES_POOL = 24
+
+/**
+ * Ranked words an ambiguous board's field reading is chosen from (#1572):
+ * enough that a word keeping every key is found behind ones that do not,
+ * and the same walk depth the strip's pass asks for, so it is shared.
+ */
+private const val AMBIGUOUS_READING_POOL = 16
 
 /** The settings app's Debug info screen, which shows [KeyboardDebugSnapshot]. */
 private const val DEBUG_INFO_ROUTE = "debug_info"
