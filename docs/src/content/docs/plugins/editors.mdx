@@ -1,0 +1,218 @@
+---
+title: "Editors"
+description: "The wmpy extensions for VS Code and its forks, Zed, PyCharm and IntelliJ IDEA: how to install them, what each one does, and where the preview opens."
+sidebar:
+  label: "Editors"
+  order: 8.35
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+There is a wmpy extension for VS Code (and VSCodium, Cursor and Windsurf),
+for Zed, and for PyCharm and IntelliJ IDEA. Each one starts the
+[language server](/plugins/language-server/), so you get the plugin editor's
+checks, suggestions and fixes as you type, a **▶ Preview** button above
+`def render`, and **Run tests** buttons in your test files. Each one also
+checks `plugin.json` against the same rules the app uses when it installs a
+plugin.
+
+The extensions need [wmpy](/plugins/wmpy/) itself. The VS Code extension and
+the Zed extension download it when it is not on your PATH; the JetBrains
+plugin offers to.
+
+Another editor that can start a language server works too, with a few lines
+of setup. See [Language server](/plugins/language-server/#set-it-up-in-your-editor).
+
+## Install with wmpy editor
+
+`wmpy editor` finds the editors on your computer and installs the extension
+in them:
+
+```bash
+wmpy editor list           # the editors here, and the extension's version in each
+wmpy editor install        # in every editor it finds
+wmpy editor install zed    # or only in the ones you name
+wmpy editor update
+wmpy editor remove cursor
+wmpy editor doctor         # wmpy, its language server and each editor
+```
+
+The names are `vscode`, `insiders`, `vscodium`, `cursor`, `windsurf`, `zed`,
+`jetbrains` and `all`.
+
+| Editor | What `wmpy editor install` does |
+|---|---|
+| VS Code and its forks | Runs `code --install-extension wasimaster.wmpy` (or `codium`, `cursor`, `windsurf`), which installs from the editor's marketplace. If that fails, it downloads `wmpy.vsix` from the wmpy release and installs that file. |
+| Zed | Downloads the built extension from the wmpy release and puts it in Zed's `extensions/installed/wmpy` folder. Zed loads it straight away, or the next time it starts. |
+| PyCharm, IntelliJ IDEA | Runs the IDE's `installPlugins` command, which installs wmpy and LSP4IJ from the JetBrains Marketplace. Close the IDE first. |
+
+With `--from-release`, every editor gets the files from the wmpy release on
+GitHub instead of its marketplace. `--vsix wmpy.vsix` installs a file you
+already have, and `--dry-run` prints what would happen. Each download is
+checked against the SHA-256 published beside it. `wmpy editor` never changes
+an editor's settings.
+
+## VS Code, VSCodium, Cursor and Windsurf
+
+Install **wmpy** from the Extensions view, or:
+
+```bash
+code --install-extension wasimaster.wmpy
+```
+
+VS Code installs it from the Visual Studio Marketplace. VSCodium, Cursor and
+Windsurf use Open VSX, which has the same extension.
+
+### What you get
+
+| | |
+|---|---|
+| Language server | Problems, completion, hover help, signature help, rename, quick fixes and formatting for the Python files of every folder with a `plugin.json`, and for `plugin.json` itself. Other Python files are left alone. |
+| Preview | **▶ Preview** above `def render`, the preview button in the editor's title bar, or **wmpy: Preview** in the Command Palette. The panel opens beside the code and draws the plugin again each time you save. It follows the colour theme: a dark theme previews the keyboard's dark theme. |
+| Tests | The Testing view lists each plugin, its test files and their `test_*` functions. Run one, a file or all of them; a failure shows its message at the line that raised it. The **Run tests** buttons in the code run the same way. |
+| Commands | In the Command Palette, under **wmpy**: New Plugin, Preview, Run in Terminal, Run Tests, Check, Pack .wmplugin, pip install, pip remove, Publish and Write Type Stubs. |
+| plugin.json | Completion, hover text and errors for every field. A `plugin.json` of another tool, without `format`, `pluginVersion` or `apiVersion`, gets no errors from it. |
+
+The status bar shows **wmpy** while a plugin folder is open. Click it for the
+commands, or to see whether the language server is running.
+
+### The preview in a remote window
+
+The preview runs where your files are. In a Remote SSH window, a dev
+container or GitHub Codespaces, wmpy runs on that machine, and the extension
+asks VS Code to forward the preview's port, so the panel works the same way.
+
+### Settings
+
+| Setting | |
+|---|---|
+| `wmpy.path` | The `wmpy` program. Empty looks on PATH, then in the copy the extension downloaded. |
+| `wmpy.preview.theme` | `auto`, `light` or `dark`. |
+| `wmpy.offerStubs` | Whether to offer Pylance the `wm` stubs. On by default. |
+| `wmpy.trace.server` | `messages` or `verbose` logs the language server's traffic in the **wmpy** output. |
+
+### Pylance
+
+Pylance does not know the `wm` package, so on its own it marks
+`from wm import plugin, ui` as unresolved. `wmpy new` writes a
+`pyrightconfig.json` that points Pylance at the stubs in `.wmpy/stubs`.
+For a plugin without one, the extension offers to write the stubs and set
+`python.analysis.stubPath` in the folder's settings. It asks first, and
+**Don't Ask Again** stops it for that workspace. You can do the same any
+time with **wmpy: Write Type Stubs**.
+
+Pylance and wmpy then both report problems. Pylance knows Python in general;
+wmpy knows what the keyboard's interpreter, the permissions and your
+`plugin.json` allow.
+
+In an untrusted workspace the extension only checks `plugin.json`. The
+language server, previews and tests run code from the folder, so they wait
+until you trust it.
+
+## Zed
+
+Open the Extensions page (`zed: extensions` in the command palette), search
+for **wmpy** and install it, or run `wmpy editor install zed`.
+
+The extension starts `wmpy lsp` for Python files and for `plugin.json`, and
+gives Zed's JSON language server the `plugin.json` schema. It finds `wmpy` on
+your PATH. When there is none, it downloads the build for your computer
+from the latest wmpy release into the extension's own folder.
+
+### Preview
+
+Zed has no web views, so **▶ Preview** opens the preview in your browser. It
+is the same page, and it reloads when you save.
+
+Zed hides code lenses until you turn them on. In `settings.json`,
+`"code_lens": "on"` shows **▶ Preview** and **Run tests** above the line,
+and `"code_lens": "menu"` puts them in the code actions menu instead.
+
+### Run and test from tasks
+
+Zed's tasks run `wmpy run` and `wmpy test` in its terminal. Add a
+`.zed/tasks.json` to the project:
+
+```json title=".zed/tasks.json"
+[
+  { "label": "wmpy run", "command": "wmpy run \"$ZED_WORKTREE_ROOT\"", "use_new_terminal": true },
+  { "label": "wmpy test", "command": "wmpy test \"$ZED_WORKTREE_ROOT\"", "save": "all" },
+  { "label": "wmpy preview", "command": "wmpy preview \"$ZED_WORKTREE_ROOT\"" }
+]
+```
+
+Then pick one with `task: spawn`. For a plugin in a subfolder, replace
+`$ZED_WORKTREE_ROOT` with the folder's path.
+
+### Settings
+
+In Zed's `settings.json`:
+
+```json
+{
+  "lsp": {
+    "wmpy": {
+      "binary": { "path": "/path/to/wmpy" },
+      "initialization_options": { "preview": "none" }
+    }
+  }
+}
+```
+
+`binary.path` picks the program. `"preview": "none"` stops **▶ Preview** from
+opening the browser.
+
+The wmpy server starts for Python files in any project. It has nothing to say
+outside a plugin folder, but to keep it to your plugin projects, turn it off
+for Python in your user settings and on again in the plugin project's
+`.zed/settings.json`:
+
+```json
+{ "languages": { "Python": { "language_servers": ["!wmpy", "..."] } } }
+```
+
+## PyCharm and IntelliJ IDEA
+
+The plugin works in PyCharm 2025.1 and later, with or without a Pro
+subscription, in PyCharm Community 2025.1 and 2025.2, and in IntelliJ IDEA
+2025.1 and later with the Python plugin. Install it from
+**Settings | Plugins | Marketplace**: search for **wmpy**. The IDE installs
+LSP4IJ with it, a free plugin that runs language servers in every edition.
+Or close the IDE and run `wmpy editor install jetbrains`.
+
+### What you get
+
+| | |
+|---|---|
+| Language server | Through LSP4IJ: problems, completion, hover help, quick fixes and the **▶ Preview** and **Run tests** code lenses, for the Python files of plugin folders and for `plugin.json`. |
+| Preview | **Tools \| wmpy \| Preview**, or **▶ Preview** above `def render`. The plugin's panel opens in the **wmpy Preview** tool window and follows the IDE's light or dark theme. An IDE without its built-in browser (JCEF) opens the preview in your browser. |
+| Run configurations | **wmpy run** runs the plugin in a terminal console in the Run window. **wmpy test** runs its tests, all of them or those matching a filter. Make them in **Run \| Edit Configurations**, or let **Tools \| wmpy \| Run Tests** and the **Run tests** lens make them. |
+| New plugin | **File \| New \| wmpy Plugin**: a template, a name and a folder. |
+| Tools menu | **Tools \| wmpy** also has Check, Pack .wmplugin, pip install, pip remove, Write Type Stubs and Publish. The same menu is in the editor's and the project view's right-click menus. |
+| plugin.json | The schema: completion, documentation and errors for every field. |
+
+Set the `wmpy` program in **Settings | Tools | wmpy**. Left empty, the plugin
+looks on your PATH, in `~/.local/bin` and `~/.cargo/bin`, and in the copy it
+downloaded. When it finds none in a project with a plugin folder, it offers
+to download one.
+
+PyCharm reads the `wm` stubs once `.wmpy/stubs` is a sources root:
+right-click the folder in the project view and choose
+**Mark Directory as | Sources Root**.
+
+## When something is wrong
+
+Run `wmpy editor doctor`. It shows which `wmpy` runs and whether it is the one
+on your PATH, starts `wmpy lsp` and checks that it answers, and lists each
+editor with the extension's version.
+
+Each editor also keeps a log of the language server:
+
+| Editor | Where |
+|---|---|
+| VS Code | **wmpy: Show Output**, or the **wmpy** channel in the Output view. Set `wmpy.trace.server` to `verbose` for every message. |
+| Zed | `zed: open log`. Language server messages are in `dev: open language server logs`. |
+| JetBrains | **View \| Tool Windows \| Language Servers**, from LSP4IJ. |
+
+If a check looks wrong in one editor, run `wmpy check` on the folder in a
+terminal. The editors show the same problems it prints.
