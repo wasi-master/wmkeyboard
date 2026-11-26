@@ -147,7 +147,8 @@ fn annotations_are_read_and_ignored() {
 fn with_blocks_enter_and_exit() {
     let src = "log = []\nclass M:\n    def __init__(self, name, swallow=False):\n        self.name = name\n        self.swallow = swallow\n    def __enter__(self):\n        log.append('enter ' + self.name)\n        return self.name.upper()\n    def __exit__(self, kind, value, tb):\n        log.append(f'exit {self.name} {kind}')\n        return self.swallow\n";
     assert_eq!("['enter a', 'enter b', 'body A B', 'exit b None', 'exit a None']", run(&format!("{src}with M('a') as x, M('b') as y:\n    log.append(f'body {{x}} {{y}}')\nlog")));
-    assert_eq!("['enter a', 'exit a ValueError']", run(&format!("{src}with M('a', True):\n    raise ValueError('x')\nlog")));
+    // `__exit__` gets the exception's type, as in Python.
+    assert_eq!("['enter a', \"exit a <class 'ValueError'>\"]", run(&format!("{src}with M('a', True):\n    raise ValueError('x')\nlog")));
     assert!(error(&format!("{src}with M('a'):\n    raise ValueError('kept')")).contains("ValueError: kept"));
 }
 

@@ -165,6 +165,9 @@ pub struct Analysis {
     /// Every name occurrence, sorted by start.
     pub occurrences: Vec<Occurrence>,
     pub functions: Vec<Function>,
+    /// A `from m import *` of a module whose names are not modelled, so a
+    /// name nothing else defines may come from it.
+    pub star_import: bool,
 }
 
 impl Analysis {
@@ -311,6 +314,7 @@ struct Builder {
     /// Reads and mentions, resolved once every binding is known.
     pending: Vec<(String, Span, usize, Access, bool)>,
     bound: Vec<Occurrence>,
+    star_import: bool,
 }
 
 impl Builder {
@@ -338,7 +342,7 @@ impl Builder {
             s.writes.sort();
             s.writes.dedup();
         }
-        Analysis { scopes: self.scopes, symbols: self.symbols, occurrences, functions: self.functions }
+        Analysis { scopes: self.scopes, symbols: self.symbols, occurrences, functions: self.functions, star_import: self.star_import }
     }
 
     fn new_scope(&mut self, kind: ScopeKind, parent: usize, span: Span, function: Option<usize>) -> usize {
@@ -395,6 +399,40 @@ impl Builder {
         self.scopes[owner].names.insert(name.to_string(), id);
         self.bound.push(Occurrence { span, scope, access: Access::Declare, target: Target::Symbol(id), except_type: false });
         id
+    }
+
+    /// `from m import *`: each public name of a modelled module, declared at
+    /// the statement. Any other module's names are not known.
+    fn star(&mut self, module: &str, span: Span, scope: usize) {
+        let package = module == "wm" || module.starts_with("wm.");
+        let path = if package { api::import_path(module, None) } else { module.to_string() };
+        let known = api::MODULES.contains(&module) || (package && path.starts_with(crate::package::ROOT));
+        let children = if known { api::model().children(&path) } else { Vec::new() };
+        if children.is_empty() {
+            self.star_import = true;
+            return;
+        }
+        let owner = self.owner(module, scope);
+        for e in children {
+            let name = e.name();
+            if name.starts_with('_') || self.scopes[owner].names.contains_key(name) {
+                continue;
+            }
+            let id = self.symbols.len();
+            self.symbols.push(Symbol {
+                id,
+                name: name.to_string(),
+                kind: SymbolKind::Import,
+                scope: owner,
+                declaration: span,
+                reads: Vec::new(),
+                writes: Vec::new(),
+                mentions: Vec::new(),
+                unpacked_only: false,
+                import: Some((module.to_string(), Some(name.to_string()))),
+            });
+            self.scopes[owner].names.insert(name.to_string(), id);
+        }
     }
 
     fn read(&mut self, name: &str, span: Span, scope: usize) {
@@ -489,7 +527,10 @@ impl Builder {
                     self.symbols[id].import.get_or_insert((module, None));
                 }
             }
-            StmtKind::ImportFrom { module, names, .. } => {
+            StmtKind::ImportFrom { module, names, star, .. } => {
+                if *star {
+                    self.star(module, stmt.span, scope);
+                }
                 for n in names {
                     let (bound, span) = n.bound();
                     let id = self.bind(bound, span, scope, SymbolKind::Import, false);

@@ -45,10 +45,10 @@ fn the_pymini_modules_and_builtins_are_all_there() {
     let modules: &[(&str, &[&str])] = &[
         ("math", &["sqrt", "floor", "ceil", "trunc", "fabs", "pow", "exp", "log", "log2", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "degrees", "radians", "hypot", "gcd", "lcm", "factorial", "isnan", "isinf", "isfinite", "copysign", "fmod", "comb", "prod", "isclose", "isqrt", "perm", "fsum", "dist", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "log1p", "expm1", "modf", "cbrt", "exp2", "remainder", "ldexp", "frexp", "pi", "e", "tau", "inf", "nan"]),
         ("random", &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed"]),
-        ("time", &["time", "monotonic", "parts", "format"]),
+        ("time", &["time", "monotonic", "parts", "format", "time_ns", "monotonic_ns", "perf_counter", "perf_counter_ns", "process_time", "process_time_ns", "thread_time", "thread_time_ns", "struct_time", "gmtime", "localtime", "mktime", "strftime", "strptime", "asctime", "ctime", "timezone", "altzone", "daylight", "tzname"]),
         ("json", &["dumps", "loads"]),
-        ("re", &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile", "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL"]),
-        ("sys", &["version"]),
+        ("re", &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile", "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG"]),
+        ("sys", &["version", "version_info", "hexversion", "maxsize", "maxunicode", "byteorder", "platform", "executable", "argv", "path", "modules", "stdout", "stderr", "stdin", "getrecursionlimit", "setrecursionlimit", "exit", "intern", "getdefaultencoding", "getfilesystemencoding", "exc_info"]),
     ];
     for (module, names) in modules {
         let mut found: Vec<&str> = api::model().children(module).iter().map(|e| e.name()).collect();
@@ -57,7 +57,7 @@ fn the_pymini_modules_and_builtins_are_all_there() {
         want.sort();
         assert_eq!(found, want, "{module}");
     }
-    for b in ["len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted", "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map", "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "bytearray", "frozenset", "slice", "ascii"] {
+    for b in ["len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted", "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map", "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "bytearray", "frozenset", "slice", "ascii", "eval", "exec", "globals", "locals", "dir"] {
         assert_eq!(api::model().find(b).map(|e| e.kind), Some(ApiKind::Builtin), "{b}");
     }
     for m in ["str.encode", "bytes.fromhex", "bytes.hex", "bytes.decode", "list.append", "dict.items", "str.removeprefix", "str.translate", "str.maketrans", "dict.fromkeys", "Pattern.search", "Pattern.sub"] {

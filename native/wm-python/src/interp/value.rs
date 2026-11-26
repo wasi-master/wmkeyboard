@@ -15,19 +15,17 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
-use indexmap::{IndexMap, IndexSet};
-
 use super::ast::{FuncDef, LambdaDef, Params};
 use super::eval::Env;
-pub use super::fxhash::NameMap;
+pub use super::fxhash::{DictMap, KeySet, NameMap};
 use super::fxhash::name_map;
 use super::host::HostFunction;
 use super::regex::Match;
 use super::text::{c_fixed, c_general, str_eq, str_hash};
 
 pub type ListRef = Rc<RefCell<Vec<Value>>>;
-pub type DictRef = Rc<RefCell<IndexMap<HKey, Value>>>;
-pub type SetRef = Rc<RefCell<IndexSet<HKey>>>;
+pub type DictRef = Rc<RefCell<DictMap>>;
+pub type SetRef = Rc<RefCell<KeySet>>;
 
 /// A value inside a script.
 #[derive(Clone)]
@@ -67,53 +65,54 @@ pub enum Value {
     Object(Rc<Object>),
 }
 
-/// A class: its name, its one base, and the attributes its body defined.
+/// A class: its name, its bases, and the attributes its body defined.
 pub struct Class {
     pub name: Rc<str>,
-    pub base: Option<Rc<Class>>,
+    /// The classes it names as bases, in order.
+    pub bases: Vec<Rc<Class>>,
+    /// Where attributes are looked for after the class itself: its bases
+    /// and theirs, in C3 order (Python's method resolution order).
+    pub mro: Vec<Rc<Class>>,
     /// The built-in exception this class descends from, like `ValueError`,
     /// which makes its instances raisable. None for plain classes.
     pub exception_root: Option<Rc<str>>,
     pub attrs: RefCell<NameMap>,
+    /// What decides its instances' attribute lookups, and when that was worked out.
+    pub(crate) traits: Cell<Option<(u64, u8)>>,
+    /// Its metaclass, when that is not plain `type`: what `type(C)` answers,
+    /// where `C.name` looks after the class itself, and what `C()` calls.
+    pub meta: Option<Rc<Class>>,
+    /// It derives from `type`: a metaclass, whose instances are classes.
+    pub is_type: bool,
 }
 
 impl Class {
-    /// [name] on this class or the nearest base that has it.
+    /// [name] on this class or the first class after it in its resolution order that has it.
     pub fn lookup(&self, name: &str) -> Option<Value> {
         if let Some(v) = self.attrs.borrow().get(name) {
             return Some(v.clone());
         }
-        let mut c = self.base.as_deref();
-        while let Some(k) = c {
+        for k in &self.mro {
             if let Some(v) = k.attrs.borrow().get(name) {
                 return Some(v.clone());
             }
-            c = k.base.as_deref();
         }
         None
     }
 
-    /// Whether this class is [other] or descends from it.
-    pub fn is_subclass_of(self: &Rc<Class>, other: &Rc<Class>) -> bool {
-        let mut c = Some(self.clone());
-        while let Some(k) = c {
-            if Rc::ptr_eq(&k, other) {
-                return true;
-            }
-            c = k.base.clone();
-        }
-        false
+    /// The first base, as `__base__` reads it.
+    pub fn base(&self) -> Option<&Rc<Class>> {
+        self.bases.first()
     }
 
-    /// This class's name and every base's, nearest first.
+    /// Whether this class is [other] or descends from it.
+    pub fn is_subclass_of(self: &Rc<Class>, other: &Rc<Class>) -> bool {
+        Rc::ptr_eq(self, other) || self.mro.iter().any(|k| Rc::ptr_eq(k, other))
+    }
+
+    /// This class's name and every base's, in resolution order.
     pub fn lineage(&self) -> Vec<Rc<str>> {
-        let mut out = vec![self.name.clone()];
-        let mut c = self.base.clone();
-        while let Some(k) = c {
-            out.push(k.name.clone());
-            c = k.base.clone();
-        }
-        out
+        std::iter::once(self.name.clone()).chain(self.mro.iter().map(|k| k.name.clone())).collect()
     }
 }
 
@@ -137,8 +136,74 @@ pub enum Object {
     Pattern { pattern: Rc<str>, flags: i64 },
     /// `super()`: attribute lookups start above [class] and bind to [receiver].
     Super { class: Rc<Class>, receiver: Value },
-    /// What `iter()` returns for a built-in sequence: the items left to hand out.
-    Iterator(RefCell<std::collections::VecDeque<Value>>),
+    /// What `iter()`, `map()`, `zip()` and the like return.
+    Iterator(super::generators::IterObject),
+    /// A generator, made by calling a function with `yield` in it or by `(x for x in xs)`.
+    Generator(super::generators::Generator),
+    /// `range(start, stop, step)`, which counts without holding its numbers.
+    Range(i64, i64, i64),
+    /// `d.keys()`, `d.values()` or `d.items()`: a live view of the dict.
+    DictView(ViewKind, DictRef),
+}
+
+/// Which of a dict's views.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ViewKind {
+    Keys,
+    Values,
+    Items,
+}
+
+impl ViewKind {
+    pub fn type_name(self) -> &'static str {
+        match self {
+            ViewKind::Keys => "dict_keys",
+            ViewKind::Values => "dict_values",
+            ViewKind::Items => "dict_items",
+        }
+    }
+}
+
+/// What a dict view shows right now.
+pub(crate) fn view_items(kind: ViewKind, d: &DictRef) -> Vec<Value> {
+    let d = d.borrow();
+    match kind {
+        ViewKind::Keys => d.keys().map(HKey::to_value).collect(),
+        ViewKind::Values => d.values().cloned().collect(),
+        ViewKind::Items => d.iter().map(|(k, v)| Value::tuple(vec![k.to_value(), v.clone()])).collect(),
+    }
+}
+
+/// A set, a keys view or an items view, as the keys a set of it would hold;
+/// None for anything else, or an items view with an unhashable value.
+pub(crate) fn as_key_set(v: &Value) -> Option<KeySet> {
+    match v {
+        Value::Set(s) => Some(s.borrow().clone()),
+        Value::Object(o) => match o.as_ref() {
+            Object::DictView(ViewKind::Keys, d) => Some(d.borrow().keys().cloned().collect()),
+            Object::DictView(ViewKind::Items, d) => {
+                let mut out = KeySet::default();
+                for (k, v) in d.borrow().iter() {
+                    out.insert(HKey::from_value(&v.clone()).map(|hv| HKey::Tuple(Rc::new(vec![k.clone(), hv])))?);
+                }
+                Some(out)
+            }
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// Whether [v] is a keys or items view, which behave as sets.
+pub(crate) fn is_set_view(v: &Value) -> bool {
+    matches!(v, Value::Object(o) if matches!(o.as_ref(), Object::DictView(ViewKind::Keys | ViewKind::Items, _)))
+}
+
+/// How many numbers `range(start, stop, step)` counts.
+pub(crate) fn range_len(start: i64, stop: i64, step: i64) -> i64 {
+    let (start, stop, step) = (start as i128, stop as i128, step as i128);
+    let n = if step > 0 { (stop - start + step - 1) / step } else { (start - stop - step - 1) / -step };
+    n.clamp(0, i64::MAX as i128) as i64
 }
 
 /// A raised built-in exception: its kind, the message `str(e)` gives, and the
@@ -152,6 +217,8 @@ pub struct ExceptionValue {
     pub args: Vec<Value>,
     /// What `raise … from cause` named, read back as `__cause__`.
     pub cause: Option<Value>,
+    /// The exception being handled when this one was raised, `__context__`.
+    pub context: Option<Value>,
 }
 
 impl ExceptionValue {
@@ -159,7 +226,7 @@ impl ExceptionValue {
     pub fn new(kind: impl Into<String>, message: impl Into<String>) -> ExceptionValue {
         let message = message.into();
         let args = if message.is_empty() { Vec::new() } else { vec![Value::str(&message)] };
-        ExceptionValue { kind: kind.into(), message, args, cause: None }
+        ExceptionValue { kind: kind.into(), message, args, cause: None, context: None }
     }
 }
 
@@ -224,6 +291,14 @@ impl Function {
         self.name.clone()
     }
 
+    /// How its frame is laid out.
+    pub(crate) fn frame_info(&self) -> &super::ast::Frame {
+        match &self.body {
+            FnBody::Def(d) => &d.frame,
+            FnBody::Lambda(l, _) => &l.frame,
+        }
+    }
+
     pub(crate) fn signature(&self) -> &Params {
         match &self.body {
             FnBody::Def(d) => &d.params,
@@ -265,6 +340,8 @@ pub enum HKey {
     /// [canon], the first instance seen with that hash that `__eq__` found
     /// equal to it. Equal instances share one canon, so they are one key.
     Obj { hash: i64, canon: Value, value: Value },
+    /// A builtin such as `int` or `len`, by name.
+    Builtin(Rc<str>),
 }
 
 /// A number key as an integer when it is one exactly, so `1`, `1.0` and
@@ -312,6 +389,7 @@ impl PartialEq for HKey {
             (HKey::Obj { hash: a, canon: x, .. }, HKey::Obj { hash: b, canon: y, .. }) => {
                 a == b && HKey::ref_address(x) == HKey::ref_address(y)
             }
+            (HKey::Builtin(a), HKey::Builtin(b)) => a == b,
             _ => false,
         }
     }
@@ -358,6 +436,10 @@ impl Hash for HKey {
                 8u8.hash(h);
                 hash.hash(h)
             }
+            HKey::Builtin(n) => {
+                9u8.hash(h);
+                n.hash(h)
+            }
         }
     }
 }
@@ -398,6 +480,7 @@ impl HKey {
                 HKey::Tuple(Rc::new(parts))
             }
             Value::Class(_) | Value::Instance(_) | Value::Function(_) | Value::Object(_) => HKey::Ref(v.clone()),
+            Value::Builtin(n) => HKey::Builtin(n.clone()),
             _ => return None,
         })
     }
@@ -413,6 +496,7 @@ impl HKey {
             HKey::Tuple(t) => Value::Tuple(Rc::new(t.iter().map(HKey::to_value).collect())),
             HKey::Ref(v) => v.clone(),
             HKey::Obj { value, .. } => value.clone(),
+            HKey::Builtin(n) => Value::Builtin(n.clone()),
         }
     }
 
@@ -440,20 +524,20 @@ impl Value {
         Value::Bytes(Rc::from(b))
     }
 
-    pub fn new_dict(map: IndexMap<HKey, Value>) -> Value {
+    pub fn new_dict(map: DictMap) -> Value {
         Value::Dict(Rc::new(RefCell::new(map)))
     }
 
     /// A dict with string keys, in the given order.
     pub fn dict<K: AsRef<str>>(pairs: Vec<(K, Value)>) -> Value {
-        let mut m = IndexMap::new();
+        let mut m = DictMap::default();
         for (k, v) in pairs {
             m.insert(HKey::str(k.as_ref()), v);
         }
         Value::new_dict(m)
     }
 
-    pub fn new_set(set: IndexSet<HKey>) -> Value {
+    pub fn new_set(set: KeySet) -> Value {
         Value::Set(Rc::new(RefCell::new(set)))
     }
 
@@ -545,7 +629,10 @@ impl Value {
                 Object::ClassMethod(_) => "classmethod",
                 Object::Property { .. } => "property",
                 Object::Super { .. } => "super",
-                Object::Iterator(_) => "iterator",
+                Object::Iterator(i) => i.kind,
+                Object::Generator(_) => "generator",
+                Object::Range(..) => "range",
+                Object::DictView(k, _) => k.type_name(),
                 Object::Slice(..) => "slice",
                 Object::Pattern { .. } => "re.Pattern",
             },
@@ -564,6 +651,11 @@ impl Value {
             Value::Set(s) => !s.borrow().is_empty(),
             Value::Dict(d) => !d.borrow().is_empty(),
             Value::Bytes(b) => !b.is_empty(),
+            Value::Object(o) => match o.as_ref() {
+                Object::Range(a, b, c) => range_len(*a, *b, *c) > 0,
+                Object::DictView(_, d) => !d.borrow().is_empty(),
+                _ => true,
+            },
             _ => true,
         }
     }
@@ -696,9 +788,11 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::Str(s) => s.to_string(),
         Value::List(_) | Value::Dict(_) | Value::Tuple(_) | Value::Set(_) | Value::Bytes(_) => py_repr(v),
         Value::Function(f) => format!("<function {}>", f.display_name()),
+        Value::Builtin(n) if matches!(n.as_ref(), "Ellipsis" | "NotImplemented") => n.to_string(),
         Value::Builtin(n) => match n.strip_prefix(super::methods::UNBOUND_PREFIX).and_then(|m| m.split_once('.')) {
             Some((ty, method)) => format!("<method '{method}' of '{ty}' objects>"),
-            None => format!("<builtin {n}>"),
+            None if super::builtins::is_type_name(n) => format!("<class '{n}'>"),
+            None => format!("<built-in function {n}>"),
         },
         Value::HostFunction(f) => format!("<builtin {}>", f.name),
         Value::Module(n) => format!("<module '{n}'>"),
@@ -717,6 +811,10 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::Object(o) => match o.as_ref() {
             Object::Bound(_, f) => format!("<bound method {}>", py_str(f).trim_start_matches("<function ").trim_end_matches('>')),
             Object::Slice(a, b, c) => format!("slice({}, {}, {})", py_repr(a), py_repr(b), py_repr(c)),
+            Object::Range(a, b, c) if *c == 1 => format!("range({a}, {b})"),
+            Object::Range(a, b, c) => format!("range({a}, {b}, {c})"),
+            Object::DictView(k, d) => format!("{}({})", k.type_name(), py_repr(&Value::list(view_items(*k, d)))),
+            Object::Generator(g) => format!("<generator object {}>", g.name),
             Object::Pattern { pattern, flags } => {
                 let names: Vec<&str> = [(2, "re.IGNORECASE"), (8, "re.MULTILINE"), (16, "re.DOTALL")]
                     .iter()
@@ -897,7 +995,20 @@ pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
         (Value::Function(x), Value::Function(y)) => Rc::ptr_eq(x, y),
         (Value::Class(x), Value::Class(y)) => Rc::ptr_eq(x, y),
         (Value::Instance(x), Value::Instance(y)) => Rc::ptr_eq(x, y),
-        (Value::Object(x), Value::Object(y)) => Rc::ptr_eq(x, y),
+        // A keys or items view equals the set of what it shows.
+        (x, y) if is_set_view(x) || is_set_view(y) => match (as_key_set(x), as_key_set(y)) {
+            (Some(p), Some(q)) => p.len() == q.len() && p.iter().all(|k| q.contains(k)),
+            _ => false,
+        },
+        (Value::Object(x), Value::Object(y)) => {
+            if let (Object::Range(a1, b1, c1), Object::Range(a2, b2, c2)) = (x.as_ref(), y.as_ref()) {
+                // Equal when they count the same numbers.
+                let (n1, n2) = (range_len(*a1, *b1, *c1), range_len(*a2, *b2, *c2));
+                return n1 == n2 && (n1 == 0 || (a1 == a2 && (n1 == 1 || c1 == c2)));
+            }
+            Rc::ptr_eq(x, y)
+        }
+        (Value::Builtin(x), Value::Builtin(y)) => x == y,
         _ => match (a.as_float(), b.as_float()) {
             (Some(x), Some(y)) => x == y,
             _ => false,

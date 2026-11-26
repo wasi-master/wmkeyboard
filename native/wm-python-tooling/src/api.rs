@@ -105,8 +105,10 @@ pub const MODULES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// Standard library modules written in Python that API 5 plugins can import.
 /// Their members are not modelled, so code using them is not checked name by name.
 pub const LIBRARY: &[&str] = &[
-    "abc", "base64", "collections", "copy", "dataclasses", "datetime", "enum", "functools", "hashlib", "hmac",
-    "html", "itertools", "statistics", "string", "textwrap", "typing", "urllib", "urllib.parse", "uuid",
+    "abc", "base64", "bisect", "collections", "collections.abc", "contextlib", "copy", "dataclasses", "datetime",
+    "enum", "fnmatch", "functools", "hashlib", "heapq", "hmac", "html", "io", "itertools", "keyword", "logging",
+    "numbers", "operator", "os", "os.path", "statistics", "string", "textwrap", "traceback", "types", "typing",
+    "unicodedata", "urllib", "urllib.parse", "uuid", "warnings",
 ];
 pub const CONTRACT: &[&str] = &["render", "on_event", "transform"];
 
@@ -118,17 +120,19 @@ pub const EXCEPTIONS: &[&str] = &[
     "Exception", "ValueError", "TypeError", "KeyError", "IndexError", "NameError", "ZeroDivisionError",
     "AttributeError", "RuntimeError", "StopIteration", "LookupError", "ArithmeticError", "OverflowError",
     "ImportError", "AssertionError", "NotImplementedError", "UnicodeError", "UnicodeDecodeError", "OSError",
-    "PermissionError", "TimeoutError", "ConnectionError", "FileNotFoundError",
+    "PermissionError", "TimeoutError", "ConnectionError", "FileNotFoundError", "UnboundLocalError", "GeneratorExit",
+    "BaseException", "SystemExit", "KeyboardInterrupt", "RecursionError", "ModuleNotFoundError", "UnicodeEncodeError",
+    "EOFError", "FloatingPointError", "SyntaxError", "IndentationError", "FileExistsError", "IsADirectoryError",
+    "NotADirectoryError", "BlockingIOError", "ConnectionRefusedError", "ConnectionResetError", "ConnectionAbortedError",
+    "BrokenPipeError", "Warning", "UserWarning", "DeprecationWarning", "PendingDeprecationWarning", "RuntimeWarning",
+    "SyntaxWarning", "FutureWarning", "ImportWarning", "UnicodeWarning", "BytesWarning", "ResourceWarning",
 ];
 
 /// Builtins taken out because they reach outside the script.
-pub const REMOVED_BUILTINS: &[&str] = &[
-    "open", "input", "eval", "exec", "compile", "__import__", "globals", "locals", "breakpoint", "exit", "quit",
-    "help",
-];
+pub const REMOVED_BUILTINS: &[&str] = &["open", "input", "compile", "__import__", "breakpoint", "exit", "quit", "help"];
 
 /// Builtins Python has and PyMini does not.
-pub const MISSING_BUILTINS: &[&str] = &["memoryview", "complex", "dir", "aiter", "anext"];
+pub const MISSING_BUILTINS: &[&str] = &["memoryview", "complex", "aiter", "anext"];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
 /// typed text or reach the file system. (The network, the clipboard and the
@@ -160,9 +164,6 @@ pub const USE_INSTEAD: &[(&str, &str)] = &[
     ("json.stringify", "json.dumps"),
     ("json.load", "json.loads"),
     ("json.dump", "json.dumps"),
-    ("time.strftime", "time.format"),
-    ("time.localtime", "time.parts"),
-    ("time.mktime", "wm.timestamp"),
     ("wm.print", "print"),
     ("wm.time", "time.time"),
 ];
@@ -195,7 +196,7 @@ pub fn model() -> &'static Model {
 }
 
 pub fn is_builtin(name: &str) -> bool {
-    model().find(name).is_some_and(|e| matches!(e.kind, ApiKind::Builtin | ApiKind::Exception))
+    model().find(name).is_some_and(|e| matches!(e.kind, ApiKind::Builtin | ApiKind::Exception) || (e.kind == ApiKind::Constant && !e.path.contains('.')))
 }
 
 /// The model path an import names; `from wm import plugin` is the API 5 package's `wm5.plugin`.
@@ -334,9 +335,9 @@ fn build() -> Model {
     add("min", Builtin, Some("min(*values, key=None, default=None)"), None, "The smallest of the values, or of one list of them. key picks what to compare; default is returned for an empty list.");
     add("max", Builtin, Some("max(*values, key=None, default=None)"), None, "The largest of the values, or of one list of them. key picks what to compare; default is returned for an empty list.");
     add("sum", Builtin, Some("sum(values, start=0)"), None, "start plus every item of values.");
-    add("range", Builtin, Some("range(start, stop, step=1)"), None, "A list of whole numbers from start up to but not including stop. range(n) counts from 0. At most 10,000 items.");
+    add("range", Builtin, Some("range(start, stop, step=1)"), None, "The whole numbers from start up to but not including stop, made one at a time as a loop takes them. range(n) counts from 0. len, in and indexing work without making them.");
     add("sorted", Builtin, Some("sorted(values, key=None, reverse=False)"), None, "A new sorted list of the items. key picks what to sort by. The sort is stable: items that compare equal keep their order, reverse=True too.");
-    add("reversed", Builtin, Some("reversed(values)"), None, "A new list of the items in reverse order.");
+    add("reversed", Builtin, Some("reversed(values)"), None, "An iterator over the items in reverse order.");
     add("list", Builtin, Some("list(values=())"), None, "A new list of the items of values, or an empty list.");
     add("dict", Builtin, Some("dict(pairs=(), **values)"), None, "A new dict, empty, copied from another dict, or built from (key, value) pairs, with key=value arguments on top.");
     add("set", Builtin, Some("set(values=())"), None, "A new set of the items of values, each once.");
@@ -347,9 +348,9 @@ fn build() -> Model {
     add("chr", Builtin, Some("chr(code)"), None, "The character with that code point.");
     add("any", Builtin, Some("any(values)"), None, "Whether any item is true.");
     add("all", Builtin, Some("all(values)"), None, "Whether every item is true.");
-    add("type", Builtin, Some("type(value)"), None, "The type of value as text: \"int\", \"str\", \"list\" and so on.");
-    add("map", Builtin, Some("map(function, *lists)"), None, "A list of function applied to each item.");
-    add("filter", Builtin, Some("filter(function, values)"), None, "A list of the items function returns true for. With None, the true items.");
+    add("type", Builtin, Some("type(value)"), None, "The type of value: type(1) is int, and type(x).__name__ is its name as text. type(name, bases, namespace) makes a new class.");
+    add("map", Builtin, Some("map(function, *lists)"), None, "An iterator of function applied to each item, one at a time. list(map(...)) makes the list.");
+    add("filter", Builtin, Some("filter(function, values)"), None, "An iterator of the items function returns true for. With None, the true items.");
     add("divmod", Builtin, Some("divmod(a, b)"), None, "(a // b, a % b).");
     add("pow", Builtin, Some("pow(base, exp, mod=None)"), None, "base to the power exp, and modulo mod when given.");
     add("hex", Builtin, Some("hex(x)"), None, "A whole number as hexadecimal text: \"0xff\".");
@@ -373,6 +374,12 @@ fn build() -> Model {
     add("issubclass", Builtin, Some("issubclass(cls, classinfo)"), None, "Whether a class is classinfo or descends from it.");
     add("id", Builtin, Some("id(value)"), None, "A number that is the same for the same object and different for another one alive at the same time.");
     add("hash", Builtin, Some("hash(value)"), None, "The hash of a value that can be a dict key.");
+    add("eval", Builtin, Some("eval(source, globals=None, locals=None)"), None, "The value of one Python expression written as text, run in the plugin's own interpreter: eval(\"2 * x\") reads x where it is called.");
+    add("exec", Builtin, Some("exec(source, globals=None, locals=None)"), None, "Runs Python statements written as text in the plugin's own interpreter. Names they assign land in globals, a dict, when one is given.");
+    add("globals", Builtin, Some("globals()"), None, "The module's names and their values, as a dict.");
+    add("locals", Builtin, Some("locals()"), None, "The names of the function it is called in and their values, as a dict.");
+    add("dir", Builtin, Some("dir(obj=None)"), None, "The sorted names of obj's attributes; with no argument, the names defined where it is called.");
+    add("Ellipsis", Constant, None, None, "The value written ..., often a placeholder: def todo(): ...");
     add("NotImplemented", Constant, None, None, "Returned by an operator method such as __eq__ to say it does not handle the other operand.");
     add("Exception", Exception, Some("Exception(message)"), None, "The base of every error. except Exception catches them all.");
     add("ValueError", Exception, Some("ValueError(message)"), None, "A value of the right type but the wrong content. wm.storage.set and wm.reminders.set raise it.");
@@ -397,6 +404,41 @@ fn build() -> Model {
     add("TimeoutError", Exception, Some("TimeoutError(message)"), None, "A request that took too long.");
     add("ConnectionError", Exception, Some("ConnectionError(message)"), None, "A request that could not reach its server.");
     add("FileNotFoundError", Exception, Some("FileNotFoundError(message)"), None, "A file that is not there.");
+    for (name, doc) in [
+        ("BaseException", "The base of every exception, SystemExit and KeyboardInterrupt included. except Exception leaves those two out."),
+        ("UnboundLocalError", "A local variable read before the function assigns it. A NameError."),
+        ("GeneratorExit", "Raised inside a generator when its close() is called."),
+        ("SystemExit", "What sys.exit() raises."),
+        ("KeyboardInterrupt", "An interruption from outside. Plugins never see one; it is here for code that catches it."),
+        ("RecursionError", "Calls nested past the recursion limit, 1,000 deep. A RuntimeError."),
+        ("ModuleNotFoundError", "An import of a module that is not there. An ImportError."),
+        ("UnicodeEncodeError", "Text that cannot be written in the encoding asked for."),
+        ("EOFError", "Input ended before it was expected to."),
+        ("FloatingPointError", "A failed floating-point operation. An ArithmeticError."),
+        ("SyntaxError", "Code that is not valid Python, from eval, exec or an import."),
+        ("IndentationError", "Code indented wrongly. A SyntaxError."),
+        ("FileExistsError", "A file that is already there. An OSError."),
+        ("IsADirectoryError", "A folder where a file was expected. An OSError."),
+        ("NotADirectoryError", "A file where a folder was expected. An OSError."),
+        ("BlockingIOError", "An operation that would have had to wait. An OSError."),
+        ("ConnectionRefusedError", "A server that refused the connection. A ConnectionError."),
+        ("ConnectionResetError", "A connection the server closed. A ConnectionError."),
+        ("ConnectionAbortedError", "A connection given up on. A ConnectionError."),
+        ("BrokenPipeError", "Writing to a connection already closed. A ConnectionError."),
+        ("Warning", "The base of the warnings warnings.warn() issues."),
+        ("UserWarning", "The warning warnings.warn() issues when given no category."),
+        ("DeprecationWarning", "Something that will go away. Not shown unless a filter asks for it."),
+        ("PendingDeprecationWarning", "Something that will go away later. Not shown unless a filter asks for it."),
+        ("RuntimeWarning", "Doubtful behaviour while running."),
+        ("SyntaxWarning", "Doubtful syntax."),
+        ("FutureWarning", "Behaviour that will change."),
+        ("ImportWarning", "Doubtful imports. Not shown unless a filter asks for it."),
+        ("UnicodeWarning", "Doubtful text handling."),
+        ("BytesWarning", "Doubtful handling of bytes."),
+        ("ResourceWarning", "A resource left open. Not shown unless a filter asks for it."),
+    ] {
+        add(leak(name.to_string()), Exception, Some(leak(format!("{name}(message)"))), None, doc);
+    }
 
     // ---- modules ----------------------------------------------------------
     add("math", Module, None, None, "Mathematical functions and constants. import math.");
@@ -479,6 +521,30 @@ fn build() -> Model {
     add("time.monotonic", Function, Some("monotonic()"), None, "Seconds from a clock that only moves forward, for measuring how long something takes.");
     add("time.parts", Function, Some("parts(seconds=None)"), None, "A dict of year, month, day, hour, minute, second, weekday (Monday is 0) and yearday for seconds, or for now, in the phone's time zone.");
     add("time.format", Function, Some("format(pattern, seconds=None)"), None, "seconds, or now, as text in a Unicode date pattern such as \"yyyy-MM-dd HH:mm\" or \"EEE d MMM\", with English names.");
+    for (name, sig, doc) in [
+        ("time_ns", "time_ns()", "time() in whole nanoseconds, an int."),
+        ("monotonic_ns", "monotonic_ns()", "monotonic() in whole nanoseconds, an int."),
+        ("perf_counter", "perf_counter()", "The same clock as monotonic(), for timing code."),
+        ("perf_counter_ns", "perf_counter_ns()", "perf_counter() in whole nanoseconds."),
+        ("process_time", "process_time()", "The same clock as monotonic(): the plugin has no clock of its own."),
+        ("process_time_ns", "process_time_ns()", "process_time() in whole nanoseconds."),
+        ("thread_time", "thread_time()", "The same clock as monotonic()."),
+        ("thread_time_ns", "thread_time_ns()", "thread_time() in whole nanoseconds."),
+        ("struct_time", "struct_time(values)", "A date and time as nine numbers (year, month, day, hour, minute, second, weekday, yearday, dst) that unpack and index like a tuple, with names: t.tm_year, t.tm_mon."),
+        ("gmtime", "gmtime(seconds=None)", "seconds, or now, as a struct_time in UTC."),
+        ("localtime", "localtime(seconds=None)", "seconds, or now, as a struct_time in the phone's time zone."),
+        ("mktime", "mktime(t)", "The seconds since the epoch of a struct_time or 9-tuple in the phone's time zone, a float."),
+        ("strftime", "strftime(format, t=None)", "A struct_time, or now, as text in a % format: strftime(\"%Y-%m-%d %H:%M\")."),
+        ("strptime", "strptime(text, format=\"%a %b %d %H:%M:%S %Y\")", "Text read with a % format, as a struct_time. Raises ValueError when it does not fit."),
+        ("asctime", "asctime(t=None)", "A struct_time, or now, as text such as \"Tue Nov 14 22:13:20 2023\"."),
+        ("ctime", "ctime(seconds=None)", "asctime(localtime(seconds))."),
+    ] {
+        add(leak(format!("time.{name}")), Function, Some(leak(sig.to_string())), None, doc);
+    }
+    add("time.timezone", Constant, None, None, "Seconds west of UTC of the phone's time zone: -3600 for UTC+1.");
+    add("time.altzone", Constant, None, None, "The same as timezone: summer time is not told apart.");
+    add("time.daylight", Constant, None, None, "0: summer time is not told apart.");
+    add("time.tzname", Constant, None, None, "The time zone's name twice, as a tuple, such as (\"+06\", \"+06\").");
 
     add("json", Module, None, None, "JSON text to and from Python values. import json.");
     add("json.dumps", Function, Some("dumps(value, indent=None, sort_keys=False, ensure_ascii=False, separators=None)"), None, "value written as JSON text. Dicts keep their order unless sort_keys. Characters past ASCII are written as they are; ensure_ascii=True escapes them. separators=(\",\", \":\") writes it compactly.");
@@ -522,9 +588,44 @@ fn build() -> Model {
     add("re.MULTILINE", Constant, None, None, "Flag: ^ and $ match at each line.");
     add("re.S", Constant, None, None, "Flag: . matches a line break too.");
     add("re.DOTALL", Constant, None, None, "Flag: . matches a line break too.");
+    add("re.X", Constant, None, None, "Flag: whitespace and # comments in the pattern are ignored.");
+    add("re.VERBOSE", Constant, None, None, "Flag: whitespace and # comments in the pattern are ignored.");
+    add("re.A", Constant, None, None, "Flag: \\d, \\w and \\s match ASCII characters only.");
+    add("re.ASCII", Constant, None, None, "Flag: \\d, \\w and \\s match ASCII characters only.");
+    add("re.U", Constant, None, None, "Flag: Unicode matching, which is already the default.");
+    add("re.UNICODE", Constant, None, None, "Flag: Unicode matching, which is already the default.");
+    add("re.NOFLAG", Constant, None, None, "No flags: 0.");
 
     add("sys", Module, None, None, "About the interpreter. import sys.");
     add("sys.version", Constant, None, None, "The interpreter's version line.");
+    for (name, doc) in [
+        ("version_info", "The Python version this interpreter follows, (3, 12, 0, \"final\", 0), with names: sys.version_info.major. Compare it with a tuple: sys.version_info >= (3, 10)."),
+        ("hexversion", "version_info as one number."),
+        ("maxsize", "The largest int: 2 ** 63 - 1."),
+        ("maxunicode", "The largest code point: 0x10FFFF."),
+        ("byteorder", "\"little\"."),
+        ("platform", "\"android\"."),
+        ("executable", "An empty string: there is no interpreter program."),
+        ("argv", "An empty list: a plugin has no command line."),
+        ("path", "The places imports look, as a list."),
+        ("modules", "The modules imported so far, as a dict of name to module."),
+        ("stdout", "Standard output: write() goes to the plugin log, as print() does. Assign another object with a write method to catch what print() writes."),
+        ("stderr", "Standard error, the same log as stdout."),
+        ("stdin", "Standard input, which is always empty."),
+    ] {
+        add(leak(format!("sys.{name}")), Constant, None, None, doc);
+    }
+    for (name, sig, doc) in [
+        ("getrecursionlimit", "getrecursionlimit()", "How deep calls may nest: 1,000 unless setrecursionlimit changed it."),
+        ("setrecursionlimit", "setrecursionlimit(limit)", "How deep calls may nest, up to 100,000. The phone's stack can still stop deep calls sooner, with RecursionError."),
+        ("exit", "exit(status=None)", "Raises SystemExit, which ends the plugin's run unless something catches it."),
+        ("intern", "intern(text)", "text itself."),
+        ("getdefaultencoding", "getdefaultencoding()", "\"utf-8\"."),
+        ("getfilesystemencoding", "getfilesystemencoding()", "\"utf-8\"."),
+        ("exc_info", "exc_info()", "The exception being handled, as (type, value, None), or (None, None, None) outside an except."),
+    ] {
+        add(leak(format!("sys.{name}")), Function, Some(leak(sig.to_string())), None, doc);
+    }
 
     // ---- methods ----------------------------------------------------------
     add("Match", Type, None, None, "What re.search, re.match and re.fullmatch return when they match.");

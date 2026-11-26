@@ -14,7 +14,7 @@ pub enum AbortKind {
     Deadline,
     /// The host's cancel flag was set.
     Cancelled,
-    /// Call depth (300), regex or JSON nesting, or parser nesting past its cap.
+    /// Call depth (1000) or native stack, regex or JSON nesting, or parser nesting past its cap.
     Recursion,
     /// A list, set, dict, tuple or range grew past the container cap.
     ContainerCap,

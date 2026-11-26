@@ -12,6 +12,7 @@ use base64::engine::{DecodePaddingMode, Engine};
 use base64::alphabet;
 
 use super::datefmt::local_to_unix;
+use super::text::{category_abbr, decimal_value, east_asian_width, longer_than, normalize_form};
 use super::error::R;
 use super::eval::Interp;
 use super::value::*;
@@ -20,30 +21,50 @@ use super::value::*;
 pub(crate) const PYTHON_MODULES: &[(&str, &str, bool)] = &[
     ("abc", include_str!("../stdlib/abc.py"), false),
     ("base64", include_str!("../stdlib/base64.py"), false),
-    ("collections", include_str!("../stdlib/collections.py"), false),
+    ("bisect", include_str!("../stdlib/bisect.py"), false),
+    ("collections", include_str!("../stdlib/collections.py"), true),
+    ("collections.abc", include_str!("../stdlib/collections_abc.py"), false),
+    ("contextlib", include_str!("../stdlib/contextlib.py"), false),
     ("copy", include_str!("../stdlib/copy.py"), false),
     ("dataclasses", include_str!("../stdlib/dataclasses.py"), false),
     ("datetime", include_str!("../stdlib/datetime.py"), false),
     ("enum", include_str!("../stdlib/enum.py"), false),
+    ("fnmatch", include_str!("../stdlib/fnmatch.py"), false),
     ("functools", include_str!("../stdlib/functools.py"), false),
     ("hashlib", include_str!("../stdlib/hashlib.py"), false),
+    ("heapq", include_str!("../stdlib/heapq.py"), false),
     ("hmac", include_str!("../stdlib/hmac.py"), false),
     ("html", include_str!("../stdlib/html.py"), false),
+    ("io", include_str!("../stdlib/io.py"), false),
     ("itertools", include_str!("../stdlib/itertools.py"), false),
+    ("keyword", include_str!("../stdlib/keyword.py"), false),
+    ("logging", include_str!("../stdlib/logging.py"), false),
+    ("numbers", include_str!("../stdlib/numbers.py"), false),
+    ("operator", include_str!("../stdlib/operator.py"), false),
+    ("os", include_str!("../stdlib/os.py"), true),
+    ("os.path", include_str!("../stdlib/os_path.py"), false),
     ("statistics", include_str!("../stdlib/statistics.py"), false),
     ("string", include_str!("../stdlib/string.py"), false),
     ("textwrap", include_str!("../stdlib/textwrap.py"), false),
+    ("time", include_str!("../stdlib/time.py"), false),
+    ("traceback", include_str!("../stdlib/traceback.py"), false),
+    ("types", include_str!("../stdlib/types.py"), false),
     ("typing", include_str!("../stdlib/typing.py"), false),
+    ("unicodedata", include_str!("../stdlib/unicodedata.py"), false),
     ("urllib", "", true),
     ("urllib.parse", include_str!("../stdlib/urllib_parse.py"), false),
     ("uuid", include_str!("../stdlib/uuid.py"), false),
+    ("warnings", include_str!("../stdlib/warnings.py"), false),
 ];
 
 /// `frozenset` and `bytearray`, loaded when a script first names one: always
 /// there, unlike the modules above, which a host turns on.
 pub(crate) const BUILTINS_SOURCE: &str = include_str!("../stdlib/_builtins.py");
 
-pub(crate) const NATIVE_FUNCTIONS: &[&str] = &["digest", "b64encode", "b64decode", "mktime", "quote", "unquote"];
+pub(crate) const NATIVE_FUNCTIONS: &[&str] = &[
+    "digest", "b64encode", "b64decode", "mktime", "quote", "unquote", "normalize", "is_normalized", "category",
+    "combining", "decimal", "east_asian_width", "mirrored",
+];
 
 fn b64(urlsafe: bool) -> GeneralPurpose {
     let config = GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent);
@@ -147,6 +168,40 @@ impl Interp {
                     i += 1;
                 }
                 Ok(Value::str(String::from_utf8_lossy(&out)))
+            }
+            "normalize" | "is_normalized" => {
+                let (Some(Value::Str(form)), Some(Value::Str(s))) = (args.first(), args.get(1)) else {
+                    return Err(self.error(format!("{name}() argument 2 must be str"), "TypeError"));
+                };
+                let Some(out) = normalize_form(form, s) else {
+                    return Err(self.error("invalid normalization form", "ValueError"));
+                };
+                if name == "is_normalized" {
+                    return Ok(Value::Bool(out == s.as_ref()));
+                }
+                if longer_than(&out, self.max_string) {
+                    return Err(self.string_abort());
+                }
+                Ok(Value::str(out))
+            }
+            "category" | "combining" | "decimal" | "east_asian_width" | "mirrored" => {
+                let c = match args.first() {
+                    Some(Value::Str(s)) if s.chars().count() == 1 => s.chars().next().unwrap(),
+                    Some(other) => {
+                        return Err(self.error(
+                            format!("{name}() argument must be a unicode character, not {}", other.type_name()),
+                            "TypeError",
+                        ))
+                    }
+                    None => return Err(self.error(format!("{name}() takes exactly one argument"), "TypeError")),
+                };
+                Ok(match name {
+                    "category" => Value::str(category_abbr(c)),
+                    "combining" => Value::Int(unicode_normalization::char::canonical_combining_class(c) as i64),
+                    "decimal" => decimal_value(c).map(|d| Value::Int(d as i64)).unwrap_or(Value::None),
+                    "east_asian_width" => Value::str(east_asian_width(c)),
+                    _ => Value::Int(matches!(c, '(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '«' | '»') as i64),
+                })
             }
             _ => Err(self.error(format!("module '_native' has no attribute '{name}'"), "AttributeError")),
         }

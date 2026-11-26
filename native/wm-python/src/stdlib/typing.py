@@ -101,6 +101,7 @@ class NamedTuple:
         own = vars(cls)
         names = list(own.get("__annotations__", {}))
         cls._fields = tuple(names)
+        cls.__match_args__ = cls._fields
         cls._field_defaults = {n: own[n] for n in names if n in own}
 
     def __init__(self, *args, **kwargs):

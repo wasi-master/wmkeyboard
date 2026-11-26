@@ -165,6 +165,6 @@ fn numbers_print_like_pymini() {
     assert_eq!("3", evaluate("int(\"3.5\")"));
     assert_eq!("100,000,000,000,000,000,000.00", evaluate("f\"{1e20:,.2f}\""));
     assert_eq!("1.2e+04", evaluate("\"%5.1e\" % 12345.678"));
-    assert_eq!("str", evaluate("type('x')"));
+    assert_eq!("<class 'str'>", evaluate("type('x')"));
     assert_eq!("{3, 1, 2}", evaluate("{3, 1, 2, 1}"));
 }

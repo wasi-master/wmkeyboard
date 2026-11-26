@@ -11,8 +11,8 @@ use super::datefmt::{civil, format_pattern};
 use super::error::R;
 use super::eval::Interp;
 use super::json;
-use super::regex::{Regex, Subject, DOT_ALL, IGNORE_CASE, MULTILINE};
-use super::text::{char_is_number, graphemes, grapheme_count, java_hash, parse_swift_int};
+use super::regex::{Regex, Subject, ASCII, DOT_ALL, IGNORE_CASE, MULTILINE, UNICODE, VERBOSE};
+use super::text::{char_is_number, graphemes, grapheme_count, java_hash, longer_than, parse_swift_int};
 use super::value::*;
 
 pub const NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
@@ -20,7 +20,7 @@ pub const NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// [NAMES] and the Rust half of the Python standard library modules
 /// ([`super::stdlib`]), which a host turns on with
 /// `Runtime::enable_python_stdlib`.
-pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native"];
+pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native", "_time"];
 
 /// PyMini's version, and the line `sys.version` holds.
 pub const VERSION: &str = "2.0.1";
@@ -35,9 +35,13 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
             "tanh", "asinh", "acosh", "atanh", "log1p", "expm1", "modf", "cbrt", "exp2", "remainder", "ldexp", "frexp",
         ],
         "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed"],
-        "time" => &["time", "monotonic", "parts", "format"],
+        // `_time` is the same clock, under the `time` module written in Python.
+        "time" | "_time" => &["time", "monotonic", "parts", "format"],
         "json" => &["dumps", "loads"],
         "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile"],
+        "sys" => &["getrecursionlimit", "setrecursionlimit", "exit", "intern", "getdefaultencoding", "getfilesystemencoding", "exc_info"],
+        "sys.stdout" | "sys.stderr" => &["write", "writelines", "flush", "isatty"],
+        "sys.stdin" => &["read", "readline", "readlines", "isatty"],
         "_native" => super::stdlib::NATIVE_FUNCTIONS,
         _ => &[],
     }
@@ -46,8 +50,12 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
 pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
     match module {
         "math" => &["pi", "e", "tau", "inf", "nan"],
-        "re" => &["I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL"],
-        "sys" => &["version"],
+        "re" => &["I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG"],
+        "sys" => &[
+            "version", "version_info", "hexversion", "maxsize", "maxunicode", "byteorder", "platform", "argv", "path",
+            "modules", "stdout", "stderr", "stdin", "executable",
+        ],
+        "sys.stdout" | "sys.stderr" | "sys.stdin" => &["encoding"],
         _ => &[],
     }
 }
@@ -62,7 +70,20 @@ fn constant(module: &str, name: &str) -> Option<Value> {
         ("re", "I" | "IGNORECASE") => Value::Int(IGNORE_CASE),
         ("re", "M" | "MULTILINE") => Value::Int(MULTILINE),
         ("re", "S" | "DOTALL") => Value::Int(DOT_ALL),
+        ("re", "X" | "VERBOSE") => Value::Int(VERBOSE),
+        ("re", "A" | "ASCII") => Value::Int(ASCII),
+        ("re", "U" | "UNICODE") => Value::Int(UNICODE),
+        ("re", "NOFLAG") => Value::Int(0),
         ("sys", "version") => Value::str(VERSION_LINE),
+        ("sys", "hexversion") => Value::Int(0x030C_00F0),
+        ("sys", "maxsize") => Value::Int(i64::MAX),
+        ("sys", "maxunicode") => Value::Int(0x10_FFFF),
+        ("sys", "byteorder") => Value::str("little"),
+        // Where plugins run: the keyboard, on Android.
+        ("sys", "platform") => Value::str("android"),
+        ("sys", "executable") => Value::str(""),
+        ("sys", "stdin") => Value::Module(Rc::from("sys.stdin")),
+        ("sys.stdout" | "sys.stderr" | "sys.stdin", "encoding") => Value::str("utf-8"),
         _ => return None,
     })
 }
@@ -193,6 +214,113 @@ fn log2(x: f64) -> f64 {
 
 impl Interp {
     #[inline(never)]
+    /// The members of `sys` that are worked out each time they are read.
+    pub(crate) fn sys_member(&self, name: &str) -> Option<Value> {
+        Some(match name {
+            "version_info" => Value::Tuple(self.version_info.clone()),
+            "stdout" => self.stdout_target.clone().unwrap_or_else(|| Value::Module(Rc::from("sys.stdout"))),
+            "stderr" => self.stderr_target.clone().unwrap_or_else(|| Value::Module(Rc::from("sys.stderr"))),
+            "argv" => Value::list(vec![Value::str("")]),
+            "path" => Value::list(Vec::new()),
+            "modules" => {
+                let mut names: Vec<&str> = self.module_envs.keys().map(String::as_str).collect();
+                names.push("sys");
+                names.sort_unstable();
+                Value::dict(names.into_iter().map(|n| (n, Value::Module(Rc::from(n)))).collect())
+            }
+            _ => return None,
+        })
+    }
+
+    fn sys_call(&mut self, name: &str, args: &[Value]) -> R<Value> {
+        match name {
+            "getrecursionlimit" => Ok(Value::Int(self.recursion_limit as i64)),
+            "setrecursionlimit" => {
+                let Some(n) = args.first().and_then(Value::as_int) else {
+                    return Err(self.error("setrecursionlimit() needs an int", "TypeError"));
+                };
+                if n < 1 {
+                    return Err(self.error("recursion limit must be greater or equal than 1", "ValueError"));
+                }
+                // The native stack still has the last word on how deep calls go.
+                self.recursion_limit = n.min(100_000) as u32;
+                Ok(Value::None)
+            }
+            "exit" => {
+                let code = args.first().cloned().unwrap_or(Value::None);
+                let message = match &code {
+                    Value::None => String::new(),
+                    other => py_str(other),
+                };
+                let args = if matches!(code, Value::None) { Vec::new() } else { vec![code] };
+                let ex = ExceptionValue { kind: "SystemExit".into(), message, args, cause: None, context: None };
+                Err(self.raise_exception(Rc::new(ex), None))
+            }
+            "intern" => args.first().cloned().ok_or_else(|| self.error("intern() needs a string", "TypeError")),
+            "getdefaultencoding" | "getfilesystemencoding" => Ok(Value::str("utf-8")),
+            "exc_info" => {
+                let value = match (&self.active_instance, &self.active_exception) {
+                    (Some(i), _) => i.clone(),
+                    (None, Some(e)) => Value::Exception(e.clone()),
+                    _ => return Ok(Value::tuple(vec![Value::None, Value::None, Value::None])),
+                };
+                Ok(Value::tuple(vec![self.type_of(&value), value, Value::None]))
+            }
+            _ => Err(self.error(format!("module 'sys' has no attribute '{name}'"), "AttributeError")),
+        }
+    }
+
+    /// `sys.stdout.write(text)` and the like. Both output streams go where
+    /// `print` does, a line at a time; there is no input to read.
+    fn stream_call(&mut self, stream: &str, name: &str, args: &[Value]) -> R<Value> {
+        match (stream, name) {
+            ("stdout" | "stderr", "write") => {
+                let Some(Value::Str(s)) = args.first() else {
+                    return Err(self.error("write() argument must be str", "TypeError"));
+                };
+                self.write_out(s)?;
+                Ok(Value::Int(grapheme_count(s) as i64))
+            }
+            ("stdout" | "stderr", "writelines") => {
+                let lines = match args.first() {
+                    Some(v) => self.iterate(v)?,
+                    None => Vec::new(),
+                };
+                for l in lines {
+                    let Value::Str(s) = l else {
+                        return Err(self.error("writelines() argument must be a sequence of strings", "TypeError"));
+                    };
+                    self.write_out(&s)?;
+                }
+                Ok(Value::None)
+            }
+            (_, "flush") => Ok(Value::None),
+            (_, "isatty") => Ok(Value::Bool(false)),
+            ("stdin", "read" | "readline") => Ok(Value::str("")),
+            ("stdin", "readlines") => Ok(Value::list(Vec::new())),
+            _ => Err(self.error(format!("'sys.{stream}' has no attribute '{name}'"), "AttributeError")),
+        }
+    }
+
+    /// Text onto the output, each finished line handed on as `print` hands them.
+    pub(crate) fn write_out(&mut self, text: &str) -> R<()> {
+        let mut buf = std::mem::take(&mut self.print_partial);
+        buf.push_str(text);
+        if let Some(last) = buf.rfind('\n') {
+            let rest = buf.split_off(last + 1);
+            buf.pop();
+            for line in buf.split('\n') {
+                self.emit(line.to_string());
+            }
+            buf = rest;
+        }
+        if longer_than(&buf, self.max_string) {
+            return Err(self.string_abort());
+        }
+        self.print_partial = buf;
+        Ok(())
+    }
+
     pub(crate) fn call_module(&mut self, module: &str, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
         self.tick()?;
         if let Some(host) = self.host_modules.get(module).cloned() {
@@ -210,13 +338,19 @@ impl Interp {
                 .ok_or_else(|| self.error(format!("module '{module}' has no attribute '{name}'"), "AttributeError"))?;
             return self.call_value(&f, args, kwargs);
         }
+        if let Some(stream) = module.strip_prefix("sys.") {
+            if self.enabled_modules.contains(&"sys") {
+                return self.stream_call(stream, name, &args);
+            }
+        }
         if !self.enabled_modules.contains(&module) {
             return Err(self.error(format!("no module named '{module}'"), "ImportError"));
         }
         match module {
+            "sys" => self.sys_call(name, &args),
             "math" => self.math_call(name, &args, &kwargs),
             "random" => self.random_call(name, &args),
-            "time" => self.time_call(name, &args),
+            "time" | "_time" => self.time_call(name, &args),
             "json" => self.json_call(name, &args, &kwargs),
             "re" => self.regex_call(name, &args, &kwargs),
             "_native" => self.native_call(name, &args),

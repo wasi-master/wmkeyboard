@@ -10,16 +10,14 @@
 //! beside it. The sandbox is still exactly as wide as the host functions.
 
 use std::cell::RefCell;
-use std::collections::VecDeque;
 use std::rc::Rc;
-
-use indexmap::IndexMap;
 
 use super::ast::*;
 use super::builtins::EXCEPTION_KINDS;
 use super::error::{Exc, PyError, R};
 use super::eval::{exception_matches, Env, Interp};
-use super::fxhash::name_map;
+use super::fxhash::{name_map, NameMap};
+use super::generators::iterator_object;
 use super::parser::parse;
 use super::value::*;
 
@@ -36,6 +34,10 @@ pub(crate) const HIDDEN_DEFAULT_REPR: &str = "__default_repr__";
 pub(crate) const HIDDEN_PROPERTY_SETTER: &str = "__property_setter__";
 pub(crate) const HIDDEN_PROPERTY_GETTER: &str = "__property_getter__";
 pub(crate) const HIDDEN_OBJECT_NEW: &str = "__object_new__";
+pub(crate) const HIDDEN_OBJECT_INIT_SUBCLASS: &str = "__object_init_subclass__";
+pub(crate) const HIDDEN_TYPE_NEW: &str = "__type_new__";
+pub(crate) const HIDDEN_TYPE_CALL: &str = "__type_call__";
+pub(crate) const HIDDEN_TYPE_INIT: &str = "__type_init__";
 
 /// The forward and reflected method names for a binary operator.
 fn operator_methods(op: BinOp) -> (&'static str, &'static str) {
@@ -71,21 +73,113 @@ impl Interp {
     // MARK: - class statements
 
     #[inline(never)]
-    pub(crate) fn exec_class(&mut self, def: &Rc<ClassDef>, env: &Rc<Env>) -> R<()> {
+    pub(crate) fn exec_class(&mut self, def: &Rc<ClassDef>, bind: &Name, env: &Rc<Env>) -> R<()> {
         let mut decorators = Vec::with_capacity(def.decorators.len());
         for d in &def.decorators {
             decorators.push(self.eval(d, env)?);
         }
-        let mut base = None;
-        let mut root: Option<Rc<str>> = None;
+        let mut bases = Vec::with_capacity(def.bases.len());
         for b in &def.bases {
-            match self.eval(b, env)? {
+            bases.push(self.eval(b, env)?);
+        }
+        let mut kwargs: Vec<(Rc<str>, Value)> = Vec::new();
+        for (k, e) in &def.keywords {
+            let v = self.eval(e, env)?;
+            if k.as_ref() == "**" {
+                for (key, item) in self.mapping_pairs(&v)? {
+                    let HKey::Str(key) = key else {
+                        return Err(self.error("keywords must be strings", "TypeError"));
+                    };
+                    kwargs.push((key, item));
+                }
+            } else {
+                kwargs.push((k.clone(), v));
+            }
+        }
+        let explicit = kwargs.iter().position(|(k, _)| k.as_ref() == "metaclass").map(|i| kwargs.remove(i).1);
+        let scope = Env::new(Some(env.clone()));
+        scope.define(&Rc::from("__qualname__"), Value::Str(def.name.clone()));
+        if let Value::Str(doc) = super::eval::docstring(&def.body) {
+            scope.define(&Rc::from("__doc__"), Value::Str(doc));
+        }
+        self.exec_block(&def.body, &scope)?;
+        let mut attrs = name_map(0);
+        for (k, v) in scope.vars.borrow_mut().take_all() {
+            attrs.insert(k, v);
+        }
+        // The metaclass named, or else the most derived of the bases' own.
+        let meta = match explicit {
+            Some(Value::Builtin(n)) if n.as_ref() == "type" => None,
+            Some(m) => Some(m),
+            None => self.derived_meta(None, &bases)?.map(Value::Class),
+        };
+        let mut value = match meta {
+            None => self.make_class_with(def.name.clone(), &bases, attrs, None, kwargs)?,
+            // `M(name, bases, namespace, **kwargs)`: the metaclass (or any callable) makes the class.
+            Some(m) => {
+                let ns = Value::dict(attrs.into_iter().collect());
+                let args = vec![Value::Str(def.name.clone()), Value::tuple(bases), ns];
+                self.call_value(&m, args, kwargs)?
+            }
+        };
+        for d in decorators.iter().rev() {
+            value = self.call_value(d, vec![value], Vec::new())?;
+        }
+        self.store_name(bind, value, env);
+        Ok(())
+    }
+
+    /// The metaclass a class with these bases gets: [given] or the bases'
+    /// own, whichever derives from all the others. None for plain `type`.
+    pub(crate) fn derived_meta(&self, given: Option<Rc<Class>>, bases: &[Value]) -> R<Option<Rc<Class>>> {
+        let mut winner = given;
+        for b in bases {
+            let Value::Class(c) = b else { continue };
+            let Some(m) = &c.meta else { continue };
+            winner = match winner {
+                None => Some(m.clone()),
+                Some(w) if w.is_subclass_of(m) => Some(w),
+                Some(w) if m.is_subclass_of(&w) => Some(m.clone()),
+                Some(_) => {
+                    return Err(self.error(
+                        "metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases",
+                        "TypeError",
+                    ))
+                }
+            };
+        }
+        Ok(winner)
+    }
+
+    /// A class made by `type.__new__(meta, name, bases, attrs, **kwargs)`:
+    /// a `class` statement, `type(name, bases, attrs)`, a metaclass's `super().__new__`.
+    pub(crate) fn make_class_with(
+        &mut self,
+        name: Rc<str>,
+        bases: &[Value],
+        attrs: NameMap,
+        meta: Option<Rc<Class>>,
+        kwargs: Vec<(Rc<str>, Value)>,
+    ) -> R<Value> {
+        let mut classes = Vec::with_capacity(bases.len());
+        let mut root: Option<Rc<str>> = None;
+        let mut is_type = false;
+        for b in bases {
+            match b {
                 Value::Class(c) => {
-                    root = c.exception_root.clone();
-                    base = Some(c);
+                    if root.is_none() {
+                        root = c.exception_root.clone();
+                    }
+                    is_type |= c.is_type;
+                    classes.push(c.clone());
                 }
                 Value::Builtin(n) if n.as_ref() == "object" => {}
-                Value::Builtin(n) if EXCEPTION_KINDS.contains(&n.as_ref()) => root = Some(n),
+                Value::Builtin(n) if n.as_ref() == "type" => is_type = true,
+                Value::Builtin(n) if EXCEPTION_KINDS.contains(&n.as_ref()) => {
+                    if root.is_none() {
+                        root = Some(n.clone());
+                    }
+                }
                 Value::Builtin(n) => {
                     return Err(self.error(
                         format!("a class cannot derive from the built-in '{n}'; keep one as an attribute instead"),
@@ -97,17 +191,32 @@ impl Interp {
                 }
             }
         }
-        let scope = Env::class_body(env.clone());
-        scope.define(&Rc::from("__qualname__"), Value::Str(def.name.clone()));
-        self.exec_block(&def.body, &scope)?;
-        let mut attrs = name_map(0);
-        for (k, v) in scope.vars.borrow_mut().take_all() {
-            attrs.insert(k, v);
+        for (i, c) in classes.iter().enumerate() {
+            if classes[..i].iter().any(|d| Rc::ptr_eq(c, d)) {
+                return Err(self.error(format!("duplicate base class {}", c.name), "TypeError"));
+            }
         }
+        let Some(mro) = c3_order(&classes) else {
+            let names: Vec<&str> = classes.iter().map(|c| c.name.as_ref()).collect();
+            return Err(self.error(
+                format!("Cannot create a consistent method resolution order (MRO) for bases {}", names.join(", ")),
+                "TypeError",
+            ));
+        };
         if attrs.len() > self.max_container {
             return Err(self.container_abort("class"));
         }
-        let class = Rc::new(Class { name: def.name.clone(), base, exception_root: root, attrs: RefCell::new(attrs) });
+        let meta = self.derived_meta(meta, bases)?;
+        let class = Rc::new(Class {
+            name,
+            bases: classes,
+            mro,
+            exception_root: root,
+            attrs: RefCell::new(attrs),
+            traits: Default::default(),
+            meta,
+            is_type,
+        });
         for v in class.attrs.borrow().values() {
             own(v, &class);
         }
@@ -115,8 +224,9 @@ impl Interp {
         if class.exception_root.is_some() {
             self.exception_classes.insert(class.name.clone(), class.clone());
         }
-        // A base's `__init_subclass__` hears about each class made from it, as a classmethod.
-        if let Some(hook) = class.base.as_ref().and_then(|b| b.lookup("__init_subclass__")) {
+        // The nearest base's `__init_subclass__` hears about each class made from it, as a classmethod.
+        let hook = class.mro.iter().find_map(|b| b.attrs.borrow().get("__init_subclass__").cloned());
+        if let Some(hook) = hook {
             let f = match &hook {
                 Value::Object(o) => match o.as_ref() {
                     Object::ClassMethod(f) | Object::StaticMethod(f) => f.clone(),
@@ -124,14 +234,44 @@ impl Interp {
                 },
                 _ => hook.clone(),
             };
-            self.call_value(&f, vec![Value::Class(class.clone())], Vec::new())?;
+            self.call_value(&f, vec![Value::Class(class.clone())], kwargs)?;
+        } else if !kwargs.is_empty() {
+            return Err(self.error(format!("{}.__init_subclass__() takes no keyword arguments", class.name), "TypeError"));
         }
-        let mut value = Value::Class(class);
-        for d in decorators.iter().rev() {
-            value = self.call_value(d, vec![value], Vec::new())?;
+        Ok(Value::Class(class))
+    }
+
+    /// `type.__new__(meta, name, bases, attrs, **kwargs)`, and `type(name, bases, attrs)` with no meta.
+    pub(crate) fn type_new(&mut self, meta: Option<Rc<Class>>, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        if args.len() != 3 {
+            return Err(self.error("type.__new__() takes exactly 3 arguments (name, bases, dict)", "TypeError"));
         }
-        env.define(&def.name, value);
-        Ok(())
+        let Value::Str(class_name) = &args[0] else {
+            return Err(self.error("type.__new__() argument 1 must be str", "TypeError"));
+        };
+        let bases = match &args[1] {
+            Value::Tuple(t) => t.as_ref().clone(),
+            _ => return Err(self.error("type.__new__() argument 2 must be tuple", "TypeError")),
+        };
+        let Value::Dict(d) = &args[2] else {
+            return Err(self.error("type.__new__() argument 3 must be dict", "TypeError"));
+        };
+        let mut attrs = name_map(d.borrow().len());
+        for (k, v) in d.borrow().iter() {
+            let HKey::Str(k) = k else {
+                return Err(self.error("type() attribute names must be strings", "TypeError"));
+            };
+            attrs.insert(k.clone(), v.clone());
+        }
+        self.make_class_with(class_name.clone(), &bases, attrs, meta, kwargs.to_vec())
+    }
+
+    /// [name] on [c]'s metaclass, bound to [c]: how a class answers
+    /// `len(C)`, `for x in C`, `C[k]` and the like.
+    pub(crate) fn meta_method(&self, c: &Rc<Class>, name: &str) -> Option<Value> {
+        let m = c.meta.as_ref()?;
+        let v = m.lookup(name)?;
+        Some(self.bind(v, Value::Class(c.clone()), m))
     }
 
     /// `x: int = 1`. The value is assigned like any other; a plain name also
@@ -142,13 +282,18 @@ impl Interp {
             let v = self.eval(v, env)?;
             self.assign(target, v, env)?;
         }
-        if let Expr::Name(n) = target {
+        // Only a module or a class body keeps annotations, as in Python.
+        let kept = |n: &Name| matches!(n.at, NameAt::Class(_)) || (n.at == NameAt::Global && env.parent.is_none());
+        if let Some(n) = match target {
+            Expr::Name(n) if kept(n) => Some(&n.id),
+            _ => None,
+        } {
             let key: Rc<str> = Rc::from("__annotations__");
             let existing = env.vars.borrow().get(&key).cloned();
             let dict = match existing {
                 Some(Value::Dict(d)) => d,
                 _ => {
-                    let d = Rc::new(RefCell::new(IndexMap::new()));
+                    let d = Rc::new(RefCell::new(DictMap::default()));
                     env.vars.borrow_mut().insert(key, Value::Dict(d.clone()));
                     d
                 }
@@ -191,8 +336,8 @@ impl Interp {
         let result = self.exec_with(rest, body, env);
         match result {
             Err(Exc::Error(e)) if !e.is_abort() => {
-                let kind = Value::Str(Rc::from(e.kind.as_str()));
                 let value = self.caught_value(&e);
+                let kind = self.type_of(&value);
                 let swallow = self.call_method(&m, "__exit__", vec![kind, value, Value::None], Vec::new())?;
                 if self.truth(&swallow)? {
                     Ok(())
@@ -228,6 +373,50 @@ impl Interp {
 
     #[inline(never)]
     pub(crate) fn construct(&mut self, class: &Rc<Class>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        // A metaclass's `__call__` decides what calling its classes does.
+        if class.meta.is_some() {
+            if let Some(call) = self.meta_method(class, "__call__") {
+                return self.call_value(&call, args, kwargs);
+            }
+        }
+        self.construct_plain(class, args, kwargs)
+    }
+
+    /// `M(name, bases, namespace)` for a metaclass M: its `__new__` (type's
+    /// unless it has one) makes the class, then its `__init__` runs on it.
+    fn construct_class(&mut self, meta: &Rc<Class>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        let made = match meta.lookup("__new__") {
+            Some(new) => {
+                let f = match &new {
+                    Value::Object(o) => match o.as_ref() {
+                        Object::StaticMethod(f) | Object::ClassMethod(f) => f.clone(),
+                        _ => new.clone(),
+                    },
+                    _ => new.clone(),
+                };
+                let mut all = Vec::with_capacity(args.len() + 1);
+                all.push(Value::Class(meta.clone()));
+                all.extend(args.iter().cloned());
+                self.call_value(&f, all, kwargs.clone())?
+            }
+            None => self.type_new(Some(meta.clone()), &args, &kwargs)?,
+        };
+        if let Value::Class(c) = &made {
+            if c.meta.as_ref().is_some_and(|m| m.is_subclass_of(meta)) {
+                if let Some(init) = meta.lookup("__init__") {
+                    let bound = self.bind(init, made.clone(), meta);
+                    self.call_value(&bound, args, kwargs)?;
+                }
+            }
+        }
+        Ok(made)
+    }
+
+    /// Calling [class] as `type.__call__` does: `__new__`, then `__init__`.
+    pub(crate) fn construct_plain(&mut self, class: &Rc<Class>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        if class.is_type {
+            return self.construct_class(class, args, kwargs);
+        }
         if let Some(Value::Set(pending)) = class.lookup("__abstractmethods__") {
             let mut names: Vec<String> = pending.borrow().iter().map(|k| py_str(&k.to_value())).collect();
             if !names.is_empty() {
@@ -303,6 +492,13 @@ impl Interp {
     /// class's (bound), then `__getattr__`.
     #[inline(never)]
     pub(crate) fn instance_attr(&mut self, inst: &Rc<Instance>, name: &str) -> R<Option<Value>> {
+        // No property anywhere in the class: the instance's own attribute
+        // wins without asking the class first.
+        if self.class_traits(&inst.class) & HAS_PROPERTY == 0 {
+            if let Some(v) = inst.attrs.borrow().get(name) {
+                return Ok(Some(v.clone()));
+            }
+        }
         let from_class = inst.class.lookup(name);
         if let Some(Value::Object(o)) = &from_class {
             if let Object::Property { get, .. } = o.as_ref() {
@@ -350,15 +546,18 @@ impl Interp {
         }
         Some(match name {
             "__name__" | "__qualname__" => Value::Str(class.name.clone()),
-            "__base__" => class.base.clone().map(Value::Class).unwrap_or(Value::None),
-            "__bases__" => Value::tuple(class.base.clone().map(Value::Class).into_iter().collect()),
-            "__mro__" => {
-                let mut out = Vec::new();
-                let mut c = Some(class.clone());
-                while let Some(k) = c {
-                    c = k.base.clone();
-                    out.push(Value::Class(k));
+            "__doc__" => Value::None,
+            "__base__" => class.base().cloned().map(Value::Class).unwrap_or(Value::Builtin(Rc::from("object"))),
+            "__bases__" => {
+                if class.bases.is_empty() {
+                    Value::tuple(vec![Value::Builtin(Rc::from("object"))])
+                } else {
+                    Value::tuple(class.bases.iter().cloned().map(Value::Class).collect())
                 }
+            }
+            "__mro__" => {
+                let mut out: Vec<Value> = std::iter::once(class.clone()).chain(class.mro.iter().cloned()).map(Value::Class).collect();
+                out.push(Value::Builtin(Rc::from("object")));
                 Value::tuple(out)
             }
             "__dict__" => {
@@ -369,11 +568,19 @@ impl Interp {
         })
     }
 
-    /// `super().name`: looked up above the class that defined the running
-    /// method, and bound to the same `self`.
+    /// `super().name`: looked up in the receiver's resolution order after
+    /// the class that defined the running method, and bound to the same `self`.
     pub(crate) fn super_attr(&mut self, class: &Rc<Class>, receiver: &Value, name: &str) -> R<Option<Value>> {
-        let mut c = class.base.clone();
-        while let Some(k) = c {
+        let order: Vec<Rc<Class>> = match receiver {
+            Value::Instance(i) => std::iter::once(i.class.clone()).chain(i.class.mro.iter().cloned()).collect(),
+            Value::Class(c) => std::iter::once(c.clone()).chain(c.mro.iter().cloned()).collect(),
+            _ => Vec::new(),
+        };
+        let after: Vec<Rc<Class>> = match order.iter().position(|k| Rc::ptr_eq(k, class)) {
+            Some(at) => order[at + 1..].to_vec(),
+            None => class.mro.clone(),
+        };
+        for k in after {
             if let Some(v) = k.attrs.borrow().get(name).cloned() {
                 if let Value::Object(o) = &v {
                     if let Object::Property { get, .. } = o.as_ref() {
@@ -388,10 +595,16 @@ impl Interp {
                 };
                 return Ok(Some(self.bind(v, receiver.clone(), &owner)));
             }
-            c = k.base.clone();
         }
         let bound = |f: &str| Some(object(Object::Bound(receiver.clone(), hidden(f))));
+        // Past every class: `type`'s methods for a metaclass, else `object`'s.
+        let is_type = class.is_type;
         Ok(match name {
+            // A static method: the class comes as the first argument.
+            "__new__" => Some(hidden(if is_type { HIDDEN_TYPE_NEW } else { HIDDEN_OBJECT_NEW })),
+            "__call__" if is_type => bound(HIDDEN_TYPE_CALL),
+            "__init__" if is_type => bound(HIDDEN_TYPE_INIT),
+            "__init_subclass__" => bound(HIDDEN_OBJECT_INIT_SUBCLASS),
             "__init__" => bound(HIDDEN_BASE_INIT),
             "__setattr__" => bound(HIDDEN_OBJECT_SETATTR),
             "__getattr__" | "__getattribute__" => bound(HIDDEN_OBJECT_GETATTR),
@@ -406,6 +619,9 @@ impl Interp {
     pub(crate) fn set_attr(&mut self, obj: &Value, name: &Rc<str>, value: Value) -> R<()> {
         match obj {
             Value::Instance(inst) => {
+                if self.class_traits(&inst.class) & (HAS_PROPERTY | HAS_SETATTR) == 0 {
+                    return self.raw_set(inst, name.clone(), value);
+                }
                 if let Some(Value::Object(o)) = inst.class.lookup(name) {
                     if let Object::Property { set, .. } = o.as_ref() {
                         if set.is_none() {
@@ -424,6 +640,9 @@ impl Interp {
                 self.raw_set(inst, name.clone(), value)
             }
             Value::Class(c) => {
+                if shapes_lookup(name, Some(&value)) || c.attrs.borrow().get(name.as_ref()).is_some_and(|old| shapes_lookup(name, Some(old))) {
+                    self.class_epoch += 1;
+                }
                 own(&value, c);
                 c.attrs.borrow_mut().insert(name.clone(), value);
                 Ok(())
@@ -436,6 +655,25 @@ impl Interp {
                     return Err(self.container_abort("function"));
                 }
                 attrs.insert(name.clone(), value);
+                Ok(())
+            }
+            // `sys.stdout = buffer` sends print's output to it until put back.
+            Value::Module(m) if m.as_ref() == "sys" && matches!(name.as_ref(), "stdout" | "stderr") => {
+                let target = match &value {
+                    Value::Module(s) if s.as_ref() == "sys.stdout" || s.as_ref() == "sys.stderr" => None,
+                    _ => Some(value),
+                };
+                if name.as_ref() == "stdout" {
+                    self.stdout_target = target;
+                } else {
+                    self.stderr_target = target;
+                }
+                Ok(())
+            }
+            // A module written in Python takes new globals, as `mod.x = 1` gives it.
+            Value::Module(m) if self.module_envs.contains_key(m.as_ref()) => {
+                let env = self.module_envs[m.as_ref()].clone();
+                env.vars.borrow_mut().insert(name.clone(), value);
                 Ok(())
             }
             other => Err(self.error(
@@ -466,7 +704,13 @@ impl Interp {
                 }
                 inst.attrs.borrow_mut().shift_remove(name).is_some()
             }
-            Value::Class(c) => c.attrs.borrow_mut().shift_remove(name).is_some(),
+            Value::Class(c) => {
+                let old = c.attrs.borrow_mut().shift_remove(name);
+                if old.as_ref().is_some_and(|v| shapes_lookup(name, Some(v))) {
+                    self.class_epoch += 1;
+                }
+                old.is_some()
+            }
             Value::Function(f) => f.attrs.borrow_mut().shift_remove(name).is_some(),
             _ => false,
         };
@@ -559,32 +803,11 @@ impl Interp {
         Err(self.error(format!("'{forward}' not supported between '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
     }
 
-    /// Every item an iterator object hands out, until StopIteration.
-    pub(crate) fn drain(&mut self, it: Value) -> R<Vec<Value>> {
-        match &it {
-            Value::Instance(inst) if inst.class.lookup("__next__").is_some() => {
-                let mut out = Vec::new();
-                loop {
-                    self.tick()?;
-                    match self.dunder(&it, "__next__", Vec::new()) {
-                        Ok(Some(v)) => out.push(v),
-                        Ok(None) => break,
-                        Err(Exc::Error(e)) if !e.is_abort() && e.kind == "StopIteration" => break,
-                        Err(e) => return Err(e),
-                    }
-                    if out.len() > self.max_container {
-                        return Err(self.container_abort("iterator"));
-                    }
-                }
-                Ok(out)
-            }
-            Value::Instance(_) => Err(self.error(format!("iter() returned non-iterator of type '{}'", it.type_name()), "TypeError")),
-            _ => self.iterate(&it),
-        }
-    }
-
     /// `Cls[key]`: the class's `__class_getitem__`, implicitly a classmethod.
     pub(crate) fn class_getitem(&mut self, c: &Rc<Class>, key: &Value) -> R<Value> {
+        if let Some(f) = self.meta_method(c, "__getitem__") {
+            return self.call_value(&f, vec![key.clone()], Vec::new());
+        }
         let Some(hook) = c.lookup("__class_getitem__") else {
             return Err(self.error(format!("type '{}' is not subscriptable", c.name), "TypeError"));
         };
@@ -601,44 +824,20 @@ impl Interp {
     /// `for member in SomeEnum`: a class that keeps its members in
     /// `_member_map_` (what the `enum` module does) iterates over them.
     pub(crate) fn iterate_class(&mut self, c: &Rc<Class>) -> R<Vec<Value>> {
+        if let Some(f) = self.meta_method(c, "__iter__") {
+            let it = self.call_value(&f, Vec::new(), Vec::new())?;
+            return self.iterate(&it);
+        }
         match c.lookup("_member_map_") {
             Some(Value::Dict(d)) => Ok(d.borrow().values().cloned().collect()),
             _ => Err(self.error(format!("type object '{}' is not iterable", c.name), "TypeError")),
         }
     }
 
-    /// `for x in inst`: `__iter__`, or `__getitem__` with `__len__`.
+    /// Every item `for x in inst` would see, held to the container cap.
     pub(crate) fn iterate_instance(&mut self, v: &Value) -> R<Vec<Value>> {
-        if let Some(it) = self.dunder(v, "__iter__", Vec::new())? {
-            if let Value::Instance(a) = &it {
-                if let Value::Instance(b) = v {
-                    // An object that is its own iterator hands out items through __next__.
-                    if Rc::ptr_eq(a, b) && a.class.lookup("__next__").is_none() {
-                        return Err(self.error("__iter__ returned the object itself, which has no __next__", "TypeError"));
-                    }
-                }
-            }
-            return self.drain(it);
-        }
-        if let Some(n) = self.dunder(v, "__len__", Vec::new())? {
-            let n = n.as_int().unwrap_or(0).max(0);
-            if n as usize > self.max_container {
-                return Err(self.container_abort("object"));
-            }
-            let mut out = Vec::new();
-            for i in 0..n {
-                if let Some(item) = self.dunder(v, "__getitem__", vec![Value::Int(i)])? {
-                    out.push(item);
-                }
-            }
-            return Ok(out);
-        }
-        if let Value::Instance(inst) = v {
-            if inst.class.lookup("__next__").is_some() {
-                return self.drain(v.clone());
-            }
-        }
-        Err(self.error(format!("'{}' object is not iterable", v.type_name()), "TypeError"))
+        let mut it = self.instance_iter(v)?;
+        self.collect_iter(&mut it, "iterator")
     }
 
     /// The (key, value) pairs of a dict, or of an object with `keys()` and
@@ -677,6 +876,18 @@ impl Interp {
                 Ok(py_str(v))
             }
             Value::List(_) | Value::Tuple(_) | Value::Dict(_) | Value::Set(_) => self.to_repr(v),
+            Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) => self.to_repr(v),
+            Value::Class(c) if c.meta.is_some() => {
+                for name in ["__str__", "__repr__"] {
+                    if let Some(m) = self.meta_method(c, name) {
+                        return match self.call_value(&m, Vec::new(), Vec::new())? {
+                            Value::Str(s) => Ok(s.to_string()),
+                            other => Err(self.error(format!("{name} returned non-string (type {})", other.type_name()), "TypeError")),
+                        };
+                    }
+                }
+                Ok(py_str(v))
+            }
             _ => Ok(py_str(v)),
         }
     }
@@ -699,6 +910,17 @@ impl Interp {
 
     fn repr_inner(&mut self, v: &Value) -> R<String> {
         Ok(match v {
+            Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) => {
+                let Object::DictView(k, d) = o.as_ref() else { unreachable!() };
+                format!("{}({})", k.type_name(), self.to_repr(&Value::list(view_items(*k, d)))?)
+            }
+            Value::Class(c) if c.meta.is_some() => match self.meta_method(c, "__repr__") {
+                Some(m) => match self.call_value(&m, Vec::new(), Vec::new())? {
+                    Value::Str(s) => s.to_string(),
+                    other => return Err(self.error(format!("__repr__ returned non-string (type {})", other.type_name()), "TypeError")),
+                },
+                None => py_repr(v),
+            },
             Value::Instance(inst) => match inst.class.lookup("__repr__") {
                 Some(m) => {
                     let bound = self.bind(m, v.clone(), &inst.class);
@@ -969,14 +1191,29 @@ impl Interp {
                 match &args[0] {
                     Value::Instance(_) => match self.dunder(&args[0], "__iter__", Vec::new())? {
                         Some(it @ Value::Instance(_)) => it,
-                        Some(Value::Object(o)) if matches!(o.as_ref(), Object::Iterator(_)) => Value::Object(o),
-                        Some(other) => iterator(self.iterate(&other)?),
-                        None => iterator(self.iterate_instance(&args[0])?),
+                        Some(Value::Object(o)) if matches!(o.as_ref(), Object::Iterator(_) | Object::Generator(_)) => Value::Object(o),
+                        Some(other) => {
+                            let it = self.iter_of(&other)?;
+                            iterator_object("iterator", it)
+                        }
+                        None => {
+                            let it = self.instance_iter(&args[0])?;
+                            iterator_object("iterator", it)
+                        }
                     },
-                    Value::Object(o) if matches!(o.as_ref(), Object::Iterator(_)) => args[0].clone(),
+                    Value::Object(o) if matches!(o.as_ref(), Object::Iterator(_) | Object::Generator(_)) => args[0].clone(),
                     other => {
-                        let items = self.iterate(other)?;
-                        iterator(items)
+                        let kind = match other {
+                            Value::List(_) => "list_iterator",
+                            Value::Tuple(_) => "tuple_iterator",
+                            Value::Str(_) => "str_ascii_iterator",
+                            Value::Dict(_) => "dict_keyiterator",
+                            Value::Set(_) => "set_iterator",
+                            Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => "range_iterator",
+                            _ => "iterator",
+                        };
+                        let it = self.iter_of(other)?;
+                        iterator_object(kind, it)
                     }
                 }
             }
@@ -986,8 +1223,16 @@ impl Interp {
                 }
                 let item = match &args[0] {
                     Value::Object(o) => match o.as_ref() {
-                        Object::Iterator(items) => items.borrow_mut().pop_front(),
-                        _ => return Err(self.error("next() needs an iterator", "TypeError")),
+                        Object::Generator(_) => match self.generator_method(o, "__next__", &[]) {
+                            Ok(v) => Some(v),
+                            Err(Exc::Error(e)) if !e.is_abort() && e.kind == "StopIteration" && args.len() == 2 => None,
+                            Err(e) => return Err(e),
+                        },
+                        Object::Iterator(_) => {
+                            let o = o.clone();
+                            self.object_next(&o)?
+                        }
+                        _ => return Err(self.error(format!("'{}' object is not an iterator", args[0].type_name()), "TypeError")),
                     },
                     Value::Instance(_) => match self.dunder(&args[0], "__next__", Vec::new()) {
                         Ok(Some(v)) => Some(v),
@@ -1026,10 +1271,7 @@ impl Interp {
             }
             "issubclass" => {
                 self.arity(name, args, 2)?;
-                let Value::Class(c) = &args[0] else {
-                    return Err(self.error("issubclass() arg 1 must be a class", "TypeError"));
-                };
-                Value::Bool(self.class_matches(c, &args[1]))
+                Value::Bool(self.subclass_check(&args[0], &args[1])?)
             }
             "id" => {
                 self.arity(name, args, 1)?;
@@ -1073,6 +1315,31 @@ impl Interp {
                     Some(v) => v,
                     None => return Err(self.error(format!("'{}' object has no attribute '{attr}'", inst.class.name), "AttributeError")),
                 }
+            }
+            HIDDEN_TYPE_NEW => {
+                let meta = match arg(0) {
+                    Some(Value::Class(m)) if m.is_type => Some(m),
+                    Some(Value::Builtin(n)) if n.as_ref() == "type" => None,
+                    _ => return Err(self.error("type.__new__(X): X is not a type object", "TypeError")),
+                };
+                return self.type_new(meta, &args[1..], kwargs).map(Some);
+            }
+            HIDDEN_TYPE_CALL => {
+                let Some(Value::Class(c)) = arg(0) else {
+                    return Err(self.error("type.__call__(X): X is not a class", "TypeError"));
+                };
+                return self.construct_plain(&c, args[1..].to_vec(), kwargs.to_vec()).map(Some);
+            }
+            HIDDEN_TYPE_INIT => Value::None,
+            HIDDEN_OBJECT_INIT_SUBCLASS => {
+                if !kwargs.is_empty() {
+                    let who = match arg(0) {
+                        Some(Value::Class(c)) => c.name.to_string(),
+                        _ => "object".to_string(),
+                    };
+                    return Err(self.error(format!("{who}.__init_subclass__() takes no keyword arguments"), "TypeError"));
+                }
+                Value::None
             }
             HIDDEN_OBJECT_NEW => {
                 // `object.__new__(cls)`: an instance with no attributes and no __init__ run.
@@ -1127,8 +1394,8 @@ impl Interp {
         let Some(class) = owner else {
             return Err(self.error("super() works only inside a method defined in a class body", "RuntimeError"));
         };
-        let first = f.signature().positional.first().map(|p| p.name.clone());
-        let receiver = first.and_then(|n| env.vars.borrow().get(&n).cloned());
+        // The method's first parameter, which is its first slot.
+        let receiver = if f.signature().positional.is_empty() { None } else { env.slots.borrow().first().cloned().flatten() };
         let Some(receiver) = receiver else {
             return Err(self.error("super(): the method has no 'self' argument", "RuntimeError"));
         };
@@ -1139,7 +1406,16 @@ impl Interp {
         if let Some(c) = &self.plain_object {
             return c.clone();
         }
-        let c = Rc::new(Class { name: Rc::from("object"), base: None, exception_root: None, attrs: RefCell::new(name_map(0)) });
+        let c = Rc::new(Class {
+            name: Rc::from("object"),
+            bases: Vec::new(),
+            mro: Vec::new(),
+            exception_root: None,
+            attrs: RefCell::new(name_map(0)),
+            traits: Default::default(),
+            meta: None,
+            is_type: false,
+        });
         self.plain_object = Some(c.clone());
         c
     }
@@ -1150,6 +1426,7 @@ impl Interp {
             Value::Tuple(t) => t.iter().any(|x| self.is_instance(value, x)),
             Value::Class(c) => match value {
                 Value::Instance(i) => i.class.is_subclass_of(c),
+                Value::Class(k) => k.meta.as_ref().is_some_and(|m| m.is_subclass_of(c)),
                 _ => false,
             },
             Value::Builtin(name) => match name.as_ref() {
@@ -1163,15 +1440,143 @@ impl Interp {
                 "set" => matches!(value, Value::Set(_)),
                 "bytes" => matches!(value, Value::Bytes(_)),
                 "slice" => matches!(value, Value::Object(o) if matches!(o.as_ref(), Object::Slice(..))),
+                "range" => matches!(value, Value::Object(o) if matches!(o.as_ref(), Object::Range(..))),
+                "type" => matches!(value, Value::Class(_)) || matches!(value, Value::Builtin(n) if super::builtins::is_type_name(n)),
                 "object" => true,
                 kind if EXCEPTION_KINDS.contains(&kind) => match value {
                     Value::Exception(e) => self.exception_is(kind, &e.kind),
                     Value::Instance(i) => self.exception_is(kind, &i.class.name),
                     _ => false,
                 },
+                // The other built-in types: function, generator, module and the like.
+                other if super::builtins::is_type_name(other) => {
+                    matches!(self.type_of(value), Value::Builtin(t) if t.as_ref() == other)
+                }
                 _ => false,
             },
             _ => false,
+        }
+    }
+
+    /// `issubclass(sub, ty)`, for classes and the built-in types, asking a
+    /// metaclass's `__subclasscheck__` when the plain answer is no.
+    pub(crate) fn subclass_check(&mut self, sub: &Value, ty: &Value) -> R<bool> {
+        if let Value::Tuple(t) = ty {
+            for x in t.iter() {
+                if self.subclass_check(sub, x)? {
+                    return Ok(true);
+                }
+            }
+            return Ok(false);
+        }
+        let plain = match sub {
+            Value::Class(c) => match ty {
+                Value::Builtin(n) if n.as_ref() == "type" => c.is_type,
+                _ => self.class_matches(c, ty),
+            },
+            Value::Builtin(n) if super::builtins::is_type_name(n) => match ty {
+                Value::Builtin(m) => {
+                    n == m
+                        || m.as_ref() == "object"
+                        || (n.as_ref() == "bool" && m.as_ref() == "int")
+                        || (EXCEPTION_KINDS.contains(&n.as_ref()) && EXCEPTION_KINDS.contains(&m.as_ref()) && self.exception_is(m, n))
+                }
+                _ => false,
+            },
+            _ => return Err(self.error("issubclass() arg 1 must be a class", "TypeError")),
+        };
+        if plain {
+            return Ok(true);
+        }
+        if let Value::Class(c) = ty {
+            if let Some(hook) = self.meta_method(c, "__subclasscheck__") {
+                let r = self.call_value(&hook, vec![sub.clone()], Vec::new())?;
+                return self.truth(&r);
+            }
+        }
+        Ok(false)
+    }
+
+    /// `dir(obj)`: the names its attributes go by, sorted.
+    pub(crate) fn dir_of(&mut self, v: &Value) -> R<Value> {
+        if let Value::Instance(_) = v {
+            if let Some(r) = self.dunder(v, "__dir__", Vec::new())? {
+                let mut names = self.iterate(&r)?;
+                names.sort_by_key(py_str);
+                return Ok(Value::list(names));
+            }
+        }
+        let mut names: Vec<String> = Vec::new();
+        let from_class = |c: &Rc<Class>, names: &mut Vec<String>| {
+            for k in std::iter::once(c).chain(c.mro.iter()) {
+                names.extend(k.attrs.borrow().keys().map(|s| s.to_string()));
+            }
+        };
+        match v {
+            Value::Instance(i) => {
+                names.extend(i.attrs.borrow().keys().map(|s| s.to_string()));
+                from_class(&i.class, &mut names);
+                names.extend(["__class__", "__dict__", "__repr__", "__str__"].map(String::from));
+            }
+            Value::Class(c) => {
+                from_class(c, &mut names);
+                names.extend(["__name__", "__qualname__", "__mro__", "__bases__", "__dict__", "__doc__"].map(String::from));
+            }
+            Value::Module(m) => {
+                let m = m.clone();
+                if let Some(env) = self.module_envs.get(m.as_ref()) {
+                    names.extend(env.vars.borrow().pairs().into_iter().map(|(k, _)| k.to_string()));
+                } else if let Some(h) = self.host_modules.get(m.as_ref()) {
+                    names.extend(h.names());
+                } else {
+                    names.extend(super::modules::exports(&m).into_iter().map(String::from));
+                }
+            }
+            other => {
+                let table: &[&str] = match other {
+                    Value::Str(_) => super::methods::STR_METHODS,
+                    Value::List(_) => super::methods::LIST_METHODS,
+                    Value::Tuple(_) => super::methods::TUPLE_METHODS,
+                    Value::Set(_) => super::methods::SET_METHODS,
+                    Value::Dict(_) => super::methods::DICT_METHODS,
+                    Value::Bytes(_) => super::methods::BYTES_METHODS,
+                    Value::Int(_) | Value::Bool(_) => super::methods::INT_METHODS,
+                    Value::Float(_) => super::methods::FLOAT_METHODS,
+                    _ => &[],
+                };
+                names.extend(table.iter().map(|s| s.to_string()));
+                if matches!(other, Value::Int(_) | Value::Bool(_)) {
+                    names.extend(["real", "imag", "numerator", "denominator"].map(String::from));
+                }
+                if let Value::Float(_) = other {
+                    names.extend(["real", "imag"].map(String::from));
+                }
+            }
+        }
+        names.sort();
+        names.dedup();
+        Ok(Value::list(names.into_iter().map(Value::str).collect()))
+    }
+
+    /// `isinstance(v, ty)` once the plain answer was no: a metaclass's `__instancecheck__`.
+    pub(crate) fn instance_hook(&mut self, v: &Value, ty: &Value) -> R<bool> {
+        match ty {
+            Value::Tuple(t) => {
+                for x in t.iter() {
+                    if self.instance_hook(v, x)? {
+                        return Ok(true);
+                    }
+                }
+                Ok(false)
+            }
+            Value::Class(c) => match self.meta_method(c, "__instancecheck__") {
+                Some(h) => {
+                    let r = self.call_value(&h, vec![v.clone()], Vec::new())?;
+                    self.truth(&r)
+                }
+                None => Ok(false),
+            },
+            _ => Ok(false),
         }
     }
 
@@ -1183,6 +1588,46 @@ impl Interp {
             Value::Builtin(n) => self.exception_is(n, &c.name),
             _ => false,
         }
+    }
+}
+
+/// A property somewhere in the class or its bases: attribute reads and
+/// writes on its instances ask the class first.
+pub(crate) const HAS_PROPERTY: u8 = 1;
+/// `__setattr__` somewhere in the class or its bases.
+pub(crate) const HAS_SETATTR: u8 = 2;
+
+/// Whether setting or deleting [name] (to [value]) on a class changes how
+/// its instances' attributes are looked up: a property, or a dunder.
+fn shapes_lookup(name: &str, value: Option<&Value>) -> bool {
+    name.starts_with("__") || matches!(value, Some(Value::Object(o)) if matches!(o.as_ref(), Object::Property { .. }))
+}
+
+impl Interp {
+    /// What about a class decides its instances' attribute lookups, worked
+    /// out once and again only after some class gains or loses a property
+    /// or a dunder.
+    pub(crate) fn class_traits(&self, c: &Class) -> u8 {
+        if let Some((epoch, bits)) = c.traits.get() {
+            if epoch == self.class_epoch {
+                return bits;
+            }
+        }
+        let mut bits = 0;
+        for k in std::iter::once(c).chain(c.mro.iter().map(|r| r.as_ref())) {
+            for (name, v) in k.attrs.borrow().iter() {
+                if let Value::Object(o) = v {
+                    if matches!(o.as_ref(), Object::Property { .. }) {
+                        bits |= HAS_PROPERTY;
+                    }
+                }
+                if name.as_ref() == "__setattr__" {
+                    bits |= HAS_SETATTR;
+                }
+            }
+        }
+        c.traits.set(Some((self.class_epoch, bits)));
+        bits
     }
 }
 
@@ -1206,8 +1651,28 @@ fn own(v: &Value, class: &Rc<Class>) {
     }
 }
 
-fn iterator(items: Vec<Value>) -> Value {
-    object(Object::Iterator(RefCell::new(VecDeque::from(items))))
+/// Python's C3 linearisation: the order attributes are looked for in, after
+/// the class itself, for a class with these bases. None when the bases
+/// cannot be put in one order consistent with each of theirs.
+fn c3_order(bases: &[Rc<Class>]) -> Option<Vec<Rc<Class>>> {
+    let mut seqs: Vec<Vec<Rc<Class>>> =
+        bases.iter().map(|b| std::iter::once(b.clone()).chain(b.mro.iter().cloned()).collect()).collect();
+    seqs.push(bases.to_vec());
+    let mut out: Vec<Rc<Class>> = Vec::new();
+    loop {
+        seqs.retain(|s| !s.is_empty());
+        if seqs.is_empty() {
+            return Some(out);
+        }
+        // The first head that is in no other list's tail.
+        let next = seqs.iter().map(|s| s[0].clone()).find(|c| !seqs.iter().any(|s| s[1..].iter().any(|x| Rc::ptr_eq(x, c))))?;
+        for s in &mut seqs {
+            if Rc::ptr_eq(&s[0], &next) {
+                s.remove(0);
+            }
+        }
+        out.push(next);
+    }
 }
 
 fn identity(v: &Value) -> i64 {

@@ -45,9 +45,9 @@ pub enum ExprKind {
     Comp { kind: CompKind, elt: Box<Expr>, value: Option<Box<Expr>>, clauses: Vec<CompClause> },
     Starred(Box<Expr>),
     DoubleStarred(Box<Expr>),
-    /// `name := value`, which PyMini does not have.
+    /// `name := value`.
     Walrus { target: Box<Expr>, value: Box<Expr> },
-    /// `await x` or `yield x`, which PyMini does not have.
+    /// `yield x`, `yield from x`, or `await x`, which plugins cannot use.
     Prefixed { value: Option<Box<Expr>> },
     /// What the parser could not read.
     Error,
@@ -144,9 +144,10 @@ pub enum StmtKind {
     ImportFrom { module: String, module_span: Span, names: Vec<ImportName>, star: bool },
     Global(Vec<(String, Span)>),
     Del(Vec<Expr>),
-    /// A statement PyMini does not run (`class`, `with`, `match`, `assert`,
-    /// `nonlocal`, a decorator), kept so the names in it still mean something.
-    /// `binds` are names it assigns: a class name, a `with ... as` target.
+    /// A statement kept only as the names in it (`class`, `with`, `match`,
+    /// `case`, `assert`, `nonlocal`, a decorator), so they still mean
+    /// something. `binds` are names it assigns: a class name, a `with ... as`
+    /// target, the names a `case` pattern captures.
     Unsupported { what: &'static str, exprs: Vec<Expr>, binds: Vec<Expr>, body: Vec<Stmt> },
     /// A line the parser could not read. Its names are kept for analysis:
     /// those before a top-level `=` (or between `for` and `in`) as names it

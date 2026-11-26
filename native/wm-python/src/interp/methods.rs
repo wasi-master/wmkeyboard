@@ -4,13 +4,10 @@
 
 use std::rc::Rc;
 
-use indexmap::IndexSet;
-
 use super::ast::BinOp;
 use super::bytes::{decode, encode, from_hex, to_hex};
 use super::error::R;
 use super::eval::{set_algebra, Interp};
-use super::format::py_format;
 use super::regex::Match;
 use super::text::*;
 use super::value::*;
@@ -35,6 +32,8 @@ pub(crate) const SET_METHODS: &[&str] = &[
     "add", "remove", "discard", "pop", "clear", "union", "intersection", "difference", "symmetric_difference", "update",
     "issubset", "issuperset", "isdisjoint", "copy", "intersection_update", "difference_update",
 ];
+pub(crate) const INT_METHODS: &[&str] = &["to_bytes", "bit_length", "bit_count", "conjugate", "as_integer_ratio", "is_integer"];
+pub(crate) const FLOAT_METHODS: &[&str] = &["is_integer", "as_integer_ratio", "conjugate", "hex"];
 pub(crate) const DICT_METHODS: &[&str] = &["keys", "values", "items", "get", "pop", "popitem", "setdefault", "update", "clear", "copy"];
 pub(crate) const BYTES_METHODS: &[&str] = &[
     "decode", "hex", "find", "count", "startswith", "endswith", "split", "strip", "replace", "upper", "lower", "join", "index",
@@ -62,7 +61,8 @@ pub(crate) fn type_member(ty: &str, name: &str) -> bool {
         "set" => SET_METHODS,
         "dict" => DICT_METHODS,
         "bytes" => BYTES_METHODS,
-        "int" => &["to_bytes", "bit_length"],
+        "int" => INT_METHODS,
+        "float" => FLOAT_METHODS,
         _ => return false,
     };
     table.contains(&name)
@@ -77,6 +77,8 @@ pub(crate) fn has_builtin_method(obj: &Value, name: &str) -> bool {
         Value::Set(_) => SET_METHODS,
         Value::Dict(_) => DICT_METHODS,
         Value::Bytes(_) => BYTES_METHODS,
+        Value::Int(_) | Value::Bool(_) => INT_METHODS,
+        Value::Float(_) => FLOAT_METHODS,
         _ => return false,
     };
     table.contains(&name)
@@ -122,7 +124,8 @@ impl Interp {
             Value::Bytes(b) => self.bytes_method(b, name, &args, &kwargs),
             Value::Builtin(b) if type_member(b, name) => self.call_type_member(&format!("{b}.{name}"), args, kwargs),
             Value::Builtin(b) if b.as_ref() == "int" && name == "from_bytes" => self.int_from_bytes(&args, &kwargs),
-            Value::Int(_) | Value::Bool(_) if matches!(name, "to_bytes" | "bit_length") => self.int_method(obj, name, &args, &kwargs),
+            Value::Int(_) | Value::Bool(_) if INT_METHODS.contains(&name) => self.int_method(obj, name, &args, &kwargs),
+            Value::Float(f) if FLOAT_METHODS.contains(&name) => self.float_method(*f, name),
             Value::Builtin(b) if b.as_ref() == "bytes" && name == "fromhex" => {
                 let s = self.arg_str(&args, 0, "fromhex")?;
                 match from_hex(&s) {
@@ -147,6 +150,52 @@ impl Interp {
                 let Object::Pattern { pattern, flags } = o.as_ref() else { unreachable!() };
                 let (pattern, flags) = (pattern.clone(), *flags);
                 self.pattern_method(&pattern, flags, name, args, kwargs)
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Generator(_)) => {
+                let o = o.clone();
+                self.generator_method(&o, name, &args)
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Iterator(_)) && matches!(name, "__next__" | "__iter__") => {
+                if name == "__iter__" {
+                    return Ok(obj.clone());
+                }
+                let o = o.clone();
+                match self.object_next(&o)? {
+                    Some(v) => Ok(v),
+                    None => Err(self.error("", "StopIteration")),
+                }
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) && matches!(name, "index" | "count") => {
+                let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
+                let (a, c) = (*a, *c);
+                let n = range_len(a, *b, c);
+                let hit = match args.first() {
+                    Some(v @ (Value::Int(_) | Value::Bool(_))) => {
+                        let off = v.as_int().unwrap_or(0) as i128 - a as i128;
+                        (off % c as i128 == 0 && (0..n as i128).contains(&(off / c as i128))).then_some(off / c as i128)
+                    }
+                    _ => None,
+                };
+                match (name, hit) {
+                    ("count", h) => Ok(Value::Int(h.is_some() as i64)),
+                    (_, Some(i)) => Ok(Value::Int(i as i64)),
+                    _ => Err(self.error(format!("{} is not in range", args.first().map(py_repr).unwrap_or_default()), "ValueError")),
+                }
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) && name == "isdisjoint" => {
+                let mine = self.iterate(obj)?;
+                let other = match args.first() {
+                    Some(v) => self.iterate(v)?,
+                    None => return Err(self.error("isdisjoint() takes exactly one argument", "TypeError")),
+                };
+                for x in &mine {
+                    for y in &other {
+                        if self.eq(x, y)? {
+                            return Ok(Value::Bool(false));
+                        }
+                    }
+                }
+                Ok(Value::Bool(true))
             }
             Value::Object(o) if matches!(o.as_ref(), Object::Slice(..)) && name == "indices" => {
                 let Object::Slice(a, b, c) = o.as_ref() else { unreachable!() };
@@ -176,7 +225,7 @@ impl Interp {
             ("dict", "fromkeys") => {
                 let keys = args.first().ok_or_else(|| self.error("fromkeys expected at least 1 argument", "TypeError"))?;
                 let value = args.get(1).cloned().unwrap_or(Value::None);
-                let mut d = indexmap::IndexMap::new();
+                let mut d = DictMap::default();
                 for k in self.iterate(keys)? {
                     d.insert(self.hashable(&k)?, value.clone());
                 }
@@ -205,13 +254,17 @@ impl Interp {
                 "TypeError",
             ));
         }
+        // `dict.get(d, k)` is the dict method even when d has a key "get".
+        if let Value::Dict(d) = &receiver {
+            return self.dict_method(d, name, &args[1..], &kwargs);
+        }
         self.call_method(&receiver, name, args[1..].to_vec(), kwargs)
     }
 
     /// `str.maketrans(x, y=None, z=None)`: a table for `str.translate`, from a
     /// dict, or from two strings of equal length and a string of characters to drop.
     fn maketrans(&mut self, args: &[Value]) -> R<Value> {
-        let mut table = indexmap::IndexMap::new();
+        let mut table = DictMap::default();
         match args {
             [Value::Dict(d)] => {
                 for (k, v) in d.borrow().iter() {
@@ -731,72 +784,171 @@ impl Interp {
 
     /// `str.format`: positional `{}` and `{0}`, named `{name}`, and the f-string spec grammar.
     fn format_method(&mut self, s: &Rc<str>, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<String> {
-        let mut out = String::new();
+        // None: no field yet; Some(true): `{}` fields; Some(false): `{0}` fields.
+        let mut numbering: Option<bool> = None;
         let mut auto = 0;
-        let cs = self.clusters_of(s);
-        let mut i = 0;
-        while i < cs.len() {
-            let c = cs[i];
-            if c == "{" {
-                if i + 1 < cs.len() && cs[i + 1] == "{" {
-                    out.push('{');
-                    i += 2;
-                    continue;
-                }
-                let mut inner = String::new();
-                i += 1;
-                let mut depth = 1;
-                while i < cs.len() {
-                    if cs[i] == "{" {
-                        depth += 1;
-                    }
-                    if cs[i] == "}" {
-                        depth -= 1;
-                        if depth == 0 {
+        self.format_fields(s, args, kwargs, &mut numbering, &mut auto, 0)
+    }
+
+    /// `str.format`'s template [s]: `{field!conversion:spec}` replaced, `{{`
+    /// and `}}` kept as braces. A spec may hold fields of its own, one level deep.
+    fn format_fields(
+        &mut self,
+        s: &str,
+        args: &[Value],
+        kwargs: &[(Rc<str>, Value)],
+        numbering: &mut Option<bool>,
+        auto: &mut usize,
+        depth: u32,
+    ) -> R<String> {
+        if depth > 2 {
+            return Err(self.error("Max string recursion exceeded", "ValueError"));
+        }
+        let mut out = String::new();
+        let mut rest = s;
+        while let Some(at) = rest.find(['{', '}']) {
+            out.push_str(&rest[..at]);
+            let brace = rest.as_bytes()[at];
+            let after = &rest[at + 1..];
+            if after.as_bytes().first() == Some(&brace) {
+                out.push(brace as char);
+                rest = &after[1..];
+                continue;
+            }
+            if brace == b'}' {
+                return Err(self.error("Single '}' encountered in format string", "ValueError"));
+            }
+            // The field runs to its matching close brace.
+            let mut level = 1;
+            let mut end = None;
+            for (k, b) in after.bytes().enumerate() {
+                match b {
+                    b'{' => level += 1,
+                    b'}' => {
+                        level -= 1;
+                        if level == 0 {
+                            end = Some(k);
                             break;
                         }
                     }
-                    inner.push_str(cs[i]);
-                    i += 1;
+                    _ => {}
                 }
-                if i >= cs.len() {
-                    return Err(self.error("unmatched '{' in format string", "ValueError"));
-                }
-                i += 1;
-                let (field, spec) = match inner.find(':') {
-                    Some(c) => (&inner[..c], &inner[c + 1..]),
-                    None => (inner.as_str(), ""),
-                };
-                let key = trim_whitespaces(field);
-                let value = if key.is_empty() {
-                    if auto >= args.len() {
-                        return Err(self.error("format index out of range", "IndexError"));
+            }
+            let Some(end) = end else {
+                return Err(self.error(if level > 1 { "unexpected '{' in field name" } else { "expected '}' before end of string" }, "ValueError"));
+            };
+            let inner = &after[..end];
+            rest = &after[end + 1..];
+            // field[!conversion][:spec]; the field part never holds ':' or '!'
+            // outside an index's brackets.
+            let mut cut = inner.len();
+            let mut in_index = false;
+            for (k, ch) in inner.char_indices() {
+                match ch {
+                    '[' => in_index = true,
+                    ']' => in_index = false,
+                    ':' | '!' if !in_index => {
+                        cut = k;
+                        break;
                     }
-                    auto += 1;
-                    args[auto - 1].clone()
-                } else if let Some(n) = parse_swift_int(key, 10) {
-                    if n < 0 || n as usize >= args.len() {
-                        return Err(self.error("format index out of range", "IndexError"));
-                    }
-                    args[n as usize].clone()
-                } else {
-                    kwarg(kwargs, key).cloned().ok_or_else(|| self.error(format!("'{key}'"), "KeyError"))?
-                };
-                out.push_str(&py_format(&value, spec)?);
-            } else if c == "}" {
-                if i + 1 < cs.len() && cs[i + 1] == "}" {
-                    out.push('}');
-                    i += 2;
-                    continue;
+                    _ => {}
                 }
-                out.push('}');
-                i += 1;
+            }
+            let field = &inner[..cut];
+            let mut tail = &inner[cut..];
+            let mut conversion = None;
+            if let Some(t) = tail.strip_prefix('!') {
+                let mut chars = t.chars();
+                conversion = chars.next();
+                tail = chars.as_str();
+                if !matches!(conversion, Some('r' | 's' | 'a')) || !(tail.is_empty() || tail.starts_with(':')) {
+                    return Err(self.error("expected ':' after conversion specifier", "ValueError"));
+                }
+            }
+            let spec_template = tail.strip_prefix(':').unwrap_or("");
+            let value = self.format_field_value(field, args, kwargs, numbering, auto)?;
+            let value = match conversion {
+                Some('r') => Value::str(self.to_repr(&value)?),
+                Some('a') => Value::str(ascii_escape(&self.to_repr(&value)?)),
+                Some(_) => Value::str(self.to_str(&value)?),
+                None => value,
+            };
+            let spec = if spec_template.contains('{') {
+                self.format_fields(spec_template, args, kwargs, numbering, auto, depth + 1)?
             } else {
-                out.push_str(c);
-                i += 1;
+                spec_template.to_string()
+            };
+            match self.call_builtin("format", &[value, Value::str(spec)], &[])? {
+                Value::Str(t) => out.push_str(&t),
+                other => out.push_str(&py_str(&other)),
+            }
+            if longer_than(&out, self.max_string) {
+                return Err(self.string_abort());
             }
         }
+        out.push_str(rest);
         Ok(out)
+    }
+
+    /// The value a `str.format` field names: `0`, `name`, or nothing for the
+    /// next positional one, then any `.attr` and `[key]` after it.
+    fn format_field_value(
+        &mut self,
+        field: &str,
+        args: &[Value],
+        kwargs: &[(Rc<str>, Value)],
+        numbering: &mut Option<bool>,
+        auto: &mut usize,
+    ) -> R<Value> {
+        let head_end = field.find(['.', '[']).unwrap_or(field.len());
+        let head = &field[..head_end];
+        let mut value = if head.is_empty() {
+            if *numbering == Some(false) {
+                return Err(self.error("cannot switch from manual field specification to automatic field numbering", "ValueError"));
+            }
+            *numbering = Some(true);
+            let at = *auto;
+            *auto += 1;
+            args.get(at).cloned().ok_or_else(|| {
+                self.error(format!("Replacement index {at} out of range for positional args tuple"), "IndexError")
+            })?
+        } else if head.bytes().all(|b| b.is_ascii_digit()) {
+            if *numbering == Some(true) {
+                return Err(self.error("cannot switch from automatic field numbering to manual field specification", "ValueError"));
+            }
+            *numbering = Some(false);
+            let at: usize = head.parse().unwrap_or(usize::MAX);
+            args.get(at).cloned().ok_or_else(|| {
+                self.error(format!("Replacement index {at} out of range for positional args tuple"), "IndexError")
+            })?
+        } else {
+            kwarg(kwargs, head).cloned().ok_or_else(|| self.error(format!("'{head}'"), "KeyError"))?
+        };
+        let mut rest = &field[head_end..];
+        while !rest.is_empty() {
+            if let Some(r) = rest.strip_prefix('.') {
+                let end = r.find(['.', '[']).unwrap_or(r.len());
+                if end == 0 {
+                    return Err(self.error("Empty attribute in format string", "ValueError"));
+                }
+                value = self.attribute(&value, &r[..end])?;
+                rest = &r[end..];
+            } else if let Some(r) = rest.strip_prefix('[') {
+                let Some(end) = r.find(']') else {
+                    return Err(self.error("Missing ']' in format string", "ValueError"));
+                };
+                let key = &r[..end];
+                let index = match key.parse::<i64>() {
+                    Ok(n) if key.bytes().all(|b| b.is_ascii_digit()) => Value::Int(n),
+                    _ => Value::str(key),
+                };
+                value = self.index(&value, &index)?;
+                rest = &r[end + 1..];
+            } else {
+                return Err(self.error("Only '.' or '[' may follow ']' in format field specifier", "ValueError"));
+            }
+        }
+        Ok(value)
     }
 
     // MARK: - list
@@ -870,7 +1022,7 @@ impl Interp {
             "sort" => {
                 let mut items = l.borrow().clone();
                 let reverse = kwarg(&kwargs, "reverse").is_some_and(Value::truthy);
-                self.sort_values(&mut items, kwarg(&kwargs, "key").cloned(), reverse)?;
+                self.sort_values(&mut items, kwarg(&kwargs, "key").filter(|k| !k.is_none()).cloned(), reverse)?;
                 *l.borrow_mut() = items;
                 Ok(Value::None)
             }
@@ -908,14 +1060,14 @@ impl Interp {
 
     #[inline(never)]
     fn set_method(&mut self, s: &SetRef, name: &str, args: &[Value]) -> R<Value> {
-        let other = |me: &mut Interp, i: usize| -> R<IndexSet<HKey>> {
+        let other = |me: &mut Interp, i: usize| -> R<KeySet> {
             let Some(a) = args.get(i) else {
                 return Err(me.error(format!("{name}() needs a set"), "TypeError"));
             };
             if let Value::Set(o) = a {
                 return Ok(o.borrow().clone());
             }
-            let mut built = IndexSet::new();
+            let mut built = KeySet::default();
             for v in me.iterate(a)? {
                 built.insert(me.hashable(&v)?);
             }
@@ -996,9 +1148,9 @@ impl Interp {
             }
         };
         match name {
-            "keys" => Ok(Value::list(d.borrow().keys().map(HKey::to_value).collect())),
-            "values" => Ok(Value::list(d.borrow().values().cloned().collect())),
-            "items" => Ok(Value::list(d.borrow().iter().map(|(k, v)| Value::tuple(vec![k.to_value(), v.clone()])).collect())),
+            "keys" => Ok(Value::Object(Rc::new(Object::DictView(ViewKind::Keys, d.clone())))),
+            "values" => Ok(Value::Object(Rc::new(Object::DictView(ViewKind::Values, d.clone())))),
+            "items" => Ok(Value::Object(Rc::new(Object::DictView(ViewKind::Items, d.clone())))),
             "get" => {
                 let k = key(self)?;
                 let v = d.borrow().get(&k).cloned();
@@ -1278,8 +1430,13 @@ impl Interp {
     /// `n.to_bytes(length, byteorder="big", signed=False)` and `n.bit_length()`.
     fn int_method(&mut self, target: &Value, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         let n = target.as_int().unwrap_or(0);
-        if name == "bit_length" {
-            return Ok(Value::Int(64 - n.unsigned_abs().leading_zeros() as i64));
+        match name {
+            "bit_length" => return Ok(Value::Int(64 - n.unsigned_abs().leading_zeros() as i64)),
+            "bit_count" => return Ok(Value::Int(n.unsigned_abs().count_ones() as i64)),
+            "conjugate" => return Ok(Value::Int(n)),
+            "as_integer_ratio" => return Ok(Value::tuple(vec![Value::Int(n), Value::Int(1)])),
+            "is_integer" => return Ok(Value::Bool(true)),
+            _ => {}
         }
         let length = args.first().or_else(|| kwarg(kwargs, "length")).and_then(Value::as_int).unwrap_or(1);
         let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
@@ -1299,6 +1456,58 @@ impl Interp {
             out.reverse();
         }
         Ok(Value::bytes(&out))
+    }
+
+    fn float_method(&mut self, f: f64, name: &str) -> R<Value> {
+        match name {
+            "is_integer" => Ok(Value::Bool(f.is_finite() && f.fract() == 0.0)),
+            "conjugate" => Ok(Value::Float(f)),
+            "as_integer_ratio" => {
+                if f.is_nan() {
+                    return Err(self.error("cannot convert NaN to integer ratio", "ValueError"));
+                }
+                if f.is_infinite() {
+                    return Err(self.error("cannot convert Infinity to integer ratio", "OverflowError"));
+                }
+                // f = mantissa * 2^exp exactly; reduce while both stay whole.
+                let bits = f.to_bits();
+                let sign = if bits >> 63 == 1 { -1i128 } else { 1 };
+                let exp = ((bits >> 52) & 0x7FF) as i32;
+                let frac = (bits & ((1u64 << 52) - 1)) as i128;
+                let (mut m, mut e) = if exp == 0 { (frac, -1074) } else { (frac | (1i128 << 52), exp - 1075) };
+                if m == 0 {
+                    return Ok(Value::tuple(vec![Value::Int(0), Value::Int(1)]));
+                }
+                while m & 1 == 0 && e < 0 {
+                    m >>= 1;
+                    e += 1;
+                }
+                let (num, den) = if e >= 0 { (m.checked_shl(e as u32).unwrap_or(i128::MAX), 1i128) } else { (m, 1i128 << (-e).min(126)) };
+                match (i64::try_from(sign * num), i64::try_from(den)) {
+                    (Ok(a), Ok(b)) if e > -63 => Ok(Value::tuple(vec![Value::Int(a), Value::Int(b)])),
+                    _ => Err(self.error("as_integer_ratio() result does not fit in 64 bits here", "OverflowError")),
+                }
+            }
+            _ => {
+                // hex(): [-]0x1.<13 hex digits>p<exp>
+                if f.is_nan() {
+                    return Ok(Value::str("nan"));
+                }
+                if f.is_infinite() {
+                    return Ok(Value::str(if f > 0.0 { "inf" } else { "-inf" }));
+                }
+                let bits = f.to_bits();
+                let neg = if bits >> 63 == 1 { "-" } else { "" };
+                let exp = ((bits >> 52) & 0x7FF) as i64;
+                let frac = bits & ((1u64 << 52) - 1);
+                if exp == 0 && frac == 0 {
+                    return Ok(Value::str(format!("{neg}0x0.0p+0")));
+                }
+                let (lead, e) = if exp == 0 { (0, -1022) } else { (1, exp - 1023) };
+                let sign = if e < 0 { "-" } else { "+" };
+                Ok(Value::str(format!("{neg}0x{lead}.{frac:013x}p{sign}{}", e.abs())))
+            }
+        }
     }
 
     fn arg_bytes(&self, args: &[Value], i: usize, method: &str) -> R<Vec<u8>> {

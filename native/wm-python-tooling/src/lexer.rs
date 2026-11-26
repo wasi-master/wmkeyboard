@@ -554,10 +554,13 @@ impl Lexer {
     }
 }
 
-/// `match` and `case` are keywords only where they open a statement whose line ends with `:`.
+/// `match` and `case` are keywords only where they open a statement whose
+/// line ends with `:`, or for `case`, has a `:` outside brackets (`case 1: return "one"`).
 fn mark_soft_keywords(tokens: &mut Tokens) {
     let mut line_first: Option<usize> = None;
     let mut last_code: Option<usize> = None;
+    let mut level = 0i32;
+    let mut open_colon = false;
     let count = tokens.len();
     for i in 0..=count {
         let ends_line = i == count || (tokens.kinds[i] == TokenKind::Newline && tokens.flags[i] & CONTINUATION == 0);
@@ -566,7 +569,7 @@ fn mark_soft_keywords(tokens: &mut Tokens) {
                 if tokens.kinds[first] == TokenKind::Name
                     && (tokens.is(first, "match") || tokens.is(first, "case"))
                     && last > first
-                    && tokens.is_op(last, ":")
+                    && (tokens.is_op(last, ":") || (open_colon && tokens.is(first, "case")))
                 {
                     let next = tokens.next_code(first).unwrap_or(last);
                     let blocked = tokens.kinds[next] == TokenKind::Operator
@@ -578,11 +581,21 @@ fn mark_soft_keywords(tokens: &mut Tokens) {
             }
             line_first = None;
             last_code = None;
+            level = 0;
+            open_colon = false;
             continue;
         }
         if tokens.is_code(i) {
             if line_first.is_none() {
                 line_first = Some(i);
+            } else if tokens.kinds[i] == TokenKind::Operator {
+                if tokens.is(i, "(") || tokens.is(i, "[") || tokens.is(i, "{") {
+                    level += 1;
+                } else if tokens.is(i, ")") || tokens.is(i, "]") || tokens.is(i, "}") {
+                    level -= 1;
+                } else if level == 0 && tokens.is(i, ":") {
+                    open_colon = true;
+                }
             }
             last_code = Some(i);
         }

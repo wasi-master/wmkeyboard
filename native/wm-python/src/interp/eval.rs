@@ -14,8 +14,6 @@ use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
 use std::sync::Arc;
 
-use indexmap::{IndexMap, IndexSet};
-
 use super::ast::*;
 use super::builtins::is_builtin_name;
 use super::error::{AbortKind, Exc, PyError, R};
@@ -24,145 +22,86 @@ use super::host::{Call, HostFunction, HostModule};
 use super::modules::{self, Clock};
 use super::text::{boundaries, grapheme_count, longer_than, str_compare};
 use super::fxhash::FxBuild;
+use super::generators::Iter;
 use super::scope::Scope;
 use super::value::*;
 
-/// Deeper than this and a native stack is at risk; PyMini has no limit.
-pub const MAX_CALL_DEPTH: u32 = 300;
+/// How deep calls may go: CPython's default recursion limit. PyMini has none.
+pub const MAX_CALL_DEPTH: u32 = 1000;
+
+/// The most native stack a script may use, measured from where it started.
+/// Hosts give scripts 8 MB; what is left over covers the stretch between
+/// two checks and the host's own frames.
+pub const STACK_BUDGET: usize = 6 << 20;
 
 /// How often, in steps, the cancel flag and the deadline are read.
 const POLL_EVERY: u64 = 256;
 
 const PRINTF_TYPES: &[&str] = &["s", "r", "a", "d", "i", "u", "f", "F", "g", "G", "e", "E", "x", "X", "o", "c"];
 
-/// A lexical scope. Functions capture the one they were defined in.
+/// A scope at run time. A function call's (or a comprehension's) keeps its
+/// variables in [slots], laid out by the resolver; a module's or a class
+/// body's keeps its names in [vars]. Functions capture the scope they were
+/// defined in, and a frame's [parent] is that captured scope, so a closure
+/// reaches an enclosing function's variable a known number of scopes out.
 pub(crate) struct Env {
+    pub slots: RefCell<Vec<Option<Value>>>,
     pub vars: RefCell<Scope>,
-    /// Names this scope declared `global`, so assigning them writes to the
-    /// module. A list: a scope declares a handful at most, usually none.
-    pub global_names: RefCell<Vec<Rc<str>>>,
-    /// Names this scope declared `nonlocal`, so assigning them writes to the enclosing function's.
-    pub nonlocal_names: RefCell<Vec<Rc<str>>>,
     pub parent: Option<Rc<Env>>,
-    /// A class body: its names are not visible to the functions defined in it.
-    pub class_scope: bool,
 }
 
 impl Env {
+    /// A module's (no parent) or a class body's scope.
     pub fn new(parent: Option<Rc<Env>>) -> Rc<Env> {
-        Env::with_vars(parent, Scope::with_capacity(0))
+        Rc::new(Env { slots: RefCell::new(Vec::new()), vars: RefCell::new(Scope::with_capacity(0)), parent })
     }
 
-    /// A function's scope, with its parameters already bound.
-    pub fn with_vars(parent: Option<Rc<Env>>, vars: Scope) -> Rc<Env> {
-        Rc::new(Env {
-            vars: RefCell::new(vars),
-            global_names: RefCell::new(Vec::new()),
-            nonlocal_names: RefCell::new(Vec::new()),
-            parent,
-            class_scope: false,
-        })
+    /// A frame of [n] unbound slots, made fresh (one a generator keeps).
+    pub fn frame_of(parent: Rc<Env>, n: usize) -> Rc<Env> {
+        Rc::new(Env { slots: RefCell::new(vec![None; n]), vars: RefCell::new(Scope::with_capacity(0)), parent: Some(parent) })
     }
 
-    pub fn class_body(parent: Rc<Env>) -> Rc<Env> {
-        Rc::new(Env {
-            vars: RefCell::new(Scope::with_capacity(0)),
-            global_names: RefCell::new(Vec::new()),
-            nonlocal_names: RefCell::new(Vec::new()),
-            parent: Some(parent),
-            class_scope: true,
-        })
-    }
-
-    pub fn root(self: &Rc<Env>) -> Rc<Env> {
-        let mut e = self.clone();
-        while let Some(p) = e.parent.clone() {
+    /// The module this scope belongs to: the outermost one.
+    #[inline]
+    pub fn module(&self) -> &Env {
+        let mut e = self;
+        while let Some(p) = &e.parent {
             e = p;
         }
         e
     }
 
+    /// The scope [depth] parents out.
     #[inline]
-    fn is_global(&self, name: &str) -> bool {
-        let g = self.global_names.borrow();
-        !g.is_empty() && g.iter().any(|n| n.as_ref() == name)
-    }
-
-    pub fn get(self: &Rc<Env>, name: &str) -> Option<Value> {
-        let mut e: &Rc<Env> = self;
-        let mut own = true;
-        loop {
-            if e.is_global(name) {
-                return e.root().vars.borrow().get(name).cloned();
-            }
-            // A class body's names are seen from the body itself, never from a method.
-            if own || !e.class_scope {
-                if let Some(v) = e.vars.borrow().get(name) {
-                    return Some(v.clone());
-                }
-            }
-            own = false;
+    fn up(&self, depth: u32) -> &Env {
+        let mut e = self;
+        for _ in 0..depth {
             match &e.parent {
                 Some(p) => e = p,
-                None => return None,
+                None => break,
             }
         }
+        e
     }
 
-    pub fn define(self: &Rc<Env>, name: &Rc<str>, value: Value) {
-        if self.is_global(name) {
-            self.root().vars.borrow_mut().insert(name.clone(), value);
-            return;
-        }
-        if self.is_nonlocal(name) {
-            self.enclosing_with(name).vars.borrow_mut().insert(name.clone(), value);
-            return;
-        }
+    /// A module's or class body's name.
+    pub fn get(&self, name: &str) -> Option<Value> {
+        self.vars.borrow().get(name).cloned()
+    }
+
+    pub fn define(&self, name: &Rc<str>, value: Value) {
         self.vars.borrow_mut().insert(name.clone(), value);
     }
 
-    #[inline]
-    fn is_nonlocal(&self, name: &str) -> bool {
-        let n = self.nonlocal_names.borrow();
-        !n.is_empty() && n.iter().any(|x| x.as_ref() == name)
-    }
-
-    /// The nearest enclosing function scope that binds [name], or the nearest
-    /// enclosing function scope when none does yet.
-    fn enclosing_with(self: &Rc<Env>, name: &str) -> Rc<Env> {
-        let mut fallback = None;
-        let mut e = self.parent.clone();
-        while let Some(scope) = e {
-            if scope.parent.is_none() {
-                break;
-            }
-            if !scope.class_scope {
-                if scope.vars.borrow().contains_key(name) {
-                    return scope;
-                }
-                if fallback.is_none() {
-                    fallback = Some(scope.clone());
-                }
-            }
-            e = scope.parent.clone();
-        }
-        fallback.unwrap_or_else(|| self.clone())
-    }
-
-    /// `del x`. Returns whether anything was bound.
-    pub fn remove(self: &Rc<Env>, name: &str) -> bool {
-        if self.is_global(name) {
-            return self.root().vars.borrow_mut().shift_remove(name).is_some();
-        }
-        if self.vars.borrow_mut().shift_remove(name).is_some() {
-            return true;
-        }
-        match &self.parent {
-            Some(p) => p.remove(name),
-            None => false,
-        }
+    /// `del name` in a module or class body. Returns whether it was bound.
+    pub fn remove(&self, name: &str) -> bool {
+        let old = self.vars.borrow_mut().shift_remove(name);
+        old.is_some()
     }
 }
+
+/// How many finished frames are kept for the next calls to reuse.
+const SPARE_FRAMES: usize = 32;
 
 /// How much a script may do before it's stopped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -199,7 +138,7 @@ pub(crate) struct Interp {
     pub current_line: u32,
     pub printed: Vec<String>,
     pub on_print: Option<Box<dyn FnMut(&str)>>,
-    active_exception: Option<Rc<ExceptionValue>>,
+    pub(crate) active_exception: Option<Rc<ExceptionValue>>,
     pub random_state: u64,
     pub enabled_modules: Vec<&'static str>,
     pub host_functions: HashMap<String, Rc<HostFunction>, FxBuild>,
@@ -222,7 +161,10 @@ pub(crate) struct Interp {
     pub(crate) exception_classes: HashMap<Rc<str>, Rc<Class>>,
     /// The instance the latest `raise` threw, with its kind and message.
     pub(crate) raised: Option<(Rc<str>, String, Value)>,
-    active_instance: Option<Value>,
+    pub(crate) active_instance: Option<Value>,
+    /// The line the exception being handled was raised on, which a bare
+    /// `raise` keeps, as Python's traceback does.
+    pub(crate) active_line: Option<u32>,
     /// The functions running now, innermost last, with their scopes: what `super()` reads.
     pub(crate) frames: Vec<(Rc<Function>, Rc<Env>)>,
     /// Modules written in Python that a script may import, by dotted name.
@@ -240,17 +182,34 @@ pub(crate) struct Interp {
     pub(crate) hash_buckets: HashMap<i64, Vec<Weak<Instance>>>,
     /// What `print(..., end="")` wrote that no line end has closed yet.
     pub(crate) print_partial: String,
+    /// What `sys.setrecursionlimit` set: how deep calls may nest, under the native stack's own limit.
+    pub(crate) recursion_limit: u32,
+    /// What `sys.stdout` and `sys.stderr` were set to, when not the output itself.
+    pub(crate) stdout_target: Option<Value>,
+    pub(crate) stderr_target: Option<Value>,
+    /// `sys.version_info`, one tuple so its fields can be read by name.
+    pub(crate) version_info: Rc<Vec<Value>>,
     /// What [ascii_char] hands out, made on first use.
     ascii_chars: Vec<Value>,
+    /// Frames of finished calls that nothing kept, for the next calls.
+    spare: Vec<Rc<Env>>,
+    /// The native stack's address when the running script started, 0 when not known.
+    pub(crate) stack_base: usize,
+    /// Moves on whenever a class gains or loses a property or a dunder, so
+    /// each class's cached lookup traits know to be worked out again.
+    pub(crate) class_epoch: u64,
 }
 
 impl Drop for Interp {
     fn drop(&mut self) {
         for w in self.closures.drain(..) {
             if let Some(env) = w.upgrade() {
+                let slots = std::mem::take(&mut *env.slots.borrow_mut());
+                drop(slots);
                 env.vars.borrow_mut().clear();
             }
         }
+        self.spare.clear();
         for w in self.instances.drain(..) {
             if let Some(i) = w.upgrade() {
                 i.attrs.borrow_mut().clear();
@@ -270,6 +229,7 @@ impl Drop for Interp {
         self.frames.clear();
         self.raised = None;
         self.active_instance = None;
+        self.active_line = None;
         self.globals.vars.borrow_mut().clear();
         self.host_functions.clear();
         self.host_modules.clear();
@@ -284,7 +244,7 @@ impl Interp {
     pub fn new(limits: Limits, modules: &[&str], clock: Rc<dyn Clock>) -> Interp {
         let enabled = modules::ALL_NAMES.iter().copied().filter(|m| modules.contains(m)).collect();
         Interp {
-            globals: Env::new(None),
+            globals: main_globals(),
             max_steps: limits.steps,
             steps: 0,
             poll_at: 0,
@@ -310,6 +270,7 @@ impl Interp {
             exception_classes: HashMap::new(),
             raised: None,
             active_instance: None,
+            active_line: None,
             frames: Vec::new(),
             source_modules: HashMap::new(),
             packages: HashSet::new(),
@@ -319,7 +280,14 @@ impl Interp {
             plain_object: None,
             hash_buckets: HashMap::new(),
             print_partial: String::new(),
+            recursion_limit: MAX_CALL_DEPTH,
+            stdout_target: None,
+            stderr_target: None,
+            version_info: Rc::new(vec![Value::Int(3), Value::Int(12), Value::Int(0), Value::str("final"), Value::Int(0)]),
             ascii_chars: Vec::new(),
+            spare: Vec::new(),
+            stack_base: 0,
+            class_epoch: 1,
         }
     }
 
@@ -461,7 +429,7 @@ impl Interp {
     // so the frame `exec` and `eval` put on the native stack for every level of
     // Python nesting is a small dispatcher rather than the sum of every arm.
 
-    fn exec(&mut self, stmt: &Stmt, env: &Rc<Env>) -> R<()> {
+    pub(crate) fn exec(&mut self, stmt: &Stmt, env: &Rc<Env>) -> R<()> {
         self.tick()?;
         self.current_line = stmt.line;
         match &stmt.kind {
@@ -473,36 +441,24 @@ impl Interp {
             StmtKind::For(target, iterable, body, else_body) => {
                 self.exec_for(target, iterable, body, else_body.as_deref(), env)
             }
-            StmtKind::FuncDef(def) => self.exec_def(def, env),
-            StmtKind::ClassDef(def) => self.exec_class(def, env),
+            StmtKind::FuncDef(def, bind) => self.exec_def(def, bind, env),
+            StmtKind::ClassDef(def, bind) => self.exec_class(def, bind, env),
             StmtKind::With(items, body) => self.exec_with(items, body, env),
             StmtKind::AnnAssign(target, ann, value) => self.exec_ann_assign(target, ann.as_ref(), value.as_ref(), env),
             StmtKind::Assert(test, message) => self.exec_assert(test, message.as_ref(), env),
-            StmtKind::Nonlocal(names) => {
-                let mut n = env.nonlocal_names.borrow_mut();
-                for name in names {
-                    if !n.contains(name) {
-                        n.push(name.clone());
-                    }
-                }
-                Ok(())
-            }
+            // The resolver has already sent each declared name where it belongs.
+            StmtKind::Nonlocal(_) | StmtKind::Global(_) => Ok(()),
             StmtKind::Return(value) => Err(self.exec_return(value.as_ref(), env)),
             StmtKind::Break => Err(Exc::Break),
             StmtKind::Continue => Err(Exc::Continue),
             StmtKind::Pass => Ok(()),
             StmtKind::Try(t) => self.exec_try(t, env),
             StmtKind::Raise(value, cause) => Err(self.exec_raise(value.as_ref(), cause.as_ref(), env)),
-            StmtKind::Import { module, alias, names } => self.exec_import(module, alias.as_ref(), names.as_deref(), env),
-            StmtKind::Global(names) => {
-                let mut g = env.global_names.borrow_mut();
-                for n in names {
-                    if !g.contains(n) {
-                        g.push(n.clone());
-                    }
-                }
-                Ok(())
+            StmtKind::ImportStar(module, at) => self.exec_import_star(module, at, env),
+            StmtKind::Import { module, target, aliased, names } => {
+                self.exec_import(module, target.as_ref(), *aliased, names.as_deref(), env)
             }
+            StmtKind::Match(m) => self.exec_match(m, env),
             StmtKind::Del(targets) => {
                 for t in targets {
                     self.exec_delete(t, env)?;
@@ -525,8 +481,18 @@ impl Interp {
     fn exec_aug_assign(&mut self, target: &Expr, op: BinOp, value: &Expr, env: &Rc<Env>) -> R<()> {
         let current = self.eval(target, env)?;
         let rhs = self.eval(value, env)?;
+        // Numbers, the usual `i += 1`, change nothing in place.
+        if let (Value::Int(x), Value::Int(y)) = (&current, &rhs) {
+            if let Some(v) = int_quick(op, *x, *y) {
+                return self.assign(target, Value::Int(v), env);
+            }
+        }
+        if matches!(current, Value::Int(_) | Value::Float(_) | Value::Bool(_) | Value::Str(_)) {
+            let v = self.binary_op(op, &current, &rhs)?;
+            return self.assign(target, v, env);
+        }
         // `list += iterable` extends in place, as Python does.
-        if op == BinOp::Add {
+        if op == BinOp::Add && matches!(current, Value::List(_)) {
             if let (Value::List(l), Some(items)) = (&current, sequence_items(&rhs)) {
                 if l.borrow().len() + items.len() > self.max_container {
                     return Err(self.container_abort("list"));
@@ -571,8 +537,7 @@ impl Interp {
     #[inline(never)]
     fn exec_if(&mut self, branches: &[(Expr, Vec<Stmt>)], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
         for (cond, body) in branches {
-            let c = self.eval(cond, env)?;
-            if self.truth(&c)? {
+            if self.holds(cond, env)? {
                 return self.exec_block(body, env);
             }
         }
@@ -585,8 +550,7 @@ impl Interp {
     #[inline(never)]
     fn exec_while(&mut self, cond: &Expr, body: &[Stmt], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
         loop {
-            let c = self.eval(cond, env)?;
-            if !self.truth(&c)? {
+            if !self.holds(cond, env)? {
                 break;
             }
             self.tick()?;
@@ -604,7 +568,8 @@ impl Interp {
 
     #[inline(never)]
     fn exec_for(&mut self, target: &Expr, iterable: &Expr, body: &[Stmt], else_body: Option<&[Stmt]>, env: &Rc<Env>) -> R<()> {
-        for item in self.loop_items(iterable, env)? {
+        let mut items = self.loop_items(iterable, env)?;
+        while let Some(item) = self.next_item(&mut items)? {
             self.tick()?;
             self.assign(target, item, env)?;
             match self.exec_block(body, env) {
@@ -620,7 +585,7 @@ impl Interp {
     }
 
     #[inline(never)]
-    fn exec_def(&mut self, def: &Rc<FuncDef>, env: &Rc<Env>) -> R<()> {
+    fn exec_def(&mut self, def: &Rc<FuncDef>, bind: &Name, env: &Rc<Env>) -> R<()> {
         let mut decorators = Vec::with_capacity(def.decorators.len());
         for d in &def.decorators {
             decorators.push(self.eval(d, env)?);
@@ -632,7 +597,7 @@ impl Interp {
         for d in decorators.iter().rev() {
             value = self.call_value(d, vec![value], Vec::new())?;
         }
-        env.define(&def.name, value);
+        self.store_name(bind, value, env);
         Ok(())
     }
 
@@ -686,15 +651,21 @@ impl Interp {
                             };
                             self.raised = None;
                             if let Some(b) = &h.binding {
-                                env.define(b, caught.clone());
+                                self.store_name(b, caught.clone(), env);
                             }
                             let saved = self.active_exception.replace(value);
                             let saved_instance = self.active_instance.replace(caught);
+                            let saved_line = std::mem::replace(&mut self.active_line, error.line);
                             if let Err(e) = self.exec_block(&h.body, env) {
                                 pending = Some(e);
                             }
                             self.active_exception = saved;
                             self.active_instance = saved_instance;
+                            self.active_line = saved_line;
+                            // As in Python, `as e` is unbound when the handler ends.
+                            if let Some(b) = &h.binding {
+                                self.unbind(b, env);
+                            }
                         }
                         None => pending = Some(Exc::Error(error)),
                     }
@@ -714,12 +685,21 @@ impl Interp {
 
     fn exec_raise(&mut self, e: Option<&Expr>, cause: Option<&Expr>, env: &Rc<Env>) -> Exc {
         let Some(e) = e else {
-            if let Some(Value::Instance(inst)) = self.active_instance.clone() {
-                return self.raise_instance(&inst);
-            }
-            return match self.active_exception.clone() {
-                Some(active) => self.raise_exception(active, None),
-                None => self.error("no active exception to re-raise", "RuntimeError"),
+            let raised = if let Some(Value::Instance(inst)) = self.active_instance.clone() {
+                self.raise_instance(&inst)
+            } else {
+                match self.active_exception.clone() {
+                    Some(active) => self.raise_exception(active, None),
+                    None => return self.error("no active exception to re-raise", "RuntimeError"),
+                }
+            };
+            // Re-raised where it was first raised.
+            return match (raised, self.active_line) {
+                (Exc::Error(mut e), Some(line)) if !e.is_abort() => {
+                    e.line = Some(line);
+                    Exc::Error(e)
+                }
+                (other, _) => other,
             };
         };
         let value = match self.eval(e, env) {
@@ -734,13 +714,35 @@ impl Interp {
             },
             None => None,
         };
+        // Raised while another is being handled: that one is its `__context__`.
+        let context = match (&self.active_instance, &self.active_exception) {
+            (Some(i), _) => Some(i.clone()),
+            (None, Some(e)) => Some(Value::Exception(e.clone())),
+            _ => None,
+        };
         match value {
-            Value::Exception(ex) => self.raise_exception(ex, cause),
+            Value::Exception(ex) => {
+                let ex = match context {
+                    Some(c) if ex.context.is_none() && !py_identical(&c, &Value::Exception(ex.clone())) => {
+                        let mut copy = (*ex).clone();
+                        copy.context = Some(c);
+                        Rc::new(copy)
+                    }
+                    _ => ex,
+                };
+                self.raise_exception(ex, cause)
+            }
             Value::Str(s) => err(s.to_string(), "Exception", self.current_line),
             Value::Instance(inst) => {
-                if let Some(c) = cause {
-                    if inst.class.exception_root.is_some() {
-                        inst.attrs.borrow_mut().insert(Rc::from("__cause__"), c);
+                if inst.class.exception_root.is_some() {
+                    let mut attrs = inst.attrs.borrow_mut();
+                    if let Some(c) = cause {
+                        attrs.insert(Rc::from("__cause__"), c);
+                    }
+                    if let Some(c) = context {
+                        if !attrs.contains_key("__context__") && !matches!(&c, Value::Instance(o) if Rc::ptr_eq(o, &inst)) {
+                            attrs.insert(Rc::from("__context__"), c);
+                        }
                     }
                 }
                 self.raise_instance(&inst)
@@ -750,13 +752,18 @@ impl Interp {
                     if let Some(c) = cause {
                         inst.attrs.borrow_mut().insert(Rc::from("__cause__"), c);
                     }
+                    if let Some(c) = context {
+                        inst.attrs.borrow_mut().insert(Rc::from("__context__"), c);
+                    }
                     self.raise_instance(&inst)
                 }
                 Ok(_) => self.error("exceptions must derive from Exception", "TypeError"),
                 Err(x) => x,
             },
             Value::Builtin(kind) if EXCEPTION_KINDS.contains(&kind.as_ref()) => {
-                self.raise_exception(Rc::new(ExceptionValue::new(kind.as_ref(), "")), cause)
+                let mut ex = ExceptionValue::new(kind.as_ref(), "");
+                ex.context = context;
+                self.raise_exception(Rc::new(ex), cause)
             }
             v => self.error(format!("exceptions must be an exception type, not '{}'", v.type_name()), "TypeError"),
         }
@@ -764,7 +771,7 @@ impl Interp {
 
     /// Unwind with a built-in exception value, remembered so `except … as e`
     /// gets it back with its args and cause.
-    fn raise_exception(&mut self, ex: Rc<ExceptionValue>, cause: Option<Value>) -> Exc {
+    pub(crate) fn raise_exception(&mut self, ex: Rc<ExceptionValue>, cause: Option<Value>) -> Exc {
         let ex = match cause {
             Some(c) => {
                 let mut copy = (*ex).clone();
@@ -783,7 +790,7 @@ impl Interp {
             Ok(m) => m,
             Err(e) => return e,
         };
-        let ex = ExceptionValue { kind: "KeyError".into(), message, args: vec![key.clone()], cause: None };
+        let ex = ExceptionValue { kind: "KeyError".into(), message, args: vec![key.clone()], cause: None, context: None };
         self.raise_exception(Rc::new(ex), None)
     }
 
@@ -800,24 +807,22 @@ impl Interp {
     fn exec_import(
         &mut self,
         module: &Rc<str>,
-        alias: Option<&Rc<str>>,
-        names: Option<&[(Rc<str>, Option<Rc<str>>)]>,
+        target: Option<&Name>,
+        aliased: bool,
+        names: Option<&[(Rc<str>, Name)]>,
         env: &Rc<Env>,
     ) -> R<()> {
         let module = self.resolve_module(module)?;
         self.ensure_module(&module)?;
         let Some(names) = names else {
-            match alias {
-                Some(a) => env.define(a, Value::Module(module.clone())),
-                None => {
-                    // `import a.b` binds `a`, through which `a.b` is reached.
-                    let top: Rc<str> = Rc::from(module.split('.').next().unwrap_or(&module));
-                    env.define(&top, Value::Module(top.clone()));
-                }
+            if let Some(t) = target {
+                // `import a.b` binds `a`, through which `a.b` is reached.
+                let bound = if aliased { module.clone() } else { Rc::from(module.split('.').next().unwrap_or(&module)) };
+                self.store_name(t, Value::Module(bound), env);
             }
             return Ok(());
         };
-        for (name, rename) in names {
+        for (name, bind) in names {
             let value = match self.member(&module, name) {
                 Some(v) => v,
                 None => {
@@ -829,7 +834,48 @@ impl Interp {
                     Value::Module(Rc::from(sub))
                 }
             };
-            env.define(rename.as_ref().unwrap_or(name), value);
+            self.store_name(bind, value, env);
+        }
+        Ok(())
+    }
+
+    /// `from module import *`: the names in its `__all__`, or else every
+    /// name not starting with an underscore.
+    fn exec_import_star(&mut self, module: &Rc<str>, at: &Name, env: &Rc<Env>) -> R<()> {
+        let module = self.resolve_module(module)?;
+        self.ensure_module(&module)?;
+        let names: Vec<Rc<str>> = if let Some(m) = self.host_modules.get(module.as_ref()) {
+            m.names().into_iter().filter(|n| !n.starts_with('_')).map(Rc::from).collect()
+        } else if let Some(menv) = self.module_envs.get(module.as_ref()).cloned() {
+            let all = menv.vars.borrow().get("__all__").cloned();
+            match all {
+                Some(listed) => {
+                    let mut out = Vec::new();
+                    for v in self.iterate(&listed)? {
+                        match v {
+                            Value::Str(s) => out.push(s),
+                            other => {
+                                return Err(self.error(
+                                    format!("Item in {module}.__all__ must be str, not {}", other.type_name()),
+                                    "TypeError",
+                                ))
+                            }
+                        }
+                    }
+                    out
+                }
+                None => menv.vars.borrow().pairs().into_iter().map(|(k, _)| k).filter(|k| !k.starts_with('_')).collect(),
+            }
+        } else {
+            modules::exports(&module).into_iter().map(Rc::from).collect()
+        };
+        for n in names {
+            let Some(v) = self.member(&module, &n) else {
+                return Err(self.error(format!("module '{module}' has no attribute '{n}'"), "AttributeError"));
+            };
+            let mut bind = Name::new(n);
+            bind.at = at.at;
+            self.store_name(&bind, v, env);
         }
         Ok(())
     }
@@ -837,6 +883,11 @@ impl Interp {
     /// `module.name`, looking at the host's modules, then modules written in
     /// Python, then the standard ones.
     pub fn member(&self, module: &str, name: &str) -> Option<Value> {
+        if module == "sys" {
+            if let Some(v) = self.sys_member(name) {
+                return Some(v);
+            }
+        }
         if let Some(m) = self.host_modules.get(module) {
             if let Some(v) = m.member(name) {
                 return Some(v);
@@ -855,11 +906,7 @@ impl Interp {
 
     fn exec_delete(&mut self, target: &Expr, env: &Rc<Env>) -> R<()> {
         match target {
-            Expr::Name(n) => {
-                if !env.remove(n) {
-                    return Err(self.error(format!("name '{n}' is not defined"), "NameError"));
-                }
-            }
+            Expr::Name(n) => self.delete_name(n, env)?,
             Expr::Attribute(obj, name) => {
                 let o = self.eval(obj, env)?;
                 self.del_attr(&o, name)?;
@@ -989,7 +1036,7 @@ impl Interp {
 
     pub(crate) fn assign(&mut self, target: &Expr, value: Value, env: &Rc<Env>) -> R<()> {
         match target {
-            Expr::Name(n) => env.define(n, value),
+            Expr::Name(n) => self.store_name(n, value, env),
             Expr::Attribute(obj, name) => {
                 let o = self.eval(obj, env)?;
                 self.set_attr(&o, name, value)?;
@@ -1158,7 +1205,15 @@ impl Interp {
             Expr::Str(s) => Ok(Value::Str(s.clone())),
             Expr::Bytes(b) => Ok(Value::Bytes(b.clone())),
             Expr::FString(parts) => self.eval_fstring(parts, env),
-            Expr::Name(n) => self.eval_name(n, env),
+            Expr::Name(n) => {
+                // A function's own local, the commonest name, without a call.
+                if let NameAt::Local(slot) = n.at {
+                    if let Some(Some(v)) = env.slots.borrow().get(slot as usize) {
+                        return Ok(v.clone());
+                    }
+                }
+                self.load_name(n, env)
+            }
             Expr::List(items) => self.eval_items(items, env).map(Value::list),
             Expr::Tuple(items) => self.eval_items(items, env).map(Value::tuple),
             Expr::Dict(pairs) => self.eval_dict(pairs, env),
@@ -1168,8 +1223,7 @@ impl Interp {
             Expr::BoolOp(kind, l, r) => self.eval_bool_op(*kind, l, r, env),
             Expr::Compare(left, pairs) => self.eval_compare(left, pairs, env),
             Expr::Ternary(t) => {
-                let c = self.eval(&t.0, env)?;
-                if self.truth(&c)? {
+                if self.holds(&t.0, env)? {
                     self.eval(&t.1, env)
                 } else {
                     self.eval(&t.2, env)
@@ -1182,6 +1236,13 @@ impl Interp {
             Expr::Comprehension(c) => self.run_comprehension(c, env),
             Expr::Starred(_) => Err(self.error("'*' can only be used in a call's arguments", "SyntaxError")),
             Expr::Call(callee, args, kwargs) => self.eval_call(callee, args, kwargs, env),
+            Expr::Walrus(w) => {
+                let v = self.eval(&w.1, env)?;
+                self.store_name(&w.0, v.clone(), env);
+                Ok(v)
+            }
+            // A generator's own statements run these; the resolver lets them stand nowhere else.
+            Expr::Yield(_) | Expr::YieldFrom(_) => Err(self.error("'yield' outside a generator", "SyntaxError")),
         }
     }
 
@@ -1190,13 +1251,67 @@ impl Interp {
         Ok(Value::str(self.interpolate(parts, env)?))
     }
 
-    #[inline(never)]
-    fn eval_name(&mut self, n: &Rc<str>, env: &Rc<Env>) -> R<Value> {
-        if let Some(v) = env.get(n) {
-            return Ok(v);
+    // MARK: - Names
+
+    /// A name's value, from where the resolver said it lives.
+    #[inline]
+    pub(crate) fn load_name(&mut self, n: &Name, env: &Rc<Env>) -> R<Value> {
+        match n.at {
+            NameAt::Local(slot) => {
+                if let Some(Some(v)) = env.slots.borrow().get(slot as usize) {
+                    return Ok(v.clone());
+                }
+                Err(self.unbound(n, false))
+            }
+            NameAt::Free(depth, slot) => {
+                if let Some(Some(v)) = env.up(depth).slots.borrow().get(slot as usize) {
+                    return Ok(v.clone());
+                }
+                Err(self.unbound(n, true))
+            }
+            NameAt::Global => self.load_global(n, env),
+            NameAt::Class(free) => {
+                if let Some(v) = env.vars.borrow().get(&n.id) {
+                    return Ok(v.clone());
+                }
+                match free {
+                    Some((depth, slot)) => match env.up(depth).slots.borrow().get(slot as usize) {
+                        Some(Some(v)) => Ok(v.clone()),
+                        _ => Err(self.unbound(n, true)),
+                    },
+                    None => self.load_global(n, env),
+                }
+            }
         }
+    }
+
+    #[cold]
+    fn unbound(&self, n: &Name, free: bool) -> Exc {
+        if free {
+            return self.error(
+                format!("cannot access free variable '{}' where it is not associated with a value in enclosing scope", n.id),
+                "NameError",
+            );
+        }
+        self.error(format!("cannot access local variable '{}' where it is not associated with a value", n.id), "UnboundLocalError")
+    }
+
+    /// The module's global [n], or else the builtin of that name.
+    #[inline(never)]
+    fn load_global(&mut self, n: &Name, env: &Rc<Env>) -> R<Value> {
+        if let Some(v) = env.module().vars.borrow().get_hinted(&n.id, &n.hint) {
+            return Ok(v.clone());
+        }
+        self.load_builtin(&n.id)
+    }
+
+    fn load_builtin(&mut self, n: &Rc<str>) -> R<Value> {
         if let Some(f) = self.host_functions.get(n.as_ref()) {
             return Ok(Value::HostFunction(f.clone()));
+        }
+        // Old names Python keeps for OSError.
+        if matches!(n.as_ref(), "IOError" | "EnvironmentError") {
+            return Ok(Value::Builtin(Rc::from("OSError")));
         }
         if is_builtin_name(n) {
             return Ok(Value::Builtin(n.clone()));
@@ -1205,6 +1320,45 @@ impl Interp {
             return self.python_builtin(n);
         }
         Err(self.error(format!("name '{n}' is not defined"), "NameError"))
+    }
+
+    /// Bind [n] to [value] where the resolver said it lives.
+    #[inline]
+    pub(crate) fn store_name(&mut self, n: &Name, value: Value, env: &Rc<Env>) {
+        let old = match n.at {
+            NameAt::Local(slot) => env.slots.borrow_mut().get_mut(slot as usize).and_then(|s| s.replace(value)),
+            NameAt::Free(depth, slot) => env.up(depth).slots.borrow_mut().get_mut(slot as usize).and_then(|s| s.replace(value)),
+            NameAt::Global => env.module().vars.borrow_mut().insert_hinted(&n.id, value, &n.hint),
+            NameAt::Class(_) => {
+                env.vars.borrow_mut().insert(n.id.clone(), value);
+                None
+            }
+        };
+        // Dropped once no scope is borrowed.
+        drop(old);
+    }
+
+    /// Unbind [n], saying whether it was bound.
+    pub(crate) fn unbind(&mut self, n: &Name, env: &Rc<Env>) -> bool {
+        let old = match n.at {
+            NameAt::Local(slot) => env.slots.borrow_mut().get_mut(slot as usize).and_then(Option::take),
+            NameAt::Free(depth, slot) => env.up(depth).slots.borrow_mut().get_mut(slot as usize).and_then(Option::take),
+            NameAt::Global => env.module().vars.borrow_mut().shift_remove(&n.id),
+            NameAt::Class(_) => env.vars.borrow_mut().shift_remove(&n.id),
+        };
+        old.is_some()
+    }
+
+    /// `del name`.
+    fn delete_name(&mut self, n: &Name, env: &Rc<Env>) -> R<()> {
+        if self.unbind(n, env) {
+            return Ok(());
+        }
+        Err(match n.at {
+            NameAt::Local(_) => self.unbound(n, false),
+            NameAt::Free(..) => self.unbound(n, true),
+            _ => self.error(format!("name '{}' is not defined", n.id), "NameError"),
+        })
     }
 
     #[inline(never)]
@@ -1226,7 +1380,7 @@ impl Interp {
 
     #[inline(never)]
     fn eval_dict(&mut self, pairs: &[(Expr, Expr)], env: &Rc<Env>) -> R<Value> {
-        let mut d = IndexMap::new();
+        let mut d = DictMap::default();
         for (k, v) in pairs {
             if let Expr::Starred(inner) = k {
                 let m = self.eval(inner, env)?;
@@ -1248,7 +1402,7 @@ impl Interp {
 
     #[inline(never)]
     fn eval_set(&mut self, items: &[Expr], env: &Rc<Env>) -> R<Value> {
-        let mut s = IndexSet::new();
+        let mut s = KeySet::default();
         for v in self.eval_items(items, env)? {
             s.insert(self.hashable(&v)?);
         }
@@ -1265,7 +1419,47 @@ impl Interp {
     fn eval_binary(&mut self, op: BinOp, l: &Expr, r: &Expr, env: &Rc<Env>) -> R<Value> {
         let a = self.eval(l, env)?;
         let b = self.eval(r, env)?;
+        if let (Value::Int(x), Value::Int(y)) = (&a, &b) {
+            if let Some(v) = int_quick(op, *x, *y) {
+                return Ok(Value::Int(v));
+            }
+        }
         self.binary_op(op, &a, &b)
+    }
+
+    /// Whether [e] holds, as `if`, `while` and comprehension filters ask: a
+    /// lone comparison answers without a bool value in between.
+    #[inline]
+    pub(crate) fn holds(&mut self, e: &Expr, env: &Rc<Env>) -> R<bool> {
+        if let Expr::Compare(left, pairs) = e {
+            if let [(op, r)] = pairs.as_slice() {
+                self.tick()?;
+                let a = self.eval(left, env)?;
+                let b = self.eval(r, env)?;
+                return self.compare_pair(*op, &a, &b);
+            }
+        }
+        match self.eval(e, env)? {
+            Value::Bool(b) => Ok(b),
+            c => self.truth(&c),
+        }
+    }
+
+    /// One comparison, two ints straight away.
+    #[inline]
+    fn compare_pair(&mut self, op: CmpOp, a: &Value, b: &Value) -> R<bool> {
+        if let (Value::Int(x), Value::Int(y)) = (a, b) {
+            match op {
+                CmpOp::Lt => return Ok(x < y),
+                CmpOp::Le => return Ok(x <= y),
+                CmpOp::Gt => return Ok(x > y),
+                CmpOp::Ge => return Ok(x >= y),
+                CmpOp::Eq => return Ok(x == y),
+                CmpOp::Ne => return Ok(x != y),
+                _ => {}
+            }
+        }
+        self.compare_op(op, a, b)
     }
 
     #[inline(never)]
@@ -1281,6 +1475,11 @@ impl Interp {
 
     #[inline(never)]
     fn eval_compare(&mut self, left: &Expr, pairs: &[(CmpOp, Expr)], env: &Rc<Env>) -> R<Value> {
+        if let [(op, r)] = pairs {
+            let a = self.eval(left, env)?;
+            let b = self.eval(r, env)?;
+            return self.compare_pair(*op, &a, &b).map(Value::Bool);
+        }
         let mut left = self.eval(left, env)?;
         for (op, r) in pairs {
             let right = self.eval(r, env)?;
@@ -1349,6 +1548,83 @@ impl Interp {
 
     #[inline(never)]
     fn eval_call(&mut self, callee: &Expr, args: &[Expr], kwargs: &[(Rc<str>, Expr)], env: &Rc<Env>) -> R<Value> {
+        // Python evaluates what is called first, then the arguments.
+        let plain = kwargs.is_empty() && !args.iter().any(|a| matches!(a, Expr::Starred(_)));
+        if let Expr::Attribute(obj, name) = callee {
+            let o = self.eval(obj, env)?;
+            // `obj.method(...)` dispatches directly, with no bound-method value in between.
+            if plain {
+                if let Value::Instance(inst) = &o {
+                    if let Some(f) = plain_method(inst, name) {
+                        return self.call_fast(&f, Some(o.clone()), args, env);
+                    }
+                }
+            }
+            let (a, kw) = self.eval_args(args, kwargs, env)?;
+            return self.call_method(&o, name, a, kw);
+        }
+        let c = self.eval(callee, env)?;
+        if plain {
+            match &c {
+                Value::Function(f) if f.signature().simple() => return self.call_fast(f, None, args, env),
+                // `eval` and `exec` see the scope they are called from.
+                Value::Builtin(name) if matches!(name.as_ref(), "eval" | "exec") => {
+                    let (a, _) = self.eval_args(args, kwargs, env)?;
+                    return self.eval_exec(name, &a, Some(env));
+                }
+                // So do `globals()`, `locals()`, `vars()` and `dir()` with nothing to look at.
+                Value::Builtin(name) if args.is_empty() && matches!(name.as_ref(), "globals" | "locals" | "vars" | "dir") => {
+                    return self.scope_builtin(name, env);
+                }
+                // A builtin reads its arguments where they lie: no list is made for them.
+                Value::Builtin(name) if args.len() <= 4 => {
+                    let mut buf = [Value::None, Value::None, Value::None, Value::None];
+                    for (slot, a) in buf.iter_mut().zip(args) {
+                        *slot = self.eval(a, env)?;
+                    }
+                    return self.call_builtin(name, &buf[..args.len()], &[]);
+                }
+                _ => {}
+            }
+        }
+        let (a, kw) = self.eval_args(args, kwargs, env)?;
+        self.call_value(&c, a, kw)
+    }
+
+    /// `globals()`, `locals()` (and `vars()`), and `dir()` of the scope [env]:
+    /// copies, so writing to one changes no variable.
+    pub(crate) fn scope_builtin(&mut self, name: &str, env: &Rc<Env>) -> R<Value> {
+        let module = env.module().vars.borrow().pairs();
+        let pairs: Vec<(Rc<str>, Value)> = match name {
+            "globals" => module,
+            _ => {
+                // A function's own frame: its slots, named by the function that made it.
+                let frame = self.frames.last().filter(|(_, e)| Rc::ptr_eq(e, env)).map(|(f, _)| f.clone());
+                match frame {
+                    Some(f) => {
+                        let slots = env.slots.borrow();
+                        f.frame_info()
+                            .names
+                            .iter()
+                            .zip(slots.iter())
+                            .filter_map(|(n, v)| v.clone().map(|v| (n.clone(), v)))
+                            .collect()
+                    }
+                    None if env.parent.is_some() => env.vars.borrow().pairs(),
+                    None => module,
+                }
+            }
+        };
+        if name == "dir" {
+            let mut names: Vec<Value> = pairs.into_iter().map(|(k, _)| Value::Str(k)).collect();
+            names.sort_by_key(py_str);
+            return Ok(Value::list(names));
+        }
+        Ok(Value::dict(pairs))
+    }
+
+    /// A call's arguments, with `*seq` and `**mapping` spread.
+    fn eval_args(&mut self, args: &[Expr], kwargs: &[(Rc<str>, Expr)], env: &Rc<Env>) -> R<(Vec<Value>, Keywords)> {
         // One spare slot: a method call puts its receiver in front.
         let mut a = Vec::with_capacity(args.len() + 1);
         for arg in args {
@@ -1376,14 +1652,7 @@ impl Interp {
             }
             kw.push((k.clone(), value));
         }
-        // `obj.method(...)` dispatches directly, with no bound-method value in between.
-        if let Expr::Attribute(obj, name) = callee {
-            let o = self.eval(obj, env)?;
-            self.call_method(&o, name, a, kw)
-        } else {
-            let c = self.eval(callee, env)?;
-            self.call_value(&c, a, kw)
-        }
+        Ok((a, kw))
     }
 
     /// Build an f-string: convert (`!r`), then format with a spec that can interpolate too.
@@ -1435,25 +1704,33 @@ impl Interp {
         Ok(out)
     }
 
-    /// Comprehensions get their own scope, so the loop variable doesn't leak (the Python 3 rule).
+    /// Comprehensions get their own scope, so the loop variable doesn't leak
+    /// (the Python 3 rule). The first iterable is evaluated where the
+    /// comprehension is written, the rest inside it.
     #[inline(never)]
-    fn run_comprehension(&mut self, c: &Comprehension, env: &Rc<Env>) -> R<Value> {
-        let scope = Env::new(Some(env.clone()));
-        let mut acc = CompAcc { list: Vec::new(), dict: IndexMap::new(), set: IndexSet::new() };
-        self.comp_step(c, 0, &scope, &mut acc)?;
+    fn run_comprehension(&mut self, c: &Rc<Comprehension>, env: &Rc<Env>) -> R<Value> {
+        if c.kind == CompKind::Gen {
+            return self.comprehension_generator(c, env);
+        }
+        let first = self.loop_items(&c.clauses[0].iterable, env)?;
+        let scope = self.frame(env, c.frame.names.len());
+        let mut acc = CompAcc { list: Vec::new(), dict: DictMap::default(), set: KeySet::default() };
+        let r = self.comp_step(c, 0, Some(first), &scope, &mut acc);
+        self.recycle(scope);
+        r?;
         Ok(match c.kind {
-            CompKind::List => Value::list(acc.list),
+            CompKind::List | CompKind::Gen => Value::list(acc.list),
             CompKind::Set => Value::new_set(acc.set),
             CompKind::Dict => Value::new_dict(acc.dict),
         })
     }
 
     #[inline(never)]
-    fn comp_step(&mut self, c: &Comprehension, i: usize, scope: &Rc<Env>, acc: &mut CompAcc) -> R<()> {
+    fn comp_step(&mut self, c: &Comprehension, i: usize, items: Option<Iter>, scope: &Rc<Env>, acc: &mut CompAcc) -> R<()> {
         self.tick()?;
         if i >= c.clauses.len() {
             match c.kind {
-                CompKind::List => {
+                CompKind::List | CompKind::Gen => {
                     let v = self.eval(&c.element, scope)?;
                     acc.list.push(v);
                     if acc.list.len() > self.max_container {
@@ -1480,22 +1757,28 @@ impl Interp {
             return Ok(());
         }
         let clause = &c.clauses[i];
-        for item in self.loop_items(&clause.iterable, scope)? {
+        let mut items = match items {
+            Some(it) => it,
+            None => self.loop_items(&clause.iterable, scope)?,
+        };
+        while let Some(item) = self.next_item(&mut items)? {
             self.tick()?;
             self.assign(&clause.target, item, scope)?;
-            let mut keep = true;
-            for cond in &clause.conditions {
-                if !keep {
-                    break;
-                }
-                let c = self.eval(cond, scope)?;
-                keep = self.truth(&c)?;
-            }
-            if keep {
-                self.comp_step(c, i + 1, scope, acc)?;
+            if self.conditions_hold(&clause.conditions, scope)? {
+                self.comp_step(c, i + 1, None, scope, acc)?;
             }
         }
         Ok(())
+    }
+
+    /// A comprehension clause's `if` filters, in order, stopping at the first false one.
+    pub(crate) fn conditions_hold(&mut self, conditions: &[Expr], scope: &Rc<Env>) -> R<bool> {
+        for cond in conditions {
+            if !self.holds(cond, scope)? {
+                return Ok(false);
+            }
+        }
+        Ok(true)
     }
 
     // MARK: - Attributes
@@ -1509,7 +1792,22 @@ impl Interp {
                 None => Err(self.error(format!("'{}' object has no attribute '{name}'", inst.class.name), "AttributeError")),
             },
             Value::Class(c) => {
-                self.class_attr(c, name).ok_or_else(|| self.error(format!("type object '{}' has no attribute '{name}'", c.name), "AttributeError"))
+                if let Some(v) = self.class_attr(c, name) {
+                    return Ok(v);
+                }
+                // Then the metaclass's, bound to the class.
+                if let Some(m) = &c.meta {
+                    if let Some(v) = m.lookup(name) {
+                        if let Value::Object(o) = &v {
+                            if let Object::Property { get, .. } = o.as_ref() {
+                                let get = get.clone();
+                                return self.call_value(&get, vec![obj.clone()], Vec::new());
+                            }
+                        }
+                        return Ok(self.bind(v, obj.clone(), m));
+                    }
+                }
+                Err(self.error(format!("type object '{}' has no attribute '{name}'", c.name), "AttributeError"))
             }
             Value::Object(o) => match o.as_ref() {
                 Object::Super { class, receiver } => {
@@ -1548,6 +1846,22 @@ impl Interp {
                     _ if name == "indices" => Ok(self.method_value(obj, name)),
                     _ => Err(self.error(format!("'slice' object has no attribute '{name}'"), "AttributeError")),
                 },
+                Object::Range(a, b, c) => match name {
+                    "start" => Ok(Value::Int(*a)),
+                    "stop" => Ok(Value::Int(*b)),
+                    "step" => Ok(Value::Int(*c)),
+                    "index" | "count" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'range' object has no attribute '{name}'"), "AttributeError")),
+                },
+                Object::Generator(g) => match name {
+                    "__name__" | "__qualname__" => Ok(Value::Str(g.name.clone())),
+                    "send" | "throw" | "close" | "__next__" | "__iter__" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'generator' object has no attribute '{name}'"), "AttributeError")),
+                },
+                Object::Iterator(i) => match name {
+                    "__next__" | "__iter__" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'{}' object has no attribute '{name}'", i.kind), "AttributeError")),
+                },
                 Object::Pattern { pattern, flags } => match name {
                     "pattern" => Ok(Value::Str(pattern.clone())),
                     "flags" => Ok(Value::Int(*flags)),
@@ -1563,7 +1877,17 @@ impl Interp {
                 }
                 match name {
                     "__name__" | "__qualname__" => Ok(Value::Str(f.name.clone())),
-                    "__doc__" => Ok(Value::None),
+                    "__doc__" => Ok(match &f.body {
+                        FnBody::Def(d) => docstring(&d.body),
+                        FnBody::Lambda(..) => Value::None,
+                    }),
+                    // The `__name__` of the module whose top level the function closes over.
+                    "__module__" => Ok(f.closure.module().vars.borrow().get("__name__").cloned().unwrap_or(Value::None)),
+                    "__defaults__" => {
+                        let n = f.signature().positional.len();
+                        let given: Vec<Value> = f.defaults[..n.min(f.defaults.len())].iter().flatten().cloned().collect();
+                        Ok(if given.is_empty() { Value::None } else { Value::tuple(given) })
+                    }
                     "__dict__" => {
                         let pairs: Vec<(Rc<str>, Value)> = f.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
                         Ok(Value::dict(pairs))
@@ -1574,14 +1898,26 @@ impl Interp {
             Value::Builtin(b) if super::methods::type_member(b, name) => {
                 Ok(Value::Builtin(Rc::from(format!("{}{b}.{name}", super::methods::UNBOUND_PREFIX))))
             }
+            Value::Builtin(b) if b.as_ref() == "type" && matches!(name, "__new__" | "__call__" | "__init__") => {
+                Ok(Value::Builtin(Rc::from(match name {
+                    "__new__" => super::classes::HIDDEN_TYPE_NEW,
+                    "__call__" => super::classes::HIDDEN_TYPE_CALL,
+                    _ => super::classes::HIDDEN_TYPE_INIT,
+                })))
+            }
             Value::Builtin(b) if b.as_ref() == "object" => {
                 let hidden = match name {
+                    "__init_subclass__" => super::classes::HIDDEN_OBJECT_INIT_SUBCLASS,
                     "__setattr__" => super::classes::HIDDEN_OBJECT_SETATTR,
                     "__getattribute__" | "__getattr__" => super::classes::HIDDEN_OBJECT_GETATTR,
                     "__init__" => super::classes::HIDDEN_BASE_INIT,
                     "__new__" => super::classes::HIDDEN_OBJECT_NEW,
                     "__str__" => super::classes::HIDDEN_DEFAULT_STR,
                     "__repr__" => super::classes::HIDDEN_DEFAULT_REPR,
+                    "__base__" => return Ok(Value::None),
+                    "__bases__" => return Ok(Value::tuple(Vec::new())),
+                    "__mro__" => return Ok(Value::tuple(vec![obj.clone()])),
+                    "__name__" | "__qualname__" => return Ok(Value::str("object")),
                     _ => return Err(self.error(format!("type object 'object' has no attribute '{name}'"), "AttributeError")),
                 };
                 Ok(Value::Builtin(Rc::from(hidden)))
@@ -1593,11 +1929,32 @@ impl Interp {
             Value::Module(m) => self
                 .member(m, name)
                 .ok_or_else(|| self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
+            // `sys.version_info.major` and the rest of its fields.
+            Value::Tuple(t) if Rc::ptr_eq(t, &self.version_info) => {
+                let at = match name {
+                    "major" => 0,
+                    "minor" => 1,
+                    "micro" => 2,
+                    "releaselevel" => 3,
+                    "serial" => 4,
+                    _ => return Err(self.error(format!("'sys.version_info' object has no attribute '{name}'"), "AttributeError")),
+                };
+                Ok(t[at].clone())
+            }
             Value::Exception(e) => match name {
                 "args" => Ok(Value::tuple(e.args.clone())),
                 "message" => Ok(Value::str(&e.message)),
+                // What StopIteration carries back from a generator's `return`, and SystemExit's status.
+                "value" if e.kind == "StopIteration" => Ok(e.args.first().cloned().unwrap_or(Value::None)),
+                "code" if e.kind == "SystemExit" => Ok(match e.args.len() {
+                    0 => Value::None,
+                    1 => e.args[0].clone(),
+                    _ => Value::tuple(e.args.clone()),
+                }),
+                "errno" | "strerror" | "filename" | "filename2" if self.exception_is("OSError", &e.kind) => Ok(Value::None),
                 "__cause__" => Ok(e.cause.clone().unwrap_or(Value::None)),
-                "__context__" | "__traceback__" => Ok(Value::None),
+                "__context__" => Ok(e.context.clone().unwrap_or(Value::None)),
+                "__traceback__" => Ok(Value::None),
                 _ => Err(self.error(format!("'{}' object has no attribute '{name}'", e.kind), "AttributeError")),
             },
             Value::Match(m) => match name {
@@ -1614,6 +1971,22 @@ impl Interp {
                 }
                 Err(self.error(format!("'dict' object has no attribute '{name}'"), "AttributeError"))
             }
+            // Numbers' parts, as `numbers.Rational` and `numbers.Complex` name them.
+            Value::Int(n) if matches!(name, "real" | "imag" | "numerator" | "denominator") => {
+                Ok(Value::Int(match name {
+                    "imag" => 0,
+                    "denominator" => 1,
+                    _ => *n,
+                }))
+            }
+            Value::Bool(b) if matches!(name, "real" | "imag" | "numerator" | "denominator") => {
+                Ok(Value::Int(match name {
+                    "imag" => 0,
+                    "denominator" => 1,
+                    _ => *b as i64,
+                }))
+            }
+            Value::Float(f) if matches!(name, "real" | "imag") => Ok(Value::Float(if name == "real" { *f } else { 0.0 })),
             // PyMini's type() answers with a name, so `type(x).__name__` reads it back.
             Value::Str(s) if name == "__name__" => Ok(Value::Str(s.clone())),
             _ if super::methods::has_builtin_method(obj, name) => Ok(self.method_value(obj, name)),
@@ -1640,7 +2013,7 @@ impl Interp {
                 {
                     return Err(self.error(format!("{name}() takes no keyword arguments"), "TypeError"));
                 }
-                self.call_builtin(name, args, kwargs)
+                self.call_builtin(name, &args, &kwargs)
             }
             Value::ModuleFunction(mf) => {
                 let (m, n) = (mf.0.clone(), mf.1.clone());
@@ -1708,93 +2081,205 @@ impl Interp {
         }
     }
 
+    // MARK: - Frames
+
+    /// A frame for a call, with [n] unbound slots: a spare one when there is
+    /// one, so a call that leaves nothing behind allocates nothing.
+    #[inline]
+    pub(crate) fn frame(&mut self, parent: &Rc<Env>, n: usize) -> Rc<Env> {
+        if let Some(mut e) = self.spare.pop() {
+            if let Some(m) = Rc::get_mut(&mut e) {
+                m.parent = Some(parent.clone());
+                m.slots.get_mut().resize(n, None);
+                return e;
+            }
+        }
+        Rc::new(Env { slots: RefCell::new(vec![None; n]), vars: RefCell::new(Scope::with_capacity(0)), parent: Some(parent.clone()) })
+    }
+
+    /// Hand a finished frame back for reuse, when nothing kept hold of it
+    /// (no closure, no generator, nothing tracking it).
+    #[inline]
+    pub(crate) fn recycle(&mut self, mut env: Rc<Env>) {
+        if self.spare.len() >= SPARE_FRAMES {
+            return;
+        }
+        let Some(m) = Rc::get_mut(&mut env) else { return };
+        let parent = m.parent.take();
+        m.slots.get_mut().clear();
+        drop(parent);
+        self.spare.push(env);
+    }
+
+    // MARK: - Calls
+
+    /// `f(a, b)` and `obj.method(a)` for a function of plain positional
+    /// parameters: each argument is evaluated straight into its slot.
+    fn call_fast(&mut self, f: &Rc<Function>, receiver: Option<Value>, args: &[Expr], env: &Rc<Env>) -> R<Value> {
+        let params = &f.signature().positional;
+        let given = args.len() + receiver.is_some() as usize;
+        if given > params.len() {
+            return Err(self.too_many(f, given, 0));
+        }
+        let mut frame = self.frame(&f.closure, f.frame_info().names.len());
+        {
+            let slots = Rc::get_mut(&mut frame).expect("a new frame has one owner").slots.get_mut();
+            let mut i = 0;
+            if let Some(r) = receiver {
+                slots[0] = Some(r);
+                i = 1;
+            }
+            for a in args {
+                slots[i] = Some(self.eval(a, env)?);
+                i += 1;
+            }
+            if given < params.len() {
+                for (j, slot) in slots.iter_mut().enumerate().take(params.len()).skip(given) {
+                    *slot = f.defaults.get(j).cloned().flatten();
+                }
+                if slots[given..params.len()].iter().any(Option::is_none) {
+                    return Err(self.missing(f, slots));
+                }
+            }
+        }
+        self.run_frame(f, frame)
+    }
+
     #[inline(never)]
     pub fn call_function(&mut self, f: &Rc<Function>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        let frame = self.bind_arguments(f, args, kwargs)?;
+        self.run_frame(f, frame)
+    }
+
+    /// A frame for calling [f] with these arguments, each in its parameter's slot.
+    fn bind_arguments(&mut self, f: &Rc<Function>, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Rc<Env>> {
         let sig = f.signature();
         let params = &sig.positional;
-        if sig.variadic.is_none() && args.len() > params.len() {
-            // CPython's words: "takes 2 positional arguments but 3 were
-            // given", "takes from 1 to 2 …" when some have defaults.
-            let max = params.len();
-            let min = (0..max).filter(|&i| f.defaults.get(i).is_none_or(Option::is_none)).count();
-            let takes = if min == max { plural(max, "positional argument") } else { format!("from {min} to {max} positional arguments") };
-            let was = if args.len() == 1 { "was" } else { "were" };
-            return Err(self.error(format!("{}() takes {takes} but {} {was} given", call_name(f), args.len()), "TypeError"));
+        let p = params.len();
+        if sig.variadic.is_none() && args.len() > p {
+            let keyword_only = kwargs.iter().filter(|(k, _)| sig.keyword_only.iter().any(|q| q.name == *k)).count();
+            return Err(self.too_many(f, args.len(), keyword_only));
         }
-        // The scope starts with room for every name the last call bound, so
-        // a call allocates it once and never grows it.
-        let hint = match &f.body {
-            FnBody::Def(d) => d.locals_hint.get(),
-            FnBody::Lambda(..) => 0,
-        };
-        let declared = params.len() + sig.keyword_only.len() + sig.variadic.is_some() as usize + sig.kwargs.is_some() as usize;
-        let mut vars = Scope::with_capacity(hint.max(declared));
+        let mut frame = self.frame(&f.closure, f.frame_info().names.len());
+        let slots = Rc::get_mut(&mut frame).expect("a new frame has one owner").slots.get_mut();
         // Positional arguments fill the first parameters: those are bound,
         // and a keyword naming one of them again is an error.
-        let positional = args.len().min(params.len());
+        let positional = args.len().min(p);
         let mut args = args.into_iter();
-        for p in &params[..positional] {
-            vars.insert(p.name.clone(), args.next().unwrap());
+        for slot in slots.iter_mut().take(positional) {
+            *slot = args.next();
         }
-        if let Some(v) = &sig.variadic {
-            vars.insert(v.clone(), Value::tuple(args.collect()));
+        let mut next = p;
+        if sig.variadic.is_some() {
+            slots[next] = Some(Value::tuple(args.collect()));
+            next += 1;
         }
-        let by_keyword = !kwargs.is_empty();
-        let mut extra: IndexMap<HKey, Value> = IndexMap::new();
+        let keyword_base = next;
+        let mut extra: DictMap = DictMap::default();
         for (k, v) in kwargs {
-            if params.iter().any(|p| p.name == k) || sig.keyword_only.iter().any(|p| p.name == k) {
-                if vars.contains_key(&k) {
-                    return Err(self.error(format!("{}() got multiple values for argument '{k}'", call_name(f)), "TypeError"));
+            let at = match params.iter().position(|q| q.name == k) {
+                Some(i) => Some(i),
+                None => sig.keyword_only.iter().position(|q| q.name == k).map(|j| keyword_base + j),
+            };
+            match at {
+                Some(i) => {
+                    if slots[i].is_some() {
+                        return Err(self.error(format!("{}() got multiple values for argument '{k}'", call_name(f)), "TypeError"));
+                    }
+                    slots[i] = Some(v);
                 }
-                vars.insert(k, v);
-            } else if sig.kwargs.is_some() {
-                extra.insert(HKey::Str(k), v);
-            } else {
-                return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", call_name(f)), "TypeError"));
+                None if sig.kwargs.is_some() => {
+                    extra.insert(HKey::Str(k), v);
+                }
+                None => {
+                    return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", call_name(f)), "TypeError"));
+                }
             }
         }
-        // Every missing one is named at once, positional ones first, as CPython does.
-        let mut missing: Vec<&str> = Vec::new();
-        let mut missing_keyword: Vec<&str> = Vec::new();
-        for (i, p) in params.iter().chain(sig.keyword_only.iter()).enumerate().skip(positional) {
-            if by_keyword && vars.contains_key(&p.name) {
-                continue;
-            }
-            match f.defaults.get(i).cloned().flatten() {
-                Some(v) => vars.insert(p.name.clone(), v),
-                None if i < params.len() => missing.push(&p.name),
-                None => missing_keyword.push(&p.name),
+        // Defaults fill what is left: one per positional parameter, then one per keyword-only one.
+        for (i, slot) in slots.iter_mut().enumerate().take(p).skip(positional) {
+            if slot.is_none() {
+                *slot = f.defaults.get(i).cloned().flatten();
             }
         }
-        if !missing.is_empty() || !missing_keyword.is_empty() {
-            let (names, kind) = if missing.is_empty() { (missing_keyword, "keyword-only") } else { (missing, "positional") };
-            let what = plural(names.len(), &format!("required {kind} argument"));
-            return Err(self.error(format!("{}() missing {what}: {}", call_name(f), name_list(&names)), "TypeError"));
+        for j in 0..sig.keyword_only.len() {
+            if slots[keyword_base + j].is_none() {
+                slots[keyword_base + j] = f.defaults.get(p + j).cloned().flatten();
+            }
         }
-        if let Some(k) = &sig.kwargs {
-            vars.insert(k.clone(), Value::new_dict(extra));
+        if slots[..p].iter().any(Option::is_none) || slots[keyword_base..keyword_base + sig.keyword_only.len()].iter().any(Option::is_none) {
+            return Err(self.missing(f, slots));
         }
-        if self.call_depth >= MAX_CALL_DEPTH {
+        if sig.kwargs.is_some() {
+            slots[keyword_base + sig.keyword_only.len()] = Some(Value::new_dict(extra));
+        }
+        Ok(frame)
+    }
+
+    /// CPython's words: "takes 2 positional arguments but 3 were given",
+    /// "takes from 1 to 2 …" when some have defaults.
+    #[cold]
+    fn too_many(&self, f: &Function, given: usize, keyword_only: usize) -> Exc {
+        let max = f.signature().positional.len();
+        let min = (0..max).filter(|&i| f.defaults.get(i).is_none_or(Option::is_none)).count();
+        let takes = if min == max { plural(max, "positional argument") } else { format!("from {min} to {max} positional arguments") };
+        let was = if given + keyword_only == 1 { "was" } else { "were" };
+        // With keyword-only arguments passed as well, CPython counts both.
+        let given = if keyword_only == 0 {
+            given.to_string()
+        } else {
+            format!("{} (and {})", plural(given, "positional argument"), plural(keyword_only, "keyword-only argument"))
+        };
+        self.error(format!("{}() takes {takes} but {given} {was} given", call_name(f)), "TypeError")
+    }
+
+    /// Every missing argument named at once, positional ones first, as CPython does.
+    #[cold]
+    fn missing(&self, f: &Function, slots: &[Option<Value>]) -> Exc {
+        let sig = f.signature();
+        let p = sig.positional.len();
+        let keyword_base = p + sig.variadic.is_some() as usize;
+        let missing: Vec<&str> = sig.positional.iter().enumerate().filter(|(i, _)| slots[*i].is_none()).map(|(_, q)| q.name.as_ref()).collect();
+        let missing_keyword: Vec<&str> = sig
+            .keyword_only
+            .iter()
+            .enumerate()
+            .filter(|(j, _)| slots[keyword_base + j].is_none())
+            .map(|(_, q)| q.name.as_ref())
+            .collect();
+        let (names, kind) = if missing.is_empty() { (missing_keyword, "keyword-only") } else { (missing, "positional") };
+        let what = plural(names.len(), &format!("required {kind} argument"));
+        self.error(format!("{}() missing {what}: {}", call_name(f), name_list(&names)), "TypeError")
+    }
+
+    /// Room for one more call: under the depth cap, and with native stack to spare.
+    #[inline]
+    pub(crate) fn check_depth(&self) -> R<()> {
+        let marker = 0u8;
+        let here = std::hint::black_box(&marker) as *const u8 as usize;
+        if self.call_depth >= self.recursion_limit || (self.stack_base != 0 && self.stack_base.saturating_sub(here) > STACK_BUDGET) {
             return Err(self.abort(AbortKind::Recursion, "maximum recursion depth exceeded").into());
         }
-        let env = Env::with_vars(Some(f.closure.clone()), vars);
+        Ok(())
+    }
+
+    /// Run [f]'s body in [frame], its arguments already bound. A generator
+    /// function hands back a generator instead, which runs the body as it is asked.
+    pub(crate) fn run_frame(&mut self, f: &Rc<Function>, frame: Rc<Env>) -> R<Value> {
+        if f.frame_info().generator {
+            return Ok(self.function_generator(f, frame));
+        }
+        self.check_depth()?;
         self.call_depth += 1;
-        self.frames.push((f.clone(), env.clone()));
+        self.frames.push((f.clone(), frame.clone()));
         let caller_line = self.current_line;
         let result = match &f.body {
-            FnBody::Def(d) => {
-                let r = self.exec_block(&d.body, &env);
-                let bound = env.vars.borrow().len();
-                if bound > d.locals_hint.get() {
-                    d.locals_hint.set(bound);
-                }
-                r
-            }
+            FnBody::Def(d) => self.exec_block(&d.body, &frame),
             FnBody::Lambda(l, line) => match self.tick() {
                 Err(e) => Err(e.into()),
                 Ok(()) => {
                     self.current_line = *line;
-                    match self.eval(&l.body, &env) {
+                    match self.eval(&l.body, &frame) {
                         Ok(v) => Err(Exc::Return(v)),
                         Err(e) => Err(e),
                     }
@@ -1803,6 +2288,7 @@ impl Interp {
         };
         self.call_depth -= 1;
         self.frames.pop();
+        self.recycle(frame);
         if result.is_ok() || matches!(result, Err(Exc::Return(_))) {
             // Back in the caller: an error later in the same line is reported there.
             self.current_line = caller_line;
@@ -1878,6 +2364,26 @@ impl Interp {
         }
         if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
             return self.instance_binary(op, a, b);
+        }
+        // Keys and items views combine like sets, with any iterable on the other side.
+        if matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::Sub | BinOp::BitXor) && (is_set_view(a) || is_set_view(b)) {
+            let mut sides = Vec::with_capacity(2);
+            for v in [a, b] {
+                let set = match as_key_set(v) {
+                    Some(s) => s,
+                    None => {
+                        let mut s = KeySet::default();
+                        for x in self.iterate(v)? {
+                            s.insert(self.hashable(&x)?);
+                        }
+                        s
+                    }
+                };
+                sides.push(set);
+            }
+            if let Some(v) = set_algebra(op, &sides[0], &sides[1]) {
+                return Ok(v);
+            }
         }
         // Sequences and sets first, then numbers.
         if op == BinOp::Add {
@@ -2066,6 +2572,7 @@ impl Interp {
         let chars: Vec<&str> = (0..b.len() - 1).map(|i| &format[b[i] as usize..b[i + 1] as usize]).collect();
         let mut out = String::new();
         let mut next = 0;
+        let mut used_mapping = false;
         let mut i = 0;
         while i < chars.len() {
             if chars[i] != "%" {
@@ -2082,6 +2589,35 @@ impl Interp {
                 i += 1;
                 continue;
             }
+            // `%(name)s`: the value under that key of a mapping on the right.
+            let mut keyed = None;
+            if chars[i] == "(" {
+                let mut depth = 1;
+                let mut key = String::new();
+                i += 1;
+                while i < chars.len() {
+                    match chars[i] {
+                        "(" => depth += 1,
+                        ")" => {
+                            depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                    key.push_str(chars[i]);
+                    i += 1;
+                }
+                if i >= chars.len() {
+                    return Err(self.error("incomplete format key", "ValueError"));
+                }
+                i += 1;
+                if matches!(rhs, Value::Tuple(_)) || !matches!(rhs, Value::Dict(_) | Value::Instance(_)) {
+                    return Err(self.error("format requires a mapping", "TypeError"));
+                }
+                keyed = Some(self.index(rhs, &Value::str(key))?);
+            }
             let mut spec = String::new();
             while i < chars.len() && !PRINTF_TYPES.contains(&chars[i]) {
                 spec.push_str(chars[i]);
@@ -2092,11 +2628,19 @@ impl Interp {
             }
             let ty = chars[i];
             i += 1;
-            if next >= args.len() {
-                return Err(self.error("not enough arguments for format string", "TypeError"));
-            }
-            let value = args[next].clone();
-            next += 1;
+            let value = match keyed {
+                Some(v) => {
+                    used_mapping = true;
+                    v
+                }
+                None => {
+                    if next >= args.len() {
+                        return Err(self.error("not enough arguments for format string", "TypeError"));
+                    }
+                    next += 1;
+                    args[next - 1].clone()
+                }
+            };
             // `%s` asks an object's __str__, `%r` and `%a` its __repr__.
             let value = match ty {
                 "s" => Value::str(self.to_str(&value)?),
@@ -2110,6 +2654,12 @@ impl Interp {
                 other => other,
             });
             out.push_str(&py_format(&value, &spec)?);
+        }
+        // Left over: an error, unless the right side was a mapping (which may
+        // hold keys the format never names) or a tuple fully used.
+        let mapping = matches!(rhs, Value::Dict(_)) || (matches!(rhs, Value::Instance(_)) && (used_mapping || next == 0));
+        if next < args.len() && !mapping {
+            return Err(self.error("not all arguments converted during string formatting", "TypeError"));
         }
         Ok(out)
     }
@@ -2206,7 +2756,7 @@ impl Interp {
         // Sets order by inclusion: `a <= b` is a subset, `a < b` a proper one.
         if let (Value::Set(x), Value::Set(y), CmpOp::Lt | CmpOp::Le | CmpOp::Gt | CmpOp::Ge) = (a, b, op) {
             let (x, y) = (x.borrow(), y.borrow());
-            let subset = |p: &IndexSet<HKey>, q: &IndexSet<HKey>| p.iter().all(|k| q.contains(k));
+            let subset = |p: &KeySet, q: &KeySet| p.iter().all(|k| q.contains(k));
             return Ok(match op {
                 CmpOp::Le => subset(&x, &y),
                 CmpOp::Lt => x.len() < y.len() && subset(&x, &y),
@@ -2269,6 +2819,10 @@ impl Interp {
     fn contains(&mut self, container: &Value, item: &Value) -> R<bool> {
         if let Value::Class(c) = container {
             let c = c.clone();
+            if let Some(f) = self.meta_method(&c, "__contains__") {
+                let r = self.call_value(&f, vec![item.clone()], Vec::new())?;
+                return self.truth(&r);
+            }
             for v in self.iterate_class(&c)? {
                 if self.eq(&v, item)? {
                     return Ok(true);
@@ -2295,6 +2849,57 @@ impl Interp {
                     }
                 }
                 return Ok(false);
+            }
+        }
+        if let Value::Object(o) = container {
+            match o.as_ref() {
+                Object::DictView(ViewKind::Keys, d) => {
+                    let k = self.hashable(item)?;
+                    return Ok(d.borrow().contains_key(&k));
+                }
+                Object::DictView(ViewKind::Items, d) => {
+                    let Value::Tuple(pair) = item else { return Ok(false) };
+                    let [k, v] = pair.as_slice() else { return Ok(false) };
+                    let k = self.hashable(k)?;
+                    let found = d.borrow().get(&k).cloned();
+                    return match found {
+                        Some(w) => Ok(py_identical(&w, v) || self.eq(&w, v)?),
+                        None => Ok(false),
+                    };
+                }
+                Object::DictView(ViewKind::Values, d) => {
+                    let values: Vec<Value> = d.borrow().values().cloned().collect();
+                    for v in &values {
+                        if py_identical(v, item) || self.eq(v, item)? {
+                            return Ok(true);
+                        }
+                    }
+                    return Ok(false);
+                }
+                Object::Range(a, b, c) => {
+                    // Worked out, not counted: `10**12 in range(10**15)` is instant.
+                    return Ok(match item {
+                        Value::Int(_) | Value::Bool(_) => {
+                            let x = item.as_int().unwrap_or(0);
+                            let n = range_len(*a, *b, *c);
+                            let off = x as i128 - *a as i128;
+                            off % *c as i128 == 0 && (0..n as i128).contains(&(off / *c as i128))
+                        }
+                        Value::Float(f) => f.fract() == 0.0 && self.contains(container, &Value::Int(*f as i64))?,
+                        _ => false,
+                    });
+                }
+                Object::Generator(_) | Object::Iterator(_) => {
+                    // Consumes the iterator up to the first match, as Python does.
+                    let mut it = Iter::Object(o.clone());
+                    while let Some(v) = self.next_item(&mut it)? {
+                        if self.eq(&v, item)? {
+                            return Ok(true);
+                        }
+                    }
+                    return Ok(false);
+                }
+                _ => {}
             }
         }
         Ok(match container {
@@ -2360,32 +2965,41 @@ impl Interp {
                 return self.iterate_class(&c);
             }
             Value::Object(o) => match o.as_ref() {
-                Object::Iterator(items) => items.borrow_mut().drain(..).collect(),
+                Object::Iterator(_) | Object::Generator(_) => {
+                    let mut it = Iter::Object(o.clone());
+                    return self.collect_iter(&mut it, "iterator");
+                }
+                Object::DictView(k, d) => return Ok(view_items(*k, d)),
+                Object::Range(a, b, c) => {
+                    if range_len(*a, *b, *c) as u64 > self.max_container as u64 {
+                        return Err(self.container_abort("range"));
+                    }
+                    let mut it = Iter::Range { next: Some(*a), stop: *b, step: *c };
+                    return self.collect_iter(&mut it, "range");
+                }
                 _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
             },
             _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
         })
     }
 
-    /// What a `for` loop or a comprehension clause walks over [iterable].
-    /// `range(...)` written in place, with `range` the builtin, counts
-    /// without building a list, so such a loop is not held to the container
-    /// cap; anything else is iterated as `iterate` does, without copying a
-    /// list or tuple nothing else holds.
-    fn loop_items(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<LoopItems> {
+    /// What a `for` loop or a comprehension clause walks over [iterable],
+    /// item by item: `range(...)` written in place counts without making a
+    /// range object, a list or tuple nothing else holds is not copied, and a
+    /// generator or iterator runs only as far as the loop goes.
+    pub(crate) fn loop_items(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<Iter> {
         if let Some((start, stop, step)) = self.loop_range(iterable, env)? {
-            return Ok(LoopItems::Range { next: Some(start), stop, step });
+            return Ok(Iter::Range { next: Some(start), stop, step });
         }
         let it = self.eval(iterable, env)?;
-        let items = match it {
-            Value::List(l) => match Rc::try_unwrap(l) {
+        Ok(match it {
+            Value::List(l) => Iter::Items(match Rc::try_unwrap(l) {
                 Ok(cell) => cell.into_inner(),
                 Err(l) => l.borrow().clone(),
-            },
-            Value::Tuple(t) => Rc::try_unwrap(t).unwrap_or_else(|t| t.as_ref().clone()),
-            other => self.iterate(&other)?,
-        };
-        Ok(LoopItems::Items(items.into_iter()))
+            }.into_iter()),
+            Value::Tuple(t) => Iter::Items(Rc::try_unwrap(t).unwrap_or_else(|t| t.as_ref().clone()).into_iter()),
+            other => self.iter_of(&other)?,
+        })
     }
 
     /// The (start, stop, step) of `range(...)` when [iterable] is a call of
@@ -2393,10 +3007,10 @@ impl Interp {
     fn loop_range(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<Option<(i64, i64, i64)>> {
         let Expr::Call(callee, args, kwargs) = iterable else { return Ok(None) };
         let Expr::Name(n) = callee.as_ref() else { return Ok(None) };
-        if n.as_ref() != "range" || !kwargs.is_empty() || !(1..=3).contains(&args.len()) || args.iter().any(|a| matches!(a, Expr::Starred(_))) {
+        if n.id.as_ref() != "range" || !kwargs.is_empty() || !(1..=3).contains(&args.len()) || args.iter().any(|a| matches!(a, Expr::Starred(_))) {
             return Ok(None);
         }
-        match self.eval_name(n, env)? {
+        match self.load_name(n, env)? {
             Value::Builtin(b) if b.as_ref() == "range" => {}
             _ => return Ok(None),
         }
@@ -2408,7 +3022,7 @@ impl Interp {
         }
         let mut nums = [0i64; 3];
         for (slot, v) in nums.iter_mut().zip(&values) {
-            *slot = v.as_int().ok_or_else(|| self.error("range() argument must be an integer", "TypeError"))?;
+            *slot = v.as_int().ok_or_else(|| self.error(format!("'{}' object cannot be interpreted as an integer", v.type_name()), "TypeError"))?;
         }
         let (start, stop, step) = match args.len() {
             1 => (0, nums[0], 1),
@@ -2416,7 +3030,7 @@ impl Interp {
             _ => (nums[0], nums[1], nums[2]),
         };
         if step == 0 {
-            return Err(self.error("range() step must not be zero", "ValueError"));
+            return Err(self.error("range() arg 3 must not be zero", "ValueError"));
         }
         Ok(Some((start, stop, step)))
     }
@@ -2438,7 +3052,7 @@ impl Interp {
         }
     }
 
-    fn index(&mut self, base: &Value, idx: &Value) -> R<Value> {
+    pub(crate) fn index(&mut self, base: &Value, idx: &Value) -> R<Value> {
         // `items[slice(1, 3)]` is `items[1:3]`.
         if let (Value::Object(o), false) = (idx, matches!(base, Value::Instance(_) | Value::Dict(_))) {
             if let Object::Slice(a, b, c) = o.as_ref() {
@@ -2469,6 +3083,16 @@ impl Interp {
             Value::Bytes(b) => {
                 let i = self.list_index(idx, b.len())?;
                 Ok(Value::Int(b[i] as i64))
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => {
+                let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
+                let n = range_len(*a, *b, *c);
+                let i = idx.as_int().ok_or_else(|| self.error("range indices must be integers or slices", "TypeError"))?;
+                let i = if i < 0 { i + n } else { i };
+                if i < 0 || i >= n {
+                    return Err(self.error("range object index out of range", "IndexError"));
+                }
+                Ok(Value::Int(a + i * c))
             }
             Value::Dict(d) => {
                 let key = self.hashable(idx)?;
@@ -2524,8 +3148,128 @@ impl Interp {
             }
             Value::Tuple(t) => Value::tuple(indices(t.len()).into_iter().map(|i| t[i].clone()).collect()),
             Value::Bytes(b) => Value::bytes(&indices(b.len()).into_iter().map(|i| b[i]).collect::<Vec<u8>>()),
+            // A slice of a range is a range.
+            Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => {
+                let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
+                let n = range_len(*a, *b, *c);
+                let clamp = |v: i64, lo: i64, hi: i64| v.clamp(lo, hi);
+                let (lo, hi) = if step > 0 { (0, n) } else { (-1, n - 1) };
+                let pos = |v: Option<i64>, default: i64| match v {
+                    None => default,
+                    Some(v) if v < 0 => clamp(v + n, lo, hi),
+                    Some(v) => clamp(v, lo, hi),
+                };
+                let start = pos(l, if step > 0 { 0 } else { n - 1 });
+                let stop = pos(h, if step > 0 { n } else { -1 });
+                Value::Object(Rc::new(Object::Range(a + start * c, a + stop * c, c * step)))
+            }
             _ => return Err(self.error(format!("'{}' object is not subscriptable", base.type_name()), "TypeError")),
         })
+    }
+
+    /// `eval(source[, globals[, locals]])` and `exec(...)`: run code in this
+    /// interpreter, on the same budget and with the same reach. With no
+    /// dicts it sees the caller's module and, inside a function, a copy of
+    /// the function's variables (what it binds there stays in that copy, as
+    /// in CPython); with them it runs over those dicts and writes back to them.
+    pub(crate) fn eval_exec(&mut self, name: &str, args: &[Value], env: Option<&Rc<Env>>) -> R<Value> {
+        let source: Rc<str> = match args.first() {
+            Some(Value::Str(s)) => s.clone(),
+            Some(Value::Bytes(b)) => Rc::from(String::from_utf8_lossy(b).as_ref()),
+            Some(other) => return Err(self.error(format!("{name}() arg 1 must be a string, bytes or code object, not {}", other.type_name()), "TypeError")),
+            None => return Err(self.error(format!("{name} expected at least 1 argument, got 0"), "TypeError")),
+        };
+        let dict_arg = |i: usize, what: &str| -> R<Option<DictRef>> {
+            match args.get(i) {
+                None | Some(Value::None) => Ok(None),
+                Some(Value::Dict(d)) => Ok(Some(d.clone())),
+                Some(other) => Err(err(format!("{name}() {what} must be a dict, not {}", other.type_name()), "TypeError", self.current_line)),
+            }
+        };
+        let globals = dict_arg(1, "globals")?;
+        let locals = dict_arg(2, "locals")?;
+        let caller = env.cloned().unwrap_or_else(|| self.globals.clone());
+        let in_function = caller.parent.is_some();
+        let namespace = locals.is_some() || (globals.is_none() && in_function);
+        let program = super::parser::parse_dynamic(&source, namespace).map_err(Exc::from)?;
+        if name == "eval" && !matches!(program.as_slice(), [Stmt { kind: StmtKind::Expr(_), .. }]) {
+            return Err(self.error("invalid syntax: eval() takes an expression", "SyntaxError"));
+        }
+        // The module it runs in: one made from `globals`, or the caller's.
+        let module = match &globals {
+            Some(d) => {
+                let m = Env::new(None);
+                for (k, v) in d.borrow().iter() {
+                    if let HKey::Str(k) = k {
+                        m.define(k, v.clone());
+                    }
+                }
+                self.closures.push(Rc::downgrade(&m));
+                m
+            }
+            None => {
+                let mut m = caller.clone();
+                while let Some(p) = m.parent.clone() {
+                    m = p;
+                }
+                m
+            }
+        };
+        let run_in = if namespace {
+            let ns = Env::new(Some(module.clone()));
+            match &locals {
+                Some(d) => {
+                    for (k, v) in d.borrow().iter() {
+                        if let HKey::Str(k) = k {
+                            ns.define(k, v.clone());
+                        }
+                    }
+                }
+                None => {
+                    // The calling function's variables, by name.
+                    if let Some((f, frame)) = self.frames.last() {
+                        if Rc::ptr_eq(frame, &caller) {
+                            let names = f.frame_info().names.clone();
+                            let slots = caller.slots.borrow().clone();
+                            for (k, v) in names.iter().zip(slots) {
+                                if let Some(v) = v {
+                                    ns.define(k, v);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            self.closures.push(Rc::downgrade(&ns));
+            ns
+        } else {
+            module.clone()
+        };
+        let saved_line = self.current_line;
+        let result = match program.as_slice() {
+            [Stmt { kind: StmtKind::Expr(e), line, .. }] if name == "eval" => {
+                self.current_line = *line;
+                self.eval(e, &run_in)
+            }
+            _ => self.exec_block(&program, &run_in).map(|_| Value::None),
+        };
+        self.current_line = saved_line;
+        if let Some(d) = &globals {
+            let mut d = d.borrow_mut();
+            for (k, v) in module.vars.borrow().pairs() {
+                d.insert(HKey::Str(k), v);
+            }
+        }
+        if let Some(d) = &locals {
+            let mut d = d.borrow_mut();
+            for (k, v) in run_in.vars.borrow().pairs() {
+                d.insert(HKey::Str(k), v);
+            }
+        }
+        match result {
+            Err(Exc::Return(_)) => Err(self.error("'return' outside function", "SyntaxError")),
+            other => other,
+        }
     }
 
     /// Run [source] as a module of its own, with [names] defined first, and
@@ -2543,50 +3287,51 @@ impl Interp {
     }
 }
 
-/// The items a loop hands out, one at a time.
-enum LoopItems {
-    Range { next: Option<i64>, stop: i64, step: i64 },
-    Items(std::vec::IntoIter<Value>),
-}
-
-impl Iterator for LoopItems {
-    type Item = Value;
-
-    fn next(&mut self) -> Option<Value> {
-        match self {
-            LoopItems::Range { next, stop, step } => {
-                let i = (*next)?;
-                if (*step > 0 && i < *stop) || (*step < 0 && i > *stop) {
-                    // Past i64 the count stops, as the list range() builds does.
-                    *next = i.checked_add(*step);
-                    Some(Value::Int(i))
-                } else {
-                    None
-                }
-            }
-            LoopItems::Items(items) => items.next(),
-        }
-    }
-}
-
 struct CompAcc {
     list: Vec<Value>,
-    dict: IndexMap<HKey, Value>,
-    set: IndexSet<HKey>,
+    dict: DictMap,
+    set: KeySet,
 }
 
 /// Which `except` clause names catch which kinds: the parents scripts actually lean on.
 pub(crate) fn exception_matches(clause: &str, kind: &str) -> bool {
-    if clause == "Exception" || clause == kind {
+    if clause == kind {
         return true;
     }
     match clause {
+        "BaseException" => true,
+        // These derive from BaseException alone: `except Exception` lets them pass.
+        "Exception" => !matches!(kind, "GeneratorExit" | "SystemExit" | "KeyboardInterrupt" | "BaseException"),
+        "NameError" => kind == "UnboundLocalError",
         "LookupError" => kind == "KeyError" || kind == "IndexError",
-        "ArithmeticError" => kind == "ZeroDivisionError" || kind == "OverflowError",
-        "ValueError" | "UnicodeError" => kind == "UnicodeDecodeError",
-        "OSError" => matches!(kind, "PermissionError" | "TimeoutError" | "ConnectionError" | "FileNotFoundError"),
-        "RuntimeError" => kind == "NotImplementedError",
+        "ArithmeticError" => matches!(kind, "ZeroDivisionError" | "OverflowError" | "FloatingPointError"),
+        "ValueError" => matches!(kind, "UnicodeError" | "UnicodeDecodeError" | "UnicodeEncodeError"),
+        "UnicodeError" => matches!(kind, "UnicodeDecodeError" | "UnicodeEncodeError"),
+        "OSError" => matches!(
+            kind,
+            "PermissionError" | "TimeoutError" | "ConnectionError" | "FileNotFoundError" | "FileExistsError" | "IsADirectoryError"
+                | "NotADirectoryError" | "BlockingIOError" | "ConnectionRefusedError" | "ConnectionResetError"
+                | "ConnectionAbortedError" | "BrokenPipeError"
+        ),
+        "ConnectionError" => matches!(kind, "ConnectionRefusedError" | "ConnectionResetError" | "ConnectionAbortedError" | "BrokenPipeError"),
+        "RuntimeError" => kind == "NotImplementedError" || kind == "RecursionError",
+        "ImportError" => kind == "ModuleNotFoundError",
+        "SyntaxError" => kind == "IndentationError",
+        "Warning" => kind.ends_with("Warning"),
         _ => false,
+    }
+}
+
+/// The function `inst.name(...)` calls, when it is a plain one found on the
+/// class (not shadowed by an instance attribute) with only positional parameters.
+#[inline]
+fn plain_method(inst: &Rc<Instance>, name: &str) -> Option<Rc<Function>> {
+    if inst.attrs.borrow().contains_key(name) {
+        return None;
+    }
+    match inst.class.lookup(name) {
+        Some(Value::Function(f)) if f.signature().simple() => Some(f),
+        _ => None,
     }
 }
 
@@ -2648,8 +3393,8 @@ fn op_symbol(op: BinOp) -> &'static str {
 }
 
 /// `|` union, `&` intersection, `-` difference, `^` symmetric difference.
-pub(crate) fn set_algebra(op: BinOp, a: &IndexSet<HKey>, b: &IndexSet<HKey>) -> Option<Value> {
-    let mut out = IndexSet::new();
+pub(crate) fn set_algebra(op: BinOp, a: &KeySet, b: &KeySet) -> Option<Value> {
+    let mut out = KeySet::default();
     match op {
         BinOp::BitOr => {
             out.extend(a.iter().cloned());
@@ -2698,3 +3443,40 @@ pub(crate) fn slice_indices(n: i64, l: Option<i64>, h: Option<i64>, step: i64) -
     }
     out
 }
+
+/// `x op y` for two ints when it fits in 64 bits and cannot raise: the
+/// arithmetic loops do most. None sends the pair down the general path.
+#[inline]
+fn int_quick(op: BinOp, x: i64, y: i64) -> Option<i64> {
+    match op {
+        BinOp::Add => x.checked_add(y),
+        BinOp::Sub => x.checked_sub(y),
+        BinOp::Mul => x.checked_mul(y),
+        // Python's `%` takes the divisor's sign: for a positive divisor that
+        // is the Euclidean remainder.
+        BinOp::Mod if y > 0 => Some(x.rem_euclid(y)),
+        BinOp::FloorDiv if y > 0 => Some(x.div_euclid(y)),
+        BinOp::BitAnd => Some(x & y),
+        BinOp::BitOr => Some(x | y),
+        BinOp::BitXor => Some(x ^ y),
+        _ => None,
+    }
+}
+
+/// The main script's module scope, `__name__` already `"__main__"`.
+fn main_globals() -> Rc<Env> {
+    let env = Env::new(None);
+    env.define(&Rc::from("__name__"), Value::str("__main__"));
+    env
+}
+
+/// The docstring a body opens with, or None.
+pub(crate) fn docstring(body: &[Stmt]) -> Value {
+    match body.first().map(|s| &s.kind) {
+        Some(StmtKind::Expr(Expr::Str(s))) => Value::Str(s.clone()),
+        _ => Value::None,
+    }
+}
+
+/// A call's keyword arguments, in the order written.
+pub(crate) type Keywords = Vec<(Rc<str>, Value)>;

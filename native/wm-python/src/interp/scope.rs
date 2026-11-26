@@ -1,9 +1,11 @@
-//! The names a scope binds. Most scopes are a function call's: a few
-//! parameters and locals, made and dropped once per call. Those live in a
-//! short list, one allocation, searched by address first (the lexer gives
-//! each identifier one shared string) and then by text. Past [SMALL] names,
-//! as a module's globals soon are, the list becomes a hash map.
+//! The names a module or a class body binds, looked up by name (a
+//! function's variables live in slots instead; see `resolve.rs`). A short
+//! list, searched by address first (the lexer gives each identifier one
+//! shared string) and then by text; past [SMALL] names, as a module's
+//! globals soon are, a hash map. A name in the code carries a hint of where
+//! it was found last, which a lookup tries before searching.
 
+use std::cell::Cell;
 use std::rc::Rc;
 
 use super::fxhash::{name_map, NameMap};
@@ -39,8 +41,48 @@ impl Scope {
         }
     }
 
-    pub fn contains_key(&self, name: &str) -> bool {
-        self.get(name).is_some()
+    /// [get], trying the position [hint] remembers first and remembering
+    /// where the name was found.
+    #[inline]
+    pub fn get_hinted(&self, name: &str, hint: &Cell<u32>) -> Option<&Value> {
+        let at = hint.get() as usize;
+        match self {
+            Scope::Small(v) => {
+                if let Some((k, value)) = v.get(at) {
+                    if same(k, name) {
+                        return Some(value);
+                    }
+                }
+                let i = v.iter().position(|(k, _)| same(k, name))?;
+                hint.set(i as u32);
+                Some(&v[i].1)
+            }
+            Scope::Large(m) => {
+                if let Some((k, value)) = m.get_index(at) {
+                    if same(k, name) {
+                        return Some(value);
+                    }
+                }
+                let (i, _, value) = m.get_full(name)?;
+                hint.set(i as u32);
+                Some(value)
+            }
+        }
+    }
+
+    /// [insert], through the position [hint] remembers when it still holds the name.
+    #[inline]
+    pub fn insert_hinted(&mut self, name: &Rc<str>, value: Value, hint: &Cell<u32>) -> Option<Value> {
+        let at = hint.get() as usize;
+        let slot = match self {
+            Scope::Small(v) => v.get_mut(at).filter(|(k, _)| same(k, name)).map(|(_, v)| v),
+            Scope::Large(m) => m.get_index_mut(at).filter(|(k, _)| same(k, name)).map(|(_, v)| v),
+        };
+        if let Some(slot) = slot {
+            return Some(std::mem::replace(slot, value));
+        }
+        self.insert(name.clone(), value);
+        None
     }
 
     /// Bind [name], keeping its place when it was bound already.
@@ -73,13 +115,6 @@ impl Scope {
                 Some(v.remove(at).1)
             }
             Scope::Large(m) => m.shift_remove(name),
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        match self {
-            Scope::Small(v) => v.len(),
-            Scope::Large(m) => m.len(),
         }
     }
 

@@ -56,11 +56,8 @@ def field(*, default=MISSING, default_factory=None, init=True, repr=True, compar
 
 
 def _collect(cls):
-    chain = []
-    c = cls
-    while c is not None:
-        chain.append(c)
-        c = c.__base__
+    # Fields come from every base, furthest first, then the class itself.
+    chain = [c for c in cls.__mro__ if c is not object]
     found = {}
     for k in reversed(chain):
         inherited = vars(k).get("__dataclass_fields__")
@@ -190,6 +187,9 @@ def dataclass(cls=None, *, init=True, repr=True, eq=True, order=False, frozen=Fa
                     delattr(cls, f.name)
         if init and "__init__" not in own:
             cls.__init__ = _make_init(fields, frozen)
+        # What `case Point(x, y):` matches positionally.
+        if "__match_args__" not in own:
+            cls.__match_args__ = tuple(f.name for f in fields if f.init)
         if repr and "__repr__" not in own:
             cls.__repr__ = _make_repr(fields)
         if eq and "__eq__" not in own:

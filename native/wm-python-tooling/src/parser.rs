@@ -4,10 +4,11 @@
 //! spreads past its own line: the line becomes an [`StmtKind::Error`] that
 //! keeps its names, and the next line parses as if nothing had happened. A
 //! block header that does not parse still owns the lines indented under it.
-//! Python the interpreter does not run (`yield`, `async`, `match`, `:=` and
-//! the rest) is parsed as well as it can be and listed in
+//! Python the interpreter does not run (`async`, `await`, `@`, `except*` and
+//! complex numbers) is parsed as well as it can be and listed in
 //! [`Module::unsupported`]. Classes, `with`, decorators, `nonlocal`,
-//! `assert`, annotations, `**kwargs` and spreads run, so they parse quietly.
+//! `assert`, annotations, `**kwargs`, spreads, generators, `match`, `:=`,
+//! `...` and `import *` run, so they parse quietly.
 //!
 //! Recursion is bounded: brackets nested past [`MAX_NESTING`] and blocks past
 //! [`MAX_BLOCKS`] stop parsing deeper, and long operator chains are built as
@@ -228,6 +229,7 @@ impl<'a> Parser<'a> {
                 }
             }
             "match" if kind == TokenKind::SoftKeyword => Some(self.match_stmt(depth)),
+            "case" if kind == TokenKind::SoftKeyword => Some(self.case_clause(depth)),
             "elif" | "else" | "except" | "finally" | "case" => {
                 self.orphan_clause(out, depth);
                 None
@@ -654,8 +656,7 @@ impl<'a> Parser<'a> {
 
     fn match_stmt(&mut self, depth: u32) -> Stmt {
         let start = self.start_here();
-        let kw = self.t.span(self.advance());
-        self.unsupported(kw, "match");
+        self.advance();
         let mut exprs = Vec::new();
         if let Ok(e) = self.expr_list(true) {
             exprs.push(e);
@@ -664,9 +665,76 @@ impl<'a> Parser<'a> {
         Stmt { kind: StmtKind::Unsupported { what: "match", exprs, binds: Vec::new(), body }, span: self.span_from(start) }
     }
 
+    /// One `case` of a `match`: the names its pattern captures are bound
+    /// (`x` in `case Point(x, 0) | [x]`, `rest` in `*rest`, `n` in `as n`),
+    /// and the rest it reads: a class (`Point(`), a dotted value
+    /// (`Color.RED`), the guard after `if`. Keyword names in a class pattern
+    /// and `_` are neither.
+    fn case_clause(&mut self, depth: u32) -> Stmt {
+        let start = self.start_here();
+        self.advance();
+        // The header ends at the first `:` outside brackets; an `if` before it starts the guard.
+        let mut level = 0i32;
+        let mut colon = None;
+        let mut guard = None;
+        for k in self.pos..self.end {
+            let t = self.s.code[k] as usize;
+            if self.t.kind(t) == TokenKind::Operator {
+                match self.t.text(t).as_str() {
+                    "(" | "[" | "{" => level += 1,
+                    ")" | "]" | "}" => level -= 1,
+                    ":" if level == 0 => {
+                        colon = Some(k);
+                        break;
+                    }
+                    _ => {}
+                }
+            } else if level == 0 && guard.is_none() && self.t.is_keyword(t, "if") {
+                guard = Some(k);
+            }
+        }
+        let pattern_end = guard.or(colon).unwrap_or(self.end);
+        let mut exprs = Vec::new();
+        let mut captures = Vec::new();
+        for k in self.pos..pattern_end {
+            let t = self.s.code[k] as usize;
+            if !matches!(self.t.kind(t), TokenKind::Name | TokenKind::SoftKeyword) {
+                continue;
+            }
+            let op_at = |j: usize, op: &str| j < pattern_end && self.t.is_op(self.s.code[j] as usize, op);
+            if k > self.pos && self.t.is_op(self.s.code[k - 1] as usize, ".") {
+                continue;
+            }
+            let name = self.t.text(t);
+            let e = Expr { kind: ExprKind::Name(name.clone()), span: self.t.span(t) };
+            if op_at(k + 1, ".") || op_at(k + 1, "(") {
+                exprs.push(e);
+            } else if !op_at(k + 1, "=") && name != "_" {
+                captures.push(e);
+            }
+        }
+        if let Some(g) = guard {
+            self.pos = g + 1;
+            if let Ok(e) = self.test() {
+                exprs.push(e);
+            }
+        } else {
+            self.pos = pattern_end;
+        }
+        // Several captures bind like names unpacked from a tuple: one left unread is not worth a mark.
+        let binds = if captures.len() > 1 {
+            let span = captures[0].span.cover(captures[captures.len() - 1].span);
+            vec![Expr { kind: ExprKind::Tuple(captures), span }]
+        } else {
+            captures
+        };
+        let body = self.block(depth);
+        Stmt { kind: StmtKind::Unsupported { what: "case", exprs, binds, body }, span: self.span_from(start) }
+    }
+
     /// `elif`, `else`, `except`, `finally` or `case` with nothing to belong
-    /// to. A `case` inside a `match` is expected; the others are errors. The
-    /// body is parsed all the same, so its names still mean something.
+    /// to. A `case` with no `:` at the end is read here too. The body is
+    /// parsed all the same, so its names still mean something.
     fn orphan_clause(&mut self, out: &mut Vec<Stmt>, depth: u32) {
         let first = self.cur().unwrap();
         let is_case = self.t.is_keyword(first, "case");
@@ -810,8 +878,7 @@ impl<'a> Parser<'a> {
                 let mut names = Vec::new();
                 let mut star = false;
                 if self.is_op("*") {
-                    let s = self.t.span(self.advance());
-                    self.unsupported(s, "import *");
+                    self.advance();
                     star = true;
                 } else {
                     let bracketed = self.eat_op("(");
@@ -1032,7 +1099,6 @@ impl<'a> Parser<'a> {
             self.advance();
             let value = self.test()?;
             let span = self.span_from(start);
-            self.unsupported(span, ":=");
             let target = Expr { kind: ExprKind::Name(n), span: s };
             return Ok(Expr { kind: ExprKind::Walrus { target: Box::new(target), value: Box::new(value) }, span });
         }
@@ -1371,7 +1437,9 @@ impl<'a> Parser<'a> {
                     "lambda" => self.lambda(),
                     "yield" | "await" => {
                         let at = self.t.span(self.advance());
-                        self.unsupported(at, if word == "yield" { "yield" } else { "await" });
+                        if word == "await" {
+                            self.unsupported(at, "await");
+                        }
                         if self.is_kw("from") {
                             self.advance();
                         }
@@ -1393,7 +1461,6 @@ impl<'a> Parser<'a> {
                     "{" => self.braces(),
                     "..." => {
                         self.advance();
-                        self.unsupported(self.t.span(t), "...");
                         Ok(Expr { kind: ExprKind::Const("Ellipsis"), span: self.t.span(t) })
                     }
                     _ => self.fail("<expression>"),

@@ -17,13 +17,15 @@
 //! Additions to PyMini: a dict answers its string keys as attributes
 //! (`e.type`), a minimal `bytes` type, `frozenset` and `bytearray` (written in
 //! Python), `time.format` with English names, a cancel flag and deadline
-//! polled on the step path, a call-depth cap of 300, and a parser nesting cap
-//! of 100. Where PyMini and CPython part, this follows CPython: equal numbers
+//! polled on the step path, a call-depth cap of 1000 (CPython's) with a
+//! native stack budget behind it, and a parser nesting cap of 100. Where PyMini and CPython part, this follows CPython: equal numbers
 //! are one dict key, `__hash__` and `__eq__` decide keys, sorting is a stable
 //! merge sort.
 //!
-//! Native stack: deep recursion (300 calls) needs about 1 MB in release builds
-//! and several MB in debug builds. Hosts should run scripts on a thread with
+//! Native stack: 1000 calls deep needs 1.5 to 3 MB in release builds, and
+//! a script that goes past [eval::STACK_BUDGET] of native stack (deep
+//! recursion through deeply nested expressions) stops with a Recursion
+//! abort before it can overflow. Hosts should run scripts on a thread with
 //! at least 8 MB of stack.
 
 mod ast;
@@ -35,13 +37,16 @@ mod error;
 mod eval;
 mod format;
 mod fxhash;
+mod generators;
 mod host;
 mod json;
 mod lexer;
 mod methods;
 mod modules;
 mod parser;
+mod patterns;
 mod regex;
+mod resolve;
 mod scope;
 mod stdlib;
 mod text;
@@ -235,7 +240,16 @@ impl Runtime {
         if !self.interp.enabled_modules.contains(&"_native") {
             self.interp.enabled_modules.push("_native");
         }
+        // The `time` written in Python stands in for the built-in one, which
+        // it reads as `_time`, but only where the host allowed `time`.
+        let time = self.interp.enabled_modules.contains(&"time");
+        if time && !self.interp.enabled_modules.contains(&"_time") {
+            self.interp.enabled_modules.push("_time");
+        }
         for (name, source, package) in stdlib::PYTHON_MODULES {
+            if *name == "time" && !time {
+                continue;
+            }
             if !self.interp.source_modules.contains_key(*name) {
                 self.add_source_module(name, source, *package);
             }
@@ -260,7 +274,7 @@ impl Runtime {
     pub fn run(&mut self, source: &str) -> Result<Value, PyError> {
         let program = parser::parse(source)?;
         match program.last() {
-            Some(ast::Stmt { line, kind: ast::StmtKind::Expr(e) }) => {
+            Some(ast::Stmt { line, kind: ast::StmtKind::Expr(e), .. }) => {
                 let line = *line;
                 self.perform(|i| {
                     i.run(&program[..program.len() - 1])?;
@@ -322,7 +336,12 @@ impl Runtime {
             self.interp.reset_budget();
             self.interp.printed.clear();
         }
+        // Where the native stack stands as the script starts: how deep it
+        // has gone is measured from here.
+        let marker = 0u8;
+        let saved = std::mem::replace(&mut self.interp.stack_base, std::hint::black_box(&marker) as *const u8 as usize);
         let r = body(&mut self.interp);
+        self.interp.stack_base = saved;
         // A last `print(..., end="")` still shows, as a line of its own.
         self.interp.flush_print();
         host::flow_to_error(r, self.interp.current_line)

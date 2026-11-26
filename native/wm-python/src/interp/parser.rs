@@ -1,12 +1,13 @@
 //! Port of PyParser.kt: a recursive-descent parser from tokens to statements.
-//! Python features this interpreter doesn't have (yield, async, match) fail
-//! with a message that says so, not a confusing syntax error.
+//! Python features this interpreter doesn't have (async, await) fail with a
+//! message that says so, not a confusing syntax error.
 //!
 //! Additions to PyMini: `class`, decorators, `with`, `nonlocal`, `assert`,
 //! keyword-only parameters and `**kwargs`, `*` and `**` spreads in calls and
 //! displays, type annotations (parsed and ignored), dotted and relative
-//! imports, dotted exception names, `raise … from …`, and starred targets
-//! (`first, *rest = items`). Expression nesting
+//! imports, dotted exception names, `raise … from …`, starred targets
+//! (`first, *rest = items`), generators (`yield`, `yield from`, generator
+//! expressions), `:=`, `match` and classes with several bases. Expression nesting
 //! is capped at [MAX_NESTING], because a native stack overflow cannot be
 //! caught the way the JVM's can.
 
@@ -19,12 +20,27 @@ use super::lexer::{tokenize, FRawPart, Tok, Token};
 /// Deepest expression nesting the parser follows. CPython stops at 200 brackets.
 pub(crate) const MAX_NESTING: u32 = 100;
 
-const UNSUPPORTED: &[&str] = &["yield", "async", "await", "match"];
+const UNSUPPORTED: &[&str] = &["async", "await"];
 
-/// Parse a complete module.
+/// Parse a complete module, with every name resolved to where it lives.
 pub(crate) fn parse(source: &str) -> Result<Vec<Stmt>, PyError> {
     let tokens = tokenize(source)?;
-    Parser { tokens, i: 0, depth: 0 }.parse_program()
+    let mut program = Parser { tokens, i: 0, depth: 0 }.parse_program()?;
+    super::resolve::resolve_module(&mut program)?;
+    Ok(program)
+}
+
+/// Parse code for `exec` or `eval`: resolved as a module's own code, or
+/// with [namespace] as code running over a namespace of its own.
+pub(crate) fn parse_dynamic(source: &str, namespace: bool) -> Result<Vec<Stmt>, PyError> {
+    let tokens = tokenize(source)?;
+    let mut program = Parser { tokens, i: 0, depth: 0 }.parse_program()?;
+    if namespace {
+        super::resolve::resolve_dynamic(&mut program)?;
+    } else {
+        super::resolve::resolve_module(&mut program)?;
+    }
+    Ok(program)
 }
 
 /// Parse a standalone expression (f-string placeholders).
@@ -260,7 +276,7 @@ impl Parser {
         let line = self.line();
         self.advance();
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind })
+        Ok(Stmt { line, yields: false, kind })
     }
 
     fn parse_statement(&mut self) -> P<Stmt> {
@@ -294,6 +310,11 @@ impl Parser {
             if UNSUPPORTED.contains(&n.as_ref()) {
                 return Err(PyError::perr(format!("'{n}' is not supported by PyMini"), self.line()));
             }
+            if n.as_ref() == "match" {
+                if let Some(stmt) = self.try_parse_match()? {
+                    return Ok(stmt);
+                }
+            }
         }
         self.parse_simple_statement()
     }
@@ -314,7 +335,7 @@ impl Parser {
             self.skip_newlines();
         }
         let else_body = self.parse_optional_else()?;
-        Ok(Stmt { line, kind: StmtKind::If(branches, else_body) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::If(branches, else_body) })
     }
 
     fn parse_while(&mut self) -> P<Stmt> {
@@ -323,7 +344,7 @@ impl Parser {
         let cond = self.parse_expr()?;
         let body = self.parse_block()?;
         let else_body = self.parse_optional_else()?;
-        Ok(Stmt { line, kind: StmtKind::While(cond, body, else_body) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::While(cond, body, else_body) })
     }
 
     fn parse_for(&mut self) -> P<Stmt> {
@@ -336,7 +357,7 @@ impl Parser {
         let iterable = self.parse_expr_or_tuple()?;
         let body = self.parse_block()?;
         let else_body = self.parse_optional_else()?;
-        Ok(Stmt { line, kind: StmtKind::For(target, iterable, body, else_body) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::For(target, iterable, body, else_body) })
     }
 
     /// A comma-separated assignment or loop target: a name or a tuple.
@@ -406,7 +427,8 @@ impl Parser {
             self.parse_expr()?;
         }
         let body = self.parse_block()?;
-        Ok(Stmt { line, kind: StmtKind::FuncDef(Rc::new(FuncDef { name, params, body, decorators, locals_hint: Default::default() })) })
+        let def = FuncDef { name: name.clone(), params, body, decorators, frame: Frame::default() };
+        Ok(Stmt { line, yields: false, kind: StmtKind::FuncDef(Rc::new(def), Name::new(name)) })
     }
 
     fn parse_class(&mut self, decorators: Vec<Expr>) -> P<Stmt> {
@@ -414,23 +436,30 @@ impl Parser {
         self.advance();
         let name = self.expect_name("class name")?;
         let mut bases = Vec::new();
+        let mut keywords = Vec::new();
         if self.match_op("(") {
             while !self.is_op(")") {
-                if let (Tok::Name(_), Tok::Op("=")) = (self.kind().clone(), self.peek_kind(1).clone()) {
-                    return Err(PyError::perr("class keywords (metaclass=…) are not supported", self.line()));
+                if let (Tok::Name(k), Tok::Op("=")) = (self.kind().clone(), self.peek_kind(1).clone()) {
+                    self.advance();
+                    self.advance();
+                    keywords.push((k, self.parse_expr()?));
+                } else if self.match_op("**") {
+                    // `**options`: spread into the keywords, under the name "**".
+                    keywords.push((Rc::from("**"), self.parse_expr()?));
+                } else if !keywords.is_empty() {
+                    return Err(PyError::perr("positional argument follows keyword argument", self.line()));
+                } else {
+                    bases.push(self.parse_expr()?);
                 }
-                bases.push(self.parse_expr()?);
                 if !self.match_op(",") {
                     break;
                 }
             }
             self.expect_op(")")?;
         }
-        if bases.len() > 1 {
-            return Err(PyError::perr("a class can have one base class, not several", line));
-        }
         let body = self.parse_block()?;
-        Ok(Stmt { line, kind: StmtKind::ClassDef(Rc::new(ClassDef { name, bases, body, decorators })) })
+        let def = ClassDef { name: name.clone(), bases, keywords, body, decorators };
+        Ok(Stmt { line, yields: false, kind: StmtKind::ClassDef(Rc::new(def), Name::new(name)) })
     }
 
     fn parse_with(&mut self) -> P<Stmt> {
@@ -453,7 +482,7 @@ impl Parser {
             self.expect_op(")")?;
         }
         let body = self.parse_block()?;
-        Ok(Stmt { line, kind: StmtKind::With(items, body) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::With(items, body) })
     }
 
     /// Whether `with (` opens a bracketed list of items, `with (a as x, b):`,
@@ -485,7 +514,7 @@ impl Parser {
         let test = self.parse_expr()?;
         let message = if self.match_op(",") { Some(self.parse_expr()?) } else { None };
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Assert(test, message) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Assert(test, message) })
     }
 
     fn parse_nonlocal(&mut self) -> P<Stmt> {
@@ -499,7 +528,7 @@ impl Parser {
             }
         }
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Nonlocal(names) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Nonlocal(names) })
     }
 
     /// `(a, b: int = 1, *rest, c, **options)`, shared by `def` and `lambda`
@@ -584,11 +613,11 @@ impl Parser {
         self.advance();
         if self.at_statement_end() || self.is_op(";") {
             self.expect_statement_end()?;
-            return Ok(Stmt { line, kind: StmtKind::Return(None) });
+            return Ok(Stmt { line, yields: false, kind: StmtKind::Return(None) });
         }
         let e = self.parse_expr_or_tuple()?;
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Return(Some(e)) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Return(Some(e)) })
     }
 
     fn parse_try(&mut self) -> P<Stmt> {
@@ -614,7 +643,7 @@ impl Parser {
                     types.push(self.expect_exception_name()?);
                 }
                 if self.match_keyword("as") {
-                    binding = Some(self.expect_name("name")?);
+                    binding = Some(Name::new(self.expect_name("name")?));
                 }
             }
             let body = self.parse_block()?;
@@ -631,7 +660,7 @@ impl Parser {
         if handlers.is_empty() && finally_body.is_none() {
             return Err(PyError::perr("try needs an 'except' or 'finally' block", line));
         }
-        Ok(Stmt { line, kind: StmtKind::Try(Box::new(TryStmt { body, handlers, else_body, finally_body })) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Try(Box::new(TryStmt { body, handlers, else_body, finally_body })) })
     }
 
     /// An exception name in an `except` clause: `ValueError`, or a dotted
@@ -649,22 +678,27 @@ impl Parser {
         self.advance();
         if self.at_statement_end() || self.is_op(";") {
             self.expect_statement_end()?;
-            return Ok(Stmt { line, kind: StmtKind::Raise(None, None) });
+            return Ok(Stmt { line, yields: false, kind: StmtKind::Raise(None, None) });
         }
         let e = self.parse_expr()?;
         // The cause is kept on the exception, as `__cause__`.
         let cause = if self.match_keyword("from") { Some(self.parse_expr()?) } else { None };
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Raise(Some(e), cause) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Raise(Some(e), cause) })
     }
 
     /// `a`, `a.b.c`, or with leading dots a module relative to the importing one.
     fn parse_module_name(&mut self, relative: bool) -> P<Rc<str>> {
         let mut out = String::new();
         if relative {
-            while self.is_op(".") {
-                self.advance();
-                out.push('.');
+            loop {
+                if self.match_op(".") {
+                    out.push('.');
+                } else if self.match_op("...") {
+                    out.push_str("...");
+                } else {
+                    break;
+                }
             }
             if !out.is_empty() && self.is_keyword("import") {
                 return Ok(Rc::from(out));
@@ -685,7 +719,11 @@ impl Parser {
         loop {
             let module = self.parse_module_name(false)?;
             let alias = if self.match_keyword("as") { Some(self.expect_name("name")?) } else { None };
-            imports.push(Stmt { line, kind: StmtKind::Import { module, alias, names: None } });
+            let aliased = alias.is_some();
+            // `import a.b` binds `a`, through which `a.b` is reached.
+            let bound = alias.unwrap_or_else(|| Rc::from(module.split('.').next().unwrap_or(&module)));
+            let kind = StmtKind::Import { module, target: Some(Name::new(bound)), aliased, names: None };
+            imports.push(Stmt { line, yields: false, kind });
             if !self.match_op(",") {
                 break;
             }
@@ -695,7 +733,7 @@ impl Parser {
             return Ok(imports.pop().unwrap());
         }
         // `import a, b` is one statement holding several imports.
-        Ok(Stmt { line, kind: StmtKind::If(vec![(Expr::Bool(true), imports)], None) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::If(vec![(Expr::Bool(true), imports)], None) })
     }
 
     fn parse_from_import(&mut self) -> P<Stmt> {
@@ -706,14 +744,16 @@ impl Parser {
             return Err(PyError::perr("expected 'import'", self.line()));
         }
         if self.match_op("*") {
-            return Err(PyError::perr("'from ... import *' is not supported by PyMini", line));
+            self.expect_statement_end()?;
+            return Ok(Stmt { line, yields: false, kind: StmtKind::ImportStar(module, Name::new(Rc::from("*"))) });
         }
         let mut names = Vec::new();
         let bracketed = self.match_op("(");
         loop {
             let n = self.expect_name("name")?;
             let alias = if self.match_keyword("as") { Some(self.expect_name("name")?) } else { None };
-            names.push((n, alias));
+            let bound = alias.unwrap_or_else(|| n.clone());
+            names.push((n, Name::new(bound)));
             if !(self.match_op(",") && !(bracketed && self.is_op(")"))) {
                 break;
             }
@@ -722,7 +762,14 @@ impl Parser {
             self.expect_op(")")?;
         }
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Import { module, alias: None, names: Some(names) } })
+        // Every feature `__future__` names is on already: the import changes nothing.
+        if module.as_ref() == "__future__" {
+            if let Some((n, _)) = names.iter().find(|(n, _)| !FUTURE_FEATURES.contains(&n.as_ref())) {
+                return Err(PyError::perr(format!("future feature {n} is not defined"), line));
+            }
+            return Ok(Stmt { line, yields: false, kind: StmtKind::Pass });
+        }
+        Ok(Stmt { line, yields: false, kind: StmtKind::Import { module, target: None, aliased: false, names: Some(names) } })
     }
 
     fn parse_global(&mut self) -> P<Stmt> {
@@ -736,7 +783,7 @@ impl Parser {
             }
         }
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Global(names) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Global(names) })
     }
 
     fn parse_del(&mut self) -> P<Stmt> {
@@ -750,11 +797,16 @@ impl Parser {
             }
         }
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Del(targets) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Del(targets) })
     }
 
     fn parse_simple_statement(&mut self) -> P<Stmt> {
         let line = self.line();
+        if self.is_keyword("yield") {
+            let e = self.parse_yield()?;
+            self.expect_statement_end()?;
+            return Ok(Stmt { line, yields: false, kind: StmtKind::Expr(e) });
+        }
         let first = self.parse_expr_or_tuple()?;
         // An annotated name, `x: int` or `x: int = 1`. The annotation is kept
         // only as a plain name, for `__annotations__`; it is never evaluated.
@@ -762,40 +814,41 @@ impl Parser {
             self.advance();
             let annotation = self.parse_expr()?;
             let name = match annotation {
-                Expr::Name(n) => Some(n),
+                Expr::Name(n) => Some(n.id),
                 Expr::Str(s) => Some(s),
                 Expr::Attribute(_, n) => Some(n),
                 Expr::Index(base, _) => match *base {
-                    Expr::Name(n) | Expr::Attribute(_, n) => Some(n),
+                    Expr::Name(n) => Some(n.id),
+                    Expr::Attribute(_, n) => Some(n),
                     _ => None,
                 },
                 _ => None,
             };
             let value = if self.match_op("=") { Some(self.parse_expr_or_tuple()?) } else { None };
             self.expect_statement_end()?;
-            return Ok(Stmt { line, kind: StmtKind::AnnAssign(first, name, value) });
+            return Ok(Stmt { line, yields: false, kind: StmtKind::AnnAssign(first, name, value) });
         }
         // Augmented assignment.
         if let Tok::Op(o) = self.kind() {
             if let Some(binop) = aug_op(o) {
                 self.advance();
-                let value = self.parse_expr_or_tuple()?;
+                let value = self.parse_value_or_yield()?;
                 self.expect_statement_end()?;
-                return Ok(Stmt { line, kind: StmtKind::AugAssign(first, binop, value) });
+                return Ok(Stmt { line, yields: false, kind: StmtKind::AugAssign(first, binop, value) });
             }
         }
         // Plain or chained assignment: every part before the final `=` is a target.
         if self.is_op("=") {
             let mut parts = vec![first];
             while self.match_op("=") {
-                parts.push(self.parse_expr_or_tuple()?);
+                parts.push(self.parse_value_or_yield()?);
             }
             let value = parts.pop().unwrap();
             self.expect_statement_end()?;
-            return Ok(Stmt { line, kind: StmtKind::Assign(parts, value) });
+            return Ok(Stmt { line, yields: false, kind: StmtKind::Assign(parts, value) });
         }
         self.expect_statement_end()?;
-        Ok(Stmt { line, kind: StmtKind::Expr(first) })
+        Ok(Stmt { line, yields: false, kind: StmtKind::Expr(first) })
     }
 
     /// An expression that may be a bare comma tuple (`a, b = …`, `return a, b`),
@@ -815,6 +868,26 @@ impl Parser {
         Ok(first)
     }
 
+    /// The right of `=`: an expression, or a `yield`.
+    fn parse_value_or_yield(&mut self) -> P<Expr> {
+        if self.is_keyword("yield") {
+            return self.parse_yield();
+        }
+        self.parse_expr_or_tuple()
+    }
+
+    /// `yield`, `yield value`, `yield a, b` or `yield from iterable`.
+    fn parse_yield(&mut self) -> P<Expr> {
+        self.advance();
+        if self.match_keyword("from") {
+            return Ok(Expr::YieldFrom(Box::new(self.parse_expr()?)));
+        }
+        if self.at_statement_end() || self.is_op(")") || self.is_op(";") || self.is_op("=") {
+            return Ok(Expr::Yield(None));
+        }
+        Ok(Expr::Yield(Some(Box::new(self.parse_expr_or_tuple()?))))
+    }
+
     fn parse_tuple_item(&mut self) -> P<Expr> {
         if self.match_op("*") {
             return Ok(Expr::Starred(Box::new(self.parse_or()?)));
@@ -826,9 +899,23 @@ impl Parser {
 
     fn parse_expr(&mut self) -> P<Expr> {
         self.enter()?;
-        let r = if self.is_keyword("lambda") { self.parse_lambda() } else { self.parse_ternary() };
+        let r = if self.is_keyword("lambda") { self.parse_lambda() } else { self.parse_named() };
         self.leave();
         r
+    }
+
+    /// An expression, or `name := value`.
+    fn parse_named(&mut self) -> P<Expr> {
+        let e = self.parse_ternary()?;
+        if self.is_op(":=") {
+            let Expr::Name(n) = e else {
+                return Err(PyError::perr("cannot use assignment expressions with this expression", self.line()));
+            };
+            self.advance();
+            let value = self.parse_expr()?;
+            return Ok(Expr::Walrus(Box::new((Name::new(n.id), value))));
+        }
+        Ok(e)
     }
 
     fn parse_lambda(&mut self) -> P<Expr> {
@@ -836,7 +923,7 @@ impl Parser {
         let params = self.parse_parameters(false)?;
         self.expect_op(":")?;
         let body = self.parse_expr()?;
-        Ok(Expr::Lambda(Rc::new(LambdaDef { params, body })))
+        Ok(Expr::Lambda(Rc::new(LambdaDef { params, body, frame: Frame::default() })))
     }
 
     fn parse_ternary(&mut self) -> P<Expr> {
@@ -1054,11 +1141,12 @@ impl Parser {
                 // A bare generator expression argument: `sum(x * 2 for x in xs)`.
                 if self.is_keyword("for") {
                     let clauses = self.parse_comprehension_clauses()?;
-                    args.push(Expr::Comprehension(Box::new(Comprehension {
-                        kind: CompKind::List,
+                    args.push(Expr::Comprehension(Rc::new(Comprehension {
+                        kind: CompKind::Gen,
                         element: first,
                         value: None,
                         clauses,
+                        frame: Frame::default(),
                     })));
                 } else {
                     args.push(first);
@@ -1173,7 +1261,11 @@ impl Parser {
             Tok::Keyword("lambda") => self.parse_lambda(),
             Tok::Name(n) => {
                 self.advance();
-                Ok(Expr::Name(n))
+                Ok(Expr::Name(Name::new(n)))
+            }
+            Tok::Op("...") => {
+                self.advance();
+                Ok(Expr::Name(Name::new(Rc::from("Ellipsis"))))
             }
             Tok::Op("(") => self.nested(Self::parse_group_or_tuple),
             Tok::Op("[") => self.nested(Self::parse_list_literal),
@@ -1195,15 +1287,21 @@ impl Parser {
             self.advance();
             return Ok(Expr::Tuple(Vec::new()));
         }
+        if self.is_keyword("yield") {
+            let y = self.parse_yield()?;
+            self.expect_op(")")?;
+            return Ok(y);
+        }
         let first = self.parse_display_item()?;
         if self.is_keyword("for") {
             let clauses = self.parse_comprehension_clauses()?;
             self.expect_op(")")?;
-            return Ok(Expr::Comprehension(Box::new(Comprehension {
-                kind: CompKind::List,
+            return Ok(Expr::Comprehension(Rc::new(Comprehension {
+                kind: CompKind::Gen,
                 element: first,
                 value: None,
                 clauses,
+                frame: Frame::default(),
             })));
         }
         if self.is_op(",") {
@@ -1234,11 +1332,12 @@ impl Parser {
         if self.is_keyword("for") {
             let clauses = self.parse_comprehension_clauses()?;
             self.expect_op("]")?;
-            return Ok(Expr::Comprehension(Box::new(Comprehension {
+            return Ok(Expr::Comprehension(Rc::new(Comprehension {
                 kind: CompKind::List,
                 element: first,
                 value: None,
                 clauses,
+                frame: Frame::default(),
             })));
         }
         let mut items = vec![first];
@@ -1276,11 +1375,12 @@ impl Parser {
             if self.is_keyword("for") {
                 let clauses = self.parse_comprehension_clauses()?;
                 self.expect_op("}")?;
-                return Ok(Expr::Comprehension(Box::new(Comprehension {
+                return Ok(Expr::Comprehension(Rc::new(Comprehension {
                     kind: CompKind::Dict,
                     element: first,
                     value: Some(first_value),
                     clauses,
+                    frame: Frame::default(),
                 })));
             }
             if self.match_op(",") {
@@ -1292,11 +1392,12 @@ impl Parser {
         if self.is_keyword("for") {
             let clauses = self.parse_comprehension_clauses()?;
             self.expect_op("}")?;
-            return Ok(Expr::Comprehension(Box::new(Comprehension {
+            return Ok(Expr::Comprehension(Rc::new(Comprehension {
                 kind: CompKind::Set,
                 element: first,
                 value: None,
                 clauses,
+                frame: Frame::default(),
             })));
         }
         let mut items = vec![first];
@@ -1308,6 +1409,238 @@ impl Parser {
         }
         self.expect_op("}")?;
         Ok(Expr::Set(items))
+    }
+
+    // MARK: - match
+
+    /// `match subject:` and its `case` blocks. `match` is a keyword only
+    /// there: anything else starting with the name (`match = 1`,
+    /// `match(x)`) comes back None and parses as an ordinary statement.
+    fn try_parse_match(&mut self) -> P<Option<Stmt>> {
+        let (start, depth, line) = (self.i, self.depth, self.line());
+        if matches!(self.peek_kind(1), Tok::Op("=") | Tok::Op(".") | Tok::Op(",") | Tok::Op(":") | Tok::Newline | Tok::Eof) {
+            return Ok(None);
+        }
+        self.advance();
+        let subject = self.parse_expr_or_tuple();
+        let opens_block = self.is_op(":")
+            && matches!(self.peek_kind(1), Tok::Newline)
+            && matches!(self.peek_kind(2), Tok::Indent)
+            && matches!(self.peek_kind(3), Tok::Name(n) if n.as_ref() == "case");
+        let Ok(subject) = subject.and_then(|s| if opens_block { Ok(s) } else { Err(PyError::perr("", line)) }) else {
+            self.i = start;
+            self.depth = depth;
+            return Ok(None);
+        };
+        self.advance();
+        self.advance();
+        self.advance();
+        self.enter()?;
+        let mut cases = Vec::new();
+        self.skip_newlines();
+        while *self.kind() != Tok::Dedent && !self.is_eof() {
+            if !matches!(self.kind(), Tok::Name(n) if n.as_ref() == "case") {
+                return Err(PyError::perr("expected 'case' in a match block", self.line()));
+            }
+            self.advance();
+            let pattern = self.parse_case_patterns()?;
+            let guard = if self.match_keyword("if") { Some(self.parse_expr()?) } else { None };
+            let body = self.parse_block()?;
+            cases.push(MatchCase { pattern, guard, body });
+            self.skip_newlines();
+        }
+        self.leave();
+        if *self.kind() == Tok::Dedent {
+            self.advance();
+        }
+        Ok(Some(Stmt { line, yields: false, kind: StmtKind::Match(Box::new(MatchStmt { subject, cases })) }))
+    }
+
+    /// What follows `case`: a pattern, or several separated by commas,
+    /// which match a sequence.
+    fn parse_case_patterns(&mut self) -> P<Pattern> {
+        let first = self.parse_pattern_item()?;
+        if !self.is_op(",") {
+            return match first {
+                PatItem::Pat(p) => Ok(p),
+                PatItem::Star(_) => Err(PyError::perr("a starred pattern belongs in a sequence", self.line())),
+            };
+        }
+        let mut items = vec![first];
+        while self.match_op(",") {
+            if self.is_op(":") || self.is_keyword("if") {
+                break;
+            }
+            items.push(self.parse_pattern_item()?);
+        }
+        self.sequence_pattern(items)
+    }
+
+    fn parse_pattern_item(&mut self) -> P<PatItem> {
+        if self.match_op("*") {
+            let name = self.expect_name("name after '*'")?;
+            return Ok(PatItem::Star(if name.as_ref() == "_" { None } else { Some(Name::new(name)) }));
+        }
+        Ok(PatItem::Pat(self.parse_pattern()?))
+    }
+
+    fn sequence_pattern(&self, items: Vec<PatItem>) -> P<Pattern> {
+        let mut pats = Vec::with_capacity(items.len());
+        let mut star = None;
+        for item in items {
+            match item {
+                PatItem::Pat(p) => pats.push(p),
+                PatItem::Star(n) => {
+                    if star.is_some() {
+                        return Err(PyError::perr("multiple starred names in sequence pattern", self.line()));
+                    }
+                    star = Some((pats.len(), n));
+                }
+            }
+        }
+        Ok(Pattern::Sequence(pats, star))
+    }
+
+    /// `p | q | …`, optionally `as name`.
+    fn parse_pattern(&mut self) -> P<Pattern> {
+        self.enter()?;
+        let r = self.parse_or_pattern();
+        self.leave();
+        let mut p = r?;
+        if self.match_keyword("as") {
+            let name = self.expect_name("name after 'as'")?;
+            p = Pattern::As(Box::new(p), Name::new(name));
+        }
+        Ok(p)
+    }
+
+    fn parse_or_pattern(&mut self) -> P<Pattern> {
+        let mut alts = vec![self.parse_closed_pattern()?];
+        while self.match_op("|") {
+            alts.push(self.parse_closed_pattern()?);
+        }
+        Ok(if alts.len() == 1 { alts.pop().unwrap() } else { Pattern::Or(alts) })
+    }
+
+    fn parse_closed_pattern(&mut self) -> P<Pattern> {
+        match self.kind().clone() {
+            Tok::Op("(") => {
+                self.advance();
+                if self.match_op(")") {
+                    return Ok(Pattern::Sequence(Vec::new(), None));
+                }
+                let first = self.parse_pattern_item()?;
+                if self.is_op(",") {
+                    let mut items = vec![first];
+                    while self.match_op(",") {
+                        if self.is_op(")") {
+                            break;
+                        }
+                        items.push(self.parse_pattern_item()?);
+                    }
+                    self.expect_op(")")?;
+                    return self.sequence_pattern(items);
+                }
+                self.expect_op(")")?;
+                match first {
+                    PatItem::Pat(p) => Ok(p),
+                    PatItem::Star(_) => Err(PyError::perr("a starred pattern belongs in a sequence", self.line())),
+                }
+            }
+            Tok::Op("[") => {
+                self.advance();
+                let mut items = Vec::new();
+                while !self.is_op("]") {
+                    items.push(self.parse_pattern_item()?);
+                    if !self.match_op(",") {
+                        break;
+                    }
+                }
+                self.expect_op("]")?;
+                self.sequence_pattern(items)
+            }
+            Tok::Op("{") => {
+                self.advance();
+                let mut pairs = Vec::new();
+                let mut rest = None;
+                while !self.is_op("}") {
+                    if self.match_op("**") {
+                        rest = Some(Name::new(self.expect_name("name after '**'")?));
+                        self.match_op(",");
+                        break;
+                    }
+                    let key = self.parse_pattern_value()?;
+                    self.expect_op(":")?;
+                    let value = self.parse_pattern()?;
+                    pairs.push((key, value));
+                    if !self.match_op(",") {
+                        break;
+                    }
+                }
+                self.expect_op("}")?;
+                Ok(Pattern::Mapping(pairs, rest))
+            }
+            Tok::Name(n) => {
+                if n.as_ref() == "_" && !matches!(self.peek_kind(1), Tok::Op(".") | Tok::Op("(")) {
+                    self.advance();
+                    return Ok(Pattern::Wildcard);
+                }
+                let dotted = matches!(self.peek_kind(1), Tok::Op("."));
+                let target = self.parse_pattern_value()?;
+                if self.match_op("(") {
+                    let mut positional = Vec::new();
+                    let mut keywords = Vec::new();
+                    while !self.is_op(")") {
+                        if let (Tok::Name(k), Tok::Op("=")) = (self.kind().clone(), self.peek_kind(1).clone()) {
+                            self.advance();
+                            self.advance();
+                            keywords.push((k, self.parse_pattern()?));
+                        } else {
+                            if !keywords.is_empty() {
+                                return Err(PyError::perr("positional patterns follow keyword patterns", self.line()));
+                            }
+                            positional.push(self.parse_pattern()?);
+                        }
+                        if !self.match_op(",") {
+                            break;
+                        }
+                    }
+                    self.expect_op(")")?;
+                    return Ok(Pattern::Class(target, positional, keywords));
+                }
+                if dotted {
+                    return Ok(Pattern::Value(target));
+                }
+                match target {
+                    Expr::Name(n) => Ok(Pattern::Capture(n)),
+                    other => Ok(Pattern::Value(other)),
+                }
+            }
+            _ => Ok(Pattern::Value(self.parse_pattern_value()?)),
+        }
+    }
+
+    /// A literal (a number, maybe signed, a string, None, True, False) or a
+    /// dotted name, as `case` and mapping keys take them.
+    fn parse_pattern_value(&mut self) -> P<Expr> {
+        match self.kind().clone() {
+            Tok::Name(n) => {
+                self.advance();
+                let mut e = Expr::Name(Name::new(n));
+                while self.match_op(".") {
+                    e = Expr::Attribute(Box::new(e), self.expect_name("attribute name")?);
+                }
+                Ok(e)
+            }
+            Tok::Op("-") => {
+                self.advance();
+                Ok(Expr::Unary(UnOp::Neg, Box::new(self.parse_atom()?)))
+            }
+            Tok::Int(_) | Tok::Float(_) | Tok::Str(_) | Tok::Bytes(_) | Tok::Keyword("None") | Tok::Keyword("True") | Tok::Keyword("False") => {
+                self.parse_atom()
+            }
+            _ => Err(PyError::perr("expected a pattern", self.line())),
+        }
     }
 
     /// The rest of a dict display after [pairs], where a `**mapping` item is
@@ -1332,3 +1665,15 @@ impl Parser {
         Ok(Expr::Dict(pairs))
     }
 }
+
+/// One item of a sequence pattern while it is read.
+enum PatItem {
+    Pat(Pattern),
+    Star(Option<Name>),
+}
+
+/// The features `from __future__ import …` may name.
+const FUTURE_FEATURES: &[&str] = &[
+    "annotations", "division", "absolute_import", "print_function", "unicode_literals", "generator_stop",
+    "nested_scopes", "generators", "with_statement",
+];

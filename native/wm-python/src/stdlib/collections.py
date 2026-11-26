@@ -1,4 +1,4 @@
-"""collections: Counter, defaultdict, deque, namedtuple and OrderedDict.
+"""collections: Counter, defaultdict, deque, namedtuple, ChainMap and OrderedDict.
 
 Counter and defaultdict are classes that behave like dicts (indexing,
 `in`, `len`, iteration over keys, `items()`), not dict subclasses: pass them
@@ -275,6 +275,7 @@ def namedtuple(typename, field_names, defaults=None):
 
     class _Record:
         _fields = fields
+        __match_args__ = fields
 
         def __init__(self, *args, **kwargs):
             who = typename + ".__new__()"
@@ -337,4 +338,53 @@ def namedtuple(typename, field_names, defaults=None):
             return _Record(**values)
 
     _Record.__qualname__ = typename
+    _Record.__name__ = typename
     return _Record
+
+
+class ChainMap(_Mapping):
+    """Several mappings searched in order as one; writes go to the first."""
+
+    def __init__(self, *maps):
+        self.maps = list(maps) or [{}]
+
+    @property
+    def _data(self):
+        merged = {}
+        for m in reversed(self.maps):
+            merged.update(m)
+        return merged
+
+    def __getitem__(self, key):
+        for m in self.maps:
+            if key in m:
+                return m[key]
+        raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        self.maps[0][key] = value
+
+    def __delitem__(self, key):
+        try:
+            del self.maps[0][key]
+        except KeyError:
+            raise KeyError(f"Key not found in the first mapping: {key!r}")
+
+    def __contains__(self, key):
+        return any(key in m for m in self.maps)
+
+    def get(self, key, default=None):
+        return self[key] if key in self else default
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def new_child(self, m=None):
+        return ChainMap({} if m is None else m, *self.maps)
+
+    @property
+    def parents(self):
+        return ChainMap(*self.maps[1:])
+
+    def __repr__(self):
+        return f"ChainMap({', '.join(repr(m) for m in self.maps)})"

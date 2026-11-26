@@ -43,12 +43,12 @@ const KEYWORDS: &[&str] = &[
     "if", "elif", "else", "while", "for", "in", "def", "return", "break", "continue", "pass", "True", "False", "None",
     "and", "or", "not", "lambda", "try", "except", "finally", "raise", "import", "from", "as", "is", "del", "global",
     // Additions to PyMini.
-    "class", "with", "nonlocal", "assert",
+    "class", "with", "nonlocal", "assert", "yield",
 ];
 
 // Longest first, so `**=` and `//=` beat `**` and `//`.
 const MULTI_OPS: &[&str] = &[
-    "**=", "//=", "<<=", ">>=", "**", "//", "<<", ">>", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->",
+    "...", "**=", "//=", "<<=", ">>=", "**", "//", "<<", ">>", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":=",
 ];
 const SINGLE_OPS: &[&str] =
     &["+", "-", "*", "/", "%", "<", ">", "=", "(", ")", ",", ":", ".", "[", "]", "{", "}", "&", "|", "^", "~", ";", "@"];

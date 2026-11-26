@@ -120,7 +120,7 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("module_not_imported", s("x = math.pi\n"), s("import math\nx = math.pi\n"), host()),
         ("removed_builtin", s("open('f')\n"), s("len('f')\n"), host()),
         ("missing_builtin", s("x = memoryview\n"), s("x = frozenset\n"), host()),
-        ("import_not_available", s("import os\n"), s("import json\n"), host()),
+        ("import_not_available", s("import socket\n"), s("import json\n"), host()),
         ("unused_local", s("def f():\n    x = 1\n    return 2\n"), s("def f():\n    x = 1\n    return x\n"), host()),
         ("unused_parameter", s("def f(a):\n    return 1\n"), s("def f(a):\n    return a\n"), host()),
         ("accidental_global", s("count = 0\n\n\ndef bump():\n    count += 1\n"), s("count = 0\n\n\ndef bump():\n    global count\n    count += 1\n"), host()),
@@ -268,6 +268,12 @@ fn what_the_interpreter_runs_is_not_flagged() {
         "import json, time\n",
         "x = b'ab'\n",
         "from dataclasses import dataclass\nimport urllib.parse\n",
+        "def f():\n    yield 1\n    x = yield\n    yield from range(3)\n",
+        "match x:\n    case 1:\n        pass\n",
+        "from math import *\n",
+        "if (n := 3):\n    pass\n",
+        "x = ...\n",
+        "import logging, contextlib, collections.abc, os.path\n",
     ];
     for source in sources {
         let d = diagnostics(source, &host());
@@ -279,15 +285,10 @@ fn what_the_interpreter_runs_is_not_flagged() {
 #[test]
 fn every_unsupported_construct_is_named() {
     let cases = [
-        ("def f():\n    yield 1\n", "yield"),
         ("async def f():\n    pass\n", "async"),
         ("async def f():\n    await g()\n", "await"),
-        ("match x:\n    case 1:\n        pass\n", "match"),
-        ("from math import *\n", "import *"),
-        ("if (n := 3):\n    pass\n", ":="),
         ("x = a @ b\n", "@"),
         ("a, *b, *c = [1, 2]\n", "two starred targets"),
-        ("x = ...\n", "..."),
         ("x = 2j\n", "complex numbers"),
         ("x @= 1\n", "@"),
     ];
@@ -299,6 +300,29 @@ fn every_unsupported_construct_is_named() {
             d.iter().map(|d| (d.code.name(), d.args.clone())).collect::<Vec<_>>()
         );
     }
+}
+
+#[test]
+fn match_captures_and_star_imports_define_names() {
+    let quiet = |source: &str| {
+        let d = diagnostics(source, &host());
+        let names: Vec<_> = d.iter().filter(|d| matches!(d.code, Code::UndefinedName | Code::NameTypo | Code::SyntaxExpected | Code::SyntaxAtEnd)).map(|d| (d.code.name(), d.args.clone())).collect();
+        assert!(names.is_empty(), "{source:?}: {names:?}");
+    };
+    quiet("def where(p):\n    match p:\n        case Point(x=0, y=yy) if yy > 0:\n            return yy\n        case [first, *rest]:\n            return first, rest\n        case {'r': radius, **others}:\n            return radius, others\n        case int() | float() as number:\n            return number\n        case Color.RED:\n            return 'red'\n        case _:\n            return None\nclass Point:\n    pass\nclass Color:\n    RED = 1\n");
+    quiet("def f(v):\n    match v:\n        case 1: return 'one'\n        case other: return other\n");
+    quiet("from math import *\nprint(floor(2.5), pi, sqrt(4))\n");
+    quiet("from collections import *\nprint(OrderedDict())\n");
+    quiet("def gen():\n    total = yield\n    yield total\n");
+    quiet("print(eval('1 + 1'), dir(), globals(), Ellipsis, NotImplemented)\n");
+    quiet("try:\n    pass\nexcept (BaseException, RecursionError, DeprecationWarning):\n    pass\n");
+    // A star import of a modelled module brings only what it has.
+    let d = diagnostics("from math import *\nprint(flor(2.5))\n", &host());
+    assert!(d.iter().any(|d| d.code == Code::NameTypo && d.args == ["flor", "floor"]), "{d:?}");
+    // The class in a class pattern and a dotted value are read.
+    let d = diagnostics("match 1:\n    case Pointt(x=0):\n        pass\n    case Colour.RED:\n        pass\n", &host());
+    let undefined: Vec<_> = d.iter().filter(|d| matches!(d.code, Code::UndefinedName | Code::NameTypo)).map(|d| d.args[0].clone()).collect();
+    assert_eq!(undefined, ["Pointt", "Colour"]);
 }
 
 #[test]

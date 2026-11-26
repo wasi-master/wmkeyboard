@@ -22,9 +22,9 @@ fn lambdas_and_functional_builtins() {
     assert_eq!("10", evaluate("(lambda a, b=2: a * b)(5)"));
     assert_eq!("['a', 'cc', 'bbb']", evaluate(r#"sorted(["bbb", "a", "cc"], key=lambda w: len(w))"#));
     assert_eq!("[3, 2, 1]", evaluate("sorted([3, 1, 2], reverse=True)"));
-    assert_eq!("[2, 3]", evaluate("map(lambda x: x + 1, [1, 2])"));
-    assert_eq!("[2, 3]", evaluate("filter(lambda x: x > 1, [1, 2, 3])"));
-    assert_eq!("[1, 'a']", evaluate(r#"filter(None, [0, 1, "", "a"])"#));
+    assert_eq!("[2, 3]", evaluate("list(map(lambda x: x + 1, [1, 2]))"));
+    assert_eq!("[2, 3]", evaluate("list(filter(lambda x: x > 1, [1, 2, 3]))"));
+    assert_eq!("[1, 'a']", evaluate(r#"list(filter(None, [0, 1, "", "a"]))"#));
     assert_eq!("aa", evaluate(r#"max(["aa", "b"], key=len)"#));
     assert_eq!("none", evaluate(r#"min([], default="none")"#));
 }
@@ -180,7 +180,8 @@ fn small_programs() {
 
 #[test]
 fn rejected_syntax_says_why() {
-    assert!(failure("def f():\n    yield 1").contains("'yield' is not supported"));
+    assert!(failure("def f():\n    print((yield 1))").contains("write it as a statement of its own"));
+    assert!(failure("yield 1").contains("'yield' outside function"));
     assert!(failure("async def f():\n    pass").contains("'async' is not supported"));
 }
 

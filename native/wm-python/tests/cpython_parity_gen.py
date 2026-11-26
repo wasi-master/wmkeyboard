@@ -284,6 +284,335 @@ for j in range(30, 0, -7):
 n = len([i for i in range(12000) if i % 2])
 repr((t, k, n, [i for i in range(-3, 9, 4)]))
 '''),
+    ("generators_send_throw_close", "generators", r'''
+def acc():
+    total = 0
+    try:
+        while True:
+            x = yield total
+            if x is None:
+                break
+            total += x
+    finally:
+        log.append('closed')
+    return total
+log = []
+g = acc()
+next(g)
+a = g.send(5)
+b = g.send(10)
+try:
+    g.send(None)
+except StopIteration as e:
+    done = e.value
+def inner():
+    yield 1
+    r = yield 2
+    return r
+def outer():
+    got = yield from inner()
+    yield ('got', got)
+o = outer()
+seq = [next(o), next(o), o.send('x')]
+def catcher():
+    while True:
+        try:
+            yield 'ok'
+        except ValueError as e:
+            yield 'caught ' + str(e)
+c = catcher()
+next(c)
+repr((a, b, done, log, seq, c.throw(ValueError('v')), list(x * x for x in range(4)), sum(i for i in range(100000))))
+'''),
+    ("walrus_and_scoping", "scoping", r'''
+data = [3, 1, 4, 1, 5]
+evens = [y for x in data if (y := x * 2) > 4]
+def counter():
+    n = 0
+    def inc():
+        nonlocal n
+        n += 1
+        return n
+    return inc
+c = counter()
+c(); c()
+x = 'global'
+def shadow():
+    return x
+def unbound():
+    try:
+        print(z)
+    except UnboundLocalError as e:
+        return type(e).__name__, isinstance(e, NameError)
+    z = 1
+fs = [lambda i=i: i for i in range(3)]
+repr((evens, y, c(), shadow(), unbound(), [f() for f in fs]))
+'''),
+    ("match_statements", "match", r'''
+from dataclasses import dataclass
+@dataclass
+class Point:
+    x: int
+    y: int
+def where(p):
+    match p:
+        case Point(x=0, y=0):
+            return 'origin'
+        case Point(0, y):
+            return f'y-axis {y}'
+        case [a, b, *rest] if rest:
+            return f'list {a} {b} +{len(rest)}'
+        case {'kind': 'circle', 'r': r}:
+            return f'circle {r}'
+        case int() | float() as n:
+            return f'number {n}'
+        case str(s):
+            return 'text ' + s
+        case _:
+            return 'other'
+repr([where(v) for v in (Point(0, 0), Point(0, 3), [1, 2, 3, 4], {'kind': 'circle', 'r': 2}, 2.5, 'hi', None)])
+'''),
+    ("multiple_inheritance_and_super", "classes", r'''
+class A:
+    def who(self):
+        return ['A']
+class B(A):
+    def who(self):
+        return ['B'] + super().who()
+class C(A):
+    def who(self):
+        return ['C'] + super().who()
+class D(B, C):
+    def who(self):
+        return ['D'] + super().who()
+try:
+    class E(A, B):
+        pass
+    bad = 'made'
+except TypeError:
+    bad = 'TypeError'
+repr((D().who(), [k.__name__ for k in D.__mro__], bad, issubclass(D, C), D.__bases__ == (B, C)))
+'''),
+    ("metaclasses", "classes", r'''
+class Registry(type):
+    classes = []
+    def __new__(mcs, name, bases, ns, **kw):
+        cls = super().__new__(mcs, name, bases, ns)
+        cls.tag = kw.get('tag', name.lower())
+        Registry.classes.append(name)
+        return cls
+    def __init__(cls, name, bases, ns, **kw):
+        super().__init__(name, bases, ns)
+    def __iter__(cls):
+        return iter(cls.items)
+    def __len__(cls):
+        return len(cls.items)
+class Base(metaclass=Registry):
+    items = [1, 2]
+class Child(Base, tag='kid'):
+    items = [3]
+class Singleton(type):
+    made = {}
+    def __call__(cls, *a):
+        if cls not in cls.made:
+            cls.made[cls] = super().__call__(*a)
+        return cls.made[cls]
+class Config(metaclass=Singleton):
+    def __init__(self, v=0):
+        self.v = v
+repr((Registry.classes, Child.tag, type(Child).__name__, isinstance(Child, Registry), list(Child), len(Base), Config(1) is Config(2), Config().v))
+'''),
+    ("init_subclass_keywords", "classes", r'''
+class Plugin:
+    registry = {}
+    def __init_subclass__(cls, name=None, **kw):
+        super().__init_subclass__(**kw)
+        Plugin.registry[name or cls.__name__] = cls.__name__
+class A(Plugin, name='alpha'):
+    pass
+class B(Plugin):
+    pass
+try:
+    class C(foo=1):
+        pass
+except TypeError as e:
+    err = str(e)
+repr((Plugin.registry, err))
+'''),
+    ("type_returns_types", "builtins", r'''
+X = type('X', (object,), {'v': 3, 'twice': lambda self: self.v * 2})
+repr((type(1), type('a') is str, type(X()).__name__, X().twice(), type(len).__name__, type(...).__name__, ..., issubclass(bool, int), issubclass(KeyError, LookupError)))
+'''),
+    ("lazy_builtins_and_range", "builtins", r'''
+r = range(0, 20, 3)
+m = map(str, [1, 2])
+z = zip('ab', [1, 2, 3])
+e = enumerate('xy', 1)
+repr((r, len(r), r[2], r[-1], 9 in r, 10 in r, list(r[1:3]), next(m), list(m), list(z), list(e), list(reversed(range(3))), list(filter(None, [0, 1, 2])), 10**12 in range(10**15)))
+'''),
+    ("eval_and_exec", "builtins", r'''
+ns = {}
+exec('a = 2\ndef f(x):\n    return x * a', ns)
+def local():
+    q = 5
+    return eval('q * 2')
+repr((eval('1 + 2'), ns['f'](4), local(), eval('x + y', {'x': 1, 'y': 2})))
+'''),
+    ("deep_recursion", "calls", r'''
+def depth(n):
+    return 0 if n == 0 else 1 + depth(n - 1)
+repr(depth(900))
+'''),
+    ("star_import_future_and_name", "modules", r'''
+from __future__ import annotations
+from math import *
+def f(x: Undefined) -> AlsoUndefined:
+    return x
+repr((floor(2.7), sqrt(16), f(3)))
+'''),
+    ("sys_members", "modules", r'''
+import sys
+repr((sys.version_info >= (3, 8), sys.version_info.major, sys.maxsize == 2**63 - 1, sys.byteorder, sys.getrecursionlimit() >= 1000, isinstance(sys.argv, list)))
+'''),
+    ("collections_abc_checks", "stdlib", r'''
+from collections.abc import Mapping, MutableMapping, Sequence, MutableSequence, Iterable, Iterator, Hashable, Callable, Set
+class MyMap(Mapping):
+    def __init__(self):
+        self.d = {'a': 1}
+    def __getitem__(self, k):
+        return self.d[k]
+    def __iter__(self):
+        return iter(self.d)
+    def __len__(self):
+        return len(self.d)
+m = MyMap()
+repr((isinstance({}, MutableMapping), isinstance([], Sequence), isinstance((), MutableSequence), isinstance('a', Iterable), isinstance(iter([]), Iterator), isinstance([], Hashable), isinstance(len, Callable), isinstance({}.keys(), Set), isinstance(m, Mapping), m.get('z', 0), 'a' in m, dict(m.items())))
+'''),
+    ("contextlib_and_types", "stdlib", r'''
+from contextlib import contextmanager, suppress, ExitStack, redirect_stdout
+import io, types
+log = []
+@contextmanager
+def tag(name):
+    log.append('<' + name)
+    try:
+        yield name.upper()
+    except ValueError:
+        log.append('caught')
+    log.append(name + '>')
+with tag('a') as v:
+    log.append(v)
+with tag('b'):
+    raise ValueError()
+with suppress(KeyError):
+    {}['x']
+with ExitStack() as stack:
+    stack.callback(log.append, 'stack')
+buf = io.StringIO()
+with redirect_stdout(buf):
+    print('captured', end='!')
+ns = types.SimpleNamespace(x=1, y=2)
+repr((log, buf.getvalue(), ns, isinstance(tag, types.FunctionType)))
+'''),
+    ("logging_and_warnings", "stdlib", r'''
+import io, logging, warnings
+stream = io.StringIO()
+log = logging.getLogger('app.part')
+handler = logging.StreamHandler(stream)
+handler.setFormatter(logging.Formatter('%(levelname)s %(name)s: %(message)s'))
+log.addHandler(handler)
+log.setLevel(logging.INFO)
+log.debug('hidden')
+log.info('n=%d', 3)
+log.warning('careful')
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter('always')
+    warnings.warn('old', DeprecationWarning)
+repr((stream.getvalue(), [str(w.message) for w in caught], caught[0].category.__name__, logging.getLevelName(logging.ERROR)))
+'''),
+    ("small_stdlib_modules", "stdlib", r'''
+import heapq, bisect, operator, keyword, os.path, fnmatch, unicodedata
+h = [5, 1, 4, 2]
+heapq.heapify(h)
+first = [heapq.heappop(h), heapq.heappop(h)]
+xs = [1, 3, 5]
+bisect.insort(xs, 4)
+repr((first, heapq.nlargest(2, [3, 9, 1]), bisect.bisect_left(xs, 4), xs, operator.itemgetter(1, 0)('ab'), operator.attrgetter('real')(3), keyword.iskeyword('yield'), os.path.join('a', 'b', '../c'), os.path.normpath('a/b/../c'), os.path.splitext('f.tar.gz'), fnmatch.fnmatch('data.csv', '*.csv'), unicodedata.normalize('NFD', 'é') == 'é', unicodedata.category('Ä'), unicodedata.decimal('٣')))
+'''),
+    ("regex_verbose_and_ascii", "regex", r'''
+import re
+p = re.compile(r"""
+    (\d+)    # digits
+    \s*
+    ([a-z]+) # word
+""", re.VERBOSE)
+repr((p.findall('12 ab 3cd'), re.findall(r'\w+', 'naïve café', re.ASCII), re.findall(r'(?x) a b # spaced', 'ab'), re.X == re.VERBOSE))
+'''),
+    ("str_format_fields", "strings", r'''
+class P:
+    name = 'pt'
+    def __format__(self, spec):
+        return 'P:' + spec
+d = {'k': [10, 20]}
+try:
+    '{} {0}'.format(1)
+except ValueError as e:
+    err = str(e)
+try:
+    '%s' % (1, 2)
+except TypeError as e:
+    extra = str(e)
+repr(('{0.name}|{1[k][1]}|{2!r}|{3:>{4}}|{p:x}'.format(P, d, 'q', 'ab', 5, p=P()), '{:,}'.format(1234567), err, '%(a)s-%(b)03d' % {'a': 'x', 'b': 7}, '%s and %r' % ('a', 'b'), extra))
+'''),
+    ("dict_views_are_live", "builtins", r'''
+d = {'a': 1, 'b': 2}
+k = d.keys()
+v = d.values()
+i = d.items()
+d['c'] = 3
+repr((k, list(v), ('a', 1) in i, k & {'a', 'z'}, k | {'q'} == {'a', 'b', 'c', 'q'}, k - {'a', 'b'}, len(i), list(reversed(k)), k == {'a', 'b', 'c'}))
+'''),
+    ("numbers_parts_and_float_sums", "numbers", r'''
+repr(((5).real, (5).imag, (5).numerator, (5).denominator, (2.5).real, (255).bit_count(), (0.75).as_integer_ratio(), (3.0).is_integer(), sum([0.1] * 10), sum([1e100, 1.0, -1e100])))
+'''),
+    ("exception_context_and_reraise", "errors", r'''
+def chained():
+    try:
+        {}['k']
+    except KeyError:
+        raise ValueError('wrapped')
+try:
+    chained()
+except ValueError as e:
+    ctx = (type(e.__context__).__name__, e.__cause__)
+try:
+    try:
+        raise TypeError('a')
+    except TypeError as t:
+        raise ValueError('b') from t
+except ValueError as e:
+    same = e.__cause__ is e.__context__
+class AppError(Exception):
+    def __init__(self, code):
+        super().__init__(f'code {code}')
+        self.code = code
+try:
+    raise AppError(7)
+except Exception as e:
+    app = (str(e), e.code, e.args)
+import sys
+try:
+    sys.exit(3)
+except SystemExit as e:
+    code = e.args
+repr((ctx, same, app, code))
+'''),
+    ("time_struct_and_strftime", "stdlib", r'''
+import time
+t = time.gmtime(1700000000)
+y, m, d, *_ = t
+repr((t.tm_year, t[1], (y, m, d), time.strftime('%Y-%m-%d %H:%M:%S', t), time.asctime(t), type(time.time_ns()).__name__, time.strptime('2024-03-05', '%Y-%m-%d')[:3], len(t)))
+'''),
 ]
 
 
@@ -311,8 +640,13 @@ out = ['''//! What Python itself does, where PyMini did otherwise or had nothing
 //! frozenset and bytearray, keyword arguments of builtins, slice and starred
 //! assignment, `raise … from`, `re.compile` and lookaround, json options,
 //! int literals, `#` formats, the math, str and itertools additions, whitespace
-//! splits, exact integer comparisons, `range` loops past the container cap, and
-//! the wording of call and division errors.
+//! splits, exact integer comparisons, `range` loops past the container cap,
+//! the wording of call and division errors, generators, the walrus, scoping,
+//! `match`, multiple inheritance, metaclasses and class keywords, `type()`,
+//! lazy builtins and `range`, `eval` and `exec`, deep recursion, star and
+//! `__future__` imports, `sys`, `collections.abc`, `contextlib`, `types`,
+//! `logging`, `warnings`, the small modules, verbose regexes, `str.format`
+//! fields, dict views, number parts and float sums, exception context, and `time`.
 
 mod common;
 use common::big_stack;

@@ -80,10 +80,16 @@ needs:
 
 - functions with defaults, `*args`, `**kwargs` and keyword-only parameters,
   `lambda`, decorators
-- `class` with single inheritance, `super()`, `@property`, `@staticmethod`,
-  `@classmethod`, and the usual `__dunder__` methods
+- `class` with one base or several (in Python's method order), `super()`,
+  `@property`, `@staticmethod`, `@classmethod`, the usual `__dunder__`
+  methods, metaclasses, and class keywords such as
+  `class Tool(Plugin, name="ocr")` for `__init_subclass__`
 - `if`, `for`, `while`, `try`/`except`/`finally`, `raise`, `with`, `assert`,
-  `global`, `nonlocal`, `del`
+  `global`, `nonlocal`, `del`, and `match`/`case` with Python's patterns
+- generators: `yield`, `yield from`, `send`, `throw` and `close`, and generator
+  expressions, which run only as far as something asks
+- the walrus `:=`, `...`, `eval` and `exec`, `from module import *`, and
+  `from __future__ import annotations`
 - list, dict and set comprehensions, f-strings (`{x=}` too), slicing, slice
   assignment, unpacking with a starred target (`first, *rest = items`), type
   annotations (read and ignored)
@@ -97,24 +103,34 @@ needs:
   `1.0` are one key; `__hash__` and `__eq__` decide for your classes),
   `frozenset`, `bytearray`, and `re.compile` with lookahead, lookbehind and
   backreferences
+- `type(x)` answers with the type (`type(1) is int`), and `d.keys()`,
+  `d.values()` and `d.items()` are live views of the dict, as in Python
 
-Not there: `yield` and generators, `async` and `await`, `match`, the walrus
-`:=`, `eval`, `exec`, `compile`, `open` and `__import__`. A script that uses
-one is refused with a message that names it.
+Not there: `async` and `await`, `compile`, `open` and `__import__`, big
+integers, and subclasses of `dict`, `list` or `str`. A script that uses
+`async` is refused with a message that names it.
 
 **Modules you can import:**
 
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `base64`, `collections`, `copy`, `dataclasses`, `datetime`, `enum`, `functools`, `hashlib`, `hmac`, `html`, `itertools`, `statistics`, `string`, `textwrap`, `typing`, `urllib.parse`, `uuid` |
+| Python's own | `abc`, `base64`, `bisect`, `collections`, `collections.abc`, `contextlib`, `copy`, `dataclasses`, `datetime`, `enum`, `fnmatch`, `functools`, `hashlib`, `heapq`, `hmac`, `html`, `io`, `itertools`, `keyword`, `logging`, `numbers`, `operator`, `os.path`, `statistics`, `string`, `textwrap`, `traceback`, `types`, `typing`, `unicodedata`, `urllib.parse`, `uuid`, `warnings` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
 `time` has `time()`, `monotonic()`, `parts(seconds)` (a dict of `year`,
 `month`, `day`, `hour`, `minute`, `second`, `weekday`, `yearday`) and
 `format(pattern, seconds)` with Java date patterns such as
-`"EEE d MMM yyyy"`. In `itertools`, `count`, `cycle` and `repeat` are endless
+`"EEE d MMM yyyy"`, and Python's own `localtime`, `gmtime`, `strftime`,
+`strptime`, `mktime`, `asctime`, `perf_counter` and `time_ns`. It has no
+`sleep`: a plugin waits with a timer. `sys` has `version_info` (3.12),
+`platform` (`"android"`), `maxsize`, `argv`, `exit`, `getrecursionlimit` and
+`setrecursionlimit`. `sys.stdout.write`, `print(..., file=sys.stderr)`,
+`logging` and `warnings` all write to the plugin's log, where `print` goes.
+`os` is only its path functions and an empty `environ`: files go through
+[`wm.storage`](#storage) and [`wm.files`](#files). `unicodedata` has normal
+forms, categories and digit values, but not character names. In `itertools`, `count`, `cycle` and `repeat` are endless
 iterators: `islice`, `takewhile`, `zip` and `next()` take only what they need
 from them. `typing.NamedTuple` classes unpack and compare like tuples. The
 [classic reference](/plugins/api-reference/#the-python-you-get) has more detail

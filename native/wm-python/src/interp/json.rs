@@ -2,7 +2,7 @@
 //! The encoder walks values directly so dict order survives a round trip, and
 //! the decoder keeps object keys in file order.
 
-use indexmap::IndexMap;
+use super::value::DictMap;
 
 use super::error::{AbortKind, PyError};
 use super::text::{graphemes, longer_than, parse_swift_double, parse_swift_int, str_compare};
@@ -261,7 +261,7 @@ impl Parser<'_, '_> {
 
     fn obj(&mut self) -> Res<Value> {
         self.i += 1;
-        let mut d = IndexMap::new();
+        let mut d = DictMap::default();
         self.skip_space();
         if self.at() == Some("}") {
             self.i += 1;

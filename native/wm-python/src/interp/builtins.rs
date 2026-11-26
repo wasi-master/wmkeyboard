@@ -1,16 +1,16 @@
 //! Port of PyBuiltins.kt: the global functions a script can call without
 //! importing anything. Anything that reaches outside the script (`open`,
-//! `input`, `eval`, `__import__`) was never written, so those names don't resolve.
+//! `input`, `__import__`) was never written, so those names don't resolve;
+//! `eval` and `exec` run code in the same interpreter, with the same reach.
 
 use std::rc::Rc;
-
-use indexmap::{IndexMap, IndexSet};
 
 use super::ast::BinOp;
 use super::bytes::{encode, ByteError};
 use super::error::{Exc, R};
 use super::eval::Interp;
 use super::format::py_format;
+use super::generators::{iterator_object, Iter};
 use super::text::{decimal_value, grapheme_count, longer_than, parse_swift_double, trim_whitespaces};
 use super::value::*;
 
@@ -40,6 +40,37 @@ pub(crate) const EXCEPTION_KINDS: &[&str] = &[
     "TimeoutError",
     "ConnectionError",
     "FileNotFoundError",
+    "UnboundLocalError",
+    "GeneratorExit",
+    "BaseException",
+    "SystemExit",
+    "KeyboardInterrupt",
+    "RecursionError",
+    "ModuleNotFoundError",
+    "UnicodeEncodeError",
+    "EOFError",
+    "FloatingPointError",
+    "SyntaxError",
+    "IndentationError",
+    "FileExistsError",
+    "IsADirectoryError",
+    "NotADirectoryError",
+    "BlockingIOError",
+    "ConnectionRefusedError",
+    "ConnectionResetError",
+    "ConnectionAbortedError",
+    "BrokenPipeError",
+    "Warning",
+    "UserWarning",
+    "DeprecationWarning",
+    "PendingDeprecationWarning",
+    "RuntimeWarning",
+    "SyntaxWarning",
+    "FutureWarning",
+    "ImportWarning",
+    "UnicodeWarning",
+    "BytesWarning",
+    "ResourceWarning",
 ];
 
 /// Names that resolve to a builtin when nothing else is bound to them.
@@ -53,14 +84,29 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "getattr", "setattr", "hasattr", "delattr", "vars", "iter", "next", "property", "staticmethod", "classmethod",
     "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
     "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
-    "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii",
+    "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii", "UnboundLocalError", "GeneratorExit",
+    "eval", "exec", "Ellipsis", "globals", "locals", "dir",
 ];
+
+/// The builtins that are types: `type(x)` answers with one, and `str()` of
+/// one reads `<class 'int'>`.
+pub(crate) fn is_type_name(name: &str) -> bool {
+    matches!(
+        name,
+        "int" | "float" | "str" | "bool" | "list" | "dict" | "set" | "tuple" | "bytes" | "object" | "type" | "range"
+            | "slice" | "NoneType" | "function" | "builtin_function_or_method" | "module" | "method" | "generator"
+            | "map" | "filter" | "zip" | "enumerate" | "reversed" | "property" | "staticmethod" | "classmethod"
+            | "super" | "re.Match" | "re.Pattern" | "ellipsis" | "NotImplementedType" | "dict_keys" | "dict_values"
+            | "dict_items"
+    ) || name.ends_with("_iterator")
+        || EXCEPTION_KINDS.contains(&name)
+}
 
 /// Whether [name] is one of [BUILTIN_NAMES], by a hash lookup rather than a
 /// walk down the list: every builtin a script names goes through here.
 pub(crate) fn is_builtin_name(name: &str) -> bool {
     static SET: std::sync::OnceLock<std::collections::HashSet<&'static str, super::fxhash::FxBuild>> = std::sync::OnceLock::new();
-    SET.get_or_init(|| BUILTIN_NAMES.iter().copied().collect()).contains(name)
+    SET.get_or_init(|| BUILTIN_NAMES.iter().chain(EXCEPTION_KINDS).copied().collect()).contains(name)
 }
 
 /// Builtins written in Python (`src/stdlib/_builtins.py`), loaded the first
@@ -83,10 +129,12 @@ fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
 
 impl Interp {
     #[inline(never)]
-    pub(crate) fn call_builtin(&mut self, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+    /// A builtin called with these arguments, which it only reads: a call
+    /// site can hand them over from the stack, with nothing allocated.
+    pub(crate) fn call_builtin(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         if let Some(path) = name.strip_prefix(super::methods::UNBOUND_PREFIX) {
             let path = path.to_string();
-            return self.call_type_member(&path, args, kwargs);
+            return self.call_type_member(&path, args.to_vec(), kwargs.to_vec());
         }
         // Every exception name is capitalised, and no other builtin is.
         if name.as_bytes().first().is_some_and(u8::is_ascii_uppercase) && EXCEPTION_KINDS.contains(&name) {
@@ -96,40 +144,40 @@ impl Interp {
                 0 => String::new(),
                 1 if name == "KeyError" => self.to_repr(&args[0])?,
                 1 => self.to_str(&args[0])?,
-                _ => self.to_repr(&Value::tuple(args.clone()))?,
+                _ => self.to_repr(&Value::tuple(args.to_vec()))?,
             };
-            return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args, cause: None })));
+            return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args: args.to_vec(), cause: None, context: None })));
         }
         // The common builtins first; the ones classes brought after.
         match name {
             "len" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 Ok(Value::Int(self.length(&args[0])? as i64))
             }
-            "str" => match (args.first().or_else(|| kwarg(&kwargs, "object")), args.get(1).or_else(|| kwarg(&kwargs, "encoding"))) {
+            "str" => match (args.first().or_else(|| kwarg(kwargs, "object")), args.get(1).or_else(|| kwarg(kwargs, "encoding"))) {
                 // str(data, "utf-8") decodes, as bytes.decode does.
                 (Some(Value::Bytes(_)), Some(_)) => {
                     let mut rest: Vec<Value> = args.iter().skip(1).cloned().collect();
                     if rest.is_empty() {
-                        rest.extend(kwarg(&kwargs, "encoding").cloned());
+                        rest.extend(kwarg(kwargs, "encoding").cloned());
                     }
-                    let errors = kwarg(&kwargs, "errors").cloned().map(|e| vec![(Rc::from("errors"), e)]).unwrap_or_default();
+                    let errors = kwarg(kwargs, "errors").cloned().map(|e| vec![(Rc::from("errors"), e)]).unwrap_or_default();
                     self.call_method(&args[0], "decode", rest, errors)
                 }
                 (Some(v), _) => Ok(Value::str(self.to_str(v)?)),
                 (None, _) => Ok(Value::str("")),
             },
             "repr" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 Ok(Value::str(self.to_repr(&args[0])?))
             }
             "ascii" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 Ok(Value::str(ascii_escape(&self.to_repr(&args[0])?)))
             }
             "print" => {
                 let text_kwarg = |me: &Interp, key: &str, default: &str| -> R<String> {
-                    match kwarg(&kwargs, key) {
+                    match kwarg(kwargs, key) {
                         None | Some(Value::None) => Ok(default.to_string()),
                         Some(Value::Str(s)) => Ok(s.to_string()),
                         Some(other) => Err(me.error(format!("{key} must be None or a string, not {}", other.type_name()), "TypeError")),
@@ -138,8 +186,24 @@ impl Interp {
                 let sep = text_kwarg(self, "sep", " ")?;
                 let end = text_kwarg(self, "end", "\n")?;
                 let mut parts = Vec::with_capacity(args.len());
-                for a in &args {
+                for a in args {
                     parts.push(self.to_str(a)?);
+                }
+                // `file=` anything but the standard streams (or `sys.stdout` set
+                // to something else): its `write` gets the text.
+                let file = match kwarg(kwargs, "file") {
+                    None | Some(Value::None) => self.stdout_target.clone(),
+                    Some(Value::Module(m)) if m.as_ref() == "sys.stdout" || m.as_ref() == "sys.stderr" => None,
+                    Some(f) => Some(f.clone()),
+                };
+                match file {
+                    None => {}
+                    Some(f) => {
+                        let write = self.attribute(&f, "write")?;
+                        let text = parts.join(&sep) + &end;
+                        self.call_value(&write, vec![Value::str(text)], Vec::new())?;
+                        return Ok(Value::None);
+                    }
                 }
                 // Each print is one line of output; `end` other than a line end
                 // leaves the line open for the next print to carry on.
@@ -165,8 +229,8 @@ impl Interp {
                 Ok(Value::None)
             }
             "int" => {
-                let mut all = args.clone();
-                if let Some(b) = kwarg(&kwargs, "base") {
+                let mut all = args.to_vec();
+                if let Some(b) = kwarg(kwargs, "base") {
                     if all.is_empty() {
                         return Err(self.error("int() missing string argument", "TypeError"));
                     }
@@ -175,34 +239,80 @@ impl Interp {
                 }
                 self.to_int(&all)
             }
-            "float" => self.to_float(&args),
+            "float" => self.to_float(args),
             "bool" => Ok(Value::Bool(args.first().is_some_and(Value::truthy))),
             "abs" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 if let Value::Int(i) = args[0] {
                     return Ok(Value::Int(i.wrapping_abs()));
                 }
                 let d = args[0].as_float().ok_or_else(|| self.error("bad operand type for abs()", "TypeError"))?;
                 Ok(Value::Float(d.abs()))
             }
-            "round" => self.round_builtin(&args, &kwargs),
-            "min" => self.minmax(&args, &kwargs, false),
-            "max" => self.minmax(&args, &kwargs, true),
+            "round" => self.round_builtin(args, kwargs),
+            "min" => self.minmax(args, kwargs, false),
+            "max" => self.minmax(args, kwargs, true),
             "sum" => {
                 let first = args.first().ok_or_else(|| self.error("sum() needs an iterable", "TypeError"))?;
-                let mut acc = args.get(1).or_else(|| kwarg(&kwargs, "start")).cloned().unwrap_or(Value::Int(0));
-                for v in self.iterate(first)? {
+                let mut acc = args.get(1).or_else(|| kwarg(kwargs, "start")).cloned().unwrap_or(Value::Int(0));
+                let mut it = self.iter_of(first)?;
+                // Floats add with Neumaier's compensation, as CPython 3.12 does:
+                // sum([0.1] * 10) is 1.0.
+                let mut lost = 0.0f64;
+                while let Some(v) = self.next_item(&mut it)? {
+                    self.tick()?;
+                    if let Value::Float(s) = acc {
+                        let x = match v {
+                            Value::Float(x) => Some(x),
+                            Value::Int(i) => Some(i as f64),
+                            _ => None,
+                        };
+                        if let Some(x) = x {
+                            let t = s + x;
+                            if t.is_finite() {
+                                lost += if s.abs() >= x.abs() { (s - t) + x } else { (x - t) + s };
+                            }
+                            acc = Value::Float(t);
+                            continue;
+                        }
+                    }
+                    if lost != 0.0 {
+                        if let Value::Float(s) = acc {
+                            acc = Value::Float(s + lost);
+                        }
+                        lost = 0.0;
+                    }
                     acc = self.binary_op(BinOp::Add, &acc, &v)?;
+                }
+                if let Value::Float(s) = acc {
+                    if lost != 0.0 && lost.is_finite() {
+                        acc = Value::Float(s + lost);
+                    }
                 }
                 Ok(acc)
             }
-            "range" => self.range_builtin(&args),
-            "sorted" => self.sorted_builtin(&args, &kwargs),
+            "range" => self.range_builtin(args),
+            "sorted" => self.sorted_builtin(args, kwargs),
             "reversed" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
+                if let Value::Object(o) = &args[0] {
+                    if let Object::Range(a, b, c) = o.as_ref() {
+                        let n = range_len(*a, *b, *c);
+                        let last = a + (n - 1) * c;
+                        let it = Iter::Range { next: (n > 0).then_some(last), stop: a - c, step: -c };
+                        return Ok(iterator_object("range_iterator", it));
+                    }
+                }
+                if let Some(r) = self.dunder(&args[0], "__reversed__", Vec::new())? {
+                    return Ok(r);
+                }
+                let view = matches!(&args[0], Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)));
+                if !view && !matches!(&args[0], Value::List(_) | Value::Tuple(_) | Value::Str(_) | Value::Bytes(_) | Value::Instance(_) | Value::Dict(_)) {
+                    return Err(self.error(format!("'{}' object is not reversible", args[0].type_name()), "TypeError"));
+                }
                 let mut items = self.iterate(&args[0])?;
                 items.reverse();
-                Ok(Value::list(items))
+                Ok(iterator_object("reversed", Iter::Items(items.into_iter())))
             }
             "list" => Ok(Value::list(match args.first() {
                 Some(a) => self.iterate(a)?,
@@ -213,7 +323,7 @@ impl Interp {
                 None => Vec::new(),
             })),
             "set" => {
-                let mut s = IndexSet::new();
+                let mut s = KeySet::default();
                 if let Some(a) = args.first() {
                     for v in self.iterate(a)? {
                         s.insert(self.hashable(&v)?);
@@ -221,89 +331,43 @@ impl Interp {
                 }
                 Ok(Value::new_set(s))
             }
-            "dict" => self.dict_builtin(&args, &kwargs),
+            "dict" => self.dict_builtin(args, kwargs),
             "enumerate" => {
                 let first = args.first().ok_or_else(|| self.error("enumerate() needs an iterable", "TypeError"))?;
-                let start = args.get(1).or_else(|| kwarg(&kwargs, "start")).and_then(Value::as_int).unwrap_or(0);
-                let items = self.iterate(first)?;
-                Ok(Value::list(
-                    items.into_iter().enumerate().map(|(o, v)| Value::tuple(vec![Value::Int(start + o as i64), v])).collect(),
-                ))
+                let start = args.get(1).or_else(|| kwarg(kwargs, "start")).and_then(Value::as_int).unwrap_or(0);
+                let it = self.iter_of(first)?;
+                Ok(iterator_object("enumerate", Iter::Enumerate(Box::new(it), start)))
             }
             "zip" => {
-                // An iterator object (itertools.count(), anything with __next__)
-                // gives only as many items as the shortest other argument has,
-                // so zip(count(1), names) works on an endless one.
-                let lazy = |v: &Value| matches!(v, Value::Instance(i) if i.class.lookup("__next__").is_some());
-                let mut known: Vec<Option<Vec<Value>>> = Vec::new();
-                for a in &args {
-                    known.push(if lazy(a) { None } else { Some(self.iterate(a)?) });
+                let mut sources = Vec::with_capacity(args.len());
+                for a in args {
+                    sources.push(self.iter_of(a)?);
                 }
-                let finite = known.iter().flatten().map(Vec::len).min();
-                let mut seqs = Vec::new();
-                for (a, k) in args.iter().zip(known) {
-                    seqs.push(match (k, finite) {
-                        (Some(items), _) => items,
-                        (None, None) => self.iterate(a)?,
-                        (None, Some(n)) => {
-                            let mut items = Vec::with_capacity(n);
-                            while items.len() < n {
-                                self.tick()?;
-                                match self.dunder(a, "__next__", Vec::new()) {
-                                    Ok(Some(v)) => items.push(v),
-                                    Ok(None) => break,
-                                    Err(Exc::Error(e)) if !e.is_abort() && e.kind == "StopIteration" => break,
-                                    Err(e) => return Err(e),
-                                }
-                            }
-                            items
-                        }
-                    });
-                }
-                let Some(shortest) = seqs.iter().map(Vec::len).min() else {
-                    return Ok(Value::list(Vec::new()));
-                };
-                if kwarg(&kwargs, "strict").is_some_and(Value::truthy) && seqs.iter().any(|s| s.len() != shortest) {
-                    return Err(self.error("zip() arguments have different lengths", "ValueError"));
-                }
-                Ok(Value::list((0..shortest).map(|i| Value::tuple(seqs.iter().map(|s| s[i].clone()).collect())).collect()))
+                let strict = kwarg(kwargs, "strict").is_some_and(Value::truthy);
+                Ok(iterator_object("zip", if sources.is_empty() { Iter::Empty } else { Iter::Zip(sources, strict) }))
             }
             "map" => {
                 if args.len() < 2 {
-                    return Err(self.error("map() needs a function and an iterable", "TypeError"));
+                    return Err(self.error("map() must have at least two arguments.", "TypeError"));
                 }
-                let mut seqs = Vec::new();
+                let mut sources = Vec::with_capacity(args.len() - 1);
                 for a in &args[1..] {
-                    seqs.push(self.iterate(a)?);
+                    sources.push(self.iter_of(a)?);
                 }
-                let count = seqs.iter().map(Vec::len).min().unwrap_or(0);
-                let mut out = Vec::new();
-                for i in 0..count {
-                    self.tick()?;
-                    out.push(self.invoke(&args[0], seqs.iter().map(|s| s[i].clone()).collect())?);
-                }
-                Ok(Value::list(out))
+                Ok(iterator_object("map", Iter::Map(Box::new((args[0].clone(), sources)))))
             }
             "filter" => {
                 if args.len() != 2 {
-                    return Err(self.error("filter() needs a function and an iterable", "TypeError"));
+                    return Err(self.error(format!("filter expected 2 arguments, got {}", args.len()), "TypeError"));
                 }
-                let mut out = Vec::new();
-                for v in self.iterate(&args[1])? {
-                    self.tick()?;
-                    // filter(None, xs) keeps the truthy items, as in Python.
-                    let keep = if args[0].is_none() { v.truthy() } else { self.invoke(&args[0], vec![v.clone()])?.truthy() };
-                    if keep {
-                        out.push(v);
-                    }
-                }
-                Ok(Value::list(out))
+                let it = self.iter_of(&args[1])?;
+                Ok(iterator_object("filter", Iter::Filter(Box::new((args[0].clone(), it)))))
             }
             "divmod" => {
-                self.arity(name, &args, 2)?;
+                self.arity(name, args, 2)?;
                 // One message for both halves, as CPython gives.
                 if args[1].as_float() == Some(0.0) && args[0].as_float().is_some() {
-                    let message = if matches!(args[0], Value::Float(_)) || matches!(args[1], Value::Float(_)) {
+                    let message = if matches!(&args[0], Value::Float(_)) || matches!(&args[1], Value::Float(_)) {
                         "float divmod()"
                     } else {
                         "integer division or modulo by zero"
@@ -324,9 +388,9 @@ impl Interp {
                 }
                 self.binary_op(BinOp::Mod, &p, &args[2])
             }
-            "hex" => self.radix_string(&args, 16, "0x"),
-            "bin" => self.radix_string(&args, 2, "0b"),
-            "oct" => self.radix_string(&args, 8, "0o"),
+            "hex" => self.radix_string(args, 16, "0x"),
+            "bin" => self.radix_string(args, 2, "0b"),
+            "oct" => self.radix_string(args, 8, "0o"),
             "format" => {
                 let v = args.first().ok_or_else(|| self.error("format() needs a value", "TypeError"))?;
                 let spec = args.get(1).map(py_str).unwrap_or_default();
@@ -340,12 +404,16 @@ impl Interp {
                 Ok(Value::str(py_format(v, &spec)?))
             }
             "isinstance" => {
-                self.arity(name, &args, 2)?;
-                Ok(Value::Bool(self.is_instance(&args[0], &args[1])))
+                self.arity(name, args, 2)?;
+                if self.is_instance(&args[0], &args[1]) {
+                    return Ok(Value::Bool(true));
+                }
+                Ok(Value::Bool(self.instance_hook(&args[0], &args[1])?))
             }
             "callable" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 Ok(Value::Bool(match &args[0] {
+                    Value::Builtin(n) if matches!(n.as_ref(), "Ellipsis" | "NotImplemented") => false,
                     Value::Function(_) | Value::Builtin(_) | Value::ModuleFunction(_) | Value::HostFunction(_) | Value::Class(_) => true,
                     Value::Object(o) => matches!(o.as_ref(), Object::Bound(..) | Object::StaticMethod(_) | Object::ClassMethod(_)),
                     Value::Instance(i) => i.class.lookup("__call__").is_some(),
@@ -353,43 +421,59 @@ impl Interp {
                 }))
             }
             "ord" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 match &args[0] {
                     Value::Str(s) if grapheme_count(s) == 1 => Ok(Value::Int(s.chars().next().unwrap() as i64)),
                     _ => Err(self.error("ord() expected a character", "TypeError")),
                 }
             }
             "chr" => {
-                self.arity(name, &args, 1)?;
+                self.arity(name, args, 1)?;
                 match args[0].as_int() {
                     Some(i) if is_scalar(i) => Ok(Value::str(char::from_u32(i as u32).unwrap().to_string())),
                     _ => Err(self.error("chr() arg not in range", "ValueError")),
                 }
             }
-            "any" => {
-                self.arity(name, &args, 1)?;
-                Ok(Value::Bool(self.iterate(&args[0])?.iter().any(Value::truthy)))
-            }
-            "all" => {
-                self.arity(name, &args, 1)?;
-                Ok(Value::Bool(self.iterate(&args[0])?.iter().all(Value::truthy)))
-            }
-            "type" => {
-                self.arity(name, &args, 1)?;
-                // PyMini answers with a name. An instance answers with its class,
-                // which is what `type(self).__name__` and `type(x) is Point` need.
-                match &args[0] {
-                    Value::Instance(i) => Ok(Value::Class(i.class.clone())),
-                    other => Ok(Value::str(other.type_name())),
+            // Both stop at the first item that settles the answer.
+            "any" | "all" => {
+                self.arity(name, args, 1)?;
+                let want = name == "any";
+                let mut it = self.iter_of(&args[0])?;
+                while let Some(v) = self.next_item(&mut it)? {
+                    if self.truth(&v)? == want {
+                        return Ok(Value::Bool(want));
+                    }
                 }
+                Ok(Value::Bool(!want))
             }
+            "type" => match args.len() {
+                1 => Ok(self.type_of(&args[0])),
+                3 => self.type_new(None, args, kwargs),
+                _ => Err(self.error("type() takes 1 or 3 arguments", "TypeError")),
+            },
             "bytes" => {
-                let mut all = args.clone();
-                if let (1, Some(enc)) = (all.len(), kwarg(&kwargs, "encoding")) {
+                let mut all = args.to_vec();
+                if let (1, Some(enc)) = (all.len(), kwarg(kwargs, "encoding")) {
                     all.push(enc.clone());
                 }
                 self.bytes_builtin(&all)
             }
+            // Called from somewhere that knows no scope: in the main module.
+            "eval" | "exec" => self.eval_exec(name, args, None),
+            "globals" | "locals" => {
+                let g = self.globals.clone();
+                self.scope_builtin(name, &g)
+            }
+            "dir" => match args.first() {
+                None => {
+                    let g = self.globals.clone();
+                    self.scope_builtin(name, &g)
+                }
+                Some(v) => {
+                    let v = v.clone();
+                    self.dir_of(&v)
+                }
+            },
             "slice" => {
                 let (a, b, c) = match args.len() {
                     1 => (Value::None, args[0].clone(), Value::None),
@@ -399,7 +483,7 @@ impl Interp {
                 };
                 Ok(Value::Object(Rc::new(Object::Slice(a, b, c))))
             }
-            _ => match self.class_builtin(name, &args, &kwargs)? {
+            _ => match self.class_builtin(name, args, kwargs)? {
                 Some(v) => Ok(v),
                 None => Err(self.error(format!("name '{name}' is not defined"), "NameError")),
             },
@@ -424,9 +508,24 @@ impl Interp {
             Value::Set(s) => s.borrow().len(),
             Value::Dict(d) => d.borrow().len(),
             Value::Bytes(b) => b.len(),
+            Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) => {
+                let Object::DictView(_, d) = o.as_ref() else { unreachable!() };
+                d.borrow().len()
+            }
             Value::Class(c) => {
                 let c = c.clone();
+                if let Some(f) = self.meta_method(&c, "__len__") {
+                    let n = self.call_value(&f, Vec::new(), Vec::new())?;
+                    return match n.as_int() {
+                        Some(n) if n >= 0 => Ok(n as usize),
+                        _ => Err(self.error("__len__() should return an int >= 0", "TypeError")),
+                    };
+                }
                 self.iterate_class(&c)?.len()
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => {
+                let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
+                range_len(*a, *b, *c) as usize
             }
             Value::Instance(_) => match self.dunder(v, "__len__", Vec::new())? {
                 Some(n) => match n.as_int() {
@@ -509,20 +608,25 @@ impl Interp {
     }
 
     fn minmax(&mut self, args: &[Value], kwargs: &[(Rc<str>, Value)], want_max: bool) -> R<Value> {
-        let items = if args.len() == 1 { self.iterate(&args[0])? } else { args.to_vec() };
-        let key = kwarg(kwargs, "key").cloned();
-        if items.is_empty() {
+        if args.is_empty() {
+            return Err(self.error(format!("{} expected at least 1 argument, got 0", if want_max { "max" } else { "min" }), "TypeError"));
+        }
+        // One iterable, or the arguments themselves.
+        let mut items = if args.len() == 1 { Some(self.iter_of(&args[0])?) } else { None };
+        let mut at = 0;
+        let key = kwarg(kwargs, "key").filter(|k| !k.is_none()).cloned();
+        let Some(first) = self.minmax_next(&mut items, args, &mut at)? else {
             if let Some(d) = kwarg(kwargs, "default") {
                 return Ok(d.clone());
             }
-            return Err(self.error(format!("{}() arg is an empty sequence", if want_max { "max" } else { "min" }), "ValueError"));
-        }
-        let mut best = items[0].clone();
+            return Err(self.error(format!("{}() iterable argument is empty", if want_max { "max" } else { "min" }), "ValueError"));
+        };
+        let mut best = first;
         let mut best_key = match &key {
             Some(k) => self.invoke(k, vec![best.clone()])?,
             None => best.clone(),
         };
-        for v in items.into_iter().skip(1) {
+        while let Some(v) = self.minmax_next(&mut items, args, &mut at)? {
             self.tick()?;
             let k = match &key {
                 Some(f) => self.invoke(f, vec![v.clone()])?,
@@ -537,38 +641,55 @@ impl Interp {
         Ok(best)
     }
 
+    fn minmax_next(&mut self, items: &mut Option<Iter>, args: &[Value], at: &mut usize) -> R<Option<Value>> {
+        match items {
+            Some(it) => self.next_item(it),
+            None => {
+                *at += 1;
+                Ok(args.get(*at - 1).cloned())
+            }
+        }
+    }
+
+    /// `type(v)`: an instance's class, or the builtin type of anything else.
+    pub(crate) fn type_of(&self, v: &Value) -> Value {
+        match v {
+            Value::Instance(i) => Value::Class(i.class.clone()),
+            Value::Class(c) => c.meta.clone().map(Value::Class).unwrap_or_else(|| Value::Builtin(Rc::from("type"))),
+            Value::Builtin(n) if n.as_ref() == "Ellipsis" => Value::Builtin(Rc::from("ellipsis")),
+            Value::Builtin(n) if is_type_name(n) => Value::Builtin(Rc::from("type")),
+            Value::Builtin(n) if n.as_ref() == "NotImplemented" => Value::Builtin(Rc::from("NotImplementedType")),
+            Value::Builtin(n) if !is_type_name(n) && !n.starts_with(super::methods::UNBOUND_PREFIX) => {
+                Value::Builtin(Rc::from("builtin_function_or_method"))
+            }
+            Value::HostFunction(_) | Value::ModuleFunction(_) => Value::Builtin(Rc::from("builtin_function_or_method")),
+            other => Value::Builtin(Rc::from(other.type_name())),
+        }
+    }
+
     fn range_builtin(&self, args: &[Value]) -> R<Value> {
         let mut nums = Vec::new();
         for a in args {
-            nums.push(a.as_int().ok_or_else(|| self.error("range() argument must be an integer", "TypeError"))?);
+            nums.push(a.as_int().ok_or_else(|| {
+                self.error(format!("'{}' object cannot be interpreted as an integer", a.type_name()), "TypeError")
+            })?);
         }
         let (start, stop, step) = match nums.len() {
             1 => (0, nums[0], 1),
             2 => (nums[0], nums[1], 1),
             3 => (nums[0], nums[1], nums[2]),
-            _ => return Err(self.error("range() takes 1 to 3 arguments", "TypeError")),
+            0 => return Err(self.error("range expected at least 1 argument, got 0", "TypeError")),
+            n => return Err(self.error(format!("range expected at most 3 arguments, got {n}"), "TypeError")),
         };
         if step == 0 {
-            return Err(self.error("range() step must not be zero", "ValueError"));
+            return Err(self.error("range() arg 3 must not be zero", "ValueError"));
         }
-        let mut out = Vec::new();
-        let mut i = start;
-        while (step > 0 && i < stop) || (step < 0 && i > stop) {
-            out.push(Value::Int(i));
-            if out.len() > self.max_container {
-                return Err(self.container_abort("range"));
-            }
-            i = match i.checked_add(step) {
-                Some(n) => n,
-                None => break,
-            };
-        }
-        Ok(Value::list(out))
+        Ok(Value::Object(Rc::new(Object::Range(start, stop, step))))
     }
 
     /// `dict()`, `dict(mapping)`, `dict(pairs)`, each with `key=value` keywords on top.
     fn dict_builtin(&mut self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
-        let mut d = IndexMap::new();
+        let mut d = DictMap::default();
         if let Some(first) = args.first() {
             let pairs = match first {
                 Value::Dict(src) => src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
@@ -593,7 +714,7 @@ impl Interp {
         self.arity("sorted", args, 1)?;
         let mut items = self.iterate(&args[0])?;
         let reverse = kwarg(kwargs, "reverse").is_some_and(Value::truthy);
-        self.sort_values(&mut items, kwarg(kwargs, "key").cloned(), reverse)?;
+        self.sort_values(&mut items, kwarg(kwargs, "key").filter(|k| !k.is_none()).cloned(), reverse)?;
         Ok(Value::list(items))
     }
 

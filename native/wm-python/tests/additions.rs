@@ -36,7 +36,7 @@ fn dicts_answer_their_string_keys_as_attributes() {
     assert_eq!("click|go|None", evaluate("e = {'type': 'click', 'id': 'go', 'value': None}\nf'{e.type}|{e.id}|{e.value}'"));
     assert_eq!("2", evaluate("{'a': {'b': 2}}.a.b"));
     // Methods still work when no key shadows them.
-    assert_eq!("['a']", evaluate("{'a': 1}.keys()"));
+    assert_eq!("dict_keys(['a'])", evaluate("{'a': 1}.keys()"));
     assert_eq!("0", evaluate("{'a': 1}.get('z', 0)"));
 }
 
@@ -76,7 +76,7 @@ fn bad_bytes_raise_catchable_decode_errors() {
     assert_eq!(
         "UnicodeDecodeError|ValueError|caught",
         evaluate(
-            "out = []\ntry:\n    bytes([255]).decode()\nexcept UnicodeDecodeError as e:\n    out.append(type(e))\ntry:\n    bytes([0, 216]).decode('utf-16-le')\nexcept ValueError:\n    out.append('ValueError')\ntry:\n    bytes([1]).decode('utf-16-be')\nexcept Exception:\n    out.append('caught')\n'|'.join(out)"
+            "out = []\ntry:\n    bytes([255]).decode()\nexcept UnicodeDecodeError as e:\n    out.append(type(e).__name__)\ntry:\n    bytes([0, 216]).decode('utf-16-le')\nexcept ValueError:\n    out.append('ValueError')\ntry:\n    bytes([1]).decode('utf-16-be')\nexcept Exception:\n    out.append('caught')\n'|'.join(out)"
         )
     );
     assert!(failure("bytes([255]).decode()").contains("UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0"));
@@ -88,7 +88,7 @@ fn bad_bytes_raise_catchable_decode_errors() {
 #[test]
 fn bytes_behave_like_a_sequence_of_ints() {
     assert_eq!(
-        "[3, 104, [104, 105, 33], b'i!', True, False, True, b'hi!!', True, 'bytes', '686921', b'', 3]",
+        "[3, 104, [104, 105, 33], b'i!', True, False, True, b'hi!!', True, <class 'bytes'>, '686921', b'', 3]",
         evaluate(
             "b = bytes([104, 105, 33])\n[len(b), b[0], list(b), b[1:], b == 'hi!'.encode(), b == 'hi', 105 in b, b + bytes([33]), isinstance(b, bytes), type(b), b.hex(), bytes(), len(bytes.fromhex('de ad be'))]"
         )
@@ -152,7 +152,7 @@ fn bad_date_patterns_are_value_errors() {
 #[test]
 fn check_reports_what_load_would() {
     assert!(check("def f(x):\n    return x\n").is_ok());
-    for source in ["x = (1,\ny = 2", "def g():\n    yield 1", "if True:\nx = 1", "x = 1 $ 2", "f\"{}\""] {
+    for source in ["x = (1,\ny = 2", "async def g():\n    pass", "if True:\nx = 1", "x = 1 $ 2", "f\"{}\""] {
         let c = check(source).unwrap_err();
         let l = Runtime::default().load(source).unwrap_err();
         assert_eq!((c.message.clone(), c.kind.clone(), c.line), (l.message, l.kind, l.line), "{source}");
@@ -187,7 +187,7 @@ fn built_in_methods_can_be_passed_around() {
 
 #[test]
 fn a_data_key_does_not_hide_a_dict_method() {
-    assert_eq!("[('items', [1])]", evaluate("d = {'items': [1]}\nd.items()"));
+    assert_eq!("dict_items([('items', [1])])", evaluate("d = {'items': [1]}\nd.items()"));
     assert_eq!("[1]", evaluate("d = {'items': [1]}\nd.items if False else d['items']"));
     // A key holding a function still answers first, as wm.storage stand-ins need.
     assert_eq!("7", evaluate("d = {'get': lambda k: 7}\nd.get('x')"));
@@ -214,7 +214,7 @@ fn shifts_and_bitwise_assignment() {
 #[test]
 fn integers_stay_exact_across_64_bits() {
     assert_eq!("72057594037927935", evaluate("2 ** 56 - 1"));
-    assert_eq!("int", evaluate("type(2 ** 60)"));
+    assert_eq!("<class 'int'>", evaluate("type(2 ** 60)"));
     assert_eq!("9223372036854775807", evaluate("2 ** 62 - 1 + 2 ** 62"));
     assert_eq!("-9223372036854775808", evaluate("-(2 ** 62) * 2"));
     assert_eq!("12345678901234567", evaluate("12345678901234566 + 1"));
@@ -223,7 +223,7 @@ fn integers_stay_exact_across_64_bits() {
     assert_eq!("-2", evaluate("7 % -3"));
     assert_eq!("0.25", evaluate("2 ** -2"));
     // Past 64 bits there is no big integer: the answer goes on as a float.
-    assert_eq!("float", evaluate("type(2 ** 64)"));
+    assert_eq!("<class 'float'>", evaluate("type(2 ** 64)"));
 }
 
 #[test]

@@ -124,7 +124,8 @@ is the real cause.
 There is no per-thread heap limit on Android, so this is layered rather than
 absolute. The script is capped at 256 KB, and the step budget bounds the
 allocation *rate*. No string can pass 100,000 characters, no list, dict or set
-10,000 items, and no call chain 300 calls, so the doubling trick
+10,000 items, and no call chain 1,000 calls (or the native stack's 6 MB,
+whichever comes first), so the doubling trick
 (`s = s + s`) stops after a few turns with an error instead of reaching
 gigabytes. Every string crossing the boundary with the app is capped, the
 widget tree is capped, storage is quota'd, and only one plugin runs at a time.

@@ -22,6 +22,9 @@ use super::text::{char_is_letter, char_is_number, char_is_whitespace, graphemes,
 pub(crate) const IGNORE_CASE: i64 = 2;
 pub(crate) const MULTILINE: i64 = 8;
 pub(crate) const DOT_ALL: i64 = 16;
+pub(crate) const UNICODE: i64 = 32;
+pub(crate) const VERBOSE: i64 = 64;
+pub(crate) const ASCII: i64 = 256;
 
 /// Longest subject this engine will scan.
 pub(crate) const MAX_SUBJECT: usize = 40_000;
@@ -93,6 +96,10 @@ enum ClassItem {
     Digit(bool),
     Word(bool),
     Space(bool),
+    /// `\d`, `\w` and `\s` under `re.ASCII`.
+    AsciiDigit(bool),
+    AsciiWord(bool),
+    AsciiSpace(bool),
 }
 
 struct Class {
@@ -123,6 +130,9 @@ impl Class {
                 ClassItem::Digit(want) => char_is_number(c) == *want,
                 ClassItem::Word(want) => (char_is_letter(c) || char_is_number(c) || c == "_") == *want,
                 ClassItem::Space(want) => char_is_whitespace(c) == *want,
+                ClassItem::AsciiDigit(want) => (c.len() == 1 && c.as_bytes()[0].is_ascii_digit()) == *want,
+                ClassItem::AsciiWord(want) => (c.len() == 1 && (c.as_bytes()[0].is_ascii_alphanumeric() || c == "_")) == *want,
+                ClassItem::AsciiSpace(want) => (c.len() == 1 && b" \t\n\r\x0b\x0c".contains(&c.as_bytes()[0])) == *want,
             };
             if hit {
                 break;
@@ -184,8 +194,18 @@ pub(crate) struct Regex {
 
 impl Regex {
     pub fn compile(pattern: &str, flags: i64) -> Res<Regex> {
+        let leading = leading_flags(pattern);
+        let verbose_text;
+        let pattern = if flags & VERBOSE != 0 || leading.contains('x') {
+            verbose_text = strip_verbose(pattern);
+            verbose_text.as_str()
+        } else {
+            pattern
+        };
         let chars = graphemes(pattern);
-        let mut p = RxParser { chars: &chars, pos: 0, group_count: 0, names: HashMap::new(), depth: 0, inline: 0, backrefs: Vec::new() };
+        let ascii = flags & ASCII != 0 || leading.contains('a');
+        let mut p =
+            RxParser { chars: &chars, pos: 0, group_count: 0, names: HashMap::new(), depth: 0, inline: 0, backrefs: Vec::new(), ascii };
         let root = p.parse_alternation()?;
         if p.pos < chars.len() {
             return Err(verr("unbalanced parenthesis in pattern"));
@@ -284,9 +304,30 @@ struct RxParser<'a> {
     inline: i64,
     /// Every group number a backreference names, checked once the groups are counted.
     backrefs: Vec<usize>,
+    /// `re.ASCII`: `\d`, `\w` and `\s` match ASCII only.
+    ascii: bool,
 }
 
 impl RxParser<'_> {
+    /// The class `\d`, `\D`, `\w`, `\W`, `\s` or `\S` stands for.
+    fn shorthand(&self, e: &str) -> Option<ClassItem> {
+        Some(match (e, self.ascii) {
+            ("d", false) => ClassItem::Digit(true),
+            ("D", false) => ClassItem::Digit(false),
+            ("w", false) => ClassItem::Word(true),
+            ("W", false) => ClassItem::Word(false),
+            ("s", false) => ClassItem::Space(true),
+            ("S", false) => ClassItem::Space(false),
+            ("d", true) => ClassItem::AsciiDigit(true),
+            ("D", true) => ClassItem::AsciiDigit(false),
+            ("w", true) => ClassItem::AsciiWord(true),
+            ("W", true) => ClassItem::AsciiWord(false),
+            ("s", true) => ClassItem::AsciiSpace(true),
+            ("S", true) => ClassItem::AsciiSpace(false),
+            _ => return None,
+        })
+    }
+
     fn peek(&self) -> Option<&str> {
         self.chars.get(self.pos).copied()
     }
@@ -440,13 +481,14 @@ impl RxParser<'_> {
                             self.names.insert(name, self.group_count);
                         }
                         // Inline flags, `(?i)`, `(?ms)`: on for the whole pattern, as in Python.
-                        (Some("i" | "m" | "s" | "a" | "u" | "L"), _) => {
+                        (Some("i" | "m" | "s" | "a" | "u" | "L" | "x"), _) => {
                             while let Some(f) = self.peek() {
                                 match f {
                                     "i" => self.inline |= IGNORE_CASE,
                                     "m" => self.inline |= MULTILINE,
                                     "s" => self.inline |= DOT_ALL,
-                                    "a" | "u" | "L" => {}
+                                    // Worked out before parsing: see `leading_flags`.
+                                    "a" | "u" | "L" | "x" => {}
                                     ")" => break,
                                     ":" | "-" => return Err(verr("scoped inline flags like (?i:...) are not supported; put (?i) at the start")),
                                     _ => return Err(verr(&format!("unknown flag '{f}' in pattern"))),
@@ -489,14 +531,10 @@ impl RxParser<'_> {
                 self.pos += 1;
                 let e = self.peek().ok_or_else(|| verr("pattern ends with a backslash"))?.to_string();
                 self.pos += 1;
-                let class = |item: ClassItem| Node::CharClass(Class { negated: false, items: vec![item] });
+                if let Some(item) = self.shorthand(&e) {
+                    return Ok(Node::CharClass(Class { negated: false, items: vec![item] }));
+                }
                 Ok(match e.as_str() {
-                    "d" => class(ClassItem::Digit(true)),
-                    "D" => class(ClassItem::Digit(false)),
-                    "w" => class(ClassItem::Word(true)),
-                    "W" => class(ClassItem::Word(false)),
-                    "s" => class(ClassItem::Space(true)),
-                    "S" => class(ClassItem::Space(false)),
                     "b" => Node::WordBoundary(true),
                     "B" => Node::WordBoundary(false),
                     "A" => Node::AnchorStart,
@@ -556,33 +594,11 @@ impl RxParser<'_> {
             let lo = if c == "\\" {
                 let e = self.peek().ok_or_else(|| verr("pattern ends with a backslash"))?.to_string();
                 self.pos += 1;
-                match e.as_str() {
-                    "d" => {
-                        cls.items.push(ClassItem::Digit(true));
-                        continue;
-                    }
-                    "D" => {
-                        cls.items.push(ClassItem::Digit(false));
-                        continue;
-                    }
-                    "w" => {
-                        cls.items.push(ClassItem::Word(true));
-                        continue;
-                    }
-                    "W" => {
-                        cls.items.push(ClassItem::Word(false));
-                        continue;
-                    }
-                    "s" => {
-                        cls.items.push(ClassItem::Space(true));
-                        continue;
-                    }
-                    "S" => {
-                        cls.items.push(ClassItem::Space(false));
-                        continue;
-                    }
-                    other => escape_char(other),
+                if let Some(item) = self.shorthand(&e) {
+                    cls.items.push(item);
+                    continue;
                 }
+                escape_char(&e)
             } else {
                 c
             };
@@ -909,4 +925,61 @@ impl<'a> Matcher<'a> {
 
 fn is_word(c: &str) -> bool {
     char_is_letter(c) || char_is_number(c) || c == "_"
+}
+
+/// The letters of a `(?aimsux)` group at the very start of [pattern], the
+/// ones that change how the rest is read.
+fn leading_flags(pattern: &str) -> &str {
+    let Some(rest) = pattern.strip_prefix("(?") else { return "" };
+    let end = rest.find(|c: char| !c.is_ascii_alphabetic()).unwrap_or(rest.len());
+    if rest[end..].starts_with(')') {
+        &rest[..end]
+    } else {
+        ""
+    }
+}
+
+/// [pattern] as `re.VERBOSE` reads it: whitespace and `#` comments dropped,
+/// except inside a character class or after a backslash.
+fn strip_verbose(pattern: &str) -> String {
+    let mut out = String::with_capacity(pattern.len());
+    let mut chars = pattern.chars().peekable();
+    let mut in_class = false;
+    // Inside a class, a `]` straight after `[` or `[^` is a literal.
+    let mut class_start = false;
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            out.push(c);
+            if let Some(n) = chars.next() {
+                out.push(n);
+            }
+            class_start = false;
+            continue;
+        }
+        if in_class {
+            out.push(c);
+            if c == ']' && !class_start {
+                in_class = false;
+            }
+            class_start = class_start && c == '^';
+            continue;
+        }
+        match c {
+            '[' => {
+                in_class = true;
+                class_start = true;
+                out.push(c);
+            }
+            '#' => {
+                for n in chars.by_ref() {
+                    if n == '\n' {
+                        break;
+                    }
+                }
+            }
+            c if c.is_whitespace() => {}
+            c => out.push(c),
+        }
+    }
+    out
 }

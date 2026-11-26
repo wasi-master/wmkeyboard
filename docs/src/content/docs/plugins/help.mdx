@@ -27,7 +27,8 @@ No. The plugin editor runs on the phone, and in any browser at
 A small interpreter built into the keyboard, close to Python 3. Most everyday
 Python works: functions, classes, decorators, `with`, comprehensions,
 f-strings, and modules such as `json`, `re`, `datetime` and `collections`.
-Generators (`yield`), `async`, `match`, `eval` and `open` are not there. The
+Generators, `match`, metaclasses and `eval` are there too; `async` and `open`
+are not. The
 [full list](/plugins/wm-package/#the-python-you-get) is in the reference.
 
 ### Can I use a package from PyPI?
@@ -110,7 +111,7 @@ the user presses something in its panel, and never in a password field.
 | `NotImplementedError: “…” is not available in the web preview` | The web editor has no answer for that call. Install the plugin to try it. |
 | This plugin did too much work at one time. The app stopped it. | A loop ran too long. See [Reading an error](/plugins/guides/testing/#reading-an-error). |
 | This plugin took too long. The app stopped it. | The same, measured in time. |
-| This plugin called itself too many times. The app stopped it. | A function calls itself without end. The limit is 300 calls deep. |
+| This plugin called itself too many times. The app stopped it. | A function calls itself without end. The limit is 1,000 calls deep. |
 
 The install screen refuses a plugin for these:
 

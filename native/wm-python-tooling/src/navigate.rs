@@ -77,6 +77,10 @@ pub fn rename(doc: &Document, caret: u32, new_name: &str) -> Option<RenamePlan> 
         Target::Unresolved => return None,
     };
     let symbol = symbol.unwrap();
+    // A name `from m import *` brought has no text of its own to rewrite.
+    if slice(units, symbol.declaration) != symbol.name {
+        return Some(RenamePlan { spans, problem: Some(RenameProblem::Api) });
+    }
     if symbol.scope == 0 && api::CONTRACT.contains(&symbol.name.as_str()) && symbol.kind == SymbolKind::Function {
         return Some(RenamePlan { spans, problem: Some(RenameProblem::Hook) });
     }

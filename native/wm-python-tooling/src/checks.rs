@@ -111,6 +111,9 @@ impl<'a> Checks<'a> {
                         known.push(e.path.to_string());
                     }
                 }
+                if a.star_import {
+                    continue;
+                }
                 match closest(name, known.iter().map(String::as_str)) {
                     Some(near) => self.add(Code::NameTypo, o.span, &[name, &near]),
                     None => self.add(Code::UndefinedName, o.span, &[name]),

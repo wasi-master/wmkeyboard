@@ -43,6 +43,28 @@ const DIVERGES: &[(&str, &str)] = &[
     ("026-zero-mod.py", "ERROR: Line 1: ZeroDivisionError: integer modulo by zero\n"),
     ("078-functions-errors.py", "ERROR: Line 3: TypeError: f() takes 1 positional argument but 2 were given\n"),
     ("080-functions-missing.py", "ERROR: Line 3: TypeError: f() missing 1 required positional argument: 'b'\n"),
+    // 2026-11-26: `type()` answers with the type (`<class 'int'>`), map and
+    // filter are lazy iterators, `max([])` says what CPython says, and a
+    // bare `yield` in a lambda is a syntax error.
+    ("010-builtins-minmax-err.py", "ERROR: Line 1: ValueError: max() iterable argument is empty\n"),
+    ("015-builtins-map-filter.py", "[<map object>, <map object>, <filter object>, False, True, False]\n"),
+    ("019-builtins-type-isinstance.py", concat!(r##"[<class 'int'>, <class 'float'>, <class 'str'>, <class 'list'>, <class 'tuple'>, <class 'dict'>, <class 'set'>, <class 'NoneType'>, <class 'builtin_function_or_method'>, <class 'function'>, True, False, True, True, False]"##, "\n")),
+    ("084-try-except.py", concat!(r##"['list index out of range', "KeyError('k')", <class 'ZeroDivisionError'>, 'fin', ('v',), 'plain']"##, "\n")),
+    ("132-syntax-lambda-kw.py", "ERROR: Line 1: unexpected token in expression\n"),
+    // `from math import *` binds every public name of the module.
+    ("127-syntax-star-import.py", "None\n"),
+    // str.format names the index CPython names, items() is a live view, and
+    // ints have their `real` part.
+    ("054-format-method-err.py", "ERROR: Line 1: IndexError: Replacement index 2 out of range for positional args tuple\n"),
+    ("068-dicts.py", concat!(r##"[{'a': 20, 'c': 3, 'z': 0, 'q': 7}, 1, 7, None, 1, ['a', 'c', 'z', 'q'], [20, 3, 0, 7], dict_items([('a', 20), ('c', 3), ('z', 0), ('q', 7)]), True, 4]"##, "\n")),
+    ("092-attribute-error2.py", "5\n"),
+    // A bare `raise` reports the line the exception was first raised on, as
+    // CPython's traceback does.
+    ("085-try-reraise.py", "ERROR: Line 3: ValueError: invalid literal for int() with base 10: 'x'\n"),
+    // Arguments `%` formatting leaves unused are an error, as in CPython.
+    ("217-edge-string-mod-tuple-many.py", "ERROR: Line 1: TypeError: not all arguments converted during string formatting\n"),
+    ("148-exception-values.py", concat!(r##"[ValueError('bad', 1), "('bad', 1)", "ValueError('bad', 1)", <class 'ValueError'>, ('bad', 1), "('bad', 1)", Exception(), "'k'"]"##, "\n")),
+    ("188-edge-except-order.py", concat!(r##"[<class 'ValueError'>, "lookup:'k'", 'arith', 'lookup:i']"##, "\n")),
     ("137-is-identity.py", concat!(r##"[True, True, False, False, True, False]"##, "\n")),
     ("163-edge-predicates-unicode.py", concat!(r##"[True, True, False, True, True, True, False, True, True]"##, "\n")),
     ("164-edge-strip-graphemes.py", concat!(r##"['éxé', 'x', 'a', 'x']"##, "\n")),
