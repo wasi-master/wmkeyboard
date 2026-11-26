@@ -15213,7 +15213,15 @@ open class WMKeyboardService : InputMethodService() {
             // it carries the list on (see NotesLogic.enter).
             CaptureTarget.NOTE_BODY -> {
                 val before = state.captureCaretText()
-                if (before != null) captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.enter(before))
+                if (before != null) {
+                    if (noteRichEditing(state)) {
+                        // A rich note (#1586): quotes carry on too, and an empty item ends its list.
+                        val entered = com.wasimaster.wmkeyboard.core.notes.rich.NoteRichEdits.enter(NoteRichInput.draft(before))
+                        captureWrite(CaptureTarget.NOTE_BODY, before, NoteRichInput.caretText(entered), raw = true)
+                    } else {
+                        captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.enter(before))
+                    }
+                }
             }
             // Enter finishes a new tag's name.
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
@@ -15661,8 +15669,13 @@ open class WMKeyboardService : InputMethodService() {
     private fun captureCaretTo(caret: CaretText) {
         val state = _uiState.value
         val key = state.captureKey() ?: return
+        // A format waiting for the next letters (#1586) is for where the caret was.
+        val waiting = state.notes.editing?.takeIf { key == CaptureTarget.NOTE_BODY.name && it.pendingMarks.isNotEmpty() }
         _uiState.update {
-            it.copy(captureCaret = CaptureCaret(key, caret.at, state.captureBuffer(), caret.anchorAt))
+            it.copy(
+                captureCaret = CaptureCaret(key, caret.at, state.captureBuffer(), caret.anchorAt),
+                notes = if (waiting != null) it.notes.copy(editing = it.notes.editing?.copy(pendingMarks = emptyList())) else it.notes,
+            )
         }
     }
 
@@ -15678,9 +15691,17 @@ open class WMKeyboardService : InputMethodService() {
     private fun captureWrite(
         target: CaptureTarget,
         before: CaretText,
-        after: CaretText,
+        requested: CaretText,
         keepsComposing: Boolean = false,
+        /** Written as it is: an edit the rich note bar already shaped (#1586). */
+        raw: Boolean = false,
     ) {
+        // A rich note's typing is tidied first (#1586); an undo puts back exactly what was.
+        val after = if (target == CaptureTarget.NOTE_BODY && !raw && !captureUndoing && requested.text != before.text && noteRichEditing()) {
+            settleRichNote(before, requested)
+        } else {
+            requested
+        }
         // Any edit ends a transliterated word; the one that continues it sets
         // it again straight after (see [rewriteCaptureComposition]).
         captureComposition = null
@@ -30919,7 +30940,7 @@ open class WMKeyboardService : InputMethodService() {
                     com.wasimaster.wmkeyboard.core.tools.NoteLines.build(
                         noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false))
                             .filterNot { it.locked }
-                            .map { it.displayTitle() to it.body },
+                            .map { it.displayTitle() to com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(it.body) },
                     )
                 }
                 noteLinesCache = stamp to lines
@@ -56005,6 +56026,10 @@ open class WMKeyboardService : InputMethodService() {
         onMarkdown = ::onNoteMarkdown,
         onSlash = ::onNoteSlash,
         onPaste = ::onNotePaste,
+        onRich = ::onNoteRich,
+        onRichUndo = ::onNoteRichUndo,
+        onEditorFlip = ::onNoteEditorFlip,
+        onAddInApp = ::onNoteAddInApp,
         onTagToggle = ::onNoteTagToggle,
         onTagPickerToggle = ::onNoteTagPickerToggle,
         onTagTypeStart = ::onNoteTagTypeStart,
@@ -56457,6 +56482,67 @@ open class WMKeyboardService : InputMethodService() {
         captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.applySlash(before, action))
     }
 
+    // ---- Rich notes (#1586) ----
+
+    /** Whether the note in the editor is drawn as rich text: the Note editor setting, unless switched for this visit. */
+    private fun noteRichEditing(state: KeyboardUiState = _uiState.value): Boolean =
+        NoteRichInput.rich(state.notes.editing, state.settings.notes.editor == com.wasimaster.wmkeyboard.core.settings.NoteEditorKind.RICH)
+
+    /**
+     * An edit the keys made in a rich note, tidied (see [NoteRichInput.settle]):
+     * typing kept out of hidden markers, a backspace taking a letter rather
+     * than half a marker, a list carried on by Enter, and the formats picked
+     * with nothing selected put round the first letters typed.
+     */
+    private fun settleRichNote(before: CaretText, requested: CaretText): CaretText {
+        val edit = _uiState.value.notes.editing ?: return requested
+        val settled = NoteRichInput.settle(before, requested, edit)
+        if (settled.edit.pendingMarks != edit.pendingMarks) {
+            _uiState.update { s -> s.notes.editing?.let { e -> s.copy(notes = s.notes.copy(editing = e.copy(pendingMarks = settled.edit.pendingMarks))) } ?: s }
+        }
+        return settled.text ?: requested
+    }
+
+    /** A chip of the rich-text bar: a format, a paragraph style, an insert, a table edit or a move. */
+    fun onNoteRich(action: NoteRichAction) {
+        if (_uiState.value.captureTarget() != CaptureTarget.NOTE_BODY) onNoteEditFocus(NoteEditField.BODY, caret = null)
+        val before = _uiState.value.captureCaretText() ?: return
+        val edit = _uiState.value.notes.editing ?: return
+        vibrate()
+        val applied = NoteRichInput.apply(before, edit, action)
+        if (applied.edit.pendingMarks != edit.pendingMarks) noteEditDraft { it.copy(pendingMarks = applied.edit.pendingMarks) }
+        // Already the edit it should be: no tidying on top.
+        applied.text?.let { captureWrite(CaptureTarget.NOTE_BODY, before, it, raw = true) }
+    }
+
+    /** The rich-text bar's Undo, or with [redo] its Redo: the body's own edit history. */
+    fun onNoteRichUndo(redo: Boolean) {
+        if (_uiState.value.captureTarget() != CaptureTarget.NOTE_BODY) return
+        val before = _uiState.value.captureCaretText() ?: return
+        vibrate()
+        if (redo) captureRedo(CaptureTarget.NOTE_BODY, before) else captureUndo(CaptureTarget.NOTE_BODY, before)
+    }
+
+    /** This note in the other editor for this visit; the stored text is the same either way. */
+    fun onNoteEditorFlip() {
+        vibrate()
+        noteEditDraft { it.copy(flipped = !it.flipped, pendingMarks = emptyList()) }
+    }
+
+    /**
+     * A photo, a camera shot, a drawing or a scan for the note: those need
+     * the screen, so the note is saved and opens in the app's editor, which
+     * starts on [kind]. A new note still blank is not kept; the app starts a
+     * new one instead.
+     */
+    fun onNoteAddInApp(kind: String) {
+        if (_uiState.value.notes.editing == null) return
+        notesFlushEdit(leaveEditor = true)
+        val id = _uiState.value.notes.open?.takeIf { noteStore.item(it) != null } ?: 0L
+        _uiState.update { it.copy(panelFocus = null) }
+        openRoute("notes/edit/$id/add/$kind")
+    }
+
     /**
      * The editor's Paste chip: what a paste key would type (the keyboard's
      * private copy, else the system clipboard, else the newest clip in
@@ -56552,7 +56638,8 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)
-        ic.commitText(note.body.ifBlank { note.title }, 1)
+        // The words, without the rich editor's tags (#1586).
+        ic.commitText(com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body).ifBlank { note.title }, 1)
     }
 
     /** A passage the search found (#1099) into the field, as the note has it. */
@@ -56608,7 +56695,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         vibrate()
-        KeyboardClipboard.copy(this, note.body.ifBlank { note.title })
+        KeyboardClipboard.copy(this, com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body).ifBlank { note.title })
         toast(R.string.ime_notes_copied_toast)
     }
 
@@ -56623,7 +56710,7 @@ open class WMKeyboardService : InputMethodService() {
             Intent(Intent.ACTION_SEND)
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_SUBJECT, note.displayTitle())
-                .putExtra(Intent.EXTRA_TEXT, note.body.ifBlank { note.title }),
+                .putExtra(Intent.EXTRA_TEXT, com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body).ifBlank { note.title }),
             insertable = true,
         )
     }

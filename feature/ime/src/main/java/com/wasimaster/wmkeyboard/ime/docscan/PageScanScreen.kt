@@ -119,7 +119,7 @@ private sealed interface Stage {
  * way [downloads] says data saver wants.
  */
 @Composable
-internal fun PageScanScreen(
+fun PageScanScreen(
     downloads: MeteredDecision,
     onDone: (List<File>) -> Unit,
     onCancel: () -> Unit,

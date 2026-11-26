@@ -63,6 +63,8 @@ import com.wasimaster.wmkeyboard.ime.NoteEdit
 import com.wasimaster.wmkeyboard.ime.NoteEditField
 import com.wasimaster.wmkeyboard.ime.NoteMarkdownAction
 import com.wasimaster.wmkeyboard.ime.NotesLogic
+import com.wasimaster.wmkeyboard.ime.NoteRichInput
+import com.wasimaster.wmkeyboard.core.settings.NoteEditorKind
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 
@@ -112,7 +114,40 @@ internal fun NotesEditor(
                 .chipBorder(kb, fieldShape)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
         ) {
-            if (edit.focused == NoteEditField.BODY) {
+            val rich = NoteRichInput.rich(edit, state.settings.notes.editor == NoteEditorKind.RICH)
+            if (rich && edit.focused == NoteEditField.BODY) {
+                // The note as it will read (#1586): the keys still type into its Markdown.
+                NoteRichField(
+                    text = edit.bodyDraft,
+                    placeholder = stringResource(R.string.ime_notes_body_hint),
+                    textColor = MaterialTheme.colorScheme.onSurface,
+                    placeholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    dimColor = kb.secondaryText,
+                    accent = kb.accent,
+                    codeBackground = kb.chip,
+                    onTaskToggle = { line -> callbacks.onTaskToggle(edit.id, line) },
+                )
+            } else if (rich) {
+                if (edit.bodyDraft.isEmpty()) {
+                    Text(
+                        stringResource(R.string.ime_notes_body_hint),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        modifier = Modifier.fillMaxSize().padding(start = 4.dp).clickable { callbacks.onEditFocus(NoteEditField.BODY, 0) },
+                    )
+                } else {
+                    NoteRichStatic(
+                        text = edit.bodyDraft,
+                        textColor = MaterialTheme.colorScheme.onSurface,
+                        dimColor = kb.secondaryText,
+                        accent = kb.accent,
+                        codeBackground = kb.chip,
+                        onTap = { offset -> callbacks.onEditFocus(NoteEditField.BODY, offset) },
+                        onTaskToggle = { line -> callbacks.onTaskToggle(edit.id, line) },
+                    )
+                }
+            } else if (edit.focused == NoteEditField.BODY) {
                 ClipEditText(
                     text = edit.bodyDraft,
                     placeholder = stringResource(R.string.ime_notes_body_hint),
@@ -156,7 +191,11 @@ internal fun NotesEditor(
         }
         if (extrasShown || !short) {
             Spacer(Modifier.height(4.dp))
-            MarkdownHelperRow(state, edit, callbacks)
+            if (NoteRichInput.rich(edit, state.settings.notes.editor == NoteEditorKind.RICH)) {
+                NoteRichBar(state, edit, callbacks)
+            } else {
+                MarkdownHelperRow(state, edit, callbacks)
+            }
             if (state.notes.quick) {
                 Spacer(Modifier.height(4.dp))
                 QuickNoteRow(state, edit, callbacks)
@@ -299,6 +338,8 @@ private fun MarkdownHelperRow(state: KeyboardUiState, edit: NoteEdit, callbacks:
                 for ((action, icon, label) in labelled) {
                     ToolPanelChip(label, icon = icon) { callbacks.onMarkdown(action) }
                 }
+                // Back to the rich-text editor for this note (#1586).
+                ToolPanelChip(stringResource(R.string.ime_notes_rich_edit_rich)) { callbacks.onEditorFlip() }
             }
         }
         Spacer(Modifier.width(8.dp))

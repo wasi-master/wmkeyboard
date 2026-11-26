@@ -167,6 +167,14 @@ data class NotesCallbacks(
     val onSlash: (NoteMarkdownAction) -> Unit = {},
     /** The editor's Paste chip: the clipboard's text into the body at the caret. */
     val onPaste: () -> Unit = {},
+    /** A chip of the rich-text bar (#1586): a format, a style, an insert, a table edit or a move. */
+    val onRich: (com.wasimaster.wmkeyboard.ime.NoteRichAction) -> Unit = {},
+    /** The rich-text bar's Undo (false) or Redo (true). */
+    val onRichUndo: (Boolean) -> Unit = {},
+    /** This note in the other editor for this visit: Markdown or rich text. */
+    val onEditorFlip: () -> Unit = {},
+    /** The note saved and opened in the app to add a photo, a camera shot, a drawing or a scan (`ADD_*`). */
+    val onAddInApp: (String) -> Unit = {},
     /** A tag on or off a note; the palette index is what a suggested tag is born with. */
     val onTagToggle: (Long, String, Int) -> Unit = { _, _, _ -> },
     val onTagPickerToggle: () -> Unit = {},
@@ -1971,6 +1979,7 @@ private fun NotesReadView(
                         if (showAll) rest else readPrefix(rest)
                     }
                     val editable = !note.inTrash && note.body.length <= NoteEdit.EDITOR_MAX_LENGTH
+                    val noteFiles = androidx.compose.ui.platform.LocalContext.current.filesDir
                     // A long press selects, with Copy, Insert and Ask AI on its bar, as in Wikipedia.
                     val title = note.displayTitle()
                     val askLabel = stringResource(R.string.ime_ask_ai_label_note, title.ifEmpty { stringResource(R.string.ime_notes_untitled) })
@@ -1984,6 +1993,8 @@ private fun NotesReadView(
                             onBlockTap = if (editable) ({ block -> callbacks.onEditStart(note.id, block.line + lineShift) }) else null,
                             selectable = true,
                             ask = ask,
+                            // The note's own pictures and drawings (#1586), from the phone.
+                            localImage = { url -> com.wasimaster.wmkeyboard.core.notes.NoteAttachments.file(noteFiles, url)?.takeIf { it.isFile } },
                         )
                     } else {
                         SelectableText(

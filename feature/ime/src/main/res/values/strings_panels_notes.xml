@@ -149,4 +149,55 @@
         <item quantity="other">Study deck \"%2$s\" made with %1$d cards. Find it in Vocabulary.</item>
     </plurals>
 
+    <!-- The rich-text editor (#1586) -->
+    <string name="ime_notes_rich_undo_desc">Undo</string>
+    <string name="ime_notes_rich_redo_desc">Redo</string>
+    <string name="ime_notes_rich_format_desc">Format</string>
+    <string name="ime_notes_rich_underline_desc">Underline</string>
+    <string name="ime_notes_rich_color_desc">Text colour</string>
+    <string name="ime_notes_rich_highlight_desc">Highlight</string>
+    <string name="ime_notes_rich_add_desc">Add</string>
+    <string name="ime_notes_rich_back_desc">Back</string>
+    <string name="ime_notes_rich_title">Title</string>
+    <string name="ime_notes_rich_subtitle">Subtitle</string>
+    <string name="ime_notes_rich_body">Body</string>
+    <string name="ime_notes_rich_todos">To-dos</string>
+    <string name="ime_notes_rich_wavy">Wavy</string>
+    <string name="ime_notes_rich_dotted">Dotted</string>
+    <string name="ime_notes_rich_dashed">Dashed</string>
+    <string name="ime_notes_rich_double">Double</string>
+    <string name="ime_notes_rich_font_serif">Serif</string>
+    <string name="ime_notes_rich_font_mono">Monospace</string>
+    <string name="ime_notes_rich_font_hand">Handwriting</string>
+    <string name="ime_notes_rich_size_small">Small</string>
+    <string name="ime_notes_rich_size_large">Large</string>
+    <string name="ime_notes_rich_size_larger">Larger</string>
+    <string name="ime_notes_rich_size_huge">Huge</string>
+    <string name="ime_notes_rich_clear_desc">Clear formatting</string>
+    <string name="ime_notes_rich_no_colour">No colour</string>
+    <string name="ime_notes_rich_no_highlight">No highlight</string>
+    <string name="ime_notes_rich_colour_red">Red</string>
+    <string name="ime_notes_rich_colour_orange">Orange</string>
+    <string name="ime_notes_rich_colour_amber">Amber</string>
+    <string name="ime_notes_rich_colour_green">Green</string>
+    <string name="ime_notes_rich_colour_teal">Teal</string>
+    <string name="ime_notes_rich_colour_blue">Blue</string>
+    <string name="ime_notes_rich_colour_purple">Purple</string>
+    <string name="ime_notes_rich_colour_grey">Grey</string>
+    <string name="ime_notes_rich_colour_yellow">Yellow</string>
+    <string name="ime_notes_rich_colour_pink">Pink</string>
+    <string name="ime_notes_rich_photo">Photo</string>
+    <string name="ime_notes_rich_camera">Camera</string>
+    <string name="ime_notes_rich_drawing">Drawing</string>
+    <string name="ime_notes_rich_scan">Scan document</string>
+    <string name="ime_notes_rich_table_add_row">Add row</string>
+    <string name="ime_notes_rich_table_add_column">Add column</string>
+    <string name="ime_notes_rich_table_remove_row">Remove row</string>
+    <string name="ime_notes_rich_table_remove_column">Remove column</string>
+    <string name="ime_notes_rich_table_delete">Delete table</string>
+    <string name="ime_notes_rich_move_up">Move up</string>
+    <string name="ime_notes_rich_move_down">Move down</string>
+    <string name="ime_notes_rich_edit_markdown">Edit as Markdown</string>
+    <string name="ime_notes_rich_edit_rich">Edit as rich text</string>
+
 </resources>

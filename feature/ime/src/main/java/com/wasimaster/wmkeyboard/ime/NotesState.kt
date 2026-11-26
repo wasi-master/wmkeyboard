@@ -69,6 +69,17 @@ data class NoteEdit(
     /** The row of suggested and existing tags is unfolded under the note's own. */
     val tagPickerOpen: Boolean = false,
     val startedAt: Long = 0L,
+    /**
+     * The rich editor's formats picked with nothing selected (#1586), waiting
+     * to wrap the next letters typed. Spent by them, or dropped when the caret
+     * is moved by a tap.
+     */
+    val pendingMarks: List<com.wasimaster.wmkeyboard.core.notes.rich.NoteMark> = emptyList(),
+    /**
+     * This visit uses the other editor than the Note editor setting says
+     * (#1586): Markdown where rich text is the default, or the reverse.
+     */
+    val flipped: Boolean = false,
 ) {
     /** Whether anything has changed since the editor opened. */
     val dirty: Boolean
@@ -277,7 +288,12 @@ object NotesLogic {
     /** Fewer than the panel's: the clipboard's search is a couple of rows tall, and the clips are under them. */
     const val CLIPBOARD_PASSAGES_MAX = 12
 
-    /** [find]'s passages of each unlocked note in [items], in order, up to [limit] in all. */
+    /**
+     * [find]'s passages of each unlocked note in [items], in order, up to
+     * [limit] in all. Searched in the note's words without the rich editor's
+     * tags (#1586), so a passage typed into a field never carries a
+     * `<span style>`, and a coloured word still matches a phrase around it.
+     */
     private fun collectPassages(
         items: List<Note>,
         limit: Int,
@@ -287,12 +303,13 @@ object NotesLogic {
         for (note in items) {
             if (out.size >= limit) break
             if (note.locked) continue
-            for (passage in find(note.body, minOf(NotePassages.PER_NOTE_MAX, limit - out.size))) {
+            val body = com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body)
+            for (passage in find(body, minOf(NotePassages.PER_NOTE_MAX, limit - out.size))) {
                 out.add(
                     NotePassageHit(
                         noteId = note.id,
                         title = note.displayTitle(),
-                        text = note.body.substring(passage.start, passage.end),
+                        text = body.substring(passage.start, passage.end),
                         matchStart = passage.matchStart - passage.start,
                         matchEnd = passage.matchEnd - passage.start,
                     ),

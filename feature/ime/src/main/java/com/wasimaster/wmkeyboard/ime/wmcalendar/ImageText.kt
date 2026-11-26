@@ -56,8 +56,11 @@ internal object ImageText {
         }
     }
 
-    /** The text, or null when nothing on the phone can read it now. */
-    private suspend fun recognize(context: Context, bitmap: Bitmap, s: KeyboardSettings): String? {
+    /**
+     * The text, or null when nothing on the phone can read it now. Also what a
+     * scanned page read into a note goes through (#1586).
+     */
+    internal suspend fun recognize(context: Context, bitmap: Bitmap, s: KeyboardSettings): String? {
         // An online choice still reads on the phone here: the picture never leaves it.
         val engine = OcrLanguages.usable(s.scanner.ocrEngine, TesseractOcr.available).let { if (it == OcrEngine.ONLINE) OcrEngine.AUTO else it }
         val filesDir = context.filesDir

@@ -14,6 +14,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
@@ -146,6 +147,13 @@ fun ChatMarkdown(
      * an address that is not the caller's, which then opens as any link does.
      */
     customLink: ((String) -> ChatLink?)? = null,
+    /**
+     * A note's own pictures (#1586): the file an address like
+     * `attachments/x.jpg` stands for, drawn straight away since it is on the
+     * phone already. Null, or null back, leaves an image as a tap-to-load
+     * placeholder, as a chat answer's are.
+     */
+    localImage: ((String) -> Any?)? = null,
 ) {
     val canSelect = selectable && LocalSelectionOverlay.current != null
     val blocks = remember(text) { AiMarkdownBlocks.parse(text) }
@@ -155,9 +163,26 @@ fun ChatMarkdown(
     // Most answers hold no maths; they skip the typesetter altogether.
     val hasMath = remember(blocks) { blocks.any { it is Block.Math } || '$' in text || "\\(" in text }
     val math = if (hasMath) rememberMathScope(fontSize) else null
-    fun md(inline: AiMarkdownBlocks.Inline) = annotated(inline, colors, onLink, customLink, math != null)
+    fun md(inline: AiMarkdownBlocks.Inline) = annotated(inline, colors, onLink, customLink, math != null, drawnUnderlines = true)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        for (block in blocks) {
+        var skipUntil = -1
+        for ((index, block) in blocks.withIndex()) {
+            if (index <= skipUntil) continue
+            // Pictures on one line are a row, side by side (#1586).
+            if (block is Block.Image) {
+                var last = index
+                while (last + 1 < blocks.size && (blocks[last + 1] as? Block.Image)?.line == block.line) last++
+                if (last > index) {
+                    skipUntil = last
+                    val row = blocks.subList(index, last + 1).filterIsInstance<Block.Image>()
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        for (image in row) {
+                            Box(Modifier.weight(1f)) { ImageBlock(image, colors, fontSize, lineHeight, onLink, localImage, inRow = true) }
+                        }
+                    }
+                    continue
+                }
+            }
             val tappable = if (onBlockTap != null && block !is Block.Task) {
                 Modifier.fillMaxWidth().clickable { onBlockTap(block) }
             } else {
@@ -228,7 +253,7 @@ fun ChatMarkdown(
                 is Block.Code -> CodeBlock(block, colors, fontSize, codeActions)
                 is Block.Math -> if (math != null && block.latex.isNotBlank()) MathBlock(block.latex, colors.text, math)
                 is Block.Table -> TableBlock(block, colors, fontSize, lineHeight, onLink, customLink, math)
-                is Block.Image -> ImageBlock(block, colors, fontSize, lineHeight, onLink)
+                is Block.Image -> ImageBlock(block, colors, fontSize, lineHeight, onLink, localImage)
                 is Block.Footnote -> Row {
                     Text("${block.number}.", color = colors.dim, fontSize = fontSize * 0.85f, lineHeight = lineHeight)
                     Spacer(Modifier.width(6.dp))
@@ -263,14 +288,48 @@ private fun BlockText(
     val inline = text.inlineContent(math, color)
     val lines = text.lineHeight(math, fontSize, lineHeight)
     if (selectable) {
-        SelectableText(text.text, color, fontSize, lineHeight = lines, fontWeight = fontWeight, ask = ask, onTap = onTap, inlineContent = inline)
-    } else {
+        // No layout to draw a wave under here: a styled underline is a plain one.
+        val shown = if (text.underlines.isEmpty()) {
+            text.text
+        } else {
+            remember(text) {
+                AnnotatedString.Builder(text.text).apply {
+                    for (u in text.underlines) addStyle(SpanStyle(textDecoration = TextDecoration.Underline), u.start, u.end)
+                }.toAnnotatedString()
+            }
+        }
+        SelectableText(shown, color, fontSize, lineHeight = lines, fontWeight = fontWeight, ask = ask, onTap = onTap, inlineContent = inline)
+    } else if (text.underlines.isEmpty()) {
         Text(text.text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lines, inlineContent = inline)
+    } else {
+        var layout by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
+        Text(
+            text.text,
+            color = color,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            lineHeight = lines,
+            inlineContent = inline,
+            onTextLayout = { layout = it },
+            modifier = Modifier.drawBehind {
+                val l = layout ?: return@drawBehind
+                with(NoteRichStyle) {
+                    for (u in text.underlines) drawStyledUnderline(l, u.start, u.end, u.style, u.color ?: color)
+                }
+            },
+        )
     }
 }
 
-/** A run of text built for a `Text`, and the LaTeX of the formulas sitting in its placeholders. */
-private class Md(val text: AnnotatedString, val formulas: List<String>)
+/**
+ * A run of text built for a `Text`, the LaTeX of the formulas sitting in its
+ * placeholders, and the styled underlines (#1586) the caller draws itself.
+ */
+private class Md(
+    val text: AnnotatedString,
+    val formulas: List<String>,
+    val underlines: List<NoteRichStyle.Underline> = emptyList(),
+)
 
 @Composable
 private fun Md.inlineContent(math: MathScope?, color: Color): Map<String, InlineTextContent> =
@@ -462,7 +521,25 @@ private fun ImageBlock(
     fontSize: TextUnit,
     lineHeight: TextUnit,
     onLink: (String) -> Unit,
+    localImage: ((String) -> Any?)? = null,
+    inRow: Boolean = false,
 ) {
+    val local = remember(block.url, localImage) { localImage?.invoke(block.url) }
+    if (local != null) {
+        AsyncImage(
+            model = local,
+            imageLoader = rememberMediaImageLoader(),
+            contentDescription = block.alt.ifBlank { null },
+            contentScale = if (inRow) ContentScale.Crop else ContentScale.Fit,
+            alignment = Alignment.CenterStart,
+            modifier = if (inRow) {
+                Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(6.dp))
+            } else {
+                Modifier.fillMaxWidth().heightIn(max = 360.dp).clip(RoundedCornerShape(6.dp))
+            },
+        )
+        return
+    }
     val loadable = openable(block.url)
     val link = block.link?.takeIf(::openable)
     var load by rememberSaveable(block.url) { mutableStateOf(false) }
@@ -517,7 +594,10 @@ private fun annotated(
     onLink: (String) -> Unit,
     customLink: ((String) -> ChatLink?)? = null,
     drawMath: Boolean = false,
+    /** The caller draws styled underlines itself ([Md.underlines]); otherwise they are plain ones. */
+    drawnUnderlines: Boolean = false,
 ): Md {
+    val underlines = ArrayList<NoteRichStyle.Underline>()
     val formulas = if (drawMath) {
         inline.spans.filter { it.style == AiMarkdownBlocks.Style.FORMULA && it.url != null }.sortedBy { it.start }
     } else {
@@ -547,8 +627,21 @@ private fun annotated(
                     background = colors.codeBackground,
                 )
                 AiMarkdownBlocks.Style.STRIKE -> SpanStyle(textDecoration = TextDecoration.LineThrough)
-                AiMarkdownBlocks.Style.UNDERLINE -> SpanStyle(textDecoration = TextDecoration.Underline)
+                AiMarkdownBlocks.Style.UNDERLINE -> {
+                    val styled = span.value
+                    if (styled != null && drawnUnderlines) {
+                        val tint = inline.spans.firstOrNull { it.style == AiMarkdownBlocks.Style.COLOR && it.start <= span.start && it.end >= span.end }
+                        underlines += NoteRichStyle.Underline(span.start, span.end, styled, tint?.value?.let(NoteRichStyle::color))
+                        continue
+                    }
+                    SpanStyle(textDecoration = TextDecoration.Underline)
+                }
                 AiMarkdownBlocks.Style.HIGHLIGHT -> SpanStyle(background = HIGHLIGHT)
+                // A note's rich text (#1586): a colour, a highlight colour, a font and a size.
+                AiMarkdownBlocks.Style.COLOR -> NoteRichStyle.color(span.value)?.let { SpanStyle(color = it) } ?: continue
+                AiMarkdownBlocks.Style.BACKGROUND -> SpanStyle(background = NoteRichStyle.highlight(span.value))
+                AiMarkdownBlocks.Style.FONT -> NoteRichStyle.font(span.value)?.let { SpanStyle(fontFamily = it) } ?: continue
+                AiMarkdownBlocks.Style.SIZE -> NoteRichStyle.size(span.value)?.let { SpanStyle(fontSize = it) } ?: continue
                 AiMarkdownBlocks.Style.SUPERSCRIPT -> SpanStyle(baselineShift = BaselineShift.Superscript, fontSize = 0.75.em)
                 AiMarkdownBlocks.Style.SUBSCRIPT -> SpanStyle(baselineShift = BaselineShift.Subscript, fontSize = 0.75.em)
                 AiMarkdownBlocks.Style.MATH -> SpanStyle(fontFamily = FontFamily.Serif)
@@ -585,7 +678,7 @@ private fun annotated(
             addStyle(style, span.start, span.end)
         }
     }
-    return Md(text, formulas.map { it.url.orEmpty() })
+    return Md(text, formulas.map { it.url.orEmpty() }, underlines)
 }
 
 /**
