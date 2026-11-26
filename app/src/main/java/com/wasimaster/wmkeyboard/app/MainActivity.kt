@@ -1659,6 +1659,15 @@ private fun SettingsNavGraph(
                 CustomButtonsScreen(repository, settings, onNavigate = { navController.navigate(it) })
             }
         }
+        composable(APP_SHORTCUTS_ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.app_shortcuts_title),
+                { navController.popBackStack() },
+                route = APP_SHORTCUTS_ROUTE,
+            ) {
+                AppShortcutsScreen()
+            }
+        }
         composable(LauncherAppIcons.ROUTE) {
             SettingsScreen(
                 stringResource(R.string.launcherappicons_title),

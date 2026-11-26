@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tools outside the keyboard (#970): a tool open full screen, and the three
+  ways in that need no text field (an icon on the home screen, an entry of its
+  own in the app list, a line in the menu a press and hold on the app icon
+  opens). Tools › Shortcuts to tools sets all three for every tool; a tool's
+  own page sets them for that tool.
+-->
+<resources>
+    <!-- The full-screen tool, before the keyboard has started or while another keyboard is the current one. -->
+    <string name="tool_screen_starting">Starting WM Keyboard…</string>
+    <string name="tool_screen_not_current">This tool runs inside WM Keyboard. Make WM Keyboard your keyboard to open it here.</string>
+
+    <!-- %1$s is the tool's name. -->
+    <string name="home_shortcut_tool_screen_subtitle">Put %1$s on your home screen. It opens full screen, with no text box to type in first</string>
+
+    <!-- A tool's own page. -->
+    <string name="tool_open_title">Open outside the keyboard</string>
+    <string name="tool_open_page_subtitle">Opens its own screen in this app</string>
+    <string name="tool_open_screen_subtitle">Full screen, the way its home-screen icon opens it</string>
+    <string name="tool_open_box_subtitle">Over a text box of its own, with the keyboard up and the tool open</string>
+    <string name="tool_open_action">Open</string>
+    <string name="tool_app_list_title">Show in the app list</string>
+    <string name="tool_app_list_subtitle">An icon of its own among your apps, which opens the tool</string>
+    <string name="tool_icon_menu_title">In the app icon\'s menu</string>
+    <string name="tool_icon_menu_subtitle">A line in the menu a press and hold on the WM Keyboard icon opens</string>
+
+    <!-- Tools › Shortcuts to tools. -->
+    <string name="app_shortcuts_title">Shortcuts to tools</string>
+    <string name="app_shortcuts_subtitle">Open tools from the home screen, the app list and the app icon\'s menu</string>
+    <string name="app_shortcuts_home_group">Home screen</string>
+    <string name="app_shortcuts_home_info">Your launcher asks before it adds an icon. Remove one the way you remove any other.</string>
+    <string name="app_shortcuts_home_add_title">Add a tool to the home screen</string>
+    <string name="app_shortcuts_home_add_subtitle">Pick a tool, then confirm where your launcher puts it</string>
+    <string name="app_shortcuts_menu_group">App icon menu</string>
+    <!-- %1$d is how many lines Android keeps for one icon; launchers draw fewer. -->
+    <string name="app_shortcuts_menu_info">What a press and hold on the WM Keyboard icon shows, top line first. Android keeps up to %1$d here, and most launchers draw four or five of them.</string>
+    <string name="app_shortcuts_menu_empty">The menu is empty. A press and hold on the icon shows only what your launcher adds itself.</string>
+    <string name="app_shortcuts_menu_add_title">Add to the menu</string>
+    <string name="app_shortcuts_menu_add_subtitle">A settings page or a tool</string>
+    <string name="app_shortcuts_menu_add_action">Add</string>
+    <string name="app_shortcuts_menu_reset_title">Back to the default menu</string>
+    <string name="app_shortcuts_menu_reset_subtitle">Keyboard themes, Chat with the AI, Languages and Keyboard tools, as a new install has it</string>
+    <string name="app_shortcuts_menu_reset_action">Reset</string>
+    <string name="app_shortcuts_list_group">App list</string>
+    <string name="app_shortcuts_list_info">A tool turned on here gets an icon of its own among your apps, under the tool\'s name.</string>
+</resources>

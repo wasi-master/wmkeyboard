@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from the GIF tool's keyboard glyph: its app-list icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.05"
+        android:scaleY="0.05"
+        android:translateX="30"
+        android:translateY="78">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M491.5-368.5Q500-377 500-390v-180q0-13-8.5-21.5T470-600q-13 0-21.5 8.5T440-570v180q0 13 8.5 21.5T470-360q13 0 21.5-8.5ZM280-360h80q17 0 28.5-11.5T400-400v-50q0-13-8.5-21.5T370-480q-13 0-21.5 8.5T340-450v30h-40v-120h70q13 0 21.5-8.5T400-570q0-13-8.5-21.5T370-600h-90q-17 0-28.5 11.5T240-560v160q0 17 11.5 28.5T280-360Zm331.5-8.5Q620-377 620-390v-50h50q13 0 21.5-8.5T700-470q0-13-8.5-21.5T670-500h-50v-40h90q13 0 21.5-8.5T740-570q0-13-8.5-21.5T710-600H590q-13 0-21.5 8.5T560-570v180q0 13 8.5 21.5T590-360q13 0 21.5-8.5ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0 0v-560 560Z" />
+    </group>
+</vector>

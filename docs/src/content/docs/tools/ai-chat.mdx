@@ -95,7 +95,7 @@ A chat started while [incognito](/privacy/incognito/) is on is never saved. You 
 
 <SettingsPath path="Tools / AI writing tools / Chat with the model" />
 
-It sits in a group headed **Chat** on the AI tool's settings screen, under the reasoning and panel options. There's a faster way in too: long-press the app icon on your launcher and pick **AI chat**, which lands you on the conversation list without going through Home.
+It sits in a group headed **Chat** on the AI tool's settings screen, under the reasoning and panel options. There's a faster way in too: long-press the app icon on your launcher and pick **Chat with the AI**, which lands you on the conversation list without going through Home. It is one of the four lines that menu starts with, and you can move it or take it out under <SettingsPath path="Tools / Shortcuts to tools" />.
 
 The **AI** screen on the settings home list has a round chat button in its bottom corner that opens the same list. If you'd like that button on every settings screen, turn on <SettingsPath path="AI / Chat button on every screen" />. On a screen that already has a button of its own, such as the plus that adds something, the chat button sits above it in a smaller size. It stays off the chat screens and the Settings assistant, which are chats already.
 
@@ -380,7 +380,7 @@ Exactly what the AI tool sends, and only when you hit send:
 - **Max response length applies here too.** For a cloud or self-hosted model, the AI tool's ceiling bounds a chat reply the same way it bounds a panel result, reasoning-model multiplier included. See [About "Provider maximum"](/tools/ai/#about-provider-maximum). On-device, the **Context size** row is what bounds it, exactly as on the panel.
 - **The chat prompt isn't one of your actions.** The panel's [action prompts](/tools/ai/#your-own-actions) are for transforming text in a field, which is a different job. Chat has its own fixed prompt and nothing on this screen edits it.
 - **Nothing here is written to the AI history.** That log records panel runs. A conversation is only in the chat file.
-- **The launcher shortcut is one of four.** Long-pressing the app icon offers Tools, Languages, AI chat and Themes, and nothing else. The `wmkeyboard://settings/` scheme behind those four reaches three more screens (Typing, Appearance and Search) that no shortcut points at. See [Deep links & launcher shortcuts](/reference/deep-links/).
+- **The launcher shortcut is one line of a menu you arrange.** Long-pressing the app icon starts with Keyboard themes, Chat with the AI, Languages & layouts and Keyboard tools, and <SettingsPath path="Tools / Shortcuts to tools" /> reorders them, takes them out and adds tools. Every other screen is reached by its `wmkeyboard://settings/` link instead. See [Deep links & launcher shortcuts](/reference/deep-links/).
 - **Deleting a chat mid-answer is handled.** If a generation finishes for a conversation you've already deleted, the answer is dropped rather than resurrecting the row.
 - **Reasoning is saved apart from the answer.** It's kept with the message for its folded step, under the same 20,000-character cap, but never sent back to the model on later turns, and **Insert** and **Copy** take the answer alone.
 - **Tool calls are saved short.** A saved answer keeps each call's arguments and the first 4,000 characters of what came back, the titles and addresses of search results, and why a call failed. A follow-up question doesn't see any of it again: the model only has its own earlier answer to go on.

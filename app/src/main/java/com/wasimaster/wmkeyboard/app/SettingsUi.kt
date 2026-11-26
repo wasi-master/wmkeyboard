@@ -437,6 +437,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     // from are the same feature.
     "expander" to Color(0xFF26A69A),
     "tools" to Color(0xFFFF7043),
+    APP_SHORTCUTS_ROUTE to Color(0xFFFF7043),
+    CustomButtons.ROUTE to Color(0xFFFF7043),
     "sticker_packs" to Color(0xFFF06292),
     "vocab/packs" to Color(0xFF8E24AA),
     "vocab/lists" to Color(0xFF8E24AA),

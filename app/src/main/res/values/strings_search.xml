@@ -73,12 +73,12 @@
     <string name="search_kw_appearance_toolbar_hardware_only">bluetooth physical external</string>
     <string name="search_kw_backup_auto_enabled">cloud sync scheduled</string>
     <string name="search_kw_fonts_tool_app_launcher">drawer quick launch icons</string>
-    <string name="search_kw_fonts_tool_currency">forex dollar euro taka</string>
+    <string name="search_kw_fonts_tool_currency">forex dollar euro taka money</string>
     <string name="search_kw_fonts_tool_floating">undocked movable draggable mini</string>
     <string name="search_kw_fonts_tool_grammar">grammarly languagetool</string>
     <string name="search_kw_fonts_tool_level">spirit horizontal tilt</string>
     <string name="search_kw_fonts_tool_media_control">music spotify player podcast</string>
-    <string name="search_kw_fonts_tool_ocr">google lens recognition extract</string>
+    <string name="search_kw_fonts_tool_ocr">google lens recognition extract image picture photo</string>
     <string name="search_kw_fonts_tool_one_handed">thumb reachability compact narrow</string>
     <string name="search_kw_fonts_tool_split">thumbs ergonomic tablet</string>
     <string name="search_kw_fonts_tool_symbols">unicode character map dingbats</string>
@@ -96,7 +96,7 @@
     <string name="search_kw_ime_tool_persistent">pin always visible dock</string>
     <string name="search_kw_ime_tool_selection_actions">macros highlight toggle</string>
     <string name="search_kw_ime_tool_resize">taller shorter bigger</string>
-    <string name="search_kw_ime_tool_snippets">replacement autotext auto replace canned responses</string>
+    <string name="search_kw_ime_tool_snippets">replacement autotext auto replace canned responses expander</string>
     <string name="search_kw_ime_tool_sticker">whatsapp telegram bitmoji memoji</string>
     <string name="search_kw_ime_tool_text_edit">arrow keys navigation pad</string>
     <string name="search_kw_ime_tool_trackpad">touchpad mouse pad joystick</string>
@@ -110,9 +110,25 @@
     <string name="search_kw_ime_tool_clock">alarm timer zone pomodoro countdown</string>
     <string name="search_kw_ime_tool_location">gps pin share whereabouts navigation</string>
     <string name="search_kw_ime_tool_wikipedia">encyclopedia wiki article</string>
+    <string name="search_kw_app_shortcuts">launcher pin drawer desktop long press</string>
+    <string name="search_kw_app_icon_menu">long press icon launcher</string>
+    <string name="search_kw_app_list">drawer launcher</string>
+    <string name="search_kw_ime_tool_calculator">calc math arithmetic sum</string>
+    <string name="search_kw_ime_tool_flashlight">lamp led</string>
+    <string name="search_kw_ime_tool_files">explorer documents downloads</string>
+    <string name="search_kw_ime_tool_camera">picture selfie snapshot</string>
+    <string name="search_kw_ime_tool_gallery">pictures images</string>
+    <string name="search_kw_ime_tool_music_id">shazam identify recognise recognize soundhound</string>
+    <string name="search_kw_ime_tool_calendar">agenda appointments schedule</string>
+    <string name="search_kw_ime_tool_emoji_mix">kitchen combine merge mashup</string>
+    <string name="search_kw_ime_tool_compass">north direction bearing</string>
+    <string name="search_kw_ime_tool_wm_chroma">picker eyedropper hex swatch</string>
+    <string name="search_kw_fonts_tool_speed_test">speedtest bandwidth ookla</string>
+    <string name="search_kw_fonts_tool_moon_phase">lunar</string>
+    <string name="search_kw_fonts_tool_password_gen">random secure pin</string>
     <string name="search_kw_keypress_all_accents">diacritics umlaut tilde cedilla circumflex</string>
     <string name="search_kw_keypress_native_letters">umlaut accent diacritics order long press german</string>
-    <string name="search_kw_keypress_other_languages_letters">multilingual accents cedilla long press second language letters</string>
+    <string name="search_kw_keypress_other_languages_letters">multilingual accents cedilla long press second language</string>
     <string name="search_kw_keypress_top_row_holds">digits numbers symbols long qwerty number shortcuts hint</string>
     <string name="search_kw_keypress_ctrl_raw">termux ssh vim emacs</string>
     <string name="search_kw_keypress_currency_keys">dollar euro pound rupee yen</string>
@@ -120,17 +136,17 @@
     <string name="search_kw_keypress_haptics_hardware">vibration silent bypass</string>
     <string name="search_kw_keypress_shifted_popup">uppercase majuscule case layer page second</string>
     <string name="search_kw_keypress_long_press_delay">timeout duration</string>
-    <string name="search_kw_appearance_key_hint_corner">hint placement position bottom top left right middle corner long press label</string>
-    <string name="search_kw_appearance_key_label_case">uppercase lowercase capital small letters caps keycap label anysoftkeyboard</string>
-    <string name="search_kw_keypress_preview_width">bubble popup wide narrow size preview leantype</string>
-    <string name="search_kw_keypress_preview_radius">bubble popup rounded corners round preview leantype</string>
+    <string name="search_kw_appearance_key_hint_corner">placement position bottom top left right middle label</string>
+    <string name="search_kw_appearance_key_label_case">uppercase lowercase caps keycap label anysoftkeyboard</string>
+    <string name="search_kw_keypress_preview_width">popup narrow size leantype</string>
+    <string name="search_kw_keypress_preview_radius">popup rounded corners leantype</string>
     <string name="search_kw_keypress_pop_text">animation float rise fade word effect anysoftkeyboard</string>
-    <string name="search_kw_keypress_long_press_system">system accessibility touch and hold delay long press timeout motor</string>
-    <string name="search_kw_keypress_multitap_timeout">multitap multi tap cycle timeout cheonjiin t9 keypad feature phone</string>
+    <string name="search_kw_keypress_long_press_system">system accessibility press timeout motor</string>
+    <string name="search_kw_keypress_multitap_timeout">multitap cycle timeout cheonjiin t9 feature phone</string>
     <string name="search_kw_keypress_long_press_hints">secondary labels marks</string>
     <string name="search_kw_keypress_popup">preview flyout magnifier</string>
     <string name="search_kw_keypress_symbols_numpad">numpad keypad dialpad</string>
-    <string name="search_kw_layout_symbols_page">swiftkey numpad keypad numbers digits symbols layout</string>
+    <string name="search_kw_layout_symbols_page">swiftkey numpad keypad numbers digits layout</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad gboard</string>
     <string name="search_kw_layout_bottom_row_preset">preset iphone ios minimal classic emoji anysoftkeyboard spacebar</string>
     <string name="search_kw_layout_hold_actions_key">fn florisboard futo enter comma globe menu popup</string>
@@ -162,12 +178,12 @@
     <string name="search_kw_languages_cjk_lazy">cantonese jyutping</string>
     <string name="search_kw_languages_cjk_space_steps">japanese chinese select highlight arrow keys convert henkan fcitx mozc hardware physical keyboard</string>
     <string name="search_kw_languages_cjk_full_width_space">japanese chinese zenkaku ideographic double wide u3000</string>
-    <string name="search_kw_languages_cjk_flick_only">japanese flick toggle input keitai multitap repeated taps kana</string>
+    <string name="search_kw_languages_cjk_flick_only">japanese toggle input keitai multitap repeated taps</string>
     <string name="search_kw_languages_cjk_loose_marks">japanese flick dakuten handakuten sokuon modifier insensitive</string>
     <string name="search_kw_languages_cjk_traditional">taiwan hong kong hanzi</string>
-    <string name="search_kw_languages_cjk_kyujitai">japanese kanji kyujitai shinjitai old new forms traditional</string>
+    <string name="search_kw_languages_cjk_kyujitai">japanese kanji shinjitai new traditional</string>
     <string name="search_kw_languages_rime_engine">librime trime weasel squirrel 中州韻 deploy</string>
-    <string name="search_kw_languages_chewing_engine">chewing 新酷音 酷音 注音 zhuyin bopomofo taiwan traditional phrase sentence libchewing</string>
+    <string name="search_kw_languages_chewing_engine">新酷音 酷音 注音 bopomofo traditional sentence libchewing</string>
     <string name="search_kw_languages_mozc_engine">google input 日本語入力 変換 文節 bunsetsu segment kanji</string>
     <string name="search_kw_languages_conjunct_backspace">hindi devanagari indic akshara cluster</string>
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>
@@ -201,7 +217,7 @@
     <string name="search_kw_layout_split">thumb ergonomic tablet</string>
     <string name="search_kw_privacy_backup">phone migrate</string>
     <string name="search_kw_privacy_verify_checksums">hash sha256 integrity signature mismatch corrupt</string>
-    <string name="search_kw_privacy_download_mirror">proxy github blocked china vpn ghproxy slow download raw.githubusercontent</string>
+    <string name="search_kw_privacy_download_mirror">blocked china vpn ghproxy slow githubusercontent</string>
     <string name="search_kw_privacy_learn_typing">personalization adapt remember habits</string>
     <string name="search_kw_privacy_lock">biometric face unlock applock passcode</string>
     <string name="search_kw_selection_macros">highlight context menu share</string>
@@ -219,10 +235,10 @@
     <string name="search_kw_typing_autocorrect_confidence">threshold aggressive aggressiveness modest</string>
     <string name="search_kw_typing_autocorrect">auto replace changing</string>
     <string name="search_kw_typing_blacklist">banned ignore blocklist forbidden</string>
-    <string name="search_kw_typing_pinch_gestures">zoom two finger gesture split merge spread anysoftkeyboard</string>
+    <string name="search_kw_typing_pinch_gestures">zoom finger gesture split merge spread anysoftkeyboard</string>
     <string name="search_kw_typing_stretch_row">spread zoom out split keyboard apart</string>
     <string name="search_kw_typing_pinch_row">squeeze zoom in merge join keyboard together</string>
-    <string name="search_kw_typing_one_finger_swipes">gesture map single finger swipe board shortcut action anysoftkeyboard leantype</string>
+    <string name="search_kw_typing_one_finger_swipes">gesture map single board shortcut anysoftkeyboard leantype</string>
     <string name="search_kw_typing_block_offensive">swear curse cuss censor nsfw</string>
     <string name="search_kw_typing_contact_names">address book phonebook people</string>
     <string name="search_kw_typing_double_space">period full</string>
@@ -262,7 +278,7 @@
     <string name="search_kw_typing_space_swipe_up">touchpad trackpad numpad number pad action tool gesture</string>
     <string name="search_kw_typing_space_swipe_slot">gesture action tool shortcut text editing cursor language</string>
     <string name="search_kw_typing_smart_repeats">repeating spam duplicate again hahaha</string>
-    <string name="search_kw_typing_smart_colours">color hex rgb hsl css chroma palette</string>
+    <string name="search_kw_typing_smart_colours">color hex rgb hsl css palette</string>
     <string name="search_kw_typing_smart_numbers">thousands separator comma</string>
     <string name="search_kw_typing_smart_replies">canned responses</string>
     <string name="search_kw_typing_typed_numbers">phone recent history</string>
@@ -282,7 +298,7 @@
     <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate simply lingva translite libretranslate front end frontend privacy</string>
     <string name="search_kw_deepl">rephrase rewrite improve polish style tone translation</string>
     <string name="search_kw_sticker_suggest">suggestions suggest tray prediction autocomplete</string>
-    <string name="search_kw_dynstickers">meme memes caption text sticker word art typed stickers lottie template expressive</string>
+    <string name="search_kw_dynstickers">memes caption text word art typed lottie template expressive</string>
     <string name="search_kw_dynsticker_builder">maker editor design create animation</string>
     <string name="search_kw_sticker_suggest_magnify">magnify zoom enlarge preview peek long press</string>
     <string name="search_kw_translate_engine">offline private internet airplane local device ml kit google model download cloud</string>
@@ -328,6 +344,7 @@
         <item>power battery energy</item>
         <item>handwriting handwrite stylus pen ink scribble</item>
         <item>calculator calc math maths arithmetic</item>
+        <item>flashlight torch</item>
         <item>currency money exchange</item>
         <item>password passwords passphrase</item>
         <item>qr barcode</item>
@@ -411,7 +428,7 @@
     <string name="search_kw_clean_links">tracker, trackers, tracking, utm, fbclid, clean, url, link, privacy, remove, delete</string>
     <!-- Search words for removing EXIF, GPS and other metadata from pictures and videos. -->
     <!-- The Backspace removes a paste row, by FUTO's name for it and the words people search with. -->
-    <string name="search_kw_backspace_paste">delete pasted text, delete inserted text, undo paste, remove paste, backspace, delete</string>
+    <string name="search_kw_backspace_paste">delete inserted undo remove</string>
     <string name="search_kw_strip_media">exif gps geotag xmp iptc serial number privacy strip picture</string>
     <string name="search_kw_strip_location">exif geotag coordinates metadata privacy strip picture</string>
     <string name="search_kw_strip_camera">exif metadata xmp iptc privacy strip photo picture video</string>

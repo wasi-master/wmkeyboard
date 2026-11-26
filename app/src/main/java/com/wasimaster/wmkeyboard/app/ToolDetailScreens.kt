@@ -123,7 +123,7 @@ import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.util.runCancellable
-import com.wasimaster.wmkeyboard.ime.KeyboardAutomation
+import com.wasimaster.wmkeyboard.ime.floating.ToolScreens
 import com.wasimaster.wmkeyboard.ime.WMKeyboardService
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
@@ -656,12 +656,56 @@ internal fun ToolDetailSettings(
                 default = usable && tool in SettingsDefaults.enabledTools,
             ) { scope.launch { repository.setToolEnabled(tool, it) } }
         }
+        // The tool as an app: full screen where the keyboard can run it so,
+        // over a text box of its own otherwise, its own screen for the clock,
+        // the notes and the to-do list.
+        val launchable = ToolLaunch.launchable(tool)
+        item(visible = launchable) {
+            val context = LocalContext.current
+            ActionRow(
+                R.string.tool_open_title,
+                subtitle = stringResource(
+                    when {
+                        tool in ToolLaunch.appScreens -> R.string.tool_open_page_subtitle
+                        ToolScreens.runs(tool) -> R.string.tool_open_screen_subtitle
+                        else -> R.string.tool_open_box_subtitle
+                    },
+                ),
+                action = stringResource(R.string.tool_open_action),
+            ) { runCatching { context.startActivity(ToolLaunch.intent(context, tool)) } }
+        }
         // Any tool with a panel can go on the home screen (#970). The clock,
         // notes and to-do list pin their own screens instead, further down.
-        item(
-            visible = KeyboardAutomation.panelTool(tool.name) != null && tool !in ScreenShortcutTools,
-            level = SettingLevel.STANDARD,
-        ) { ToolHomeScreenShortcutRow(tool) }
+        item(visible = launchable && tool !in ScreenShortcutTools, level = SettingLevel.STANDARD) {
+            ToolHomeScreenShortcutRow(tool)
+        }
+        // An entry of its own in the app list, and a line in the menu a press
+        // and hold on the app icon opens: Tools › Shortcuts to tools has them
+        // for every tool at once.
+        item(visible = launchable, level = SettingLevel.STANDARD) {
+            val context = LocalContext.current
+            var listed by remember(tool) { mutableStateOf(ToolAppList.isShown(context, tool)) }
+            ToggleSetting(
+                R.string.tool_app_list_title,
+                stringResource(R.string.tool_app_list_subtitle),
+                listed,
+            ) { on ->
+                ToolAppList.setShown(context, tool, on)
+                listed = on
+            }
+        }
+        item(visible = launchable, level = SettingLevel.STANDARD) {
+            val context = LocalContext.current
+            var inMenu by remember(tool) { mutableStateOf(AppIconMenu.contains(context, tool)) }
+            ToggleSetting(
+                R.string.tool_icon_menu_title,
+                stringResource(R.string.tool_icon_menu_subtitle),
+                inMenu,
+            ) { on ->
+                AppIconMenu.setTool(context, tool, on)
+                inMenu = on
+            }
+        }
     }
     when (tool) {
         ToolbarTool.KDE_CONNECT ->

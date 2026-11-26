@@ -144,6 +144,15 @@ private const val PHRASE_TITLE_BONUS = 15
 private const val PHRASE_KEYWORD_BONUS = 9
 
 /**
+ * Points for a tool's own page when every word of the query lands, spelt
+ * right and whole or as a start, on the tool's name or its search words, but
+ * the query is not the tool's name: "calc", "torch", "speedtest". Half the
+ * name bonus ([EntryWeight.TOOL]), so it lifts the tool over the rows that
+ * merely carry the same word and leaves it under a screen named by it.
+ */
+private const val TOOL_WORDS_BONUS = 15
+
+/**
  * Below this many letters a word inside another word is not a hit, whether in
  * the text or in the text with its spaces removed. "row" is in "arrow",
  * "narrow", "browser" and "grow the bubble"; "key" is in "monkey". Four letters
@@ -356,7 +365,7 @@ private fun SearchText.tier(token: String, spellCorrect: Boolean = true): Int {
     if (text == token) return TIER_FIELD_EXACT
     if (text.startsWith(token)) return TIER_FIELD_PREFIX
     var best = 0
-    val tokenStemmed = if (engineStems != null) engineStem(token) else stem(token)
+    val tokenStemmed = stemOf(token)
     for (i in words.indices) {
         val word = words[i]
         if (word == token) return TIER_WORD_EXACT
@@ -373,10 +382,39 @@ private fun SearchText.tier(token: String, spellCorrect: Boolean = true): Int {
     return 0
 }
 
+/** [token]'s stem by the rule this field's words were stemmed by. */
+private fun SearchText.stemOf(token: String): String = if (engineStems != null) engineStem(token) else stem(token)
+
+/**
+ * Whether [tokens] are this title: the same letters run together ("todo list"
+ * for To-do list), or the same words by stem, in order ("calculators"). A
+ * query of several words that one of the entry's search words runs together
+ * counts as well: "to do" for the to-do list, whose search words say todo.
+ * [words] is the query before its common words were dropped, since "to" is
+ * one of them.
+ */
+private fun SettingsSearchEntry.isNamed(tokens: List<String>, words: List<String>): Boolean {
+    val title = searchText[0]
+    if (title.compact == tokens.joinToString("")) return true
+    if (words.size > 1 && words.joinToString("") in searchText[1].words) return true
+    return title.words.size == tokens.size &&
+        tokens.indices.all { title.stemmedWords[it] == title.stemOf(tokens[it]) }
+}
+
 /** Where one query word landed on an entry, and what that is worth. */
-private class Hit(val points: Int, val where: MatchField?, val direct: Boolean, val fuzzy: Boolean = false) {
+private class Hit(
+    val points: Int,
+    val where: MatchField?,
+    val direct: Boolean,
+    val fuzzy: Boolean = false,
+    /** The [SearchText.tier] behind [points], before the field's share. */
+    val tier: Int = 0,
+) {
     /** A hit on what the row is called, or on the words it is searched by. */
     val onName: Boolean get() = where == MatchField.TITLE || where == MatchField.KEYWORDS
+
+    /** The word as typed, whole or as a start, on what the row is called or searched by. */
+    val namesIt: Boolean get() = onName && direct && !fuzzy && tier >= TIER_WORD_PREFIX
 
     companion object {
         val NONE = Hit(0, null, direct = true)
@@ -389,7 +427,7 @@ private fun rawHit(entry: SettingsSearchEntry, token: String, spellCorrect: Bool
     for (text in entry.searchText) {
         val tier = text.tier(token, spellCorrect)
         val points = tier * text.field.percent / 100
-        if (points > best.points) best = Hit(points, text.field, direct = spellCorrect, fuzzy = tier == TIER_FUZZY)
+        if (points > best.points) best = Hit(points, text.field, direct = spellCorrect, fuzzy = tier == TIER_FUZZY, tier = tier)
     }
     return best
 }
@@ -412,7 +450,7 @@ private fun tokenHit(
         if (hit.points > alias.points) alias = hit
     }
     val aliasPoints = alias.points * ALIAS_PERCENT / 100
-    return if (aliasPoints > direct.points) Hit(aliasPoints, alias.where, direct = false) else direct
+    return if (aliasPoints > direct.points) Hit(aliasPoints, alias.where, direct = false, tier = alias.tier) else direct
 }
 
 /**
@@ -478,11 +516,14 @@ internal class SearchResults(val hits: List<SettingsSearchEntry>, val mentions: 
  * The screen bonus wants the *word as typed* on the title: a screen whose
  * search words merely include your word is not more relevant than the row
  * named after it. The primary bonus takes a synonym too, because that is the
- * case it is for.
+ * case it is for. A tool that opens on its own gets its bonus only when the
+ * query is its name ([isNamed]), and [TOOL_WORDS_BONUS] when every word lands
+ * on its name or search words without being it.
  */
 private fun rank(
     entry: SettingsSearchEntry,
     tokens: List<String>,
+    words: List<String>,
     phrase: String,
     vocabulary: SettingsSearchVocabulary,
     boost: SearchBoost,
@@ -493,9 +534,11 @@ private fun rank(
     var spelledOnName = false
     var titleDirect = false
     var onTitle = 0
+    var named = 0
     for (token in tokens) {
         val hit = tokenHit(entry, token, vocabulary)
         if (hit.points == 0) continue
+        if (hit.namesIt) named++
         matched++
         points += hit.points
         onName = onName || hit.onName
@@ -510,9 +553,14 @@ private fun rank(
     val bonusApplies = when (entry.weight) {
         EntryWeight.SECTION -> titleDirect
         EntryWeight.PRIMARY -> titleAny
+        EntryWeight.TOOL -> entry.opensTool && entry.isNamed(tokens, words)
         else -> false
     }
-    if (bonusApplies) points += entry.weight.titleBonus
+    if (bonusApplies) {
+        points += entry.weight.titleBonus
+    } else if (entry.opensTool && named == tokens.size) {
+        points += TOOL_WORDS_BONUS
+    }
     if (tokens.size > 1) {
         val fields = entry.searchText
         if (fields[0].text.contains(phrase) || fields[0].compact.contains(phrase.replace(" ", ""))) {
@@ -554,8 +602,9 @@ internal fun rankSettings(
     val tokens = searchTokens(query, vocabulary)
     if (tokens.isEmpty()) return SearchResults.EMPTY
     resolveStems(index)
+    val words = normalizeForSearch(query).split(' ').filter { it.isNotEmpty() }
     val phrase = tokens.joinToString(" ")
-    val scored = index.mapNotNull { rank(it, tokens, phrase, vocabulary, boost) }
+    val scored = index.mapNotNull { rank(it, tokens, words, phrase, vocabulary, boost) }
     if (scored.isEmpty()) return SearchResults.EMPTY
     val bestMatched = scored.maxOf { it.matched }
     if (bestMatched * 2 < tokens.size) return SearchResults.EMPTY

@@ -78,7 +78,6 @@ class SettingsSearchRankingTest {
         first("add language", "langemoji_lang_add_title"),
         first("incognito", "privacy_incognito_title"),
         first("offensive", "typing_block_offensive_title"),
-        first("swear", "typing_block_offensive_title"),
         // The screen, when the query names one.
         screen("haptic", "keypress/haptics"),
         screen("haptics", "keypress/haptics"),
@@ -88,7 +87,9 @@ class SettingsSearchRankingTest {
         screen("one handed", "layout/onehanded"),
         screen("one-handed", "layout/onehanded"),
         screen("size", "layout/size"),
-        screen("theme", "themes"),
+        // Theme modes has been a page of its own since #1451, and its name
+        // starts with the word; either page of themes answers it.
+        Case("theme", "screen themes or themes/modes") { it.at("themes") || it.at("themes/modes") },
         screen("themes", "themes"),
         // The mode switch has been on Theme modes since #1451; either page
         // answers the question.
@@ -106,11 +107,33 @@ class SettingsSearchRankingTest {
         screen("suggestions", "typing/suggestions"),
         screen("gestures", "typing/gestures"),
         screen("toolbar", "appearance/toolbar"),
-        screen("dictionary", "dictionary"),
         screen("storage", "storage"),
         screen("otp", "typing/codes"),
         // The tool's page, when only a tool is called that.
         first("translate", "ime_tool_translate"),
+        // A tool that opens on its own, by its name, over the screens and
+        // switches that only carry the word: "Send files", "Weather chip",
+        // Personal dictionary, the Calculator and converters bundle.
+        first("files", "ime_tool_files"),
+        first("calculator", "ime_tool_calculator"),
+        first("weather", "ime_tool_weather"),
+        first("dictionary", "ime_tool_dictionary"),
+        first("gif", "ime_tool_gif"),
+        first("gifs", "ime_tool_gif"),
+        first("camera", "ime_tool_camera"),
+        first("calendar", "ime_tool_calendar"),
+        first("gallery", "ime_tool_gallery"),
+        first("compass", "ime_tool_compass"),
+        first("level", "fonts_tool_level_title"),
+        first("todo", "ime_tool_todo"),
+        first("document scanner", "fonts_tool_doc_scan_title"),
+        // By another name for it, in its search words or a word group.
+        first("torch", "ime_tool_flashlight"),
+        first("shazam", "ime_tool_music_id"),
+        first("speedtest", "fonts_tool_speed_test_title"),
+        first("lunar", "fonts_tool_moon_phase_title"),
+        first("eyedropper", "ime_tool_wm_chroma"),
+        first("barcode", "fonts_tool_qr_scan_title"),
         // A provider by its own name: its screen, over the rows that mention it.
         provider("deepl", "provider/translate/deepl"),
         provider("whisper", "provider/voice/whisper"),
@@ -128,7 +151,19 @@ class SettingsSearchRankingTest {
         first("glide", "typing_glide_typing_title"),
         first("swipe typing", "typing_glide_typing_title"),
         first("space", "typing_double_space_title"),
-        first("calculator", "ime_tool_calculator"),
+        // Voice typing's Mask swear words is as good an answer as the typing switch.
+        first("swear", "typing_block_offensive_title"),
+        // The page of the same name and the tool are both what the word means.
+        screen("dictionary", "dictionary"),
+        first("emoji", "ime_tool_emoji"),
+        first("clipboard", "ime_tool_clipboard"),
+        // "to" is a stop word, and Double space starts with the "do" left over.
+        first("to do", "ime_tool_todo"),
+        first("calc", "ime_tool_calculator"),
+        first("timer", "ime_tool_clock"),
+        first("qr", "fonts_tool_qr_scan_title"),
+        first("qr", "fonts_tool_qr_gen_title"),
+        first("password", "ime_tool_wm_pass"),
         first("haptic", "keypress_haptics_title"),
         first("haptics", "keypress_haptics_title"),
         first("auto correct", "typing_autocorrect_title"),
@@ -144,9 +179,10 @@ class SettingsSearchRankingTest {
         first("keyboard height", "layout_key_height_title"),
         first("backspace", "typing_backspace_swipe_title"),
         first("delete", "typing_backspace_swipe_title"),
-        // Four rows start with Shift now; the recase ones (#662) sit on a
-        // deeper screen and lead, Shift and Enter after them.
-        first("shift", "typing_shift_recase_title"),
+        // Eight rows start with Shift now (the recase ones from #662, the
+        // spacebar's, the delete keys', the physical keyboard's), and none of
+        // them is the Shift key's own setting, so any of them may lead.
+        Case("shift", "a row named for the Shift key") { normalizeForSearch(it.title).startsWith("shift ") },
         // The screen is "App lock" now, so "fingerprint" reaches it through its
         // search words only, and the permission row named exactly "Fingerprint"
         // keeps its own name (see SettingsSearchKeywords). "Offer the fingerprint
@@ -215,12 +251,55 @@ class SettingsSearchRankingTest {
         assertEquals("rows found via 'arrow', 'narrow', 'browser'", emptyList<SettingsSearchEntry>(), inside)
     }
 
+    /**
+     * The whole index and the vocabulary as JSON, in
+     * `build/reports/settings-search-index.json`: what an offline replay of
+     * [rankSettings] reads to try a change to the scoring across hundreds of
+     * queries without a build per try.
+     */
+    @Test
+    fun dumpIndex() {
+        fun q(s: String) = buildString {
+            append('"')
+            for (c in s) {
+                when {
+                    c == '"' -> append("\\\"")
+                    c == '\\' -> append("\\\\")
+                    c == '\n' -> append("\\n")
+                    c < ' ' -> append("\\u%04x".format(c.code))
+                    else -> append(c)
+                }
+            }
+            append('"')
+        }
+        val out = File("build/reports/settings-search-index.json")
+        out.parentFile.mkdirs()
+        val groups = strings.getStringArray(com.wasimaster.wmkeyboard.R.array.search_word_groups)
+        val stop = strings.getString(com.wasimaster.wmkeyboard.R.string.search_stop_words)
+        out.printWriter().use { w ->
+            w.print("{\"groups\":[")
+            w.print(groups.joinToString(",") { q(it) })
+            w.print("],\"stop\":")
+            w.print(q(stop))
+            w.println(",\"entries\":[")
+            w.print(
+                index.joinToString(",\n") { e ->
+                    "{\"title\":${q(e.title)},\"subtitle\":${q(e.subtitle)},\"keywords\":${q(e.keywords)}," +
+                        "\"path\":[${e.screenPath.joinToString(",") { q(it) }}],\"route\":${q(e.route)}," +
+                        "\"weight\":${q(e.weight.name)},\"key\":${q(e.key)},\"tool\":${q(e.tool?.name.orEmpty())}," +
+                        "\"opens\":${e.opensTool}}"
+                },
+            )
+            w.println("]}")
+        }
+    }
+
     @Test
     fun dumpRankings() {
         val out = File("build/reports/settings-search-rankings.txt")
         out.parentFile.mkdirs()
         val queries = (top1 + top3).map { it.query } + listOf(
-            "key", "press", "row", "colour", "color", "layout", "tools", "gif", "sticker", "password", "reset",
+            "key", "press", "row", "colour", "color", "layout", "tools", "gif", "sticker", "password", "reset", "notes",
             "keyboard", "sensitive", "typing", "swipe", "cursor", "long press", "spacebar", "background", "learn",
         )
         out.printWriter().use { w ->

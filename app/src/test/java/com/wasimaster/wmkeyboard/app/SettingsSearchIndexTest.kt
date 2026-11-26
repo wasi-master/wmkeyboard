@@ -132,6 +132,11 @@ class SettingsSearchIndexTest {
         // which is nothing to search for. The index says what the row does
         // instead, once for all four of them.
         "tooldetail_grammar_category_search_subtitle",
+        // The NPU build rows draw what runs the model now (CPU, NPU, or a
+        // build that failed), which changes with the phone. The index says
+        // what the row decides instead.
+        "models_whisper_npu_subtitle",
+        "semantic_npu_subtitle",
     )
 
     private fun isIndexOwned(key: String) = key in indexOwnedKeys || key.startsWith("search_")

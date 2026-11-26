@@ -54,8 +54,9 @@ class LauncherNameTest {
             assertEquals("$name must be exported to be launchable", "true", attribute(attributes, "exported"))
             assertTrue("$name has no MAIN action", "android.intent.action.MAIN" in body)
             assertTrue("$name has no LAUNCHER category", launcher in body)
-            // Android publishes static shortcuts off whichever entry is enabled.
-            assertTrue("$name does not carry the static shortcuts", "android.app.shortcuts" in body)
+            // The icon's menu is the user's now, published at run time (AppIconMenu):
+            // a static one left here could never be taken out of it.
+            assertFalse("$name still carries static shortcuts", "android.app.shortcuts" in body)
         }
     }
 
@@ -71,7 +72,10 @@ class LauncherNameTest {
     fun `the aliases are the only launcher entries`() {
         // <queries> asks for other apps' launcher activities; that one is not ours.
         val application = manifest.replace(Regex("<queries>.*?</queries>", RegexOption.DOT_MATCHES_ALL), "")
-        assertEquals("LAUNCHER categories outside <queries>", 2, Regex(Regex.escape(launcher)).findAll(application).count())
+        // A tool's own app-list entry (ToolAppList) is one too, each off in the
+        // manifest; ToolShortcutsTest holds those.
+        val tools = aliases.filterKeys { it.startsWith(ToolAppList.ALIAS_PREFIX) }.values.count { launcher in it.second }
+        assertEquals("LAUNCHER categories outside <queries>", 2 + tools, Regex(Regex.escape(launcher)).findAll(application).count())
         val mainActivity = Regex(
             """<activity\s[^>]*android:name="${Regex.escape(MainActivity::class.java.name)}".*?</activity>""",
             RegexOption.DOT_MATCHES_ALL,

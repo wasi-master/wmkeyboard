@@ -200,6 +200,9 @@ internal class FloatingApplet(
     /** Closes the box. Safe to call with none open. */
     fun close() = close(notify = true)
 
+    /** Takes the box down without its tool's leaving work: the tool goes on elsewhere (the app's tool screen). */
+    fun dismiss() = close(notify = false)
+
     private fun close(notify: Boolean) {
         val current = view ?: return
         val shown = box.panel

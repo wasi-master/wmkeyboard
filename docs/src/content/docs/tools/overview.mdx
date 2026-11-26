@@ -151,11 +151,29 @@ A drag on any part of a tool that does nothing with a drag already moves the box
 
 The box draws over other apps through the same **Display over other apps** permission the floating button uses. The first time you open a box without it, the keyboard explains why and opens Android's page for it.
 
-## Tools on the home screen
+## Tools outside the keyboard
 
-<SettingsPath path="Tools / (any tool) / Add to home screen" />
+<SettingsPath path="Tools / Shortcuts to tools" />
 
-A tool with a panel can have an icon of its own on your home screen, so the level, the compass or the unit converter can stand in for an app you no longer need. **Add to home screen** on the tool's page asks your launcher to pin it. Tapping the icon opens a blank text box with the keyboard up and that tool already open on it. Whatever the tool types, such as a sum, a translation or a password, lands in the box, and **Copy** and **Share** under it take it from there. Each tool opens as its own entry in Recents, under the tool's name, so you can switch from the compass to the converter the way you switch apps, and tapping an icon again brings its tool back where you left it. An icon pinned before 0.6.6 still opens in one shared screen; pin it again to give it its own entry. The tool opens in WM Keyboard only, so if another keyboard is in use the screen says so and offers to switch. The Clock, Notes and To-do list pin their own screens in the app instead.
+A tool with a panel can open without a text field to type in, the way an app does: from an icon on your home screen, from its own entry in the app list, from the menu a press and hold on the WM Keyboard icon opens, or from **Open outside the keyboard** on its page in settings. A settings search for a tool's name lists the tool first, with an **Open** button on its row. Where it opens depends on the tool:
+
+- **Full screen**: the tools that can [float](#tools-in-a-floating-box), plus the compass, the bubble level, the moon phase, the weather and the password generator. The tool fills the screen with the same panel it has in the keyboard, and with what you had in it, since it is the same tool. Its bar has a back arrow, a pop-out button that moves the tool into a floating box over whatever you open next, and a button for the tool's settings page. A search box or text box inside the tool brings WM Keyboard up under it, and the screen makes room for the keys.
+- **Its own screen in the app**: the Clock, Notes and To-do list.
+- **Over a text box of its own**: every other tool, such as the trackpad or the emoji. The keyboard comes up with that tool already open on it, and whatever the tool types, such as a translation or a password, lands in the box, where **Copy** and **Share** take it from there.
+
+Each tool opens as its own entry in Recents, under the tool's name, so you can switch from the compass to the converter the way you switch apps, and opening a tool again brings it back where you left it. A tool shows in one place at a time: open the calculator full screen and it leaves the floating box or the keyboard, and if you open it there while it is full screen, the full-screen page says so and offers **Open it here again**. The tools run in WM Keyboard, so they open only while it is your keyboard. With another keyboard in use, the screen says so and offers to switch.
+
+**Shortcuts to tools** on the Tools screen sets all three ways in for every tool at once, and a tool's own page sets them for that tool:
+
+- **Home screen**: **Add a tool to the home screen** picks a tool, and your launcher asks where to put its icon. On a tool's page the same row is **Add to home screen**. Each tool has an icon of its own, drawn in the app's colours. An icon pinned before 0.6.6 still opens in one shared screen; pin it again to give it its own entry.
+- **App icon menu**: the lines a press and hold on the WM Keyboard icon shows, top line first. It starts with the four settings pages it has always had (Keyboard themes, Chat with the AI, Languages and Keyboard tools). Drag a line to move it, swipe it away to take it out, and **Add to the menu** adds a settings page or a tool. Android keeps a set number of lines per icon, which the screen names, and most launchers draw only the first four or five. **Back to the default menu** brings the four pages back. On a tool's page, **In the app icon's menu** adds or removes that tool.
+- **App list**: a switch per tool. A tool turned on gets an icon of its own among your apps, under its name, which you can move to the home screen or into a folder like any other app. On a tool's page the switch is **Show in the app list**.
+
+Launchers with their own shortcut list, a secondary launcher for one, offer **WM Keyboard tool** there and add any tool with its own icon. The same list starts with the four settings pages. Add those from there in a launcher that isn't your default home app: such a launcher can't open the app icon's menu, and a line copied from that menu opens the app's home page instead.
+
+:::note[Icons from the old menu]
+Before 0.6.8 the app icon's menu was fixed. If you dragged one of its four lines onto your home screen back then, that icon now shows as disabled: Android keeps a copy of a fixed line once the app drops it, and won't let the app touch it again. Remove it and drag the line back from the new menu.
+:::
 
 ## What does this button do?
 
@@ -191,8 +209,6 @@ The trade is muscle memory against reach. Paging keeps every tool at the same sp
 Pick a page size that's a multiple of your row size and every page comes out with full rows. Ask for more tools than fit the panel's height and the page will scroll as well as swipe, which rather defeats the point.
 
 ## Folders
-
-Launchers with their own shortcut list, a secondary launcher for one, offer **WM Keyboard tool** there and add any tool with its own icon. **Add to home screen** on a tool's page does the same from here. The same list starts with the settings pages from the app icon's long-press menu (Themes, AI chat, Languages and Tools). Add them from there in a launcher that isn't your default home app: such a launcher can't open the long-press shortcuts themselves, and one copied from that menu opens the app's home page instead.
 
 A long toolbox is easier to scan in groups. Hold a tool, drag it over the middle of another one, and let go when that tool lights up: the two become a folder in that tool's place. The edges of a tool still mean "put it beside this one", so reordering works as before; only the middle files it. Drop more tools on the folder to add them, and drop a toolbar tool there to unpin it straight into the folder.
 

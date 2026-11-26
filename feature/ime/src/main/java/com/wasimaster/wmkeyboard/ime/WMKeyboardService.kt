@@ -5577,6 +5577,8 @@ open class WMKeyboardService : InputMethodService() {
         KeyboardControls.host = keyboardControlHost
         // Same for adb and automation apps; see [KeyboardAutomation].
         KeyboardAutomation.host = automationHost
+        // A tool full screen in the app's own window runs on this keyboard.
+        com.wasimaster.wmkeyboard.ime.floating.ToolScreens.host = toolScreenHost
         // And the other direction: tell listening apps the layout changed,
         // while the user allows it. The first value is the layout the keyboard
         // started on, which is not a switch.
@@ -9088,6 +9090,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun pluginBoxToKeyboard() {
         pluginCarry = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
         if (floatingAppletDelegate.isInitialized()) floatingApplet.close()
+        // On the app's tool screen, the plugin leaves it for the keyboard as it leaves the box.
+        if (_uiState.value.applet.onScreen) appletLeft(PanelMode.PLUGINS)
         runToolFromFloatingButton(ToolbarTool.PLUGINS)
     }
 
@@ -9159,7 +9163,7 @@ open class WMKeyboardService : InputMethodService() {
                     onItem = ::onAppletClip,
                     // With no field to send a sticker to, the picture goes on the clipboard.
                     onSticker = { item ->
-                        if (windowOnScreen && currentInputConnection != null) onClipboardSticker(item) else onAppletClip(item)
+                        if (boxHasField) onClipboardSticker(item) else onAppletClip(item)
                     },
                     onPin = ::onClipboardPin,
                     onDelete = ::onClipboardDelete,
@@ -9206,13 +9210,21 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The keyboard is up over a field the box's tool can put text into. Not
+     * over the tool's own screen in the app, which has none: what the tool
+     * would type goes onto the clipboard there, as with the keyboard down.
+     */
+    private val boxHasField: Boolean
+        get() = windowOnScreen && currentInputConnection != null && !_uiState.value.applet.onScreen
+
+    /**
      * Something the box's tool puts into the app's field (#1265): done there
      * while the keyboard is up over one, else [copy] goes onto the clipboard,
      * or [open] opens in the browser, since a box over an app with the
      * keyboard down has no field to type into.
      */
     private inline fun boxField(copy: String? = null, open: String? = null, insert: () -> Unit) {
-        if (windowOnScreen && currentInputConnection != null) {
+        if (boxHasField) {
             insert()
             return
         }
@@ -9230,7 +9242,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onAppletClip(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
         if (!isClipboardAccessible()) return
-        if (windowOnScreen && currentInputConnection != null) {
+        if (boxHasField) {
             onClipboardItemTapped(item)
             return
         }
@@ -9279,6 +9291,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun clipboardIntoKeyboard(then: () -> Unit) {
         if (floatingAppletDelegate.isInitialized()) floatingApplet.close()
+        if (_uiState.value.applet.onScreen) appletLeft(PanelMode.CLIPBOARD)
         if (windowOnScreen) {
             if (_uiState.value.panel != PanelMode.CLIPBOARD) onPanelChange(PanelMode.CLIPBOARD, haptic = false)
             then()
@@ -9346,12 +9359,29 @@ open class WMKeyboardService : InputMethodService() {
         // The box is the newer overlay window, so it would sit over the
         // floating button; the button goes back on top (Telegram 10316).
         if (floatingButtonDelegate.isInitialized()) floatingButton.bringToFront()
+        appletStarted(tool, panel, previous, fromKeyboard, carriedPlugin, onScreen = false)
+    }
+
+    /**
+     * [tool] has come up as [panel] in the floating box, or on the app's
+     * tool screen with [onScreen] ([com.wasimaster.wmkeyboard.ime.floating.ToolScreens]):
+     * its opening work, the same as opening its panel in the keyboard does,
+     * once [previous], the tool the box showed before, has left.
+     */
+    private fun appletStarted(
+        tool: ToolbarTool,
+        panel: PanelMode,
+        previous: PanelMode?,
+        fromKeyboard: TranslateCarry?,
+        carriedPlugin: String?,
+        onScreen: Boolean,
+    ) {
         toolUsage.record(tool.key)
         appletTool = tool
         if (panel in BoxSearchPanels && previous != panel) openAppletSearch(panel, fromKeyboard)
         _uiState.update {
             it.copy(
-                applet = AppletUi(appletPanel = panel),
+                applet = AppletUi(appletPanel = panel, onScreen = onScreen),
                 converterValue = if (panel == PanelMode.UNIT_CONVERT || panel == PanelMode.CURRENCY) {
                     it.converterValue.ifEmpty { "1" }
                 } else {
@@ -9382,6 +9412,8 @@ open class WMKeyboardService : InputMethodService() {
             // With the keyboard down the search waits for a tap on its box,
             // which brings the keyboard up, rather than summoning it now.
             PanelMode.DICTIONARY -> if (windowOnScreen) openDictionary()
+            // The tools that open on the app's tool screen and never in the box.
+            PanelMode.WEATHER -> refreshWeather()
             else -> Unit
         }
         // A tap on the box's text box (a note, a task) gives it the keys; with
@@ -9395,6 +9427,71 @@ open class WMKeyboardService : InputMethodService() {
                     .collect { wantsKeys -> if (wantsKeys && !windowOnScreen) summonKeyboard() }
             }
         }
+    }
+
+    // ---- a tool full screen in the app's own window ----
+
+    /** What the app's tool screen reaches this keyboard by; see [com.wasimaster.wmkeyboard.ime.floating.ToolScreens]. */
+    private val toolScreenHost = object : com.wasimaster.wmkeyboard.ime.floating.ToolScreens.Host {
+        override val state: StateFlow<KeyboardUiState> get() = _uiState
+        override val callbacks: com.wasimaster.wmkeyboard.ime.floating.AppletCallbacks get() = appletCallbacks
+        override val screenCallbacks: com.wasimaster.wmkeyboard.ime.floating.ScreenToolCallbacks
+            get() = screenToolCallbacks
+        override fun openScreen(tool: ToolbarTool): Boolean = openToolScreen(tool)
+        override fun closeScreen(tool: ToolbarTool) = closeToolScreen(tool)
+        override fun floatScreen(tool: ToolbarTool): Boolean = floatToolScreen(tool)
+    }
+
+    /** The callbacks of the tools that open on the tool screen and never in the box. */
+    private val screenToolCallbacks by lazy {
+        com.wasimaster.wmkeyboard.ime.floating.ScreenToolCallbacks(
+            location = locationTool.callbacks,
+            onWeatherRefresh = { refreshWeather(force = true) },
+            calendar = lazy { calendarTool.callbacks },
+            onPwSetting = ::onPwSetting,
+        )
+    }
+
+    /**
+     * Puts [tool] on the app's tool screen: the box's tool and the screen's
+     * are one, so the box goes (its tool moving over when it is this one),
+     * and the tool leaves the keyboard's panel if it was open there. False
+     * for a tool that does not run full screen, or a locked clipboard.
+     */
+    private fun openToolScreen(tool: ToolbarTool): Boolean {
+        val panel = com.wasimaster.wmkeyboard.ime.floating.ToolScreens.panelOf(tool) ?: return false
+        if (!isSupportedTool(tool)) return false
+        if (panel == PanelMode.CLIPBOARD && !isClipboardAccessible()) return false
+        val now = _uiState.value
+        if (now.appletPanel == panel && now.applet.onScreen) return true
+        if (floatingAppletDelegate.isInitialized() && floatingApplet.panel != null) {
+            if (now.appletPanel == panel) floatingApplet.dismiss() else floatingApplet.close()
+        }
+        val fromKeyboard = _uiState.value.takeIf { panel in BoxSearchPanels && it.panel == panel }
+            ?.let { TranslateCarry(it.mediaQuery, it.translate, panel) }
+        val carriedPlugin = (_uiState.value.plugins as? PluginPanelUi.Running)?.plugin?.id
+            ?.takeIf { panel == PanelMode.PLUGINS && _uiState.value.panel == PanelMode.PLUGINS }
+        if (_uiState.value.panel == panel) onPanelChange(panel, haptic = false)
+        val previous = _uiState.value.appletPanel
+        if (previous != null && previous != panel) appletLeft(previous, closeBox = false)
+        appletStarted(tool, panel, previous, fromKeyboard, carriedPlugin, onScreen = true)
+        return true
+    }
+
+    /** The tool screen showing [tool] went out of sight: the tool leaves, unless the box has it by now. */
+    private fun closeToolScreen(tool: ToolbarTool) {
+        val panel = com.wasimaster.wmkeyboard.ime.floating.ToolScreens.panelOf(tool) ?: return
+        val now = _uiState.value
+        if (now.appletPanel == panel && now.applet.onScreen) appletLeft(panel)
+    }
+
+    /** The tool screen's pop-out: [tool] moves into the floating box, its state with it. */
+    private fun floatToolScreen(tool: ToolbarTool): Boolean {
+        val panel = com.wasimaster.wmkeyboard.ime.floating.ToolScreens.panelOf(tool) ?: return false
+        if (!tool.floats) return false
+        openFloatingApplet(tool)
+        val now = _uiState.value
+        return now.appletPanel == panel && !now.applet.onScreen
     }
 
     /**
@@ -9495,7 +9592,7 @@ open class WMKeyboardService : InputMethodService() {
      * [onAppletInsert] does for a result.
      */
     private fun onAppletTranslate(replace: Boolean) {
-        if (windowOnScreen && currentInputConnection != null) {
+        if (boxHasField) {
             if (replace) onTranslateReplace() else onTranslateInsert()
             return
         }
@@ -9509,7 +9606,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onAppletInsert(text: String) {
         if (text.isEmpty()) return
-        if (windowOnScreen && currentInputConnection != null) {
+        if (boxHasField) {
             onToolTextInsert(text)
             return
         }
@@ -12316,6 +12413,9 @@ open class WMKeyboardService : InputMethodService() {
         KeyboardControls.host = null
         KeyboardControls.clear(this)
         KeyboardAutomation.host = null
+        if (com.wasimaster.wmkeyboard.ime.floating.ToolScreens.host === toolScreenHost) {
+            com.wasimaster.wmkeyboard.ime.floating.ToolScreens.host = null
+        }
         // Bound to this instance: left set, they kept the whole destroyed
         // service (its emoji index, layouts, state and stores) alive while
         // the next one built its own, until that one's first field. A phone
@@ -55701,7 +55801,8 @@ open class WMKeyboardService : InputMethodService() {
      * once it has, rather than with the old place.
      */
     private fun onWeatherLocationSaved(latitude: Float, longitude: Float) {
-        if (_uiState.value.panel != PanelMode.WEATHER) return
+        // Open in the keyboard, or on the app's tool screen.
+        if (_uiState.value.panel != PanelMode.WEATHER && _uiState.value.appletPanel != PanelMode.WEATHER) return
         serviceScope.launch {
             withTimeoutOrNull(2_000) {
                 _uiState.first { it.settings.weather.latitude == latitude && it.settings.weather.longitude == longitude }

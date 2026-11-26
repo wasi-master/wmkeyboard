@@ -250,6 +250,9 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms.rearmOnStart(this)
         // And the to-do list's (#995). Free for anyone with no list.
         com.wasimaster.wmkeyboard.core.todo.TodoReminders.rearmOnStart(this)
+        // The app icon's menu, which the user arranges (#970): handed to the
+        // launcher off the main thread, and only when it changed since.
+        AppIconMenu.publishOnStart(this)
     }
 }
 

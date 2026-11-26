@@ -3500,6 +3500,12 @@ data class AppletUi(
     val appletPanel: PanelMode? = null,
     /** The floating box is tucked into the screen's edge (#1155): its text box gives the keys back meanwhile. */
     val appletTucked: Boolean = false,
+    /**
+     * The tool is full screen in the app's own window rather than in the
+     * box ([com.wasimaster.wmkeyboard.ime.floating.ToolScreens]): there is
+     * no field behind it, so what it would type goes onto the clipboard.
+     */
+    val onScreen: Boolean = false,
 )
 
 /** The consonant page of a paginated Indic layout: the syllable before the caret and whether the letters are pinned over it. */

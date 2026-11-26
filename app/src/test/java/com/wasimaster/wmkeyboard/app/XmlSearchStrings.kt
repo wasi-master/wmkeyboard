@@ -88,12 +88,15 @@ internal class XmlSearchStrings(
                 com.wasimaster.wmkeyboard.ime.R::class.java,
                 // The provider kinds' names, which a provider screen's rows have in their path.
                 com.wasimaster.wmkeyboard.tools.R::class.java,
+                // The screen shapes' names, which a per-shape size page's rows have in their path.
+                com.wasimaster.wmkeyboard.settings.R::class.java,
             ),
             valuesDirs = listOf(
                 File("src/main/res/values"),
                 File("../core/common/src/main/res/values"),
                 File("../feature/ime/src/main/res/values"),
                 File("../core/tools/src/main/res/values"),
+                File("../core/settings/src/main/res/values"),
             ),
         )
     }

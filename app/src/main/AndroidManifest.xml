@@ -653,13 +653,11 @@
              renaming either alias strands everyone who switched. An alias must
              also follow its target in this file. LauncherNameTest holds both.
 
-             Long-press the launcher icon → straight into a settings screen.
-             Static shortcuts, so the platform publishes them at install time
-             and there is no ShortcutManager code to keep in step. Android reads
-             them off the enabled launcher entry, hence one copy per alias. The
-             shortcut intents are explicit (they name MainActivity) and carry
-             the same wmkeyboard://settings links as the filter above. See
-             res/xml/shortcuts.xml and app/SettingsDeepLink.kt.
+             Long-press the launcher icon: the settings pages and tools the
+             user put there (Tools › Shortcuts to tools), published at run time
+             as dynamic shortcuts on whichever alias is enabled
+             (app/ToolShortcuts.kt, AppIconMenu). They were static shortcuts
+             here once, which nothing can reorder or take away.
         -->
         <activity-alias
             android:name="com.wasimaster.wmkeyboard.app.LauncherFullName"
@@ -671,9 +669,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name="com.wasimaster.wmkeyboard.app.LauncherShortName"
@@ -685,9 +680,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
         </activity-alias>
 
         <!--
@@ -1289,14 +1281,17 @@
             </intent-filter>
         </activity>
         <!--
-             A keyboard tool on the home screen (#970): Add to home screen on a
-             tool's page pins a shortcut here. A text box of its own brings the
-             keyboard up with the tool's panel open, so a level or a compass
-             works like an app. Exported for the launchers that pin through the
-             old install-shortcut broadcast; the extra is checked against the
+             A keyboard tool opened from outside the keyboard (#970): its icon
+             on the home screen, its entry in the app list (the aliases below),
+             the app icon's menu, a search result or its page. A tool the
+             keyboard runs full screen opens full screen; any other brings the
+             keyboard up over a text box of its own with the tool's panel
+             open. Exported for the launchers that pin through the old
+             install-shortcut broadcast; the extra is checked against the
              tools with a panel and nothing else is read. Each tool is a
-             document of its own, so the compass and the clock are two entries
-             in Recents to switch between, and opening one again comes back to it.
+             document of its own, so the compass and the calculator are two
+             entries in Recents to switch between, and opening one again comes
+             back to it.
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ToolShortcutActivity"
@@ -1306,6 +1301,767 @@
             android:taskAffinity="com.wasimaster.wmkeyboard.tool"
             android:theme="@style/Theme.WMKeyboard"
             android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
+        <!--
+             A tool's own entry in the app list, one per tool with a panel,
+             each off until its switch on the tool's page (or on Tools ›
+             Shortcuts to tools) turns it on. The component state is the
+             setting (ToolAppList), so renaming one drops it from every list
+             it was in. Generated with the icons they wear.
+        -->
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.EMOJI"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_emoji"
+            android:label="@string/ime_tool_emoji"
+            android:roundIcon="@mipmap/ic_tool_app_emoji"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.CLIPBOARD"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_clipboard"
+            android:label="@string/ime_tool_clipboard"
+            android:roundIcon="@mipmap/ic_tool_app_clipboard"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.SNIPPETS"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_snippets"
+            android:label="@string/ime_tool_snippets"
+            android:roundIcon="@mipmap/ic_tool_app_snippets"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.TEXT_EDIT"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_text_edit"
+            android:label="@string/ime_tool_text_edit"
+            android:roundIcon="@mipmap/ic_tool_app_text_edit"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.TRACKPAD"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_trackpad"
+            android:label="@string/ime_tool_trackpad"
+            android:roundIcon="@mipmap/ic_tool_app_trackpad"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.COMPASS"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_compass"
+            android:label="@string/ime_tool_compass"
+            android:roundIcon="@mipmap/ic_tool_app_compass"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.LEVEL"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_level"
+            android:label="@string/fonts_tool_level_title"
+            android:roundIcon="@mipmap/ic_tool_app_level"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.MOON_PHASE"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_moon_phase"
+            android:label="@string/fonts_tool_moon_phase_title"
+            android:roundIcon="@mipmap/ic_tool_app_moon_phase"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.WEATHER"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_weather"
+            android:label="@string/ime_tool_weather"
+            android:roundIcon="@mipmap/ic_tool_app_weather"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.CALENDAR"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_calendar"
+            android:label="@string/ime_tool_calendar"
+            android:roundIcon="@mipmap/ic_tool_app_calendar"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.THEMES"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_themes"
+            android:label="@string/ime_tool_themes"
+            android:roundIcon="@mipmap/ic_tool_app_themes"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.SOUND_HAPTICS"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_sound_haptics"
+            android:label="@string/ime_tool_sound_haptics"
+            android:roundIcon="@mipmap/ic_tool_app_sound_haptics"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.NUMPAD"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_numpad"
+            android:label="@string/ime_tool_numpad"
+            android:roundIcon="@mipmap/ic_tool_app_numpad"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.HANDWRITING"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_handwriting"
+            android:label="@string/ime_tool_handwriting"
+            android:roundIcon="@mipmap/ic_tool_app_handwriting"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.CAMERA"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_camera"
+            android:label="@string/ime_tool_camera"
+            android:roundIcon="@mipmap/ic_tool_app_camera"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.DICTIONARY"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_dictionary"
+            android:label="@string/ime_tool_dictionary"
+            android:roundIcon="@mipmap/ic_tool_app_dictionary"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.VOCABULARY"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_vocabulary"
+            android:label="@string/ime_tool_vocabulary"
+            android:roundIcon="@mipmap/ic_tool_app_vocabulary"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.TRANSLATE"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_translate"
+            android:label="@string/ime_tool_translate"
+            android:roundIcon="@mipmap/ic_tool_app_translate"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.GIF"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_gif"
+            android:label="@string/ime_tool_gif"
+            android:roundIcon="@mipmap/ic_tool_app_gif"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.STICKER"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_sticker"
+            android:label="@string/ime_tool_sticker"
+            android:roundIcon="@mipmap/ic_tool_app_sticker"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.WEB_SEARCH"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_web_search"
+            android:label="@string/fonts_tool_web_search_title"
+            android:roundIcon="@mipmap/ic_tool_app_web_search"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.IMAGE_SEARCH"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_image_search"
+            android:label="@string/fonts_tool_image_search_title"
+            android:roundIcon="@mipmap/ic_tool_app_image_search"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.OCR"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_ocr"
+            android:label="@string/fonts_tool_ocr_title"
+            android:roundIcon="@mipmap/ic_tool_app_ocr"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.QR_SCAN"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_qr_scan"
+            android:label="@string/fonts_tool_qr_scan_title"
+            android:roundIcon="@mipmap/ic_tool_app_qr_scan"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.DOC_SCAN"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_doc_scan"
+            android:label="@string/fonts_tool_doc_scan_title"
+            android:roundIcon="@mipmap/ic_tool_app_doc_scan"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.VOICE"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_voice"
+            android:label="@string/fonts_tool_voice_title"
+            android:roundIcon="@mipmap/ic_tool_app_voice"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.GRAMMAR"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_grammar"
+            android:label="@string/fonts_tool_grammar_title"
+            android:roundIcon="@mipmap/ic_tool_app_grammar"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.WIKIPEDIA"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_wikipedia"
+            android:label="@string/ime_tool_wikipedia"
+            android:roundIcon="@mipmap/ic_tool_app_wikipedia"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.SYMBOLS"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_symbols"
+            android:label="@string/fonts_tool_symbols_title"
+            android:roundIcon="@mipmap/ic_tool_app_symbols"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.CALCULATOR"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_calculator"
+            android:label="@string/ime_tool_calculator"
+            android:roundIcon="@mipmap/ic_tool_app_calculator"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.UNIT_CONVERT"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_unit_convert"
+            android:label="@string/fonts_tool_unit_convert_title"
+            android:roundIcon="@mipmap/ic_tool_app_unit_convert"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.CURRENCY"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_currency"
+            android:label="@string/fonts_tool_currency_title"
+            android:roundIcon="@mipmap/ic_tool_app_currency"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.QR_GEN"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_qr_gen"
+            android:label="@string/fonts_tool_qr_gen_title"
+            android:roundIcon="@mipmap/ic_tool_app_qr_gen"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.PASSWORD_GEN"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_password_gen"
+            android:label="@string/fonts_tool_password_gen_title"
+            android:roundIcon="@mipmap/ic_tool_app_password_gen"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.AI"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_ai"
+            android:label="@string/fonts_tool_ai_title"
+            android:roundIcon="@mipmap/ic_tool_app_ai"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.MODES"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_modes"
+            android:label="@string/fonts_tool_modes_title"
+            android:roundIcon="@mipmap/ic_tool_app_modes"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.TYPING_TEST"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_typing_test"
+            android:label="@string/fonts_tool_typing_test_title"
+            android:roundIcon="@mipmap/ic_tool_app_typing_test"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.MEDIA_CONTROL"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_media_control"
+            android:label="@string/fonts_tool_media_control_title"
+            android:roundIcon="@mipmap/ic_tool_app_media_control"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.PLUGINS"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_plugins"
+            android:label="@string/ime_tool_plugins"
+            android:roundIcon="@mipmap/ic_tool_app_plugins"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.APP_LAUNCHER"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_app_launcher"
+            android:label="@string/fonts_tool_app_launcher_title"
+            android:roundIcon="@mipmap/ic_tool_app_app_launcher"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.LEARN_FROM_TEXT"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_learn_from_text"
+            android:label="@string/ime_tool_learn_from_text"
+            android:roundIcon="@mipmap/ic_tool_app_learn_from_text"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.KDE_CONNECT"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_kde_connect"
+            android:label="@string/ime_tool_kde_connect"
+            android:roundIcon="@mipmap/ic_tool_app_kde_connect"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.FIND_REPLACE"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_find_replace"
+            android:label="@string/ime_tool_find_replace"
+            android:roundIcon="@mipmap/ic_tool_app_find_replace"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.NOTES"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_notes"
+            android:label="@string/ime_tool_notes"
+            android:roundIcon="@mipmap/ic_tool_app_notes"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.AI_REPLY"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_ai_reply"
+            android:label="@string/ime_tool_ai_reply"
+            android:roundIcon="@mipmap/ic_tool_app_ai_reply"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.LOCATION"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_location"
+            android:label="@string/ime_tool_location"
+            android:roundIcon="@mipmap/ic_tool_app_location"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.CLOCK"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_clock"
+            android:label="@string/ime_tool_clock"
+            android:roundIcon="@mipmap/ic_tool_app_clock"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.HOME_ASSISTANT"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_home_assistant"
+            android:label="@string/ime_tool_home_assistant"
+            android:roundIcon="@mipmap/ic_tool_app_home_assistant"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.GALLERY"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_gallery"
+            android:label="@string/ime_tool_gallery"
+            android:roundIcon="@mipmap/ic_tool_app_gallery"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.TEXT_REPEAT"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_text_repeat"
+            android:label="@string/fonts_tool_text_repeat_title"
+            android:roundIcon="@mipmap/ic_tool_app_text_repeat"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.SEND_FILES"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_send_files"
+            android:label="@string/ime_tool_send_files"
+            android:roundIcon="@mipmap/ic_tool_app_send_files"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.TODO"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_todo"
+            android:label="@string/ime_tool_todo"
+            android:roundIcon="@mipmap/ic_tool_app_todo"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.WM_PASS"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_wm_pass"
+            android:label="@string/ime_tool_wm_pass"
+            android:roundIcon="@mipmap/ic_tool_app_wm_pass"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.EMOJI_MIX"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_emoji_mix"
+            android:label="@string/ime_tool_emoji_mix"
+            android:roundIcon="@mipmap/ic_tool_app_emoji_mix"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.MUSIC_ID"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_music_id"
+            android:label="@string/ime_tool_music_id"
+            android:roundIcon="@mipmap/ic_tool_app_music_id"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.SPEED_TEST"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_speed_test"
+            android:label="@string/fonts_tool_speed_test_title"
+            android:roundIcon="@mipmap/ic_tool_app_speed_test"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.FILES"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_files"
+            android:label="@string/ime_tool_files"
+            android:roundIcon="@mipmap/ic_tool_app_files"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.tool.WM_CHROMA"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_tool_app_wm_chroma"
+            android:label="@string/ime_tool_wm_chroma"
+            android:roundIcon="@mipmap/ic_tool_app_wm_chroma"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ToolShortcutActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <!--
              The AI chat as a sheet over the app the user was in (#697). Opened
              by the floating AI button with the screen's text, and by "Ask AI"

@@ -579,7 +579,7 @@ private fun AppletTab(
  * Only the [com.wasimaster.wmkeyboard.core.settings.AppletTools] have one here.
  */
 @Composable
-private fun AppletPanel(panel: PanelMode, state: KeyboardUiState, callbacks: AppletCallbacks, onClose: () -> Unit) {
+internal fun AppletPanel(panel: PanelMode, state: KeyboardUiState, callbacks: AppletCallbacks, onClose: () -> Unit) {
     when (panel) {
         PanelMode.CALCULATOR -> CalculatorPanel(state, callbacks.onInsert, callbacks.converter)
         PanelMode.UNIT_CONVERT -> UnitConverterPanel(state, callbacks.onInsert, callbacks.converter, callbacks.onPrefillConsumed)

@@ -16,25 +16,29 @@ does every individual setting. This page lists every form each one takes.
 
 ## Jumping in from the home screen
 
-Long-press the app icon to get four shortcuts straight into the app, without
-passing through the home page first: **Tools**, **Languages**, **AI chat**,
-and **Themes**. They're drawn bottom-up, so on most launchers **Themes**
-lands closest to the icon and **Tools** furthest away, even though this list
-states them in the order they're declared.
+Long-press the app icon for shortcuts straight into the app, without passing
+through the home page first. Out of the box there are four: **Keyboard
+themes**, **Chat with the AI**, **Languages & layouts** and **Keyboard
+tools**, with **Keyboard themes** closest to the icon on most launchers. The
+menu is yours to change under <SettingsPath path="Tools / Shortcuts to tools" />:
+reorder the lines, take them out, and add tools to it. Most launchers draw
+four or five lines.
 
-Each shortcut is a static entry. The platform publishes them at install
-time, and no runtime code is involved. They only exist on Android 7.1
-(API 25) and above. WM Keyboard's minimum supported version is Android 7.0
-(API 24), where the platform ignores the shortcuts file entirely and
-long-pressing the icon does nothing extra.
+The app publishes the menu as it starts and again whenever you change it, so
+the first start after an update is what puts it on the icon. The menu needs
+Android 7.1 (API 25) or later. WM Keyboard's minimum supported version is
+Android 7.0 (API 24), where long-pressing the icon does nothing extra. Before
+0.6.8 the four lines were fixed in the app's manifest; a home-screen copy of
+one of those shows as disabled now, and dragging the line out of the new menu
+replaces it.
 
-Three tools that work outside the keyboard can also go on the home screen as
-icons of their own: **Add to home screen** on the Clock, Notes and To-do list
-pages pins a shortcut to `wmkeyboard://settings/clock`, `…/notes` or `…/todo`.
-The launcher asks first. Every other tool with a panel, such as the level, the
-compass or the calculator, has the same row on its page, and its icon opens a
-blank text box with the keyboard up and that tool already open on it. See
-[Tools on the home screen](/tools/overview/#tools-on-the-home-screen).
+Any tool with a panel can also have an icon of its own on the home screen or
+in the app list, or a line in this menu. The Clock, Notes and To-do list open
+`wmkeyboard://settings/clock`, `…/notes` or `…/todo`. A tool the keyboard can
+run full screen, such as the calculator or the compass, opens full screen, and
+any other tool opens a blank text box with the keyboard up and that tool
+already open on it. See
+[Tools outside the keyboard](/tools/overview/#tools-outside-the-keyboard).
 
 <PhoneFrame caption="A settings screen reached from a launcher shortcut. This one opened straight to Themes.">
   <Shot id="reference/settings-deep-link-destination" alt="A settings screen reached from a launcher shortcut. This one opened straight to Themes." />
@@ -330,10 +334,12 @@ your bot token as it opens, and is kept behind the same kind of link.
 | `expander` | Text expansion. |
 | `expander/folder/{folderId}` | One snippet folder. |
 | `expander/folder/{folderId}/new` | A new snippet inside that folder. |
+| `expander/text` | Every snippet as one text document, to edit, import or export. |
 | `expander/edit/{snippetId}` | One snippet. `expander/edit/0` opens an empty new one. |
 | `musicapps` | Music players. |
 | `launchercombos` | Split screen pairs, for the app launcher. |
 | `custom_buttons` | Custom buttons: app shortcuts, setting switches and settings pages for the toolbar. |
+| `app_shortcuts` | Shortcuts to tools: tools on the home screen, in the app list and in the app icon's menu. |
 | `kdeconnect/devices` | KDE Connect: paired computers and the ones nearby. |
 | `ai_actions` | AI actions. |
 | `ai_action_edit/{actionId}` | One AI action. |

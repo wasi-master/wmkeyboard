@@ -49,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shortcut
 import com.wasimaster.wmkeyboard.ime.R as ImeR
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
@@ -352,18 +353,65 @@ internal fun toolIconFor(tool: ToolbarTool): androidx.compose.ui.graphics.vector
  * names that are searched: a Bengali install is searched in Bengali.
  */
 @Composable
-private fun rememberToolSearchIndex(extensions: Set<Extension>): Map<ToolbarTool, String> {
+private fun rememberToolSearchIndex(extensions: Set<Extension>): Map<ToolbarTool, String> =
+    rememberToolSearchText(extensions, withDescription = true)
+
+/**
+ * [rememberToolSearchIndex] with the names alone, or with the descriptions
+ * too: the names are what decides the order of the matches.
+ */
+@Composable
+private fun rememberToolSearchText(extensions: Set<Extension>, withDescription: Boolean): Map<ToolbarTool, String> {
     val resources = LocalContext.current.resources
     // The configuration is the composition's own handle on the locale, so a
     // language change rebuilds the index rather than leaving last language's
     // words in it.
     val configuration = LocalConfiguration.current
-    return remember(resources, configuration, extensions) {
+    return remember(resources, configuration, extensions, withDescription) {
         ToolGroups.withExtensions(extensions).flatMapTo(LinkedHashSet()) { it.second }.associateWith { tool ->
             normalizeForSearch(
-                resources.getString(toolTitle(tool)) + ' ' +
-                    resources.getString(toolDescription(tool)),
+                if (withDescription) {
+                    resources.getString(toolTitle(tool)) + ' ' + resources.getString(toolDescription(tool))
+                } else {
+                    resources.getString(toolTitle(tool))
+                },
             )
+        }
+    }
+}
+
+/**
+ * The Tools screen's matches in the order a search for a tool means: the
+ * tool called exactly that, then the names that start with it, then the
+ * names with a word starting with each word typed, then the names that hold
+ * them anywhere, and only then the tools whose description alone has the
+ * words. Each step keeps the screen's own order. Before, every match came in
+ * the screen's order, so "notes" put six tools whose descriptions mention a
+ * note above Notes itself.
+ *
+ * [names] is each tool's name as [normalizeForSearch] leaves it; [literal]
+ * says which [matches] hold every word as typed (the rest came in through
+ * another form of a word and stay last, as they were).
+ */
+internal fun <T> rankToolMatches(
+    matches: List<T>,
+    names: (T) -> String,
+    tokens: List<String>,
+    literal: (T) -> Boolean,
+): List<T> {
+    if (tokens.isEmpty()) return matches
+    val phrase = tokens.joinToString(" ")
+    return matches.sortedBy { item ->
+        val name = names(item)
+        val words = name.split(' ')
+        when {
+            !literal(item) -> 6
+            name == phrase -> 0
+            name.startsWith(phrase) -> 1
+            tokens.all { token -> words.any { it == token } } -> 2
+            tokens.all { token -> words.any { it.startsWith(token) } } -> 3
+            tokens.all { name.contains(it) } -> 4
+            else -> 5
         }
     }
 }
@@ -424,20 +472,27 @@ internal fun ToolsSettings(
     // its search, or in any picker built from the same groups.
     val extensions = settings.watch { it.extensionsResolved() }
     val searchIndex = rememberToolSearchIndex(extensions)
+    val searchNames = rememberToolSearchText(extensions, withDescription = false)
     // Every word of the query has to be somewhere in the tool's name or its
     // description. Substring rather than whole word, because a name is found
     // halfway through typing it. After those, the tools whose name or
     // description holds another form of each word ("translating" finds
     // Translate), by each word's own script.
-    val matches = remember(query, searchIndex) {
+    val matches = remember(query, searchIndex, searchNames) {
         val tokens = normalizeForSearch(query).split(' ').filter { it.isNotEmpty() }
+        val literal = { tool: ToolbarTool -> searchIndex.getValue(tool).let { haystack -> tokens.all { haystack.contains(it) } } }
         if (tokens.isEmpty()) emptyList()
-        else com.wasimaster.wmkeyboard.core.text.StemMatch.literalFirst(
-            searchIndex.keys.toList(),
-            literal = { tool -> searchIndex.getValue(tool).let { haystack -> tokens.all { haystack.contains(it) } } },
-            stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(null, tokens.joinToString(" ")) {
-                searchIndex.getValue(it)
-            },
+        else rankToolMatches(
+            com.wasimaster.wmkeyboard.core.text.StemMatch.literalFirst(
+                searchIndex.keys.toList(),
+                literal = literal,
+                stemmed = com.wasimaster.wmkeyboard.core.engine.SearchStems.matcher(null, tokens.joinToString(" ")) {
+                    searchIndex.getValue(it)
+                },
+            ),
+            names = { searchNames[it].orEmpty() },
+            tokens = tokens,
+            literal = literal,
         )
     }
     val searching = query.isNotBlank()
@@ -478,6 +533,15 @@ internal fun ToolsSettings(
     // The user's own buttons (#1213, #1236): shortcuts, switches and pages,
     // which sit on the toolbar and in the toolbox beside the tools below.
     val customCount = settings.watch { it.toolbox.customButtons.size }
+    // Every tool's home-screen icon, app-list entry and place in the app
+    // icon's menu, on one page.
+    NavRow(
+        title = R.string.app_shortcuts_title,
+        subtitle = stringResource(R.string.app_shortcuts_subtitle),
+        route = APP_SHORTCUTS_ROUTE,
+        icon = Icons.Outlined.Shortcut,
+        onClick = { onOpenRoute(APP_SHORTCUTS_ROUTE) },
+    )
     NavRow(
         title = R.string.custombuttons_title,
         subtitle = if (customCount == 0) {

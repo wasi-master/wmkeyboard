@@ -11,6 +11,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
@@ -196,6 +197,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lightbulb
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sort
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shortcut
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Preview
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewDay
@@ -906,6 +908,8 @@ internal object SettingsRouteIcons {
         "voice" to { Icons.Outlined.Mic },
         "expander" to { Icons.AutoMirrored.Outlined.TextSnippet },
         "tools" to { Icons.Outlined.Widgets },
+        APP_SHORTCUTS_ROUTE to { Icons.Outlined.Shortcut },
+        CustomButtons.ROUTE to { Icons.Outlined.SmartButton },
         "sticker_packs" to { SymbolIcons.Sticker },
         "vocab/packs" to { Icons.Outlined.AutoStories },
         "vocab/lists" to { Icons.Outlined.AutoStories },
@@ -1536,8 +1540,22 @@ private fun ResultRow(
                     )
                 }
             },
+            trailing = entry.tool?.takeIf { entry.opensTool }?.let { tool -> { OpenToolButton(tool) } },
             onClick = open,
         )
+    }
+}
+
+/**
+ * Opens a tool from its search result, the way its home-screen icon does
+ * ([ToolLaunch.intent]): full screen, or its screen in this app. The row
+ * itself still opens the tool's settings page.
+ */
+@Composable
+private fun OpenToolButton(tool: ToolbarTool) {
+    val context = LocalContext.current
+    TextButton(onClick = { runCatching { context.startActivity(ToolLaunch.intent(context, tool)) } }) {
+        Text(stringResource(R.string.tool_open_action))
     }
 }
 

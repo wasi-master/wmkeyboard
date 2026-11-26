@@ -62,12 +62,16 @@ internal enum class EntryWeight(val percent: Int, val titleBonus: Int) {
     NORMAL(100, 0),
 
     /**
-     * A tool's own page. It is named after the tool, so it lands an exact hit
-     * on the tool's name; the settings screen of the same name ("Clipboard",
-     * "Themes", "Incognito mode") is what a search for settings means, and this
-     * keeps the page just under it.
+     * A tool's own page, and a provider's. The bonus goes only to the page of
+     * a tool that opens on its own ([SettingsSearchEntry.opensTool]), and only
+     * when the query is the tool's name, word for word: a search for the
+     * calculator, the files or the weather means the tool, so it comes before
+     * the screens and switches that merely carry the word ("Send files",
+     * "Weather chip"). Five points under [SECTION]'s, so a settings screen
+     * named exactly the same ("Notes", "Clipboard") still leads. A query made
+     * only of the tool's search words gets a smaller lift instead; see `rank`.
      */
-    TOOL(90, 0),
+    TOOL(100, 30),
 
     /**
      * A row on a tool's page, or a permission: named after a feature it only
@@ -115,6 +119,12 @@ internal data class SettingsSearchEntry(
     val weight: EntryWeight = EntryWeight.NORMAL,
     /** Set on the tool entries, so a result can draw the tool's own icon. */
     val tool: ToolbarTool? = null,
+    /**
+     * This is [tool]'s own page, and the tool opens outside the keyboard
+     * (`ToolLaunch.launchable`): full screen, from the home screen or from
+     * this result. Ranked as the tool itself, not as a settings page.
+     */
+    val opensTool: Boolean = false,
     @StringRes val titleRes: Int = 0,
     /**
      * Words the entry is found by and never draws: "dark mode" for the themes
@@ -236,6 +246,7 @@ private fun SearchStrings.toolEntry(
     // keyword table is keyed by title, so words that belong to one tool's copy
     // of the row are named here instead.
     @StringRes keywords: Int = 0,
+    opensTool: Boolean = false,
 ): SettingsSearchEntry = SettingsSearchEntry(
     title = getString(title),
     subtitle = if (subtitle == 0) "" else getString(subtitle),
@@ -243,6 +254,7 @@ private fun SearchStrings.toolEntry(
     route = "tool/${tool.name}",
     weight = weight,
     tool = tool,
+    opensTool = opensTool,
     titleRes = title,
     keywords = (if (keywords != 0) keywords else searchKeywordsFor(title))
         .let { if (it == 0) "" else getString(it) },
@@ -1106,7 +1118,8 @@ private fun SearchStrings.photoRows(): List<SettingsSearchEntry> {
             R.string.photo_rotation_delete_downloads_title,
             R.string.photo_rotation_delete_downloads_subtitle,
         ),
-        library(R.string.photo_add_device_title, R.string.photo_add_device_subtitle),
+        // A button on the library, with no line under it to search by.
+        library(R.string.photo_add_device_title),
         library(R.string.photo_storage_title),
     )
 }
@@ -3351,6 +3364,25 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.custombuttons_add_page_title, R.string.custombuttons_add_page_subtitle,
             R.string.custombuttons_title, "custom_buttons", screenParent = R.string.home_tools_title,
         ),
+        // The ways a tool opens without a field (#970): the row on Tools, and its page.
+        entry(
+            R.string.app_shortcuts_title, R.string.app_shortcuts_subtitle, R.string.home_tools_title, "tools",
+            keywords = R.string.search_kw_app_shortcuts,
+        ),
+        entry(
+            R.string.app_shortcuts_home_add_title, R.string.app_shortcuts_home_add_subtitle,
+            R.string.app_shortcuts_title, APP_SHORTCUTS_ROUTE, screenParent = R.string.home_tools_title,
+        ),
+        entry(
+            R.string.app_shortcuts_menu_add_title, R.string.app_shortcuts_menu_add_subtitle,
+            R.string.app_shortcuts_title, APP_SHORTCUTS_ROUTE, screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_app_icon_menu,
+        ),
+        entry(
+            R.string.app_shortcuts_list_group, R.string.app_shortcuts_list_info,
+            R.string.app_shortcuts_title, APP_SHORTCUTS_ROUTE, screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_app_list,
+        ),
         if (ChannelFeatures.FILE_MANAGER) {
             entry(R.string.tools_file_manager_title, R.string.tools_file_manager_subtitle, R.string.home_tools_title, "tools")
         } else {
@@ -3963,7 +3995,7 @@ private fun SearchStrings.sectionChildRows(): List<SettingsSearchEntry> = listOf
  */
 private fun SearchStrings.toolRows(): List<SettingsSearchEntry> =
     ToolbarTool.entries.filter { isSupportedTool(it) && it !in ActionOnlyTools }.map { tool ->
-        toolEntry(tool, toolTitle(tool), toolDescription(tool), weight = EntryWeight.TOOL)
+        toolEntry(tool, toolTitle(tool), toolDescription(tool), weight = EntryWeight.TOOL, opensTool = ToolLaunch.launchable(tool))
     }
 
 /**

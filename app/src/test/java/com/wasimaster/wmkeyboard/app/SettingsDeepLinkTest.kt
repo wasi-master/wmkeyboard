@@ -22,12 +22,6 @@ class SettingsDeepLinkTest {
 
     private val navHostSource: String by lazy { File(appDir, "MainActivity.kt").readText() }
 
-    private val shortcutsXml: String by lazy {
-        val file = File("src/main/res/xml/shortcuts.xml")
-        assertTrue("shortcuts.xml not found at ${file.absolutePath}", file.isFile)
-        file.readText()
-    }
-
     private val manifest: String by lazy { File("src/main/AndroidManifest.xml").readText() }
 
     /**
@@ -155,24 +149,12 @@ class SettingsDeepLinkTest {
     // ---- the shortcuts and the manifest ------------------------------------
 
     @Test
-    fun `every link in the shortcut xml resolves`() {
-        val links = Regex("""android:data="([^"]+)"""")
-            .findAll(shortcutsXml)
-            .map { it.groupValues[1] }
-            .toList()
-        assertTrue("no android:data links found in shortcuts.xml", links.isNotEmpty())
-        val unresolved = links.filter { SettingsDeepLink.parse(it) == null }
-        assertEquals("shortcut links that resolve to no route", emptyList<String>(), unresolved)
-    }
-
-    @Test
-    fun `shortcut ids match the route they open`() {
-        val shortcuts = Regex(
-            """android:shortcutId="([^"]+)"[\s\S]*?android:data="([^"]+)"""",
-        ).findAll(shortcutsXml).map { it.groupValues[1] to it.groupValues[2] }.toList()
-        assertTrue(shortcuts.isNotEmpty())
-        for ((id, link) in shortcuts) {
-            assertEquals("shortcut \"$id\" opens a different route", id, SettingsDeepLink.parse(link)?.route)
+    fun `every page the app icon's menu can hold opens its own route`() {
+        // The menu's pages are dynamic shortcuts now (AppIconMenu), carrying
+        // the same wmkeyboard://settings links the static ones did.
+        for (page in AppIconMenu.Page.entries) {
+            val link = "wmkeyboard://settings/${page.route}"
+            assertEquals("menu page ${page.name} opens a different route", page.route, SettingsDeepLink.parse(link)?.route)
         }
     }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Before Android 8 a launcher draws an icon as it is: the glyph on a disc. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/tool_app_icon_background" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/ic_tool_app_fg_compass" />
+</layer-list>

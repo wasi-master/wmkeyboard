@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Behind each tool's own app-list icon: the indigo the app icon's menu entries use. -->
+    <color name="tool_app_icon_background">#FF2F3474</color>
+</resources>

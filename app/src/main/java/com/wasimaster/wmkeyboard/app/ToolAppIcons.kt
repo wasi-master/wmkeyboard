@@ -1,0 +1,71 @@
+// Generated with the tool icons under res/mipmap*/ic_tool_app_*: one per tool with a panel.
+package com.wasimaster.wmkeyboard.app
+
+import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+
+/**
+ * Each tool's icon in the app list and the app icon's menu: its keyboard
+ * glyph on the app's indigo, drawn from the same Material Symbols path, as an
+ * adaptive icon with a monochrome layer for themed icons.
+ */
+internal val ToolAppIcons: Map<ToolbarTool, Int> = mapOf(
+    ToolbarTool.EMOJI to R.mipmap.ic_tool_app_emoji,
+    ToolbarTool.CLIPBOARD to R.mipmap.ic_tool_app_clipboard,
+    ToolbarTool.SNIPPETS to R.mipmap.ic_tool_app_snippets,
+    ToolbarTool.TEXT_EDIT to R.mipmap.ic_tool_app_text_edit,
+    ToolbarTool.TRACKPAD to R.mipmap.ic_tool_app_trackpad,
+    ToolbarTool.COMPASS to R.mipmap.ic_tool_app_compass,
+    ToolbarTool.LEVEL to R.mipmap.ic_tool_app_level,
+    ToolbarTool.MOON_PHASE to R.mipmap.ic_tool_app_moon_phase,
+    ToolbarTool.WEATHER to R.mipmap.ic_tool_app_weather,
+    ToolbarTool.CALENDAR to R.mipmap.ic_tool_app_calendar,
+    ToolbarTool.THEMES to R.mipmap.ic_tool_app_themes,
+    ToolbarTool.SOUND_HAPTICS to R.mipmap.ic_tool_app_sound_haptics,
+    ToolbarTool.NUMPAD to R.mipmap.ic_tool_app_numpad,
+    ToolbarTool.HANDWRITING to R.mipmap.ic_tool_app_handwriting,
+    ToolbarTool.CAMERA to R.mipmap.ic_tool_app_camera,
+    ToolbarTool.DICTIONARY to R.mipmap.ic_tool_app_dictionary,
+    ToolbarTool.VOCABULARY to R.mipmap.ic_tool_app_vocabulary,
+    ToolbarTool.TRANSLATE to R.mipmap.ic_tool_app_translate,
+    ToolbarTool.GIF to R.mipmap.ic_tool_app_gif,
+    ToolbarTool.STICKER to R.mipmap.ic_tool_app_sticker,
+    ToolbarTool.WEB_SEARCH to R.mipmap.ic_tool_app_web_search,
+    ToolbarTool.IMAGE_SEARCH to R.mipmap.ic_tool_app_image_search,
+    ToolbarTool.OCR to R.mipmap.ic_tool_app_ocr,
+    ToolbarTool.QR_SCAN to R.mipmap.ic_tool_app_qr_scan,
+    ToolbarTool.DOC_SCAN to R.mipmap.ic_tool_app_doc_scan,
+    ToolbarTool.VOICE to R.mipmap.ic_tool_app_voice,
+    ToolbarTool.GRAMMAR to R.mipmap.ic_tool_app_grammar,
+    ToolbarTool.WIKIPEDIA to R.mipmap.ic_tool_app_wikipedia,
+    ToolbarTool.SYMBOLS to R.mipmap.ic_tool_app_symbols,
+    ToolbarTool.CALCULATOR to R.mipmap.ic_tool_app_calculator,
+    ToolbarTool.UNIT_CONVERT to R.mipmap.ic_tool_app_unit_convert,
+    ToolbarTool.CURRENCY to R.mipmap.ic_tool_app_currency,
+    ToolbarTool.QR_GEN to R.mipmap.ic_tool_app_qr_gen,
+    ToolbarTool.PASSWORD_GEN to R.mipmap.ic_tool_app_password_gen,
+    ToolbarTool.AI to R.mipmap.ic_tool_app_ai,
+    ToolbarTool.MODES to R.mipmap.ic_tool_app_modes,
+    ToolbarTool.TYPING_TEST to R.mipmap.ic_tool_app_typing_test,
+    ToolbarTool.MEDIA_CONTROL to R.mipmap.ic_tool_app_media_control,
+    ToolbarTool.PLUGINS to R.mipmap.ic_tool_app_plugins,
+    ToolbarTool.APP_LAUNCHER to R.mipmap.ic_tool_app_app_launcher,
+    ToolbarTool.LEARN_FROM_TEXT to R.mipmap.ic_tool_app_learn_from_text,
+    ToolbarTool.KDE_CONNECT to R.mipmap.ic_tool_app_kde_connect,
+    ToolbarTool.FIND_REPLACE to R.mipmap.ic_tool_app_find_replace,
+    ToolbarTool.NOTES to R.mipmap.ic_tool_app_notes,
+    ToolbarTool.AI_REPLY to R.mipmap.ic_tool_app_ai_reply,
+    ToolbarTool.LOCATION to R.mipmap.ic_tool_app_location,
+    ToolbarTool.CLOCK to R.mipmap.ic_tool_app_clock,
+    ToolbarTool.HOME_ASSISTANT to R.mipmap.ic_tool_app_home_assistant,
+    ToolbarTool.GALLERY to R.mipmap.ic_tool_app_gallery,
+    ToolbarTool.TEXT_REPEAT to R.mipmap.ic_tool_app_text_repeat,
+    ToolbarTool.SEND_FILES to R.mipmap.ic_tool_app_send_files,
+    ToolbarTool.TODO to R.mipmap.ic_tool_app_todo,
+    ToolbarTool.WM_PASS to R.mipmap.ic_tool_app_wm_pass,
+    ToolbarTool.EMOJI_MIX to R.mipmap.ic_tool_app_emoji_mix,
+    ToolbarTool.MUSIC_ID to R.mipmap.ic_tool_app_music_id,
+    ToolbarTool.SPEED_TEST to R.mipmap.ic_tool_app_speed_test,
+    ToolbarTool.FILES to R.mipmap.ic_tool_app_files,
+    ToolbarTool.WM_CHROMA to R.mipmap.ic_tool_app_wm_chroma,
+)

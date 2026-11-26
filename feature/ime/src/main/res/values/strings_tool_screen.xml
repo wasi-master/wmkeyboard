@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- A tool open full screen, outside the keyboard (ToolScreen.kt). -->
+    <string name="ime_screen_tool_settings"><xliff:g id="tool" example="Calculator">%1$s</xliff:g> settings</string>
+    <string name="ime_screen_tool_elsewhere"><xliff:g id="tool" example="Calculator">%1$s</xliff:g> is open in the floating box or in the keyboard now</string>
+    <string name="ime_screen_tool_bring_back">Open it here again</string>
+</resources>

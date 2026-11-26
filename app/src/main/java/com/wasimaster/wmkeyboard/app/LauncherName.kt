@@ -110,6 +110,8 @@ internal object LauncherName {
         for ((alias, state) in closing) {
             packageManager.setComponentEnabledSetting(ComponentName(context, alias), state, DONT_KILL_APP)
         }
+        // The icon's menu names the entry it hangs off, which just changed.
+        AppIconMenu.publish(context)
     }
 
     private fun state(context: Context, alias: String): Int =
