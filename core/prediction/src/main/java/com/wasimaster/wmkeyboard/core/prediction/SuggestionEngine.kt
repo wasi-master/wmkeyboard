@@ -3629,6 +3629,12 @@ class SuggestionEngine(
         /** How many one-edit words a known word keeps on the strip ([knownWordSlips]). */
         private const val KNOWN_WORD_SLIPS = 2
 
+        /**
+         * One-edit words of a known word the context chooses its
+         * [KNOWN_WORD_SLIPS] from, when a word came before it ([byContext]).
+         */
+        private const val KNOWN_WORD_SLIP_POOL = 6
+
         /** Nats a known word's slip stays under it at best: ln 2, half as likely. */
         private val KNOWN_WORD_SLIP_GAP = ln(2.0)
 
@@ -4559,8 +4565,10 @@ class SuggestionEngine(
             }
         }
         val slips = when {
-            known -> knownWordSlips(lower, walked, merged, touch)
-            accented != null -> knownWordSlips(lower, walked, merged, touch, accented.second)
+            known -> knownWordSlips(lower, walked, merged, touch, previous = previousWord, previous2 = previousWord2)
+            accented != null -> knownWordSlips(
+                lower, walked, merged, touch, accented.second, previous = previousWord, previous2 = previousWord2,
+            )
             else -> emptySet()
         }
         // A word typed without its apostrophe — "thats" for that's, "cest"
@@ -4874,26 +4882,70 @@ class SuggestionEngine(
         merged: HashMap<String, Double>,
         touch: List<TouchPoint?>?,
         typedScore: Double? = null,
+        previous: String? = null,
+        previous2: String? = null,
     ): Set<String> {
         val typed = typedScore
             ?: walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower }?.score
             ?: listedScore(lower)?.also { merged.merge(lower, it, ::maxOf) }
             ?: return emptySet()
         val ceiling = typed - KNOWN_WORD_SLIP_GAP
-        val fromWalk = slipsOf(lower, walked).take(KNOWN_WORD_SLIPS).map { it.word to it.score }.toList()
+        val prev = previous?.lowered()?.takeIf { it.isNotEmpty() }
+        val prev2 = previous2?.lowered()?.takeIf { it.isNotEmpty() }
+        // With a word before it, more one-edit words stand for the two places
+        // than fit in them, and the sentence picks (see [slipContext]).
+        val fromWalk = slipsOf(lower, walked)
+            .take(if (prev != null) KNOWN_WORD_SLIP_POOL else KNOWN_WORD_SLIPS)
+            .map { it.word to it.score }
+            .toList()
         // A walk that came back short of [WALK_K] ran out of words rather than
-        // room, so it already holds every one-edit word there is.
-        val slips = if (fromWalk.size >= KNOWN_WORD_SLIPS || walked.size < WALK_K) {
+        // room, so it already holds every one-edit word there is. Cut short,
+        // the tries are read too: for want of two slips, or for a word the
+        // walk had no room for that the sentence may be asking for.
+        val pool = if (walked.size < WALK_K || (prev == null && fromWalk.size >= KNOWN_WORD_SLIPS)) {
             fromWalk
         } else {
-            (fromWalk + directSlips(lower, touch, fromWalk.map { it.first })).take(KNOWN_WORD_SLIPS)
+            fromWalk + directSlips(lower, touch, fromWalk.map { it.first })
         }
+        val slips = byContext(pool, prev, prev2).take(KNOWN_WORD_SLIPS)
         // A step under the ceiling per place, so two slips that both reach it
         // keep their order rather than falling back to the alphabet's.
         slips.forEachIndexed { i, (word, score) ->
             merged.merge(word, minOf(score, ceiling - i * KNOWN_WORD_SLIP_STEP), ::maxOf)
         }
         return slips.mapTo(HashSet()) { it.first.lowercase() }
+    }
+
+    /**
+     * [pool], a known word's one-edit words best first, reordered by what the
+     * words before say of each (#979): the class of slip where one key
+     * stands for its neighbour between two common words, `is` for `us`,
+     * `in` for `on`. The walk ranks them on frequency and key distance
+     * alone, so after "tell" the slips of `is` were `it` and `in`, and `us`
+     * never got a place; the sentence is what tells them apart. Each word's
+     * score is lifted by the same bounded [contextBoost] the strip gives
+     * every candidate, then sorted; with no evidence for any of them the
+     * walk's order stands as it was.
+     */
+    private fun byContext(
+        pool: List<Pair<String, Double>>,
+        prev: String?,
+        prev2: String?,
+    ): List<Pair<String, Double>> {
+        if (prev == null || pool.size < 2) return pool
+        val lifts = pool.map { (word, _) -> slipContext(prev, prev2, word.lowercase()) }
+        if (lifts.all { it == 0.0 }) return pool
+        return pool.indices.sortedByDescending { pool[it].second + lifts[it] }.map { pool[it] }
+    }
+
+    /** The context lift [suggest] gives [candidate] after [prev] and [prev2]; see [byContext]. */
+    private fun slipContext(prev: String, prev2: String?, candidate: String): Double {
+        val count = contextCount(prev, prev2, candidate)
+        return when {
+            count > 0 -> contextBoost(count)
+            englishSources && seedBigrams.follows(prev, candidate) -> SEED_CONTEXT_BOOST
+            else -> 0.0
+        }
     }
 
     /**

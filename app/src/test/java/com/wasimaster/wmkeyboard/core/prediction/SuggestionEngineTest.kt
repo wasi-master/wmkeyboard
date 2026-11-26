@@ -1461,6 +1461,24 @@ class SuggestionEngineTest {
         assertNull(e.shouldAutocorrect("is"))
     }
 
+    @Test fun `the words before pick which slips a known word offers`() {
+        // #979 follow-up: `is` typed for `us`. On frequency and key distance
+        // alone `it` and `in` take both places (`us` is one key over but
+        // rarer); after a word the user writes `us` after, it is `us`.
+        val dictionary = Trie().apply {
+            insert("is", 9_000)
+            insert("it", 9_000)
+            insert("in", 9_000)
+            insert("us", 1_500)
+        }
+        val lexicon = UserLexicon(null).apply { repeat(50) { learnBigram("zork", "us") } }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), lexicon)
+        assertTrue("us" !in e.suggest("is", previousWord = null, limit = 5))
+        val s = e.suggest("is", previousWord = "zork", limit = 5)
+        assertEquals("is", s.first())
+        assertTrue("us offered in $s", "us" in s)
+    }
+
     @Test fun `a slip waits in the strip's last slot, behind the completions`() {
         // #979: `us` for `is`, demoted, so it never pushes a completion aside.
         val dictionary = Trie().apply {
