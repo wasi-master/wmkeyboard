@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.barcode
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /** Which reader the QR scanner reads codes with: ML Kit's or zxing-cpp. */
 object BarcodeEngine {
@@ -12,7 +13,8 @@ object BarcodeEngine {
      * services, so it needs them; every other build bundles the model.
      */
     val mlKitUsable: Boolean
-        get() = BuildConfig.ENABLE_ML_KIT_SCANNERS && (!BuildConfig.ENABLE_PLAY_STORE || PlayServices.available)
+        get() = BuildConfig.ENABLE_ML_KIT_SCANNERS && GoogleLibraries.usable &&
+            (!BuildConfig.ENABLE_PLAY_STORE || PlayServices.available)
 
     /** Whether to read with zxing-cpp: when picked ([pickedZxing]) or when ML Kit cannot run. */
     fun useZxing(pickedZxing: Boolean): Boolean = pickedZxing || !mlKitUsable

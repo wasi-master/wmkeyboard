@@ -165,7 +165,8 @@ object WhisperStore {
      * cleanup. Never a model the user imported themselves (#1224), read yet or not.
      */
     fun orphanDirs(filesDir: File): List<File> {
-        val known = WhisperCatalog.models.map { it.id }.toSet()
+        // builtInIds: a LiteRT model hidden while Google's libraries are off is not an orphan.
+        val known = WhisperCatalog.models.map { it.id }.toSet() + WhisperCatalog.builtInIds
         return rootDir(filesDir).listFiles().orEmpty()
             .filter {
                 it.isDirectory && it.name !in known && it.name != VOCAB_POOL && !WhisperCustomModels.isCustom(it.name)

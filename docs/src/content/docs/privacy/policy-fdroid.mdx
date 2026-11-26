@@ -54,7 +54,7 @@ and the source it builds from.
 
 | Absent | What it would have done | What you lose |
 |---|---|---|
-| **Google ML Kit** | downloads its models from Google, asks Firebase for the translator's settings, and runs some of its parts from Google Play services. Its own usage reports are switched off in the other builds | Google's readers. Handwriting, text scan, QR scanning and document scanning run on open-source engines here instead, and handwriting and text scan read fewer scripts (see [Which build you have](/start/editions/)). The one-tap sticker background remover is gone |
+| **Google ML Kit** | downloads its models from Google and runs some of its parts from Google Play services. The other builds cut out its usage reports and its translator's requests to Firebase, and can switch it off entirely under Privacy › Google libraries | Google's readers. Handwriting, text scan, QR scanning and document scanning run on open-source engines here instead, and handwriting and text scan read fewer scripts (see [Which build you have](/start/editions/)). The one-tap sticker background remover is gone |
 | **Google Play in-app updates** | asks the Play Store whether a newer version exists | nothing: F-Droid's own client handles updates |
 | **The self-updater** | downloads an APK from the project's GitHub releases and installs it | nothing: F-Droid's own client installs updates. This build has no `REQUEST_INSTALL_PACKAGES` permission and no installer code. What it has instead is a check that asks F-Droid, described below |
 | **Play Feature Delivery** | downloads a feature's native library as a separate module | nothing: this edition downloads those libraries itself, after you agree to it (see below) |

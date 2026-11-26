@@ -18,8 +18,10 @@ This page is every build but F-Droid's: the one on Google Play, and the
 standard and offline APKs on the GitHub releases page. It includes handwriting, OCR, QR and document
 scanning, sticker background removal, grammar checking, offline Whisper
 dictation and on-device AI. The handwriting, scanning and background-removal
-features run on Google's ML Kit. From 0.6.8 the app switches off ML Kit's
-usage reports to Google; what still reaches Google is under
+features run on Google's ML Kit. From 0.6.8 the app cuts out the reports ML
+Kit sends Google about its own use, and **Privacy › Google libraries** can
+switch ML Kit and Google's other libraries off altogether. What still reaches
+Google, at either setting, is under
 [Google components inside the app](#google-components-inside-the-app).
 
 If you installed from F-Droid, you have a build that ships none of the ML
@@ -43,12 +45,14 @@ chose to tip and asked to be listed, with a message if you wrote one; see
 [Tips](#tips).
 
 One caveat: some features are built on Google's ML Kit and on Google Play
-services. The app switches off ML Kit's own usage reports, but those features
-still download their models from Google, ML Kit's translator asks Firebase for
-its settings, and the parts that run inside Google Play services are Google's
-code under Google's own policy. That is Google's collection, not this
-project's, and it is spelled out in full under
-[Google components inside the app](#google-components-inside-the-app).
+services. The app cuts out ML Kit's usage reports and its translator's
+requests to Firebase, but those features still download their models from
+Google, and the parts that run inside Google Play services are Google's code
+under Google's own policy. That is Google's collection, not this project's,
+and it is spelled out in full under
+[Google components inside the app](#google-components-inside-the-app). With
+**Privacy › Google libraries** set to **Off**, none of those Google components
+runs, and free software does their work instead.
 
 The app does not sell, rent or share personal information. Apart from a
 tipper's chosen name, it does not receive any in the first place.
@@ -168,12 +172,13 @@ receives nothing from them.
   was processed, as diagnostics and usage analytics, whenever one of those
   features runs. From 0.6.8 the app switches those reports off: the two calls
   ML Kit sends them through are replaced, when the app is built, with ones
-  that send nothing. What still reaches Google:
+  that send nothing. ML Kit's on-device translator, which Google lists as
+  using Firebase installations and Remote Config, would also register a
+  per-installation identifier with Firebase and fetch its settings with it;
+  the app refuses both requests, as if the phone were offline, and the
+  translator keeps its built-in settings. What still reaches Google:
   - model downloads, such as a handwriting language or a translation
     language, from Google's servers the first time you need one;
-  - ML Kit's on-device translator, which Google lists as using Firebase
-    installations and Remote Config: it asks Google for its settings with a
-    per-installation identifier;
   - the parts that run from Google Play services rather than from the app: on
     the Google Play build the text and barcode readers, and on any phone with
     Play services the Chinese, Japanese, Korean and Devanagari text readers,
@@ -196,6 +201,16 @@ receives nothing from them.
 - **Google Play libraries** in the Play Store build check for app updates,
   fetch the on-device AI runtime when you first use it, and take a tip
   through Google Play billing if you choose to leave one.
+
+**Privacy › Google libraries** decides how much of this runs. **No
+analytics**, the default, is what the list above describes. **Off** keeps ML
+Kit, LiteRT, LiteRT-LM, Gemini Nano, the Google Home APIs, Google's WebRTC
+library and Play services' scanner, background remover, sign-in and fonts
+from running at all, so none of their traffic happens: the free software of
+the F-Droid build does that work, and a feature with no free stand-in is not
+offered. The Play Store build keeps the Google Play libraries in the last
+item, because they install and update the app. The keyboard restarts when you
+change the setting.
 
 Connecting Google Drive as a backup destination adds a Google sign-in and
 ordinary Drive API calls, and only if you connect it.

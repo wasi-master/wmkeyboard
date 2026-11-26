@@ -24,6 +24,7 @@
       "id": "llm",
       "play": "module",
       "google": true,
+      "googleLibrary": true,
       "maven": [
         { "name": "liblitertlm_jni.so", "module": "com.google.ai.edge.litertlm:litertlm-android" }
       ]
@@ -32,6 +33,7 @@
       "id": "translate",
       "play": "module",
       "google": true,
+      "googleLibrary": true,
       "maven": [
         { "name": "libtranslate_jni.so", "module": "com.google.mlkit:translate" },
         { "name": "liblanguage_id_l2c_jni.so", "module": "com.google.mlkit:language-id" }
@@ -43,6 +45,7 @@
       "doc": "`:feature:litert`: LiteRT, shared by offline Whisper dictation (`:core:voice`), the sticker editor's own background remover (`:core:content`), the scanner's PaddleOCR reader and search by meaning (`:core:intelligence`). libLiteRt.so is the runtime and the classic interpreter; liblitert_jni.so is CompiledModel's JNI, which opens libLiteRt.so by name and runs the NPU builds through the `npu` gates' dispatch libraries.",
       "play": "module",
       "google": true,
+      "googleLibrary": true,
       "maven": [
         { "name": "libLiteRt.so", "module": "com.google.ai.edge.litert:litert" },
         { "name": "liblitert_jni.so", "module": "com.google.ai.edge.litert:litert-api" }
@@ -54,6 +57,7 @@
       "doc": "`:feature:handwriting`: ML Kit's digital-ink recogniser.",
       "play": "module",
       "google": true,
+      "googleLibrary": true,
       "maven": [
         { "name": "libdigitalink.so", "module": "com.google.mlkit:digital-ink-recognition" }
       ]
@@ -183,6 +187,7 @@
       "doc": "`:feature:webrtc`: the WebRTC library behind PairDrop in Send files (`:feature:ime`), about 12 MB per ABI and off until PairDrop is switched on. Its Java API stays in the base; only the library moves. A prebuilt binary, so not in F-Droid's build.",
       "play": "split",
       "google": true,
+      "googleLibrary": true,
       "maven": [
         { "name": "libjingle_peerconnection_so.so", "module": "io.github.webrtc-sdk:android", "catalog": "webrtc-android" }
       ]
@@ -426,6 +431,7 @@
       "doc": "`:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every other build either compiles it in or has no Google Home at all. No flag: the SDK unpacked under feature/ime/libs/googlehome is the decision.",
       "play": "module",
       "google": true,
+      "googleLibrary": true,
       "enabledBy": {
         "buildConfig": "ENABLE_GOOGLE_HOME",
         "requiresDir": "feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home"
@@ -436,6 +442,7 @@
       "property": "scanner",
       "doc": "ML Kit's bundled text recogniser and barcode reader behind the scanner tool. Never a Play module: Play builds use the play-services twins, whose models come from Play services. Only [NativeDelivery] backs it, on a build that leaves the two libraries out of the APK.",
       "google": true,
+      "googleLibrary": true,
       "maven": [
         { "name": "libmlkit_google_ocr_pipeline.so", "module": "com.google.mlkit:text-recognition-bundled-common" },
         { "name": "libbarhopper_v3.so", "module": "com.google.mlkit:barcode-scanning" }

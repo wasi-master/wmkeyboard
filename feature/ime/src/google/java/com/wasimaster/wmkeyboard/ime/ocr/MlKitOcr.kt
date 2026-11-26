@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * The scanner panel's way to ML Kit's text recognizers, so the panel itself
@@ -17,8 +18,11 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  */
 internal object MlKitOcr {
 
-    /** Whether this build has ML Kit's recognizers at all. */
-    const val IN_BUILD = true
+    /**
+     * Whether ML Kit's recognizers can be used: this build has them, and
+     * Google's libraries are not switched off ([GoogleLibraries]).
+     */
+    val IN_BUILD: Boolean get() = GoogleLibraries.usable
 
     /** Whether [script]'s reader can run now; see [MlKitRecognizers.ready]. */
     fun ready(script: MlKitScript): Boolean = MlKitRecognizers.ready(script)

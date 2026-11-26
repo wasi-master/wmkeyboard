@@ -75,6 +75,12 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
         val play: String?,
         /** Built on a Google SDK: not in the F-Droid build, and NotInBuild there. */
         val google: Boolean,
+        /**
+         * Google's own library, which Privacy › Google libraries can switch
+         * off in the builds that carry it. Narrower than [google]: Vosk and
+         * Kiwi are left out of F-Droid's build too, but they are not Google's.
+         */
+        val googleLibrary: Boolean,
         val enabledBy: EnabledBy?,
         /** Its libraries never reach the APK, so there is nothing to exclude. */
         val neverPackaged: Boolean,
@@ -118,6 +124,7 @@ class NativeGates(val abis: List<String>, val base: List<OwnLibrary>, val gates:
                         doc = gate["doc"] as String?,
                         play = gate["play"] as String?,
                         google = gate["google"] as Boolean? ?: false,
+                        googleLibrary = gate["googleLibrary"] as Boolean? ?: false,
                         enabledBy = (gate["enabledBy"] as Map<*, *>?)?.let {
                             EnabledBy(
                                 flag = it["flag"] as String?,

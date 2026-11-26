@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import java.io.File
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * PaddleOCR's PP-OCRv5 mobile models, the scanner's reader for Chinese and
@@ -22,7 +23,8 @@ import java.io.File
  * - [Runtime.LITERT], wherever LiteRT is in the build: the conversions
  *   published with iFleey's PPOCRv5-Android (Apache-2.0, as are
  *   PaddlePaddle's weights), pinned to one commit.
- * - [Runtime.MNN], in F-Droid's build, which may carry nothing of Google's:
+ * - [Runtime.MNN], in F-Droid's build, which may carry nothing of Google's,
+ *   and in any build whose Google libraries are switched off ([GoogleLibraries]):
  *   PaddlePaddle's own weights exported to MNN by the data repository's
  *   `scripts/export_ppocrv5_mnn.py`, with their float16 rounding matched to
  *   the LiteRT pair's, so both read the same text. They run on the MNN
@@ -47,8 +49,8 @@ object PaddleOcrModel {
     /** What runs the graphs. */
     enum class Runtime { LITERT, MNN }
 
-    /** This build's: LiteRT where the build has it, MNN otherwise. */
-    val runtime: Runtime get() = if (BuildConfig.GOOGLE_SDKS) Runtime.LITERT else Runtime.MNN
+    /** This build's: LiteRT where the build has it and may run it, MNN otherwise. */
+    val runtime: Runtime get() = if (BuildConfig.GOOGLE_SDKS && GoogleLibraries.usable) Runtime.LITERT else Runtime.MNN
 
     /**
      * Every file either runtime reads, under the names they are published

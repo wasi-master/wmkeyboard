@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.util
 
 import android.content.Context
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Whether this device has Google Play services, and whether its downloadable
@@ -48,8 +49,14 @@ object PlayServices {
      * falls back to the platform face, which on any current Android carries
      * Noto for these scripts anyway; a user who wants a specific face can still
      * import a file or install a font addon.
+     *
+     * Every other build answers "no" the same way while Privacy › Google
+     * libraries is at its second level ([GoogleLibraries.switchedOff]), which
+     * promises the same thing. The probes below still ask the device, so the
+     * answers they cache stay true at either level.
      */
-    private val channelAllowsGms: Boolean = !BuildConfig.ENABLE_FDROID
+    private val channelAllowsGms: Boolean
+        get() = !BuildConfig.ENABLE_FDROID && !GoogleLibraries.switchedOff
 
     private const val GMS_PACKAGE = "com.google.android.gms"
     private const val FONTS_AUTHORITY = "com.google.android.gms.fonts"
@@ -70,7 +77,7 @@ object PlayServices {
      * before either draws.
      */
     val available: Boolean
-        get() = installed ?: channelAllowsGms
+        get() = channelAllowsGms && (installed ?: true)
 
     /** Answers both probes now, so later reads are free and [available] is real. */
     fun prime(context: Context) {
@@ -80,7 +87,7 @@ object PlayServices {
 
     /** Whether the Play services package is installed and enabled. */
     fun isInstalled(context: Context): Boolean =
-        installed ?: probeInstalled(context).also { installed = it }
+        channelAllowsGms && (installed ?: probeInstalled(context).also { installed = it })
 
     /**
      * Whether the downloadable-font provider behind every `google:<Name>` font
@@ -88,13 +95,13 @@ object PlayServices {
      * showing: each entry would resolve to the system face.
      */
     fun hasFontProvider(context: Context): Boolean =
-        fontProvider ?: probeFontProvider(context).also { fontProvider = it }
+        channelAllowsGms && (fontProvider ?: probeFontProvider(context).also { fontProvider = it })
 
-    private fun probeInstalled(context: Context): Boolean = channelAllowsGms && runCatching {
+    private fun probeInstalled(context: Context): Boolean = !BuildConfig.ENABLE_FDROID && runCatching {
         context.packageManager.getApplicationInfo(GMS_PACKAGE, 0).enabled
     }.getOrDefault(false)
 
-    private fun probeFontProvider(context: Context): Boolean = channelAllowsGms && runCatching {
+    private fun probeFontProvider(context: Context): Boolean = !BuildConfig.ENABLE_FDROID && runCatching {
         context.packageManager.resolveContentProvider(FONTS_AUTHORITY, 0) != null
     }.getOrDefault(false)
 }

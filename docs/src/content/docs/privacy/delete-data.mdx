@@ -82,11 +82,13 @@ delete it on your behalf.
 
 The Google Play and GitHub builds use Google's ML Kit for handwriting and
 scanning. From 0.6.8 the app switches off ML Kit's usage reports, so there is
-no ML Kit diagnostics record of yours at Google to delete. What ML Kit still
-sends (model downloads, and the translator's Firebase installation identifier)
-and what Google Play services records while it runs its parts are Google's,
-held under Google's own policy. The only way to avoid them is not to use those
-features, or to use the F-Droid build, which does not contain ML Kit. See the
+no ML Kit diagnostics record of yours at Google to delete, and its translator
+never registers an installation identifier with Firebase. What ML Kit still
+fetches (its models) and what Google Play services records while it runs its
+parts are Google's, held under Google's own policy. To avoid them, set
+**Privacy › Google libraries** to **Off**, which keeps ML Kit and Play
+services' parts from running, or use the F-Droid build, which does not
+contain ML Kit. See the
 [Google Play edition privacy policy](/privacy/policy/) and the
 [F-Droid edition privacy policy](/privacy/policy-fdroid/).
 

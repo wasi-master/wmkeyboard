@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Full-flavor facade over the LiteRT-LM runtime. The runtime implementation
@@ -46,7 +47,7 @@ object LocalLlmEngine {
 
     private fun runtime(context: Context): LlmRuntime {
         runtime?.let { return it }
-        if (!BuildConfig.ENABLE_LITERT_LM) {
+        if (!BuildConfig.ENABLE_LITERT_LM || !GoogleLibraries.usable) {
             throw IOException(context.getString(R.string.core_intel_llm_litert_unavailable))
         }
         if (!LlmModule.gate.installed()) {

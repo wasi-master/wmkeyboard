@@ -53,6 +53,10 @@ open class WMApplication : Application() {
         // a failure while showing a crash report would launch another crash
         // report, forever. See CrashReportActivity.
         if (DebugLog.isCrashProcess()) return
+        // How much of Google's code may run (Privacy › Google libraries), read
+        // before anything below asks: the gates, Play services and the
+        // provider lists all answer by it for the life of the process.
+        com.wasimaster.wmkeyboard.core.modules.GoogleLibraries.attach(this)
         // Search by meaning's own process runs the model and nothing else: no
         // sync, no alarms, no second copy of anything the keyboard's process
         // owns. It needs the log, the network log, and the gate that says
@@ -67,6 +71,7 @@ open class WMApplication : Application() {
             NetLog.attach(this)
             com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate.attach(this)
             installOnDemandDelivery(this)
+            com.wasimaster.wmkeyboard.core.modules.GoogleLibraries.applyToGates()
             return
         }
         // Which of the two flavours this is, said here because here is the
@@ -121,6 +126,9 @@ open class WMApplication : Application() {
         // LocalSubjectCutout), ML Kit's ink recogniser (HandwritingModels) and
         // the whisper.cpp, ExecuTorch, Whistle, Harper and Tesseract libraries.
         installOnDemandDelivery(this)
+        // And with Google's libraries switched off, theirs say "not here", as
+        // in F-Droid's build.
+        com.wasimaster.wmkeyboard.core.modules.GoogleLibraries.applyToGates()
         // Builds without Harper used to switch the spell checker off, and that
         // state outlives the update; the merged checker answers everywhere.
         com.wasimaster.wmkeyboard.spell.SpellCheckerComponent.restore(this)

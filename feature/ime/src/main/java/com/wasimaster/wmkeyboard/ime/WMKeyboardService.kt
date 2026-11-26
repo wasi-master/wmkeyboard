@@ -44406,6 +44406,8 @@ open class WMKeyboardService : InputMethodService() {
     override fun onStartStylusHandwriting(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return false
         if (!BuildConfig.ENABLE_ML_KIT_HANDWRITING) return false
+        // ML Kit's, so not with Google's libraries switched off: as on F-Droid.
+        if (!com.wasimaster.wmkeyboard.core.modules.GoogleLibraries.usable) return false
         val state = _uiState.value
         if (state.settings.handwritingFullScreenMode != HandwritingFullScreenMode.AUTOMATIC) return false
         if (state.handwriting.status != HandwritingStatus.READY) {

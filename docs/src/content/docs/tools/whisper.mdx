@@ -204,7 +204,7 @@ The NPU needs the same runtime files as [on-device AI](/tools/ai/) with Compute 
 
 **Speed has no benchmarked numbers.** The app carries no measured per-device timing table, for the CPU or the GPU. The only official guidance is the relative sizing above, with Tiny fastest and the two Large graphs slowest and heaviest on RAM, plus a general note that bigger models are more accurate and slower to download and to transcribe.
 
-**Every build, different catalogs.** The whisper.cpp models run in every build, F-Droid's included. The LiteRT models need the LiteRT runtime, which the F-Droid build doesn't carry, so its catalog lists the whisper.cpp models alone. A build made without the whisper.cpp library offers no Whisper engine at all. See [Which build you have](/start/editions/).
+**Every build, different catalogs.** The whisper.cpp models run in every build, F-Droid's included. The LiteRT models need the LiteRT runtime, which the F-Droid build doesn't carry, so its catalog lists the whisper.cpp models alone. So does any build with <SettingsPath path="Privacy / Google libraries" /> set to **Off**, since LiteRT is Google's; LiteRT models already downloaded stay on the phone for when you switch back. A build made without the whisper.cpp library offers no Whisper engine at all. See [Which build you have](/start/editions/).
 
 **Power saving can silently override your choice.** Its "On-device models" option is on by default. Power saving never turns on by itself unless you set **Turn on by itself**, but once it's on, by hand or by a trigger you chose, dictation falls back to the system recognizer even with Whisper selected and a model downloaded. If dictation seems to have switched engines on its own, check your power-saving settings first.
 

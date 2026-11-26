@@ -119,7 +119,8 @@ object LocalLlmStore {
      * disk space (or silently deleting a multi-GB file the user paid to fetch).
      */
     fun orphanDirs(filesDir: File): List<File> {
-        val known = LocalLlmCatalog.models.map { it.id }.toSet() + "custom"
+        // builtInIds: a LiteRT-LM model hidden while Google's libraries are off is not an orphan.
+        val known = LocalLlmCatalog.models.map { it.id }.toSet() + LocalLlmCatalog.builtInIds + "custom"
         return modelsDir(filesDir).listFiles()
             .orEmpty()
             .filter { it.isDirectory && it.name !in known }

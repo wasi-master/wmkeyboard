@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
 import kotlinx.coroutines.flow.StateFlow
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Full-flavor facade over offline Whisper. The interpreter side
@@ -19,11 +20,12 @@ import kotlinx.coroutines.flow.StateFlow
  * a [WhisperException] that says so, the same error shape the keyboard
  * already renders for a damaged model, and [warm] asks Play for it, so the
  * download starts while the first phrase is still being said. F-Droid's
- * build has no LiteRT, so [AVAILABLE] is false there and nothing offers it.
+ * build has no LiteRT, so [AVAILABLE] is false there and nothing offers it;
+ * the same goes for a build whose Google libraries are switched off.
  */
 object WhisperEngine {
 
-    val AVAILABLE: Boolean = BuildConfig.ENABLE_WHISPER
+    val AVAILABLE: Boolean get() = BuildConfig.ENABLE_WHISPER && GoogleLibraries.usable
 
     @Volatile
     private var runtime: WhisperRuntime? = null

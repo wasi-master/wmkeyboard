@@ -286,7 +286,7 @@ What it can do is smaller than an on-device model you download:
 - **A short window.** A request has to fit in about 4,000 tokens, roughly 3,000 English words. The chat sends the conversation again with every message and leaves out the oldest turns once it doesn't fit, so in a long chat it forgets the start.
 - **Android limits how much it answers.** AICore keeps a quota per app. When it says it is busy, the chat waits as long as AICore asks and tries again, up to three times. When the longer, daily quota runs out, the chat says so and you can try later or pick another model.
 
-Gemini Nano is not offered in the F-Droid build, which carries none of Google's libraries, nor in the [offline build](/privacy/offline/#the-offline-build). It needs Android 8 or later.
+Gemini Nano is not offered in the F-Droid build, which carries none of Google's libraries, nor with <SettingsPath path="Privacy / Google libraries" /> set to **Off**, nor in the [offline build](/privacy/offline/#the-offline-build). It needs Android 8 or later.
 
 ## Sending, stopping, retrying
 

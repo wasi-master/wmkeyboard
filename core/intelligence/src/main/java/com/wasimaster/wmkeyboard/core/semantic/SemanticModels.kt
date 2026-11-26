@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import java.io.File
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * The files behind search by meaning: Google's EmbeddingGemma 2
@@ -26,9 +27,11 @@ object SemanticModels {
 
     /**
      * Whether this build can run the model at all. F-Droid's build has no
-     * LiteRT interpreter, so it never offers a download it could not use.
+     * LiteRT interpreter, so it never offers a download it could not use, and
+     * neither does a build whose Google libraries are switched off.
      */
-    val SUPPORTED: Boolean = com.wasimaster.wmkeyboard.config.BuildConfig.GOOGLE_SDKS
+    val SUPPORTED: Boolean
+        get() = com.wasimaster.wmkeyboard.config.BuildConfig.GOOGLE_SDKS && GoogleLibraries.usable
 
     enum class Pack { TEXT, PICTURES }
 

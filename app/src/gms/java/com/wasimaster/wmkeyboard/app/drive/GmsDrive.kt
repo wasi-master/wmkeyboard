@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * The Drive side of a build that has Google Play services compiled in.
@@ -81,7 +82,9 @@ private class GmsDriveTokenProvider(context: Context) : DriveTokenProvider {
 
 private object GmsDriveAuthorizer : DriveAuthorizer {
 
-    override val available: Boolean get() = true
+    // Sign-in is Play services', so Google's libraries switched off leave
+    // the Drive destination out, as F-Droid's build does.
+    override val available: Boolean get() = GoogleLibraries.usable
 
     override suspend fun authorized(context: Context, scope: String): Boolean {
         val result = Identity.getAuthorizationClient(context.applicationContext)
@@ -119,4 +122,5 @@ private object GmsDriveAuthorizer : DriveAuthorizer {
 
 fun driveAuthorizer(): DriveAuthorizer = GmsDriveAuthorizer
 
-fun driveTokenProvider(context: Context): DriveTokenProvider? = GmsDriveTokenProvider(context)
+fun driveTokenProvider(context: Context): DriveTokenProvider? =
+    if (GoogleLibraries.usable) GmsDriveTokenProvider(context) else null

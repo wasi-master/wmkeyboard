@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Which build this is, as far as providers go. GitHub is the direct download:
@@ -110,14 +111,15 @@ object ProviderEnvironment {
     fun current(lookAtDisk: Boolean = true): ProviderEnv = ProviderEnv(
         channel = ProviderChannel.current,
         offline = !InternetPermission.granted,
-        onDeviceTranslate = onDeviceTranslate,
+        // ML Kit's, so off with the rest of Google's libraries (GoogleLibraries).
+        onDeviceTranslate = onDeviceTranslate && GoogleLibraries.usable,
         bergamot = bergamot,
         nllb = nllb,
         offlineGifPacks = lookAtDisk && OfflineGifPacks.hasPacks,
         // The build carries the Home APIs, and the phone has the Play services they run through.
         googleHome = googleHome && PlayServices.available,
         onDeviceAi = BuildConfig.ENABLE_LOCAL_LLM,
-        mlKitOcr = mlKitOcr,
+        mlKitOcr = mlKitOcr && GoogleLibraries.usable,
         tesseract = tesseract,
     )
 }

@@ -180,6 +180,8 @@ internal fun PrivacySettings(
     }
     IncognitoAppsGroup(repository, settings)
     OtherAppsGroup(repository, onNavigate)
+    // How much of Google's code runs: not in F-Droid's build, which has none.
+    GoogleLibrariesGroup(repository)
     // F-Droid's opt-in and the offline build's import are what a feature's
     // message points to, so they show at every depth; the checksum switch,
     // which is for one rare situation, stays with Everything.

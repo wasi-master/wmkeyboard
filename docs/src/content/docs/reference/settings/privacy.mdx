@@ -1,6 +1,6 @@
 ---
 title: "Privacy"
-description: "Every row on the Privacy screen: learning on this device, incognito, Android backup, other apps controlling the keyboard, download verification, and the one button that clears learned data."
+description: "Every row on the Privacy screen: learning on this device, incognito, Android backup, other apps controlling the keyboard, how much of Google's code runs, download verification, and the one button that clears learned data."
 sidebar:
   order: 18
 ---
@@ -9,7 +9,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The Privacy screen is five groups, in this order: the way into the permissions inventory, the network log and the app lock; incognito; whether other apps may control the keyboard; downloads (the GitHub mirror and whether downloads are checked against their checksum); and the one button that clears learned data. Nothing else. This page is the field reference. For the reasoning and the rest of the privacy story, start at [Privacy at a glance](/privacy/overview/).
+The Privacy screen is six groups, in this order: the way into the permissions inventory, the network log and the app lock; incognito; whether other apps may control the keyboard; how much of Google's code runs (not in the F-Droid edition, which has none); downloads (the GitHub mirror and whether downloads are checked against their checksum); and the one button that clears learned data. Nothing else. This page is the field reference. For the reasoning and the rest of the privacy story, start at [Privacy at a glance](/privacy/overview/).
 
 <PhoneFrame caption="The Privacy screen: the Permissions row, then its groups.">
   <Shot id="reference/settings/privacy-screen-groups" alt="The Privacy screen and its groups." />
@@ -83,6 +83,36 @@ What the keyboard learns from typing, and the Android dictionary switches, were 
 
 **Allowed actions** has one switch per kind of command, in two groups. The **Keyboard controls** are on by default: switch language and layout, apply a keyboard mode, change the theme, show and pin the keyboard, sound and haptics, power saving and data saver, size and position, open a tool, and turn incognito on. The **Needs more trust** group is off by default: turn incognito off, add and block words, back up now, announce layout changes, and type text. The commands behind each row, and how to send them, are on [Automation: adb and Tasker](/reference/automation/).
 
+### Google
+
+<SettingsPath path="Privacy / Google libraries" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Google libraries (not in the F-Droid edition) | No analytics, Off | No analytics |
+
+**Google libraries** decides how much of Google's code the keyboard runs. Outside the F-Droid edition, ML Kit reads handwriting, text and QR codes and translates on the device; LiteRT and LiteRT-LM run on-device AI, offline Whisper dictation and search by meaning; Gemini Nano, the Google Home APIs and Google's WebRTC library (for PairDrop) are there too; and Play services runs the document scanner, the sticker background remover, Google Drive sign-in and Google Fonts. The F-Droid edition has none of them, so the group isn't there.
+
+- **No analytics** keeps them and cuts out what they would tell Google about your use. ML Kit's usage reports are removed when the app is built, and its on-device translator's requests to Firebase (an installation identifier, then its settings) are refused as if the phone were offline. Models still download from Google, and what Play services runs itself (the document scanner, the background remover, and in the Play edition the text and barcode readers) is out of the app's reach. [Network policy](/privacy/network/#google-components-and-what-they-report) has the detail.
+- **Off** keeps every one of them from running. Each feature built on one works the way it does in the F-Droid edition:
+
+| Feature | With Google libraries off |
+|---|---|
+| Text scan | PaddleOCR for Chinese and Japanese, Tesseract for the other scripts |
+| QR and barcode scanning | zxing-cpp |
+| Document scanner | the built-in scanner |
+| On-device translation | Firefox's engine (Bergamot), or NLLB-200 |
+| Handwriting | zinnia for Chinese and Japanese, PaddleOCR for several other scripts |
+| Offline Whisper dictation | whisper.cpp models only |
+| On-device AI | GGUF models on llama.cpp only, and no Gemini Nano |
+| Search by meaning, the sticker background remover, Google Drive backups, Google Home | not offered |
+| PairDrop | servers that relay files only |
+| Google Fonts | the system font |
+
+The Play edition keeps the Play Store's own libraries at both levels, because they install the app and its on-demand parts, update it and take tips. Open-source code from Google that the F-Droid edition carries as well, such as AndroidX and the Mozc converter, isn't counted.
+
+Changing the setting restarts the app and opens this screen again, and the keyboard comes back with the new level the next time a text field opens it. Before switching to **Off**, the dialog lists what you've set up that stops working or changes: downloaded LiteRT models for on-device AI or Whisper, Gemini Nano, ML Kit's translation and handwriting models, the search-by-meaning model, the background remover, an ML Kit text-scan engine you picked, PaddleOCR's files (which download again in the format the F-Droid edition uses), a Google Drive backup, Google Home, PairDrop and a Google font as the keyboard font. Nothing is deleted. The files stay on the phone, and switching back to **No analytics** uses them again.
+
 ### Downloads
 
 <SettingsPath path="Privacy / Downloads" />
@@ -126,10 +156,10 @@ This is the only bulk clear on this screen. Personal dictionary entries, clipboa
 - **"Follow private browsing" isn't two settings.** The row here and the row of the same name under <SettingsPath path="Tools / Incognito" /> both read and write `autoIncognito`; flip it in either place and the other reflects the change.
 - **Saved API keys are included in an Android backup**, not excluded the way large downloads are. If that matters to you, use [Backup & restore](/privacy/backup/)'s manual export instead, which never leaves the device.
 - **A cloud backup needs an encryptable screen lock.** On a device without one, turning "Back up with Android" on has nothing to back up into: Android's own backup system requires it.
-- **The footer caption names the whole network side.** The screen's own note reads: "Typing works fully on this device. The word lists, prediction, autocorrect, transliteration and emoji search are part of the app, and none of them needs a network connection. The app collects nothing about you and has no analytics of its own. Outside the F-Droid build, handwriting, text scanning and QR scanning use Google's ML Kit, and the app stops the usage reports that ML Kit sends to Google. Only a tool uses the network, and only at the moment that you press it: translate, weather, web search, image search, GIFs, stickers, dictionary lookup and the AI tools. You can turn off each one of them on the Tools screen." See [Privacy at a glance](/privacy/overview/) for the same list with per-tool detail, plus the few fetches that happen without you pressing a tool.
+- **The footer caption names the whole network side.** The screen's own note reads: "Typing works fully on this device. The word lists, prediction, autocorrect, transliteration and emoji search are part of the app, and none of them needs a network connection. The app collects nothing about you and has no analytics of its own. Outside the F-Droid build, handwriting, text scanning and QR scanning use Google's ML Kit, with the reports it would send Google about its use cut out. Google libraries, below, can switch it and Google's other libraries off. Only a tool uses the network, and only at the moment that you press it: translate, weather, web search, image search, GIFs, stickers, dictionary lookup and the AI tools. You can turn off each one of them on the Tools screen." See [Privacy at a glance](/privacy/overview/) for the same list with per-tool detail, plus the few fetches that happen without you pressing a tool.
 - **Allowed actions keeps its switches while the master toggle is off.** Turning **Let other apps control the keyboard** off hides the row and blocks every command, but the choices under it are kept for the next time you turn it on.
 - **Turning off "Verify downloaded files" is logged.** Each file it lets through despite a wrong checksum leaves a line in the debug log, so a bug report shows it happened.
-- **No build differences.** Every setting on this screen behaves the same in every build.
+- **One build difference.** The Google group is missing from the F-Droid edition, which carries no Google library to switch off. Every other setting on this screen behaves the same in every build.
 
 ## Related pages
 

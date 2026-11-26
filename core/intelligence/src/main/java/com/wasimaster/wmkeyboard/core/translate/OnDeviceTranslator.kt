@@ -24,6 +24,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * ML Kit's on-device translator behind the translate tool: the model store,
@@ -45,7 +46,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 object OnDeviceTranslator {
 
     /** False in F-Droid's build, which carries no ML Kit. */
-    val AVAILABLE: Boolean = BuildConfig.GOOGLE_SDKS
+    val AVAILABLE: Boolean get() = BuildConfig.GOOGLE_SDKS && GoogleLibraries.usable
 
     /**
      * Whether the translate tool can offer this engine. The offline build has

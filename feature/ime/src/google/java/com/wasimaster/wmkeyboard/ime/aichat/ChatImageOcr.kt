@@ -10,6 +10,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Reads the text in a picture sent in the AI chat (#698), for a model that
@@ -19,8 +20,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  */
 object ChatImageOcr {
 
-    /** This build carries ML Kit's text recognizers. */
-    val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS
+    /** This build carries ML Kit's text recognizers, and Google's libraries are not switched off. */
+    val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS && GoogleLibraries.usable
 
     /** The text in [bitmap], line by line; empty when there is none. Throws when the read fails. */
     suspend fun read(bitmap: Bitmap, script: MlKitScript = MlKitScript.LATIN): String {

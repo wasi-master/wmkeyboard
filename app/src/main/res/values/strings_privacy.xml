@@ -160,7 +160,7 @@
          the Data safety form and against the SDKs in the bundle, so the
          sentence names the exception rather than inviting the mismatch.
     -->
-    <string name="privacy_on_device_info">Typing works fully on this device. The word lists, prediction, autocorrect, transliteration and emoji search are part of the app, and none of them needs a network connection. The app collects nothing about you and has no analytics of its own. Outside the F-Droid build, handwriting, text scanning and QR scanning use Google\'s ML Kit, and the app stops the usage reports that ML Kit sends to Google. Only a tool uses the network, and only at the moment that you press it: translate, weather, web search, image search, GIFs, stickers, dictionary lookup and the AI tools. You can turn off each one of them on the Tools screen.</string>
+    <string name="privacy_on_device_info">Typing works fully on this device. The word lists, prediction, autocorrect, transliteration and emoji search are part of the app, and none of them needs a network connection. The app collects nothing about you and has no analytics of its own. Outside the F-Droid build, handwriting, text scanning and QR scanning use Google\'s ML Kit, with the reports it would send Google about its use cut out. Google libraries, below, can switch it and Google\'s other libraries off. Only a tool uses the network, and only at the moment that you press it: translate, weather, web search, image search, GIFs, stickers, dictionary lookup and the AI tools. You can turn off each one of them on the Tools screen.</string>
 
     <!-- ================================================================== -->
     <!-- App lock: a fingerprint in front of the settings the user picked.  -->
@@ -369,4 +369,35 @@
     <!-- Caption at the end of the Permissions screen. -->
     <string name="privacy_permissions_footer_info">Android gives the permissions in the last group to every app at the install. An app cannot ask for them, and cannot give them back. You can take every other permission back at any time in the system settings. The feature that uses it then stops, and the rest of the keyboard keeps working.</string>
 
+    <!-- Privacy › Google libraries: GoogleLibrariesSettings.kt. -->
+    <string name="privacy_google_group_title">Google</string>
+    <string name="privacy_google_libraries_title">Google libraries</string>
+    <string name="privacy_google_libraries_no_analytics">No analytics</string>
+    <string name="privacy_google_libraries_off">Off</string>
+    <string name="privacy_google_libraries_no_analytics_subtitle">Google\'s libraries run, and tell Google nothing about how you use them</string>
+    <string name="privacy_google_libraries_off_subtitle">None of Google\'s libraries run. Free software does their work, as in the F-Droid build</string>
+    <string name="privacy_google_libraries_info">Outside the F-Droid build, some features run on Google\'s libraries: ML Kit for handwriting, text scanning, QR codes and on-device translation; LiteRT and LiteRT-LM for on-device AI, offline Whisper dictation and search by meaning; Gemini Nano; the Google Home APIs; Google\'s WebRTC for PairDrop; and Play services for the document scanner, the sticker background remover, Google Drive backups and Google Fonts.\n\nNo analytics, the default, keeps them and cuts out what they would tell Google about your use: ML Kit\'s usage reports, and the Firebase ID and settings requests of its translator. Their models still download from Google, and what Play services runs itself is out of the app\'s reach.\n\nOff keeps every one of them from running, and the free software of the F-Droid build stands in: PaddleOCR and Tesseract for text, zxing-cpp for QR codes, a built-in document scanner, Firefox\'s translation engine, zinnia and PaddleOCR for handwriting, whisper.cpp for dictation and llama.cpp for on-device AI. What has no stand-in is not offered. The Play Store build keeps the Play Store\'s own parts, which install and update the app.\n\nThe keyboard restarts when you change this.</string>
+    <string name="privacy_google_libraries_off_confirm_title">Switch off Google\'s libraries?</string>
+    <string name="privacy_google_libraries_off_confirm_body">The keyboard restarts and uses free software in their place.</string>
+    <string name="privacy_google_libraries_off_confirm_uses">These stop working or change:</string>
+    <string name="privacy_google_libraries_off_confirm_nothing">Nothing you have set up depends on them.</string>
+    <string name="privacy_google_libraries_checking">Checking what you have set up…</string>
+    <string name="privacy_google_libraries_on_confirm_title">Use Google\'s libraries again?</string>
+    <string name="privacy_google_libraries_on_confirm_body">The keyboard restarts, and the features built on them come back. What they would tell Google about your use stays cut out.</string>
+    <string name="privacy_google_libraries_restart">Restart</string>
+    <string name="privacy_google_libraries_save_failed">The change could not be saved. Try again.</string>
+    <string name="privacy_google_libraries_use_llm">On-device AI: the LiteRT models %1$s stop working. GGUF models keep working on llama.cpp.</string>
+    <string name="privacy_google_libraries_use_gemini_nano">On-device AI: Gemini Nano is no longer offered.</string>
+    <string name="privacy_google_libraries_use_whisper">Offline dictation: the LiteRT Whisper models %1$s stop working. whisper.cpp models keep working.</string>
+    <string name="privacy_google_libraries_use_semantic">Search by meaning stops working, and its model goes unused.</string>
+    <string name="privacy_google_libraries_use_translate">On-device translation: ML Kit\'s models for %1$s go unused. Firefox\'s engine translates instead, with models of its own.</string>
+    <string name="privacy_google_libraries_use_handwriting">Handwriting: ML Kit\'s models go unused. Chinese and Japanese write with zinnia and several other scripts with PaddleOCR, each a new download. Other languages lose handwriting.</string>
+    <string name="privacy_google_libraries_use_cutout">Sticker editor: the one-tap background remover goes away.</string>
+    <string name="privacy_google_libraries_use_ocr_engine">Text scan: the ML Kit engine you picked gives way to Auto, which reads with PaddleOCR and Tesseract and needs their language files.</string>
+    <string name="privacy_google_libraries_use_paddle">Text scan: PaddleOCR\'s files download again in the format the F-Droid build uses (%1$s).</string>
+    <string name="privacy_google_libraries_use_drive">Backups: Google Drive stops working as the destination.</string>
+    <string name="privacy_google_libraries_use_google_home">Smart home: Google Home stops working.</string>
+    <string name="privacy_google_libraries_use_pairdrop">Send files: PairDrop sends only through servers that relay files.</string>
+    <string name="privacy_google_libraries_use_fonts">Fonts: Google Fonts show in the system font instead.</string>
+    <string name="search_kw_privacy_google_libraries">ml kit mlkit litert tensorflow firebase play services gms analytics telemetry tracking foss free software degoogle</string>
 </resources>

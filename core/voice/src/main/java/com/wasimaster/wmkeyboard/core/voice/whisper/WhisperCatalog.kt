@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
+import com.wasimaster.wmkeyboard.config.BuildConfig
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.IOException
@@ -294,7 +295,15 @@ object WhisperCatalog {
     val models: List<WhisperModel>
         get() = WhisperCustomModels.models.let { custom -> if (custom.isEmpty()) builtIn else builtIn + custom }
 
-    private val builtIn: List<WhisperModel> = buildList {
+    /**
+     * Every built-in model whose runtime is in this build, the LiteRT ones
+     * included while Privacy › Google libraries is Off: a folder one of them
+     * downloaded is hidden then, not orphaned ([WhisperStore.orphanDirs]).
+     */
+    val builtInIds: Set<String>
+        get() = everyBuiltIn.filter { it.ggml || BuildConfig.ENABLE_WHISPER }.mapTo(HashSet()) { it.id }
+
+    private val everyBuiltIn: List<WhisperModel> = buildList {
         // ---- whisper.cpp first where it runs: every language by name, prompts,
         // beam search, and faster than the LiteRT graphs of the same size.
         if (cppAvailable) addAll(ggmlModels())
@@ -495,8 +504,11 @@ object WhisperCatalog {
                 Single("base-zh", WhisperSize.BASE, "whisper-base.zh.tflite", "zh", REPO, 78_448_496L),
             ),
         )
-    }.filter { model ->
-        // F-Droid's build has no LiteRT, so only whisper.cpp's models can run there.
+    }
+
+    private val builtIn: List<WhisperModel> = everyBuiltIn.filter { model ->
+        // F-Droid's build has no LiteRT, so only whisper.cpp's models can run
+        // there, and the same goes for a build whose Google libraries are off.
         model.ggml || WhisperEngine.AVAILABLE
     }.map { model ->
         // Beside whisper.cpp's models of the same sizes, the LiteRT graphs need

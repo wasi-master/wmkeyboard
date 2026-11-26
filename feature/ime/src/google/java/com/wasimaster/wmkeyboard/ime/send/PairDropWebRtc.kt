@@ -23,6 +23,7 @@ import org.webrtc.RtpReceiver
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 import java.nio.ByteBuffer
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * WebRTC data channels for [com.wasimaster.wmkeyboard.core.send.PairDropClient], over
@@ -31,13 +32,17 @@ import java.nio.ByteBuffer
  */
 internal object PairDropWebRtc {
 
-    /** This build can have the library at all. */
-    const val supported = true
+    /**
+     * This build can have the library at all, and may run it: Google's
+     * libraries switched off ([GoogleLibraries]) leave PairDrop to servers
+     * that relay files, as in F-Droid's build.
+     */
+    val supported: Boolean get() = GoogleLibraries.usable
 
     private const val NATIVE_LIBRARY = "jingle_peerconnection_so"
 
     /** Null when the library would not load; the caller goes on without peer-to-peer. */
-    fun create(context: Context): PairDropRtc? = runCatching {
+    fun create(context: Context): PairDropRtc? = if (!supported) null else runCatching {
         PeerConnectionFactory.initialize(
             PeerConnectionFactory.InitializationOptions.builder(context.applicationContext)
                 .setNativeLibraryName(NATIVE_LIBRARY)

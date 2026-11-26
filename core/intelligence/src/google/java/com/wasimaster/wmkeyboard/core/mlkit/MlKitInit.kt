@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.mlkit
 
 import android.content.Context
 import com.google.mlkit.common.sdkinternal.MlKitContext
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * ML Kit sets itself up from a ContentProvider, and providers are skipped for
@@ -24,6 +25,9 @@ object MlKitInit {
      * over a model manager.
      */
     fun ensure(context: Context) {
+        // Switched off, ML Kit is never woken: no feature reaches it then, and
+        // its components would start for nothing.
+        if (!GoogleLibraries.usable) return
         runCatching { MlKitContext.initializeIfNeeded(context.applicationContext) }
     }
 }

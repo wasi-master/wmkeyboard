@@ -230,13 +230,15 @@
     public static *** checkSelfPermission(...);
     public static *** connectivityWaived();
 }
-# The same for ML Kit's usage reports (MlKitTelemetryTransform): its two
-# calls are rewritten to these, and on Play some callers sit in the
-# :feature:translate and :feature:handwriting splits. Absent from F-Droid's
-# build, which has no ML Kit.
+# The same for ML Kit's usage reports and the translator's Firebase calls
+# (MlKitTelemetryTransform): its calls are rewritten to these, and on Play
+# some callers sit in the :feature:translate and :feature:handwriting splits.
+# Absent from F-Droid's build, which has no ML Kit.
 -keep class com.wasimaster.wmkeyboard.core.mlkit.MlKitTelemetry {
     public static *** log(...);
     public static *** send(...);
+    public static *** build(...);
+    public static *** openConnection(...);
 }
 
 # --- Shizuku / Sui user service ------------------------------------------------

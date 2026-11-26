@@ -169,3 +169,5 @@ Whatever the Recognition pause slider is set to, handwriting in these languages 
 ## On F-Droid
 
 ML Kit's digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is Google's and not open source, so the F-Droid build leaves it out entirely. The Handwriting tool, the handwriting layouts and the "Handwrite" option of **What a swipe does** are all still there. Chinese and Japanese read through zinnia, and the nine scripts in the [PaddleOCR table](#paddleocr-for-other-scripts) through PaddleOCR on MNN; F-Droid compiles both libraries from source. Languages in other scripts, Bangla among them, get a note in the panel instead of a canvas. See [Which build you have](/start/editions/) if you're deciding between builds.
+
+The other builds write the same way with <SettingsPath path="Privacy / Google libraries" /> set to **Off**. ML Kit's models stay on the phone, unused, and come back into use when you switch back.

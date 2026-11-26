@@ -12,6 +12,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Reads a chat screenshot into messages, for a model that cannot see (#234).
@@ -35,7 +36,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 object ReplyOcr {
 
     /** This build carries ML Kit's text recognizers. */
-    val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS
+    val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS && GoogleLibraries.usable
 
     /**
      * [bitmap] read as a conversation, oldest first, from the part of it

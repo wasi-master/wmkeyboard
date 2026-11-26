@@ -36,6 +36,6 @@ PRIVACY
 
 Typing never uses the network. Online tools such as translate, search, GIFs and cloud AI send what you give them only when you use them, and each one is documented. Three things can reach the network on their own, and each has its own switch: a language you enable fetches its n-gram pack and emoji dictionary once, the currency chip fetches the day's rates the first time it sees an amount, and the weather chip fetches the forecast for a location you saved. Password and secure fields turn off learning, suggestions and clipboard capture on their own, and incognito mode does the same on demand. Backups are written where you point them, and a passphrase encrypts them.
 
-Handwriting, OCR, scanning and on-device translation are built on Google's ML Kit, and the app switches off ML Kit's usage reports to Google. The privacy policy says exactly what still reaches Google: https://wmkeyboard.pages.dev/privacy/policy/
+Handwriting, OCR, scanning and on-device translation are built on Google's ML Kit, and the app switches off ML Kit's usage reports to Google. One setting, Privacy › Google libraries, keeps every Google library from running and uses free software in their place. The privacy policy says exactly what still reaches Google: https://wmkeyboard.pages.dev/privacy/policy/
 
 The full documentation, including exactly what touches the network and when, is at https://wmkeyboard.pages.dev

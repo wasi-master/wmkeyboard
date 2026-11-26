@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * One-tap background removal for the sticker editor.
@@ -26,11 +27,13 @@ import com.wasimaster.wmkeyboard.core.util.PlayServices
  *
  * F-Droid's build has neither: no Play services library and no LiteRT, so
  * [supported] is false there and the sticker editor leaves its cutout
- * control out. The eraser and restore brushes work the same in every build.
+ * control out. So does a build whose Google libraries are switched off
+ * ([GoogleLibraries]), since both engines are Google's. The eraser and
+ * restore brushes work the same in every build.
  */
 object SubjectCutout {
 
-    val supported: Boolean = BuildConfig.GOOGLE_SDKS
+    val supported: Boolean get() = BuildConfig.GOOGLE_SDKS && GoogleLibraries.usable
 
     /** Below this share of the canvas, a mask is a speck and not a subject. */
     private const val MIN_COVERAGE = 0.01f

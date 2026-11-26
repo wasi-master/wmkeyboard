@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * One job a phone can have a library for. Usually one gate; the NPU's shared
@@ -93,7 +94,8 @@ internal object FeatureLibraryList {
     /**
      * A build with native delivery. A library the phone could never run is
      * left out: another chip's NPU files, the GPU builds this phone's GPU does
-     * not take ([gpuGates] holds the ones it does), and on the offline build the engines whose models it cannot get.
+     * not take ([gpuGates] holds the ones it does), on the offline build the engines whose models it cannot get,
+     * and Google's libraries while they are switched off ([GoogleLibraries]).
      * "Download all" would fetch them for nothing.
      */
     fun fromPins(
@@ -104,6 +106,7 @@ internal object FeatureLibraryList {
     ): List<FeatureLibraryRow> = pins
         .filter { pin ->
             when {
+                GoogleLibraries.blocks(pin.gate) -> false
                 offline && pin.gate in OFFLINE_USELESS_GATES -> false
                 pin.gate in GPU_GATES -> pin.gate in gpuGates
                 // Qualcomm's shared QNN libraries, for a Snapdragon only:

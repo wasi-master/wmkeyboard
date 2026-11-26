@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * A failure from AICore, with its error code ([GeminiNano] names the ones it
@@ -84,7 +85,7 @@ object GeminiNano {
     /** The build could offer it, before asking the phone. */
     val buildOffers: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && BuildConfig.GOOGLE_SDKS &&
-            GeminiNanoBackend.COMPILED && InternetPermission.declared
+            GoogleLibraries.usable && GeminiNanoBackend.COMPILED && InternetPermission.declared
 
     /** Worth a row in the app's model pickers: here, or AICore can fetch it. */
     val offered: Boolean

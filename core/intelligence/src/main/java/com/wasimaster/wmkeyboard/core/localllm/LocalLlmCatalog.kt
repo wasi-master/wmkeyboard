@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.localllm
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.intelligence.R
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Container format of a model file. `.litertlm` and `.task` load through the
@@ -185,11 +186,27 @@ object LocalLlmCatalog {
 
     /**
      * The rows this build can run: every one where LiteRT-LM is present, the
-     * GGUF ones alone in F-Droid's build, which carries no Google artifact.
+     * GGUF ones alone in F-Droid's build, which carries no Google artifact, and
+     * where Google's libraries are switched off ([GoogleLibraries], read once
+     * per process like this list).
      */
     val models: List<LocalLlmModel> by lazy {
-        if (BuildConfig.ENABLE_LITERT_LM) allModels else allModels.filter { it.runtime == LocalLlmRuntime.LLAMA_CPP }
+        if (BuildConfig.ENABLE_LITERT_LM && GoogleLibraries.usable) {
+            allModels
+        } else {
+            allModels.filter { it.runtime == LocalLlmRuntime.LLAMA_CPP }
+        }
     }
+
+    /**
+     * Every row whose runtime is in this build, the LiteRT-LM ones included
+     * while Privacy › Google libraries is Off: a folder one of them downloaded
+     * is hidden then, not orphaned ([LocalLlmStore.orphanDirs]).
+     */
+    val builtInIds: Set<String>
+        get() = allModels
+            .filter { BuildConfig.ENABLE_LITERT_LM || it.runtime == LocalLlmRuntime.LLAMA_CPP }
+            .mapTo(HashSet()) { it.id }
 
     private val allModels: List<LocalLlmModel> = listOf(
         LocalLlmModel(

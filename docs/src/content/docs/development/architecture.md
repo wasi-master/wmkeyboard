@@ -528,6 +528,10 @@ An entry has:
   of them (`npu-V79`).
 - `google`, `enabledBy`, `neverPackaged`: built on a Google SDK (left out of
   F-Droid's build), switched on by a flag, never packaged into an APK.
+- `googleLibrary`: Google's own library, which Privacy › Google libraries
+  switches off at its second level. Narrower than `google`, which also marks
+  libraries that are not Google's but that F-Droid's build leaves out (Vosk,
+  Kiwi).
 
 A library every build ships in its base APK (the text engines, liblouis,
 libwebp's encoder) goes in the table's `base` list instead, with the same

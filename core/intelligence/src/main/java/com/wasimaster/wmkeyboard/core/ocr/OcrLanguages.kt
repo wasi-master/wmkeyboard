@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.modules.GoogleLibraries
 
 /**
  * Which Tesseract language data ("pack") reads text in each keyboard language,
@@ -39,13 +40,14 @@ object OcrLanguages {
         get() = extraScriptsOverride ?: (mlKit && PlayServices.available)
 
     /**
-     * Whether the build has ML Kit's text recognizers at all: every one but
-     * F-Droid's. Null asks the build; tests set it.
+     * Whether ML Kit's text recognizers can be used: the build has them (every
+     * one but F-Droid's) and Google's libraries are not switched off
+     * ([GoogleLibraries]). Null asks the build; tests set it.
      */
     internal var mlKitOverride: Boolean? = null
 
     private val mlKit: Boolean
-        get() = mlKitOverride ?: BuildConfig.ENABLE_ML_KIT_SCANNERS
+        get() = mlKitOverride ?: (BuildConfig.ENABLE_ML_KIT_SCANNERS && GoogleLibraries.usable)
 
     /**
      * Whether this build can run PaddleOCR: every one, on the LiteRT
