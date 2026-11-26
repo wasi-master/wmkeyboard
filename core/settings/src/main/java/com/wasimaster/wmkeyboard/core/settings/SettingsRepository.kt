@@ -8953,6 +8953,9 @@ enum class ClipHoldAction {
     /** Onto the shared board (#1201), while one is set up. */
     SEND_TO_BOARD,
 
+    /** To the keyboard in the work profile or private space (#1556), while the phone has one. */
+    SEND_TO_PROFILE,
+
     /** Into another of the user's clipboards (#1542), while there is more than one. */
     MOVE_TO_CLIPBOARD,
     SELECT,

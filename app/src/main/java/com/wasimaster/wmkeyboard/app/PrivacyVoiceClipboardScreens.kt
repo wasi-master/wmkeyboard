@@ -1529,6 +1529,22 @@ internal fun ClipboardHistorySettings(
                 ) { usageAccessRow() }
             }
         }
+        // #1556: shared text into the history, which is how one chosen clip
+        // reaches the keyboard in a work profile or a private space.
+        item(level = SettingLevel.STANDARD) {
+            val context = LocalContext.current
+            var shareOn by remember { mutableStateOf(ClipShareActivity.inShareSheet(context)) }
+            ToggleSetting(
+                R.string.clipboard_share_target_title,
+                stringResource(R.string.clipboard_share_target_subtitle),
+                shareOn,
+                info = stringResource(R.string.clipboard_share_target_info),
+                default = false,
+            ) { on ->
+                ClipShareActivity.setInShareSheet(context, on)
+                shareOn = on
+            }
+        }
     }
 }
 
@@ -1878,6 +1894,7 @@ private fun clipHoldActionLabels(): Map<ClipHoldAction, String> = ClipHoldAction
             ClipHoldAction.PASTE_NEXT -> ImeR.string.ime_clip_paste_next
             ClipHoldAction.COLLECT -> ImeR.string.ime_clip_collect
             ClipHoldAction.SEND_TO_BOARD -> ImeR.string.ime_clip_send_to_board
+            ClipHoldAction.SEND_TO_PROFILE -> ImeR.string.ime_clip_send_to_profile
             ClipHoldAction.MOVE_TO_CLIPBOARD -> ImeR.string.ime_clip_move_to_clipboard
             ClipHoldAction.SELECT -> ImeR.string.ime_clip_select
             ClipHoldAction.REORDER -> ImeR.string.ime_clip_reorder

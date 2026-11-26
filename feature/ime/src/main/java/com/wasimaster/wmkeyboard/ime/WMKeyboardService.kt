@@ -4562,16 +4562,63 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * A clip the copy in the other profile pushed (#1556): into the history
+     * A clip the copy in the other profile pushed, or one [shared] to "Add to
+     * WM Keyboard clipboard" from the share sheet (#1556): into the history
      * as a copy would go, unless the history is off or held back here. Not
-     * onto the system clipboard, and never sent back.
+     * onto the system clipboard, and never sent back. Before the first
+     * unlock it waits in the inbox for [onUserUnlocked].
      */
-    private fun receiveProfileClip(text: String) {
+    private fun receiveProfileClip(text: String, shared: Boolean) {
+        if (text.isBlank()) return
+        if (!userUnlocked) {
+            com.wasimaster.wmkeyboard.core.settings.sink.ProfileClipInbox.add(this, text, shared)
+            return
+        }
         val state = _uiState.value
-        if (!userUnlocked || !state.settings.clipboard.history || clipCapturePaused(state) || text.isBlank()) return
-        clipboardStore.add(text, sourceApp = getString(R.string.ime_clip_from_other_profile)) ?: return
+        if (!state.settings.clipboard.history || clipCapturePaused(state)) return
+        val source = getString(if (shared) R.string.ime_clip_from_share else R.string.ime_clip_from_other_profile)
+        clipboardStore.add(text, sourceApp = source) ?: return
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+    }
+
+    /**
+     * Whether this phone has another profile for a clip to go to (#1556): a
+     * work profile or a private space, or a copy in one already linked.
+     * Asked once; a profile made later shows the action after a restart.
+     */
+    private val otherProfileOnPhone: Boolean by lazy {
+        val profiles = runCatching { getSystemService(android.os.UserManager::class.java)?.userProfiles?.size ?: 1 }.getOrDefault(1)
+        profiles > 1 || com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.isLinked ||
+            _uiState.value.settings.autoBackup.locations.any {
+                it.type == com.wasimaster.wmkeyboard.core.settings.BackupDestination.PROFILE
+            }
+    }
+
+    /**
+     * Send to other profile (#1556), from a clip's hold: this clip alone, by
+     * hand, rather than every copy. Straight over the link when the copy in
+     * the other profile is linked now. Otherwise the share sheet opens on the
+     * keyboard's own share targets, where the other profile's tab offers its
+     * Add to WM Keyboard clipboard: Android starts that copy for it, so it
+     * arrives even when that profile's keyboard is not running.
+     */
+    private fun onClipboardSendToProfile(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!item.kind.isTextual || item.sensitive || item.text.isBlank()) return
+        vibrate()
+        val link = com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink
+        if (link.isLinked && link.sendClip(item.text)) {
+            toast(R.string.ime_clip_sent_to_profile_toast)
+            return
+        }
+        val send = Intent(Intent.ACTION_SEND)
+            .setType("text/plain")
+            .putExtra(Intent.EXTRA_TEXT, item.text)
+            .setPackage(packageName)
+        val chooser = Intent.createChooser(send, getString(R.string.ime_clip_send_to_profile_chooser))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { startActivity(chooser) }
+            .onFailure { toast(R.string.ime_clip_send_to_profile_failed) }
     }
 
     /**
@@ -6328,9 +6375,11 @@ open class WMKeyboardService : InputMethodService() {
 
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .addPrimaryClipChangedListener(clipboardListener)
-        // Clips the copy in the other profile pushes (#1556) land here.
-        com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.clipReceiver = { text ->
-            serviceScope.launch { receiveProfileClip(text) }
+        // Clips the copy in the other profile pushes, or shared to the
+        // keyboard from the share sheet (#1556), land here, those that waited
+        // for the keyboard to start first.
+        com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.attachClipReceiver(this) { text, shared ->
+            serviceScope.launch { receiveProfileClip(text, shared) }
         }
 
         // A code arriving while the keyboard is up raises its chip live — the
@@ -6543,6 +6592,9 @@ open class WMKeyboardService : InputMethodService() {
             unlockReceiverRegistered = false
         }
         attachPersonalStores()
+        // Clips that came for the history while it was locked away (#1556).
+        com.wasimaster.wmkeyboard.core.settings.sink.ProfileClipInbox.take(this)
+            .forEach { receiveProfileClip(it.text, it.shared) }
         // This process started on the lock screen, so ML Kit's init provider
         // was skipped; now that storage is up it can be initialized by hand.
         MlKitInit.ensure(this)
@@ -12475,7 +12527,7 @@ open class WMKeyboardService : InputMethodService() {
         ResidentModels.keyboardRelease = null
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
             .removePrimaryClipChangedListener(clipboardListener)
-        com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.clipReceiver = null
+        com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink.detachClipReceiver()
         KeyboardClipboard.isPrivate = false
         KeyboardClipboard.onPrivateCopy = null
         if (unlockReceiverRegistered) {
@@ -63560,6 +63612,7 @@ open class WMKeyboardService : InputMethodService() {
             clipBoardTool.sendClip(item, quiet = true)
             toast(R.string.ime_clip_sent_to_board_toast)
         },
+        onSendToProfile = if (otherProfileOnPhone) ::onClipboardSendToProfile else null,
         onShelfPick = ::onClipboardShelfPick,
         onMoveToShelf = ::onClipboardMoveToShelf,
         onShelfManage = { openSetting("clipboard_named_title") },

@@ -1560,6 +1560,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_text_only_title) { Icons.Outlined.TextFields }
         put(R.string.clipboard_screenshots_title) { Icons.Outlined.Screenshot }
         put(R.string.clipboard_track_source_title) { Icons.Outlined.Apps }
+        put(R.string.clipboard_share_target_title) { Icons.Outlined.Share }
         put(R.string.clipboard_storage_permission_title) { Icons.Outlined.Folder }
         put(R.string.clipboard_usage_permission_title) { Icons.Outlined.Lock }
         put(R.string.tooldetail_layout_nav_title) { Icons.Outlined.AspectRatio }

@@ -2,4 +2,12 @@
 <resources>
     <!-- Where a clip pushed from the copy in the other profile came from (#1556). -->
     <string name="ime_clip_from_other_profile">Other profile</string>
+    <!-- Where a clip shared to "Add to WM Keyboard clipboard" came from (#1556). -->
+    <string name="ime_clip_from_share">Shared</string>
+    <!-- A clip's hold action (#1556): this clip to the keyboard in the work profile or private space. -->
+    <string name="ime_clip_send_to_profile">Send to other profile</string>
+    <string name="ime_clip_sent_to_profile_toast">Sent to the other profile</string>
+    <!-- Title of the share sheet Send to other profile opens: the other profile's tab holds the keyboard's Add to WM Keyboard clipboard. -->
+    <string name="ime_clip_send_to_profile_chooser">Pick Add to WM Keyboard clipboard on the other profile\'s tab</string>
+    <string name="ime_clip_send_to_profile_failed">The share sheet could not open</string>
 </resources>

@@ -1037,6 +1037,32 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- "Add to WM Keyboard clipboard" in other apps' share sheets (#1556):
+             shared text into the keyboard's clipboard history. Mostly for a
+             work profile or private space, whose tab in the personal share
+             sheet starts that profile's copy of the app with the one clip
+             chosen. Ships disabled; Settings › Clipboard › History switches
+             it on. Never rename the alias, share targets are remembered by
+             component name. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ClipShareActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.ClipShareAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/clip_share_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.ClipShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ImportLinkActivity"
             android:enableOnBackInvokedCallback="true"

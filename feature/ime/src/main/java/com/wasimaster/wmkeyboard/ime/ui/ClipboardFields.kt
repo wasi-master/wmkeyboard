@@ -61,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.tools.CodeSniff
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WorkOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LibraryAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
@@ -292,6 +293,8 @@ data class ClipboardPanelActions(
     val onCollect: (ClipItem) -> Unit = {},
     /** Send to board (#1201): this clip onto the shared board; null where there is no board. */
     val onSendToBoard: ((ClipItem) -> Unit)? = null,
+    /** Send to other profile (#1556): this clip to the keyboard in the work profile or private space; null with none. */
+    val onSendToProfile: ((ClipItem) -> Unit)? = null,
     /** The clipboard switcher's pick (#1542): the clipboard the panel shows, "" for the main one. */
     val onShelfPick: (String) -> Unit = {},
     /** Move to clipboard (#1542): these clips into that clipboard, "" for the main one. */
@@ -3369,6 +3372,10 @@ private fun ClipHoldPopup(
     val sendToBoard: (() -> Unit)? = callbacks.actions.onSendToBoard
         ?.takeIf { hold.picked == null && textual && !item.sensitive && callbacks.actions.board.state.value.configured }
         ?.let { send -> { onDismiss(); send(item) } }
+    // Send to other profile (#1556): a text clip that is not a secret, by hand.
+    val sendToProfile: (() -> Unit)? = callbacks.actions.onSendToProfile
+        ?.takeIf { hold.picked == null && textual && !item.sensitive }
+        ?.let { send -> { onDismiss(); send(item) } }
     // Picking and reordering are for the history as it is drawn; not while a
     // search or a filter has cut it down, or while clips are already picked.
     val onPick: (() -> Unit)? = if (hold.picked == null) {
@@ -3390,6 +3397,7 @@ private fun ClipHoldPopup(
                 onPasteNext = pasteNext,
                 onCollect = collect,
                 onSendToBoard = sendToBoard,
+                onSendToProfile = sendToProfile,
                 onMoveTo = moveTo,
                 onPick = onPick,
                 onReorder = onReorder,
@@ -3494,6 +3502,8 @@ private class ClipTextActions(
     val onCollect: (() -> Unit)? = null,
     /** Onto the shared board (#1201). */
     val onSendToBoard: (() -> Unit)? = null,
+    /** To the keyboard in the other profile (#1556). */
+    val onSendToProfile: (() -> Unit)? = null,
     /** Into another clipboard (#1542). */
     val onMoveTo: (() -> Unit)? = null,
     /** Start picking clips, with this one (#612). */
@@ -3722,6 +3732,9 @@ private fun ClipTextActionButton(action: ClipHoldAction, item: ClipItem, actions
         }
         ClipHoldAction.SEND_TO_BOARD -> actions.onSendToBoard?.let {
             ClipTextActionIcon(Icons.Outlined.CloudUpload, stringResource(R.string.ime_clip_send_to_board), tint, it)
+        }
+        ClipHoldAction.SEND_TO_PROFILE -> actions.onSendToProfile?.let {
+            ClipTextActionIcon(Icons.Outlined.WorkOutline, stringResource(R.string.ime_clip_send_to_profile), tint, it)
         }
         ClipHoldAction.MOVE_TO_CLIPBOARD -> actions.onMoveTo?.let {
             ClipTextActionIcon(Icons.Outlined.Inventory2, stringResource(R.string.ime_clip_move_to_clipboard), tint, it)

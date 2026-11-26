@@ -673,6 +673,7 @@ object ProfileLink {
         _linked.value = null
         if (code == null) return
         val app = context.applicationContext
+        appContext = app
         engine = ProfileLinkEngine(
             code = code,
             mailbox = mailbox(app),
@@ -684,46 +685,59 @@ object ProfileLink {
         ).also { it.start() }
     }
 
+    /** The process's context, from [update], for the inbox of clips that arrive with no keyboard to take them. */
+    @Volatile
+    private var appContext: Context? = null
+
     /**
-     * Who takes a clip the other copy pushes (#1556): the keyboard, which puts
-     * it in its history as a copy. Null while it is not running; clips that
-     * come then wait in [waiting] for it, a few at most.
+     * Who takes a clip the other copy pushes, or one shared to the keyboard
+     * from the share sheet (#1556): the keyboard, which puts it in its
+     * history, with whether it was shared. Null while it is not running;
+     * clips that come then wait in [ProfileClipInbox] for it.
      */
     @Volatile
-    var clipReceiver: ((String) -> Unit)? = null
-        set(value) {
-            field = value
-            if (value != null) drainWaiting(value)
-        }
+    private var clipReceiver: ((String, Boolean) -> Unit)? = null
 
-    private val waiting = ArrayDeque<String>()
+    /** The keyboard is up: [receiver] takes every clip from now on, and the ones that waited for it first. */
+    fun attachClipReceiver(context: Context, receiver: (String, Boolean) -> Unit) {
+        clipReceiver = receiver
+        ProfileClipInbox.take(context.applicationContext).forEach { receiver(it.text, it.shared) }
+    }
+
+    fun detachClipReceiver() {
+        clipReceiver = null
+    }
+
+    /**
+     * [text] for this copy's clipboard history (#1556): to the keyboard when
+     * it runs, else into [ProfileClipInbox] until it does. [shared] when it
+     * came through the share sheet rather than over the link.
+     */
+    fun deliverClip(context: Context, text: String, shared: Boolean) {
+        if (text.isBlank()) return
+        val receiver = clipReceiver
+        if (receiver != null) receiver(text, shared) else ProfileClipInbox.add(context.applicationContext, text, shared)
+    }
 
     private fun clipArrived(text: String) {
-        val receiver = clipReceiver
-        if (receiver != null) {
-            receiver(text)
-            return
-        }
-        synchronized(waiting) {
-            waiting.addLast(text)
-            while (waiting.size > WAITING_MAX) waiting.removeFirst()
+        val context = appContext
+        if (context != null) {
+            deliverClip(context, text, shared = false)
+        } else {
+            clipReceiver?.invoke(text, false)
         }
     }
-
-    private fun drainWaiting(receiver: (String) -> Unit) {
-        val held = synchronized(waiting) { waiting.toList().also { waiting.clear() } }
-        held.forEach(receiver)
-    }
-
-    /** Most pushed clips kept for a keyboard that is not running yet. */
-    private const val WAITING_MAX = 50
 
     /**
      * Pushes one text clip to the copy in the other profile (#1556), at once,
      * when the link is up. Returns whether it went; when it did not, the next
-     * sync pass carries the history as it always did.
+     * sync pass carries the history as it always did, or, for a clip sent by
+     * hand, the share sheet takes it across.
      */
     fun sendClip(text: String): Boolean = engine?.sendClip(text) == true
+
+    /** Whether the copy in the other profile is linked now, so a clip sent by hand goes straight over. */
+    val isLinked: Boolean get() = engine?.linked == true
 
     /** Sends this copy's sync file across, when the other copy is linked. */
     fun send(name: String, bytes: ByteArray) {

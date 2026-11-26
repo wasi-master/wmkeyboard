@@ -3,4 +3,10 @@
     <!-- Other profile (#1556): each copy goes to the other profile at once. -->
     <string name="backup_profile_clips_title">Send each copy at once</string>
     <string name="backup_profile_clips_subtitle">Every text you copy here goes into the clipboard of WM Keyboard in the other profile right away, while the two are linked. Passwords and other hidden clips never go. Without it, clips go with the next sync, when Clipboard is ticked under What syncs.</string>
+    <!-- "Add to WM Keyboard clipboard" in the share sheet (#1556). -->
+    <string name="clip_share_label">Add to WM Keyboard clipboard</string>
+    <string name="clip_share_added">Added to the keyboard\'s clipboard</string>
+    <string name="clipboard_share_target_title">Add to the clipboard from the share sheet</string>
+    <string name="clipboard_share_target_subtitle">Shows Add to WM Keyboard clipboard when you share text, so a chosen text lands in the history</string>
+    <string name="clipboard_share_target_info">Shared text goes into the clipboard history, marked Shared, and not onto the system clipboard. Turn it on in WM Keyboard in your work profile or private space, and a clip\'s Send to other profile in your personal keyboard offers it on that profile\'s tab of the share sheet: only the clips you send that way cross over, and they arrive even when the keyboard there is not running. Off by default, so the entry stays out of everyone else\'s share sheet.</string>
 </resources>
