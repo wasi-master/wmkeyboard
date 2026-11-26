@@ -1,0 +1,2 @@
+# The built page is committed: wmpy embeds it, so building wmpy needs no Node.
+!dist/

@@ -1,0 +1,177 @@
+---
+title: "Running a plugin on your computer"
+description: "wmpy run shows a plugin's panel in the terminal and wmpy preview shows it in a browser or an editor, both reloading as you save, with real requests and pretend phone features."
+sidebar:
+  label: "Terminal and preview"
+  order: 5.095
+---
+
+`wmpy` can run your plugin's panel on your computer while you edit it in your
+own editor. `wmpy run` draws the panel in the terminal. `wmpy preview` draws it
+in a browser, with the web editor's own renderer, and editors can show that
+page beside your code. Both run the interpreter the keyboard uses, with the
+keyboard's limits, and both load the plugin again each time you save a file in
+its folder.
+
+To install `wmpy`, see [Install wmpy](/plugins/language-server/#install-wmpy).
+
+## What is real and what is pretend
+
+A computer is not a phone, so some host calls do the real thing and the rest
+get answers of the right shape. Every permission your `plugin.json` lists
+counts as allowed, as in the plugin editor.
+
+| Calls | On your computer |
+|---|---|
+| `http` | Real https requests, only to the `hosts` in `plugin.json` (and a server typed into a `host` setting). The keyboard's limits apply: 60 requests a minute, 15 seconds, 1 MB replies, redirects checked again at each hop, no cookies |
+| `wm.storage`, `plugin.state(persist=True)`, `wm.reminders` | Real, kept in `.wmpy/` in the plugin folder |
+| `wm.secrets`, secret settings | Kept in `.wmpy/secrets.json` |
+| `plugin.settings` | The defaults in `plugin.json`, then what the plugin saved in `.wmpy/settings.json`, then `--set` |
+| `field` | A pretend text field you can see and edit |
+| `clipboard` | A pretend clipboard. It starts with "Text the user copied" |
+| `ui.toast`, `ui.dialog` | Shown on the panel. You answer the dialog |
+| `plugin.every`, `plugin.after`, `then=` | Real timers and answers that arrive later, as on the phone |
+| `ai`, `location`, `files`, `scan`, `sensors`, `calendar`, `todo` | Pretend answers, the same ones the web editor gives ([Phone features](/plugins/guides/phone-features/#in-the-web-editor)) |
+| `notify`, `share`, `device`, `clock`, `keyboard` | Written to the console: what the phone would have done |
+| `time.zone` | Only UTC. Answer other zones from a mock file |
+
+Each part of a run has the keyboard's budget: 9 million steps and 3 seconds to
+load, 6 million and 2 seconds for an event, 1.2 million and half a second to
+draw. Time spent waiting for `http` does not count. A plugin that runs out is
+stopped with the same error the phone shows, and the console says which budget
+it was.
+
+Add `.wmpy/` to your `.gitignore`: it holds your test data, not the plugin.
+
+## Pretend answers of your own
+
+`--mock` takes the same file [`wmpy test`](/plugins/guides/testing/#run-once)
+reads. An op in the file answers before anything else, real requests included.
+A list of routes answers only the calls it matches; any other request goes to
+the real host, with the usual checks.
+
+```json title="mock.json"
+{
+  "location.get": {"lat": 51.5072, "lon": -0.1276, "accuracy": 15},
+  "ai.ask": {"text": "Two stops, then change at Bank."},
+  "http.request": [
+    {"when": {"url": "https://api.example.com/stops*"}, "reply": {"status": 200, "text": "[]"}}
+  ]
+}
+```
+
+A reply that is only `{"error": {"kind", "message"}}` raises that error, so
+you can try the unhappy paths by hand.
+
+## Settings
+
+A setting starts at its `default` in `plugin.json`. What the plugin writes with
+`plugin.settings.set` is saved in `.wmpy/settings.json` and kept across runs.
+`--set` wins over both, and is read again on every reload:
+
+```bash
+wmpy run my-plugin/ --set units=imperial --set server=https://money.example.com
+```
+
+A `host` setting typed this way lets `http` reach that server, as it does on
+the phone. A server on your local network also needs `network.local` in the
+manifest. A secret given with `--set` stays in memory and is not saved.
+
+## wmpy run
+
+```bash
+wmpy run my-plugin/
+```
+
+The left of the terminal is the panel, 52 columns wide, about a phone's width.
+`--width` changes it. On the right, or below in a narrow terminal, is a pane
+with five tabs. The status line at the bottom shows whether the last call
+worked and how many steps it used.
+
+| Tab | Shows |
+|---|---|
+| Console | `print()` and `wm.log` lines, errors with their file, line and traceback, and what the host did (a toast, a field edit, a pretend answer) |
+| Events | A line where you type an event as JSON and send it, the events this draw takes, and the ones you sent |
+| Storage | What the plugin saved. `d` deletes the key you pick |
+| Field | The pretend text field and the clipboard. You can type in the field |
+| Calls | Every host call, where its answer came from (real, pretend, mock or refused), how long it took and what it returned |
+
+### Keys
+
+| Key | Does |
+|---|---|
+| Tab, Shift-Tab | Next and previous control |
+| Up, Down | The control above or below |
+| Left, Right | Move a slider, change a dropdown |
+| Enter, Space | Press the control. In a text box, Enter submits |
+| `h` | Hold a holdable button, card or canvas |
+| Esc | Stop typing in a text box, so letters are keys again |
+| PageUp, PageDown | Scroll the panel |
+| Ctrl-O or F6 | Move between the panel and the pane |
+| `1` to `5`, F1 to F5, `[` and `]` | Pick a tab in the pane |
+| `r`, Ctrl-R | Load the plugin again. Storage stays |
+| `?` | All the keys |
+| `q`, Ctrl-C | Quit |
+
+The mouse works too. Click a control to press it, scroll with the wheel, and
+drag on a canvas that takes drags. A multi-line box takes Enter as a new line
+and Ctrl-S to submit.
+
+A terminal draws with characters, so the panel shows what each widget is and
+does rather than how the keyboard dresses it. Charts and sparklines are drawn
+with ratatui's own charts, and a canvas with braille dots. Pictures and QR
+codes are boxes that name what they hold. Dates are in UTC.
+
+When you quit, the last error is printed again so it stays on screen.
+
+## wmpy preview
+
+```bash
+wmpy preview my-plugin/
+```
+
+This starts a small web server on your computer and opens the page in your
+browser. The panel looks as it does in the web editor, which follows the
+keyboard's own. Beside it are the same five tabs as in the terminal. Saving a
+file reloads the plugin and the page follows on its own.
+
+| Option | Does |
+|---|---|
+| `--port N` | Listen on port N. With no port, wmpy picks a free one |
+| `--host` | 127.0.0.1 (the default), localhost or ::1. The server never listens beyond your computer |
+| `--theme dark` | Dark page, and `plugin.dark` is true |
+| `--no-open` | Print the address and open no browser |
+| `--print-url` | Print one line of JSON, `{"url": ..., "port": ...}`, once the server listens, and open no browser. For editors and scripts |
+| `--mock`, `--set`, `--no-watch` | As for `wmpy run` |
+
+The address ends in `?t=` and a long random token. Every request needs it, so
+other websites open in your browser cannot reach the preview. The server also
+answers only to the names 127.0.0.1, localhost and [::1]. Keep the address to
+yourself while the preview runs; a new run makes a new token.
+
+Two things can follow the address. `&theme=dark` or `&theme=light` sets the
+page's look and tells the plugin. `&embed=1` shows only the panel and a thin
+strip with the last console line or error, for a side view in an editor.
+
+### In your editor
+
+The [editor extensions](/plugins/editors/) and the
+[language server](/plugins/language-server/) start `wmpy preview --print-url`
+and show the page in a VS Code webview or a JetBrains browser tab, with
+`embed=1` and your editor's theme, or open it in your browser. Any tool can do the same: run the
+command, read the first line, and open the URL.
+
+## Which one to use
+
+| | `wmpy run` | `wmpy preview` | [Web editor](/addons/new?type=plugin) | Phone |
+|---|---|---|---|---|
+| Your own editor | Yes | Yes | No | No |
+| Looks like the keyboard | Roughly | Like the web editor | Like the web editor | Exactly, in your theme |
+| `http` | Real, to your hosts | Real, to your hosts | Only sites that allow it (CORS) | Real |
+| Field and clipboard | Pretend | Pretend | Pretend | Real |
+| AI, location, files, sensors | Pretend or mock | Pretend or mock | Pretend | Real |
+| Storage | `.wmpy/` | `.wmpy/` | The browser | The keyboard |
+| Reloads | On save | On save | As you type | On install |
+
+Check a plugin on the phone before you share it: only the keyboard shows the
+real field, your theme and the permission prompts.
