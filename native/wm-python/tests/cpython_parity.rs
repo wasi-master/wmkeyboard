@@ -2741,6 +2741,30 @@ repr(out)"#),
 }
 
 #[test]
+fn more_builtin_exceptions() {
+    assert_eq!(
+        py(r#"import builtins
+names = ["ChildProcessError", "InterruptedError", "ProcessLookupError", "BufferError", "MemoryError", "ReferenceError", "SystemError",
+         "PythonFinalizationError", "TabError", "EncodingWarning"]
+parents = ["Exception", "OSError", "RuntimeError", "SyntaxError", "IndentationError", "ValueError", "UnicodeError", "Warning"]
+rows = []
+for n in names:
+    cls = getattr(builtins, n)
+    try:
+        raise cls("boom")
+    except Exception as e:
+        caught = (type(e).__name__, str(e))
+    rows.append((n, [p for p in parents if issubclass(cls, getattr(builtins, p))], caught))
+try:
+    raise TabError("t")
+except SyntaxError as e:
+    rows.append(type(e).__name__)
+repr((rows, issubclass(UnicodeTranslateError, ValueError)))"#),
+        r#"([('ChildProcessError', ['Exception', 'OSError'], ('ChildProcessError', 'boom')), ('InterruptedError', ['Exception', 'OSError'], ('InterruptedError', 'boom')), ('ProcessLookupError', ['Exception', 'OSError'], ('ProcessLookupError', 'boom')), ('BufferError', ['Exception'], ('BufferError', 'boom')), ('MemoryError', ['Exception'], ('MemoryError', 'boom')), ('ReferenceError', ['Exception'], ('ReferenceError', 'boom')), ('SystemError', ['Exception'], ('SystemError', 'boom')), ('PythonFinalizationError', ['Exception', 'RuntimeError'], ('PythonFinalizationError', 'boom')), ('TabError', ['Exception', 'SyntaxError', 'IndentationError'], ('TabError', 'boom')), ('EncodingWarning', ['Exception', 'Warning'], ('EncodingWarning', 'boom')), 'TabError'], True)"#
+    );
+}
+
+#[test]
 fn print_takes_sep_and_end() {
     let lines = big_stack(|| {
         let mut rt = Runtime::default();

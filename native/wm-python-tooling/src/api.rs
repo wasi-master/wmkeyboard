@@ -133,6 +133,8 @@ pub const EXCEPTIONS: &[&str] = &[
     "NotADirectoryError", "BlockingIOError", "ConnectionRefusedError", "ConnectionResetError", "ConnectionAbortedError",
     "BrokenPipeError", "StopAsyncIteration", "Warning", "UserWarning", "DeprecationWarning", "PendingDeprecationWarning", "RuntimeWarning",
     "SyntaxWarning", "FutureWarning", "ImportWarning", "UnicodeWarning", "BytesWarning", "ResourceWarning",
+    "ChildProcessError", "InterruptedError", "ProcessLookupError", "BufferError", "MemoryError", "ReferenceError",
+    "SystemError", "PythonFinalizationError", "TabError", "UnicodeTranslateError", "EncodingWarning",
 ];
 
 /// Builtins taken out because they reach outside the script.
@@ -437,6 +439,16 @@ fn build() -> Model {
         ("ConnectionResetError", "A connection the server closed. A ConnectionError."),
         ("ConnectionAbortedError", "A connection given up on. A ConnectionError."),
         ("BrokenPipeError", "Writing to a connection already closed. A ConnectionError."),
+        ("ChildProcessError", "A failed operation on a child process. An OSError."),
+        ("InterruptedError", "A system call interrupted by a signal. An OSError."),
+        ("ProcessLookupError", "A process that does not exist. An OSError."),
+        ("BufferError", "A buffer operation that cannot be done."),
+        ("MemoryError", "An operation that ran out of memory."),
+        ("ReferenceError", "A weak reference used after its object went away."),
+        ("SystemError", "An internal error in the interpreter."),
+        ("PythonFinalizationError", "An operation not allowed while the interpreter shuts down. A RuntimeError."),
+        ("TabError", "Tabs and spaces mixed in indentation. An IndentationError."),
+        ("UnicodeTranslateError", "A failed str.translate in a codec. A UnicodeError."),
         ("Warning", "The base of the warnings warnings.warn() issues."),
         ("UserWarning", "The warning warnings.warn() issues when given no category."),
         ("DeprecationWarning", "Something that will go away. Not shown unless a filter asks for it."),
@@ -448,6 +460,7 @@ fn build() -> Model {
         ("UnicodeWarning", "Doubtful text handling."),
         ("BytesWarning", "Doubtful handling of bytes."),
         ("ResourceWarning", "A resource left open. Not shown unless a filter asks for it."),
+        ("EncodingWarning", "Text opened without naming its encoding."),
     ] {
         add(leak(name.to_string()), Exception, Some(leak(format!("{name}(message)"))), None, doc);
     }

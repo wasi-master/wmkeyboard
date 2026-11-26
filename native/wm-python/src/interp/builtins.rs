@@ -63,6 +63,16 @@ pub(crate) const EXCEPTION_KINDS: &[&str] = &[
     "ConnectionResetError",
     "ConnectionAbortedError",
     "BrokenPipeError",
+    "ChildProcessError",
+    "InterruptedError",
+    "ProcessLookupError",
+    "BufferError",
+    "MemoryError",
+    "ReferenceError",
+    "SystemError",
+    "PythonFinalizationError",
+    "TabError",
+    "UnicodeTranslateError",
     "Warning",
     "UserWarning",
     "DeprecationWarning",
@@ -74,6 +84,7 @@ pub(crate) const EXCEPTION_KINDS: &[&str] = &[
     "UnicodeWarning",
     "BytesWarning",
     "ResourceWarning",
+    "EncodingWarning",
 ];
 
 /// Names that resolve to a builtin when nothing else is bound to them.

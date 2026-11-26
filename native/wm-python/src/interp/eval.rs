@@ -3938,18 +3938,19 @@ pub(crate) fn exception_matches(clause: &str, kind: &str) -> bool {
         "NameError" => kind == "UnboundLocalError",
         "LookupError" => kind == "KeyError" || kind == "IndexError",
         "ArithmeticError" => matches!(kind, "ZeroDivisionError" | "OverflowError" | "FloatingPointError"),
-        "ValueError" => matches!(kind, "UnicodeError" | "UnicodeDecodeError" | "UnicodeEncodeError"),
-        "UnicodeError" => matches!(kind, "UnicodeDecodeError" | "UnicodeEncodeError"),
+        "ValueError" => matches!(kind, "UnicodeError" | "UnicodeDecodeError" | "UnicodeEncodeError" | "UnicodeTranslateError"),
+        "UnicodeError" => matches!(kind, "UnicodeDecodeError" | "UnicodeEncodeError" | "UnicodeTranslateError"),
         "OSError" => matches!(
             kind,
             "PermissionError" | "TimeoutError" | "ConnectionError" | "FileNotFoundError" | "FileExistsError" | "IsADirectoryError"
                 | "NotADirectoryError" | "BlockingIOError" | "ConnectionRefusedError" | "ConnectionResetError"
-                | "ConnectionAbortedError" | "BrokenPipeError"
+                | "ConnectionAbortedError" | "BrokenPipeError" | "ChildProcessError" | "InterruptedError" | "ProcessLookupError"
         ),
         "ConnectionError" => matches!(kind, "ConnectionRefusedError" | "ConnectionResetError" | "ConnectionAbortedError" | "BrokenPipeError"),
-        "RuntimeError" => kind == "NotImplementedError" || kind == "RecursionError",
+        "RuntimeError" => matches!(kind, "NotImplementedError" | "RecursionError" | "PythonFinalizationError"),
         "ImportError" => kind == "ModuleNotFoundError",
-        "SyntaxError" => kind == "IndentationError",
+        "SyntaxError" => kind == "IndentationError" || kind == "TabError",
+        "IndentationError" => kind == "TabError",
         "Warning" => kind.ends_with("Warning"),
         _ => false,
     }

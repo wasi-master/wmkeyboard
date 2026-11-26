@@ -95,7 +95,8 @@ needs:
 - list, dict and set comprehensions, f-strings (`{x=}` too), slicing, slice
   assignment, unpacking with a starred target (`first, *rest = items`), type
   annotations (read and ignored)
-- your own exceptions: `class NotFound(Exception): pass`
+- your own exceptions: `class NotFound(Exception): pass`, and every builtin
+  exception class Python has, `ExceptionGroup` apart
 - subclasses of `dict`, `list`, `str`, `int`, `float`, `tuple`, `set` and
   `bytes`, with `super()` reaching the type's methods and `__missing__` for a
   dict subclass

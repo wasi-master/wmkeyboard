@@ -1857,6 +1857,25 @@ for bad in [lambda: m["zz"], lambda: m[3], lambda: m.group(1, 5)]:
         out.append(str(e))
 repr(out)
 '''),
+    ("more_builtin_exceptions", "errors", r'''
+import builtins
+names = ["ChildProcessError", "InterruptedError", "ProcessLookupError", "BufferError", "MemoryError", "ReferenceError", "SystemError",
+         "PythonFinalizationError", "TabError", "EncodingWarning"]
+parents = ["Exception", "OSError", "RuntimeError", "SyntaxError", "IndentationError", "ValueError", "UnicodeError", "Warning"]
+rows = []
+for n in names:
+    cls = getattr(builtins, n)
+    try:
+        raise cls("boom")
+    except Exception as e:
+        caught = (type(e).__name__, str(e))
+    rows.append((n, [p for p in parents if issubclass(cls, getattr(builtins, p))], caught))
+try:
+    raise TabError("t")
+except SyntaxError as e:
+    rows.append(type(e).__name__)
+repr((rows, issubclass(UnicodeTranslateError, ValueError)))
+'''),
 ]
 
 
