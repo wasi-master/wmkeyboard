@@ -32834,19 +32834,26 @@ open class WMKeyboardService : InputMethodService() {
                 // completed from what they spelled, not from the roman keys;
                 // the tap and key frames belong to those keys, so they stay out.
                 val completing = state.composer.completionLanguage
+                // Telex and VNI hold keys (`tieengs`) where the field holds the
+                // word they spell (`tiếng`), and no list has heard of the keys:
+                // the strip is asked about the word, the way the commit is.
+                val asked = when {
+                    completing != null || isVietnameseTransliterator(state) -> state.composer.composeBuffer(typed)
+                    else -> spelled
+                }
                 val deepAll = trace(ImeTrace.SUGGEST) {
                     engine.suggest(
-                        composing = if (completing != null) state.composer.composeBuffer(typed) else spelled,
+                        composing = asked,
                         previousWord = previousWord,
                         phoneticLanguage = state.composer.phoneticLanguage,
                         limit = askDeep,
                         // A spelling the keys were read as is already decoded;
                         // the anchors' taps and sets describe another string.
-                        touch = touchFrame.takeIf { completing == null && spelled == typed },
+                        touch = touchFrame.takeIf { completing == null && asked == typed },
                         previousWord2 = previousWord2,
                         recentWords = recentSnapshot,
                         allowRerank = true,
-                        keys = keyFrame.takeIf { completing == null && spelled == typed },
+                        keys = keyFrame.takeIf { completing == null && asked == typed },
                         previousWord3 = previousWord3,
                         phoneticSlots = state.settings.suggestionStrip.slotCount,
                         completionLanguage = completing,
@@ -32937,7 +32944,7 @@ open class WMKeyboardService : InputMethodService() {
                 val skipTyped = state.settings.suggestionStrip.skipTypedWord && typed.isNotEmpty() &&
                     state.composer.phoneticLanguage == null && completing == null
                 fun dropTyped(list: List<String>) =
-                    if (skipTyped) list.filterNot { it.equals(typed, ignoreCase = true) } else list
+                    if (skipTyped) list.filterNot { it.equals(asked, ignoreCase = true) } else list
                 // The other half of that setting (#413): with it off the strip
                 // keeps one slot for the word exactly as typed, which is what
                 // the setting's own text has always promised — but the engine
@@ -33066,8 +33073,8 @@ open class WMKeyboardService : InputMethodService() {
                         // The word before is passed for the two-word shortcodes
                         // ("alarm clock" → ⏰); one word can never reach them.
                         // Khipro's roman keys ("ami/") are not a word in any
-                        // language; what they spelled is.
-                        val query = if (state.composer.completionLanguage != null) {
+                        // language; what they spelled is. Nor are Telex keys.
+                        val query = if (state.composer.completionLanguage != null || isVietnameseTransliterator(state)) {
                             state.composer.composeBuffer(typed)
                         } else {
                             typed

@@ -678,11 +678,23 @@ internal object VietnameseEngine {
                             // sentence `Ww` is `W`, not the lower-case `w` the
                             // second key is drawn as — the keyboard capitalised
                             // the first key and not the ones after it.
+                            //
+                            // Only the ư right in front of the key is taken
+                            // back that way. One further back was a `w` typed
+                            // before other letters, and this key is a letter of
+                            // its own: `WinterW` is the start of `WinterWolf`,
+                            // where taking the first W back left `interW`
+                            // (#1577). The leading `w` goes on to be read as
+                            // English or as ư at the end ([keepEnglishW]).
                             val taken = letters[marked].synthesized
-                            val replacementUpper = if (taken) letters[marked].upper else upper
-                            if (taken) letters.removeAt(marked)
-                            else letters[marked].mark = VMark.NONE
-                            letters.add(VLetter('w', VMark.NONE, replacementUpper))
+                            if (taken && marked != letters.lastIndex) {
+                                letters.add(VLetter('w', VMark.NONE, upper))
+                            } else {
+                                val replacementUpper = if (taken) letters[marked].upper else upper
+                                if (taken) letters.removeAt(marked)
+                                else letters[marked].mark = VMark.NONE
+                                letters.add(VLetter('w', VMark.NONE, replacementUpper))
+                            }
                         } else if (openUaPair(letters)) {
                             // `muaw` is `mưa` (#1561), the way Unikey and
                             // bamboo read it: an open `ua` has no `ă` in it to

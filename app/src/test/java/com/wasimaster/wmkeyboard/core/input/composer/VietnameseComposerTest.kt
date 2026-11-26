@@ -314,6 +314,22 @@ class VietnameseComposerTest {
     }
 
     @Test
+    fun telexLaterWLeavesTheWordsFirstWAlone() {
+        // #1577: a second `w` further into the word took back the `ư` the
+        // first one made, as if the two had been pressed together, so
+        // `WinterW` lost its first letter and read `interW`.
+        val c = VietnameseTelexComposer
+        assertEquals("WinterW", c.composeBuffer("WinterW"))
+        assertEquals("WinterWolf", c.composeBuffer("WinterWolf"))
+        assertEquals("WentW", c.composeBuffer("WentW"))
+        assertEquals("Window", c.composeBuffer("Window"))
+        assertEquals("winterwolf", c.composeBuffer("winterwolf"))
+        // The pair pressed together still takes it back.
+        assertEquals("W", c.composeBuffer("Ww"))
+        assertEquals("ước", c.composeBuffer("wowcs"))
+    }
+
+    @Test
     fun telexRunOfWReadsAsWUnderStrictTones() {
         // The same run, with the strict rule on. `ww` carries no Vietnamese
         // mark, so the strict pass leaves it alone — but `wư`, which the old
