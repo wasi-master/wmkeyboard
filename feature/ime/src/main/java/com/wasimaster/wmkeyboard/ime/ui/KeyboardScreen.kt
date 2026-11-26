@@ -11347,6 +11347,20 @@ private fun holdArmsSelection(tool: ToolKey, fromToolbar: Boolean, state: Keyboa
     tool.tool?.let { holdArmsSelection(it, fromToolbar, state) } == true
 
 /**
+ * The name a tool's hold or swipe shows in its hint bubble (#1525): the tool
+ * or button it runs, or what it opens. Null for nothing at all, and for no
+ * binding, where the hold opens the settings page under the finger.
+ */
+@Composable
+private fun toolActionHint(action: ToolHoldAction?, state: KeyboardUiState): String? = when (action) {
+    null, ToolHoldAction.None -> null
+    ToolHoldAction.OpenSettings -> stringResource(R.string.ime_tool_hint_settings)
+    is ToolHoldAction.Run -> toolLabel(action.tool)
+    is ToolHoldAction.RunCustom -> toolLabel(ToolKey.Custom(action.id), state)
+    ToolHoldAction.Floating -> stringResource(R.string.ime_tool_hint_float)
+}
+
+/**
  * Wires long-press-drag onto a tool. Three outcomes from one gesture: a tap
  * runs [onTap]; a hold that never travels past [ToolDragSlop] opens the
  * tool's settings page — or runs [holdAction] when the user has given that
@@ -11431,6 +11445,18 @@ private fun DraggableTool(
      * where Swipe down to hide answers it.
      */
     onSwipeDown: (() -> Unit)? = null,
+    /**
+     * What a hold that registers runs, by name (#1525): shown in a bubble
+     * over the tool the moment the hold counts, as a key's long-press shows
+     * its popup, so the finger knows it has held long enough and what the
+     * lift will do. Null shows nothing; the settings page, a menu and the
+     * holds that act while the finger is down show their own result.
+     */
+    holdHint: String? = null,
+    /** The same for a swipe up, shown with an arrow as the swipe sets off. */
+    swipeUpHint: String? = null,
+    /** And for a swipe down. */
+    swipeDownHint: String? = null,
     content: @Composable (Modifier) -> Unit,
 ) {
     // Read when the finger moves rather than written on every frame the bar
@@ -11448,6 +11474,19 @@ private fun DraggableTool(
     val swipeUpArmed = onSwipeUp != null
     val swipeDownAction by rememberUpdatedState(onSwipeDown)
     val swipeDownArmed = onSwipeDown != null
+    // The hint bubbles ride the keys' preview overlay, under a token of
+    // this tool's own, so a key's bubble and this one never touch.
+    val keyPreview = LocalKeyPreviewState.current
+    val hintToken = remember { Any() }
+    val holdHintNow by rememberUpdatedState(holdHint)
+    val swipeUpHintNow by rememberUpdatedState(swipeUpHint)
+    val swipeDownHintNow by rememberUpdatedState(swipeDownHint)
+    fun showHint(label: String?) {
+        val previews = keyPreview ?: return
+        if (label.isNullOrEmpty()) return
+        val coords = placed[0]?.takeIf { it.isAttached } ?: return
+        previews.press(KeyPreview(hintToken, label, coords.positionInRoot(), coords.size))
+    }
     content(
         Modifier
             .onPlaced { placed[0] = it }
@@ -11526,6 +11565,10 @@ private fun DraggableTool(
                                 tapAction()
                                 delay(holdRepeatMs)
                             }
+                        } else if (!opensSettings && !holdMenu) {
+                            // A bound action runs on the lift: name it now,
+                            // so the hold reads as held (#1525).
+                            showHint(holdHintNow)
                         } else if (opensSettings && !settingsOnLift) {
                             // The settings page opens once the hold is held,
                             // not on the lift (#1353): no guessing how long is
@@ -11575,6 +11618,7 @@ private fun DraggableTool(
                                         swiping = true
                                         timer.cancel()
                                         change.consume()
+                                        showHint(swipeUpHintNow?.let { "\u2191 $it" })
                                         continue
                                     }
                                     // Down, on a tool with a swipe down bound
@@ -11586,6 +11630,7 @@ private fun DraggableTool(
                                         swipeDown = true
                                         timer.cancel()
                                         change.consume()
+                                        showHint(swipeDownHintNow?.let { "\u2193 $it" })
                                         continue
                                     }
                                     scrolled = true
@@ -11595,6 +11640,8 @@ private fun DraggableTool(
                                 change.consume()
                                 if (travel > dragSlop && !dragged && dragEnabled) {
                                     dragged = true
+                                    // A pick-up, not the hold: its name goes at once.
+                                    keyPreview?.cancel(hintToken)
                                     // Travel means this was a reorder all along,
                                     // so the tool picks itself up from here. A
                                     // repeating tool stops repeating; the moves
@@ -11622,6 +11669,8 @@ private fun DraggableTool(
                         }
                     } finally {
                         timer.cancel()
+                        // The hint, if one went up, stays its minimum time and goes.
+                        keyPreview?.release(hintToken)
                         // Whatever ended the gesture — a release, a drop, the
                         // handler being torn down mid-hold — the mode this press
                         // armed ends with it. Nothing else here can be trusted
@@ -14070,6 +14119,7 @@ private fun PinnedToolCell(
     // column a vertical swipe is the column's own scroll.
     val swipeUpBound = tool.tool?.takeIf { inRow }?.let { state.settings.toolbarBehavior.swipeUpActions[it] }
     val swipeDownBound = tool.tool?.takeIf { inRow }?.let { state.settings.toolbarBehavior.swipeDownActions[it] }
+    val holdBound = holdActionFor(tool, fromToolbar = true, state = state)
     fun runSwipe(bound: ToolHoldAction) {
         when (bound) {
             ToolHoldAction.OpenSettings -> drag.openSettings(tool)
@@ -14106,8 +14156,17 @@ private fun PinnedToolCell(
                 null
             },
             onSwipeDown = swipeDownBound?.let { bound -> { runSwipe(bound) } },
+            holdHint = toolActionHint(holdBound, state),
+            swipeUpHint = if (swipeUpBound != null) {
+                toolActionHint(swipeUpBound, state)
+            } else if (swipeFloats && floatTool != null && !floatingNow) {
+                toolActionHint(ToolHoldAction.Floating, state)
+            } else {
+                null
+            },
+            swipeDownHint = swipeDownBound?.let { toolActionHint(it, state) },
             holdRepeatMs = holdRepeatMs(tool, state),
-            holdAction = holdActionFor(tool, fromToolbar = true, state = state),
+            holdAction = holdBound,
             dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
             holdArms = holdArmsSelection(tool, fromToolbar = true, state = state),
             // Not while the toolbox is open (#320): the trackpad

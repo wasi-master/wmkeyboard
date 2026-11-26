@@ -455,6 +455,10 @@
     <string name="ime_tool_one_handed">One-handed</string>
     <string name="ime_tool_split">Split</string>
     <string name="ime_tool_floating">Floating</string>
+    <!-- Bubble over a toolbar button whose hold or swipe opens the tool's settings page (#1525). -->
+    <string name="ime_tool_hint_settings">Settings</string>
+    <!-- Bubble over a toolbar button whose hold or swipe opens the tool in a floating box (#1525). -->
+    <string name="ime_tool_hint_float">Float</string>
     <string name="ime_tool_persistent">Keep on screen</string>
     <string name="ime_tool_resize">Resize</string>
     <string name="ime_resize_reset">Reset</string>
