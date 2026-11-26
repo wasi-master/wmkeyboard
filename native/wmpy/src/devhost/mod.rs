@@ -18,6 +18,10 @@
 //!
 //! A front end owns one [DevHost] on one thread and calls [DevHost::tick]
 //! whenever [DevHost::next_wake] says, or more often.
+//!
+//! The measuring commands (`wmpy budget`, `profile`, `mock record`) open it
+//! with an [Extra]: state in a copy, every session call kept in
+//! [DevHost::ran], and an observer on every host call.
 
 pub mod bridge;
 pub mod http;
@@ -56,6 +60,32 @@ pub struct Options {
     pub sets: Vec<(String, String)>,
     pub dark: bool,
     pub watch: bool,
+}
+
+/// What `wmpy budget`, `wmpy profile` and `wmpy mock record` add to a run;
+/// `wmpy run` and `wmpy preview` open with none of it.
+#[derive(Clone, Default)]
+pub struct Extra {
+    /// Where storage, reminders, secrets and settings live, instead of
+    /// `<plugin>/.wmpy/`: a copy, so a measured run leaves the real ones alone.
+    pub state: Option<PathBuf>,
+    /// Keep every session call in [DevHost::ran].
+    pub record: bool,
+    /// Hears every host call, in every world the host makes.
+    pub observer: Option<bridge::Observer>,
+}
+
+/// One session call, kept when [Extra::record] asks.
+#[derive(Clone, Debug)]
+pub struct Ran {
+    /// The event, or `{"type": "load"}` for a load and its first draw.
+    pub event: Json,
+    /// What the session answered, with its `phases`.
+    pub result: Json,
+    /// The error wmpy made of it, with the budget's help, when it failed.
+    pub error: Option<Diag>,
+    pub started: Instant,
+    pub ended: Instant,
 }
 
 /// `key=value` for `--set`.
@@ -148,6 +178,11 @@ pub struct DevHost {
     version: u64,
     /// When each toast should go: kept here so expiry bumps the version.
     toast_check: Option<Instant>,
+    /// Storage, reminders, secrets and settings: `<plugin>/.wmpy/` unless [Extra::state].
+    state: PathBuf,
+    observer: Option<bridge::Observer>,
+    /// Every session call, when [Extra::record] asked for them.
+    pub ran: Option<Vec<Ran>>,
 }
 
 impl DevHost {
@@ -155,8 +190,14 @@ impl DevHost {
     /// start (no plugin.json, an unreadable mock file); a plugin that fails to
     /// load still opens, with the error shown.
     pub fn open(opts: Options) -> Result<DevHost, String> {
+        DevHost::open_with(opts, Extra::default())
+    }
+
+    /// [open], with what a measuring command adds.
+    pub fn open_with(opts: Options, extra: Extra) -> Result<DevHost, String> {
         let facts = PluginFacts::read(&opts.dir)?;
-        let (world, http_rx) = make_world(&opts, &facts)?;
+        let state = extra.state.clone().unwrap_or_else(|| opts.dir.join(".wmpy"));
+        let (world, http_rx) = make_world(&opts, &facts, &state, extra.observer.clone())?;
         let mut host = DevHost {
             opts,
             facts,
@@ -181,6 +222,9 @@ impl DevHost {
             last_repairs: Vec::new(),
             version: 1,
             toast_check: None,
+            state,
+            observer: extra.observer,
+            ran: extra.record.then(Vec::new),
         };
         host.signature = signature(&host.opts.dir);
         host.start();
@@ -189,6 +233,11 @@ impl DevHost {
 
     pub fn dir(&self) -> &Path {
         &self.opts.dir
+    }
+
+    /// Where storage, reminders, secrets and settings live.
+    pub fn state_dir(&self) -> &Path {
+        &self.state
     }
 
     /// Bumped on every change a front end should draw.
@@ -257,7 +306,7 @@ impl DevHost {
         };
         let settings = self.world.borrow().settings.json(&self.facts);
         let mut config = crate::project::session_config(&dir, &m, settings);
-        let state = dir.join(".wmpy");
+        let state = self.state.clone();
         config["storagePath"] = Json::String(state.join("storage.json").to_string_lossy().into_owned());
         config["remindersPath"] = Json::String(state.join("reminders.json").to_string_lossy().into_owned());
         config["context"]["theme"] = Json::String(if self.opts.dark { "dark" } else { "light" }.into());
@@ -266,9 +315,12 @@ impl DevHost {
             Err(e) => return self.fail(Diag::error(e)),
         };
         session.set_bridge(Some(bridge::bridge(self.world.clone())));
+        let started = Instant::now();
         let result = session.load(&source);
+        let ended = Instant::now();
         self.session = Some(session);
         let ok = self.absorb(&result);
+        self.keep(json!({"type": "load"}), &result, ok, started, ended);
         let parsed: Json = serde_json::from_str(&result).unwrap_or(Json::Null);
         // A failed draw after a good load still takes events, as in the app.
         let drew = parsed["phases"].as_array().is_some_and(|p| p.iter().any(|x| x["phase"] == "render"));
@@ -301,7 +353,7 @@ impl DevHost {
             }
         }
         // Answers still on their way belonged to the old session.
-        match make_world(&self.opts, &self.facts) {
+        match make_world(&self.opts, &self.facts, &self.state, self.observer.clone()) {
             Ok((world, rx)) => {
                 let keep = self.world.borrow();
                 let (field, clipboard) = (keep.field.clone(), keep.clipboard.clone());
@@ -351,12 +403,27 @@ impl DevHost {
             return false;
         }
         let Some(session) = self.session.as_mut() else { return false };
+        let started = Instant::now();
         let result = session.event(&event.to_string());
+        let ended = Instant::now();
         let ok = self.absorb(&result);
+        self.keep(event.clone(), &result, ok, started, ended);
         if ok && self.status == Status::Failed {
             self.status = Status::Ready;
         }
         ok
+    }
+
+    /// One session call into [DevHost::ran], when recording.
+    fn keep(&mut self, event: Json, result: &str, ok: bool, started: Instant, ended: Instant) {
+        if self.ran.is_none() {
+            return;
+        }
+        let result: Json = serde_json::from_str(result).unwrap_or(Json::Null);
+        let error = if ok { None } else { self.error.clone() };
+        if let Some(ran) = self.ran.as_mut() {
+            ran.push(Ran { event, result, error, started, ended });
+        }
     }
 
     /// The output widget's Insert: text into the pretend field.
@@ -426,7 +493,7 @@ impl DevHost {
         self.storage = match &self.session {
             Some(s) => serde_json::from_str(&s.storage_json()).unwrap_or(json!({})),
             None => {
-                let path = self.opts.dir.join(".wmpy").join("storage.json");
+                let path = self.state.join("storage.json");
                 std::fs::read_to_string(path).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or(json!({}))
             }
         };
@@ -705,9 +772,10 @@ fn period(seconds: f64, repeat: bool) -> Duration {
     d.max(if repeat { MIN_REPEAT } else { MIN_ONCE })
 }
 
-fn make_world(opts: &Options, facts: &PluginFacts) -> Result<(Rc<RefCell<World>>, Receiver<HttpDone>), String> {
-    let state = opts.dir.join(".wmpy");
-    let _ = std::fs::create_dir_all(&state);
+/// The world a session's host calls go to, its storage and secrets in
+/// [state], and where `then=` requests send their answers.
+pub fn make_world(opts: &Options, facts: &PluginFacts, state: &Path, observer: Option<bridge::Observer>) -> Result<(Rc<RefCell<World>>, Receiver<HttpDone>), String> {
+    let _ = std::fs::create_dir_all(state);
     let mock = match &opts.mock {
         None => None,
         Some(path) => {
@@ -734,7 +802,9 @@ fn make_world(opts: &Options, facts: &PluginFacts) -> Result<(Rc<RefCell<World>>
     let local = typed_hosts.iter().filter(|h| plugin::is_local_host(h)).cloned().collect();
     let reach = http::Reach { allowed, local, network_local: facts.has("network.local") };
     let (tx, rx) = channel();
-    Ok((Rc::new(RefCell::new(World::new(facts.clone(), reach, mock, secrets, settings, tx))), rx))
+    let mut world = World::new(facts.clone(), reach, mock, secrets, settings, tx);
+    world.observer = observer;
+    Ok((Rc::new(RefCell::new(world)), rx))
 }
 
 /// Every file a change to which should reload the plugin, with its time and size.

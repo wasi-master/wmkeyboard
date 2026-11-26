@@ -147,6 +147,23 @@ pub struct HttpDone {
     pub millis: u64,
 }
 
+/// One host call as an [Observer] sees it: `wmpy budget` takes the time
+/// spent outside the script from these, and `wmpy mock record` writes them
+/// down. Args are whole, not shortened as the Calls pane shows them.
+pub enum Seen<'a> {
+    /// A call answered at once, or refused (a `then=` call too): the reply,
+    /// `{"value": v}` or `{"error": {"kind", "message"}}`.
+    Answered { op: &'a str, args: &'a Json, reply: &'a Json, source: &'static str, took: Duration },
+    /// A `then=` call under way: its answer comes as [Seen::Later] with the
+    /// same token, which may be seen just before this when it is known at once.
+    Started { op: &'a str, args: &'a Json, token: &'a str, source: &'static str, took: Duration },
+    /// The answer to a `then=` call: the value of its `result` event.
+    Later { token: &'a str, value: &'a Json },
+}
+
+/// Hears every host call; it must not touch the [World] it is given to.
+pub type Observer = Rc<dyn Fn(&Seen)>;
+
 /// Everything the bridge reads and changes, shared with the host.
 pub struct World {
     pub facts: PluginFacts,
@@ -172,6 +189,8 @@ pub struct World {
     pub http_tx: Sender<HttpDone>,
     /// `plugin.close()` was called.
     pub closed: bool,
+    /// Hears every call and answer, when a command set one.
+    pub observer: Option<Observer>,
 }
 
 impl World {
@@ -197,6 +216,7 @@ impl World {
             pending: 0,
             http_tx,
             closed: false,
+            observer: None,
         }
     }
 
@@ -205,6 +225,9 @@ impl World {
     }
 
     fn later(&mut self, token: &str, value: Json, after: Duration) {
+        if let Some(observer) = self.observer.clone() {
+            observer(&Seen::Later { token, value: &value });
+        }
         self.later.push(Later { at: Instant::now() + after, event: json!({"type": "result", "token": token, "value": value}), ends: true });
     }
 
@@ -311,6 +334,19 @@ pub fn call(world: &Rc<RefCell<World>>, op: &str, args: Json) -> Json {
 }
 
 fn finish(w: &mut World, op: &str, args: Json, started: Instant, source: &'static str, result: Result<Json, Failure>) -> Json {
+    if let Some(observer) = w.observer.clone() {
+        let took = started.elapsed();
+        match (&result, args.get("async").and_then(Json::as_str)) {
+            (Ok(_), Some(token)) => observer(&Seen::Started { op, args: &args, token, source, took }),
+            (outcome, _) => {
+                let reply = match outcome {
+                    Ok(v) => json!({"value": v}),
+                    Err((kind, message)) => json!({"error": {"kind": kind, "message": message}}),
+                };
+                observer(&Seen::Answered { op, args: &args, reply: &reply, source, took });
+            }
+        }
+    }
     let reply = match &result {
         Ok(v) if args.get("async").is_some() => format!("then= … {}", if v.is_null() { "waiting" } else { "" }).trim().to_string(),
         Ok(v) => reply_line(v),

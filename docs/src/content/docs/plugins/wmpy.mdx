@@ -163,6 +163,98 @@ It ends with a line such as `checked plugin.json and 3 Python files: 1 error,
 warnings too, and `--json` prints `{"ok", "errors", "warnings", "problems"}`
 for other tools.
 
+### Fix what it finds
+
+```bash
+wmpy check --fix
+wmpy check --fix --dry-run
+```
+
+`--fix` makes the changes the editors' quick fixes make, then checks again
+and prints what is left. It corrects a misspelt name, adds a missing import,
+writes a stub for a provider that `plugin.json` declares, and adds what
+`plugin.json` is missing: a permission, a provider, an action, a keyword or
+a setting. Changes to `plugin.json` keep the file's layout.
+
+One fix can make another possible, so it repeats until nothing changes, at
+most five times, and lists each change under its file. A risky permission
+and a new host are choices your users see when they install or update, so
+`--fix` lists them and adds them only with `--fix-risky`. It never replaces a
+`tool.keyword` that is already set. `--dry-run` prints the changes as a
+unified diff and writes nothing.
+
+## wmpy fmt
+
+```bash
+wmpy fmt
+wmpy fmt --check
+wmpy fmt main.py --diff
+```
+
+Formats the plugin's Python files the way **Format** does in the editors. It
+changes only whitespace: four spaces a level, one style for spacing and blank
+lines. Comments, strings and numbers stay as you wrote them.
+
+With no paths it formats the entry script and its modules. Tests (`test.py`
+and `tests/`) join with `--all` or when you name them. Packages that
+`wmpy pip` added are left alone unless you name them. A file outside a
+plugin folder is refused.
+
+| Option | Does |
+|---|---|
+| `--check` | Changes nothing. Lists the files that need formatting and exits with 1 if there are any. |
+| `--diff` | Changes nothing. Prints the changes as a unified diff and exits with 1 if there are any. |
+| `--all` | Formats the tests too. |
+| `--json` | Prints `{"ok", "checked", "changed", "files"}`. |
+
+## wmpy permissions
+
+```bash
+wmpy permissions
+wmpy permissions --strict
+```
+
+Lists each permission `plugin.json` declares or the code needs, with the
+calls that need it by file and line, then each host with the addresses that
+reach it. A permission is needed, unused or missing. Missing means a call
+raises `PermissionError` on the phone. Unused is a suggestion; a module that
+is imported but never called counts as unused.
+
+For hosts it reads the addresses the code writes out: a string, the start of
+an f-string, or a name set once at the top of a file. `*.example.org` covers
+its subdomains, and an entry a wildcard already covers is marked. When a
+request builds its address at run time, a host nothing names is marked
+unknown rather than unused.
+
+It exits with 1 when something is missing. `--strict` also fails on unused
+entries, and `--json` prints the report.
+
+## wmpy i18n
+
+```bash
+wmpy i18n extract --lang bn
+wmpy i18n check
+wmpy i18n stats
+```
+
+Reads the text your code passes to `_()`, `gettext()` and `ngettext()`, and
+the `@name`, `@description`, `@action`, `@setting` and `@option` keys of
+`plugin.json`.
+
+- `extract` adds each missing key to every `locales/<tag>.json`, empty. The
+  keyboard shows the English for an empty translation, so a half-done file is
+  safe to ship. `--lang` picks languages and starts a file that does not
+  exist yet. Your translations are kept. A key nothing uses any more is
+  listed, and removed only with `--prune`. A plural gets the forms its
+  language needs, such as `one`, `few` and `many` for Russian.
+- `check` exits with 1 when a translation is missing or empty, uses a
+  `{name}` the English lacks or drops one, or lacks a plural form. Text that
+  is not a literal, such as `_(title)`, gets a warning: write
+  `_("Hi {name}", name=name)` instead.
+- `stats` prints how much of each language is done.
+
+See [Translations](/plugins/guides/translations/).
+
 ## wmpy test
 
 ```bash
@@ -207,6 +299,61 @@ is the count: `2 passed, 0 failed in 0.05 s`.
 [Testing and debugging](/plugins/guides/testing/#automatic-tests) explains
 `plugin_test`: sessions, mock answers for host calls, events, previews and
 the rest.
+
+## wmpy mock record
+
+```bash
+wmpy mock record --out tests/mock.json
+wmpy mock record --out tests/mock.json --tests --redact session_id
+```
+
+Runs the plugin with real https to the hosts in its `plugin.json`, and
+writes every call it made to the keyboard, with the reply, to a mock file
+that `plugin_test.session(mock=...)`, `wmpy render --mock` and
+`wmpy budget --mock` read. Record once against the real service, then test
+against the file, offline and the same every time.
+
+It runs a scenario (`--scenario events.json`), the plugin's tests
+(`--tests`, whose own mocks are set aside), or by default a click on each
+button of the first draw. Each address becomes a route, and the address is
+cut to a `*` where a key or token starts, so the route still fits when the
+test uses another key.
+
+Secrets are replaced with `<redacted>`: the Authorization, Cookie and
+API-key headers, query values and JSON fields named `key`, `token`,
+`api_key`, `apikey`, `access_token`, `secret`, `password` or `sig`, the
+plugin's own secrets and whatever `secrets.get` answered. `--redact NAME`
+adds a name. Read the file before you commit it all the same.
+
+## wmpy budget and wmpy profile
+
+```bash
+wmpy budget
+wmpy budget --tests --device-speed 0.3
+wmpy profile --top 10
+```
+
+The keyboard stops a plugin that takes too long: 9 million steps or 3
+seconds to load, 6 million or 2 seconds for an event, 1.2 million or half a
+second for a draw. `wmpy budget` runs the plugin and shows how close each
+kind of call came, as a share of each limit, with the worst call. Over 50%
+is a warning, over 80% is in danger, and it exits with 1 when anything went
+over, so a CI job can fail on it.
+
+Time is the plugin's own: time spent waiting for the internet or the AI is
+left out, as the keyboard leaves it out. A phone is slower than a computer,
+so give `--device-speed` (0.3 for a phone three times slower). On a slow
+phone the time, not the steps, is what stops a plugin.
+
+`wmpy profile` runs the same way with every `def` timed, and lists the
+functions that took the most time, with their calls and average. A
+function's time includes the functions it calls.
+
+Both run a scenario (`--scenario events.json`), the tests (`--tests`,
+`-k TEXT`), or by default a click on each button of the first draw and each
+timer once. `--mock FILE` answers host calls before the real ones are made,
+and `--json` prints the report. Storage, settings and secrets are copied
+first, so a measured run leaves your plugin's saved state alone.
 
 ## wmpy render
 
@@ -274,11 +421,77 @@ a module used without its permission, is what `wmpy check` and the
 log. `wmpy preview` opens it in the browser and draws it again each time you
 save. See [Terminal and browser preview](/plugins/guides/terminal-and-preview/).
 
+## wmpy repl
+
+```bash
+wmpy repl
+wmpy repl my-tool --mock mock.json
+```
+
+A Python prompt on the keyboard's own interpreter, with the `wm` package.
+Inside a plugin folder it has the plugin's permissions and its modules
+(`import helpers`, and `import main` for the entry script). Outside one,
+every permission is on and any https address can be reached. Host calls go
+where `wmpy run` sends them: real https, a pretend text box and clipboard,
+and pretend answers for what only a phone has, with `--mock` answering
+first.
+
+It reads input as CPython's prompt does: a line ending in `:` opens a block
+that a blank line ends, and open brackets or strings carry on to the next
+line. An expression's value is printed and kept as `_`. Ctrl-C stops a
+runaway loop and keeps everything else.
+
+| Command | Does |
+|---|---|
+| `:render` | Draws the plugin's panel as text, loading it the first time. |
+| `:event JSON` | Sends the panel an event and draws it again. A widget id alone is a click: `:event button:Add`. |
+| `:storage` | What the prompt and the panel saved. |
+| `:calls` | The host calls the prompt and the panel made. |
+| `:load FILE` | Runs a file at the prompt, as if you typed it. |
+| `:reset` | A fresh interpreter, and the panel loaded again. |
+| `:help`, `:quit` | This list, and leave (Ctrl-D works too). |
+
+The history is kept between runs unless you add `--no-history`. Piped
+input runs as a script, printing only the results.
+
+## wmpy device, push, dev and logs
+
+```bash
+wmpy device
+wmpy push
+wmpy dev
+wmpy logs --since 10m
+```
+
+These four work with a phone over adb, once **Plugin developer mode** is on
+in the keyboard. See [Test on your phone](/plugins/guides/phone-dev-loop/).
+
+- `wmpy device` lists the phones adb sees, whether WM Keyboard is installed
+  on each, and whether developer mode is on. When it is off, it says where
+  the switch is. `--json` prints the same as JSON.
+- `wmpy push` checks the plugin, packs it and installs it on the phone
+  without the install screen. Risky permissions stay off until you turn them
+  on, and the reply names them. `-s` picks a phone when more than one is
+  connected.
+- `wmpy dev` pushes the plugin, then pushes it again each time you save a
+  file in its folder. An open panel loads the new version, and the plugin's
+  log prints in the same terminal until you press Ctrl-C.
+- `wmpy logs` follows what a plugin prints on the phone, with errors in red.
+  Give it a folder or a plugin id; `--since 10m` starts earlier. When the
+  system log has nothing yet, it shows the plugin's saved log.
+
 ## wmpy pip
 
 `wmpy pip install` copies a pure-Python package from PyPI into the plugin, after
 checking that it can run in the keyboard. `wmpy pack` then leaves out the
-parts the plugin never imports. See [Python packages](/plugins/guides/python-packages/).
+parts the plugin never imports. See [Python packages](/plugins/guides/python-packages/),
+and [Which packages work](/plugins/guides/package-compatibility/) for the
+results of checking the most used ones.
+
+`requests` and `httpx` are built into the keyboard, so `wmpy pip install
+requests` says so, exits with 0 and downloads nothing. A package that depends
+on one of them installs without it, and `wmpy.lock` does not list it. See
+[requests, httpx and urllib](/plugins/guides/requests/).
 
 ## wmpy publish
 
