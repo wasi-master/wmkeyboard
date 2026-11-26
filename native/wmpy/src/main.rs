@@ -5,20 +5,28 @@
 //! plugin or check failed, 2 when wmpy itself could not do the work (bad
 //! arguments, unreadable files, no network).
 
+mod budget;
 mod check;
 mod completions;
+mod device;
 mod devhost;
 mod diag;
 mod editor;
+mod fmt;
+mod i18n;
 mod lsp;
 mod mcp;
 mod mock;
+mod mockrec;
 mod new;
 mod pack;
+mod permissions;
 mod pip;
 mod preview;
+mod profile;
 mod project;
 mod publish;
+mod repl;
 mod stubs;
 mod testing;
 mod tui;
@@ -63,6 +71,28 @@ enum Command {
     Lsp(lsp::Args),
     /// Run the MCP server (for AI agents)
     Mcp(mcp::Args),
+    /// Format a plugin's Python files
+    Fmt(fmt::Args),
+    /// Show which code needs each permission and host, and what nothing uses
+    Permissions(permissions::Args),
+    /// Extract, check and count a plugin's translations
+    I18n(i18n::Args),
+    /// Try Python and the wm package line by line
+    Repl(repl::Args),
+    /// How close each part of a run comes to the keyboard's limits
+    Budget(budget::Args),
+    /// Which functions take the time
+    Profile(profile::Args),
+    /// Record real replies into a mock file for tests
+    Mock(mockrec::Args),
+    /// Install a plugin on a phone over adb
+    Push(device::PushArgs),
+    /// Push to the phone on every save and stream its log
+    Dev(device::DevArgs),
+    /// Stream a plugin's log from a phone
+    Logs(device::LogsArgs),
+    /// List phones over adb and whether plugin developer mode is on
+    Device(device::DeviceArgs),
     /// Print shell completions
     Completions(completions::Args),
 }
@@ -89,6 +119,17 @@ fn main() -> ExitCode {
         Command::Editor(a) => editor::run(a),
         Command::Lsp(a) => lsp::run(a),
         Command::Mcp(a) => mcp::run(a),
+        Command::Fmt(a) => fmt::run(a),
+        Command::Permissions(a) => permissions::run(a),
+        Command::I18n(a) => i18n::run(a),
+        Command::Repl(a) => repl::run(a),
+        Command::Budget(a) => budget::run(a),
+        Command::Profile(a) => profile::run(a),
+        Command::Mock(a) => mockrec::run(a),
+        Command::Push(a) => device::push(a),
+        Command::Dev(a) => device::dev(a),
+        Command::Logs(a) => device::logs(a),
+        Command::Device(a) => device::devices(a),
         Command::Completions(a) => completions::run(a),
     });
     ExitCode::from(worker.expect("spawn").join().unwrap_or(1))
