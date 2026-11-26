@@ -14,9 +14,11 @@ plugin running headless with pretend answers for the internet, the tests and
 the packer. With it, an agent can write a plugin, see what its panel draws,
 click through it, and fix what the checks find, without a phone.
 
-Everything runs on your computer. The server sends nothing anywhere; the
-only tools that use the network are `pip_check` and `pip_install`, which
-download from PyPI.
+Everything runs on your computer. `pip_check` and `pip_install` download
+from PyPI. `measure_budget`, `profile_plugin` and `record_mock` run the
+plugin with real https to the hosts its `plugin.json` lists, as
+[`wmpy run`](/plugins/guides/terminal-and-preview/) does. No other tool uses
+the network.
 
 ## Install wmpy
 
@@ -136,6 +138,12 @@ Restart the client, or reload its MCP servers, to pick up the change.
 | `api_lookup`, `api_search` | Signatures, docs and permissions from the model the editors complete from. |
 | `list_permissions` | Every permission and its tier, with the risky ones marked. |
 | `read_docs` | These docs as Markdown: the API, `plugin.json`, permissions, testing, error messages and every check code. |
+| `fix_plugin` | Makes the fixes the checks offer, with `wmpy check --fix`. Risky permissions and new hosts wait for `risky: true`. |
+| `plugin_permissions` | Each permission and host the code uses, needed, unused or missing, with `wmpy permissions`. |
+| `translations` | Extracts, checks and counts the `locales/` files, with `wmpy i18n`. |
+| `measure_budget`, `profile_plugin` | How close a run comes to the keyboard's limits, and which functions take the time, with `wmpy budget` and `wmpy profile`. |
+| `record_mock` | Runs the plugin against the real services and writes their replies to a mock file, secrets redacted, with `wmpy mock record`. |
+| `list_devices`, `push_plugin` | Lists the phones adb sees, and installs the plugin on one with `wmpy push`. |
 | `format_file` | Formats a `.py` file the way the editors do. |
 | `write_stubs` | Writes type stubs of the `wm` package, with `wmpy stubs`. |
 

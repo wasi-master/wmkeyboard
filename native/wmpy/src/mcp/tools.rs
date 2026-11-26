@@ -28,6 +28,8 @@ fn fail(message: impl Into<String>) -> Outcome {
 const DIR: &str = "The plugin folder: the folder that holds plugin.json. Absolute, or relative to the folder the MCP server runs in.";
 const SESSION: &str = "The id session_start returned.";
 const EVENT: &str = "One event, as the keyboard sends it. A widget's id is its type and text, such as \"button:Look up\" or \"input:Word\", unless the code gave it key=. Shapes: {\"type\": \"click\", \"id\": \"button:Flip\"}, {\"type\": \"change\", \"id\": \"input:Word\", \"value\": \"rain\"}, {\"type\": \"submit\", \"id\": \"input:Word\", \"value\": \"rain\"}, {\"type\": \"keyword\", \"id\": \"define\", \"value\": \"rain\"}, {\"type\": \"command\", \"id\": \"clear\"}, and {\"type\": \"result\", \"token\": \"http:1\", \"value\": ...} to answer a then= call by hand.";
+const SCENARIO: &str = "A JSON file inside the plugin folder with the events to run, as a list or as {\"events\": [...], \"mock\": {...}, \"settings\": {...}}. Without it (and without tests), the run clicks each button of the first draw once and fires each timer once.";
+const SERIAL: &str = "Which phone, by its adb serial, when more than one is connected; list_devices lists them.";
 const MOCK: &str = "Answers to the plugin's host calls, by op name: {\"http.request\": {\"status\": 200, \"text\": \"...\", \"headers\": {}}, \"ai.ask\": {\"text\": \"...\"}, \"ui.toast\": null}. A value that is only {\"error\": {\"kind\": \"TimeoutError\", \"message\": \"...\"}} raises that error. An op's value may be a list of routes [{\"when\": {\"method\": \"GET\", \"url\": \"https://example.com/api/*\"}, \"reply\": ...}], the first whose `when` fits the call answering. A call with no answer raises NotImplementedError in the plugin; `calls` in the result shows every call made, to see what to add.";
 
 fn dir_prop() -> Value {
@@ -253,6 +255,96 @@ pub fn list() -> Vec<Value> {
             "annotations": writes,
         }),
         json!({
+            "name": "fix_plugin",
+            "title": "Fix what the checks find",
+            "description": "Make the fixes check_plugin's problems offer, with `wmpy check --fix`: a misspelt name, a missing import, a stub for a provider plugin.json declares, and what plugin.json lacks (a permission, a provider, an action, a keyword, a setting). Repeats until nothing changes, then checks again. Risky permissions and new hosts are listed under `held` and added only with risky=true, because users see them on install; ask the user before setting it. dry_run returns the diff and writes nothing. Returns the check result with `fixed` (each change made) and `held`.",
+            "inputSchema": {"type": "object", "properties": {
+                "dir": dir_prop(),
+                "dry_run": {"type": "boolean", "default": false, "description": "Return the changes as a unified diff and write nothing."},
+                "risky": {"type": "boolean", "default": false, "description": "Also add risky permissions and hosts the code needs."},
+            }, "required": ["dir"], "additionalProperties": false},
+            "annotations": writes,
+        }),
+        json!({
+            "name": "plugin_permissions",
+            "title": "What permissions and hosts the code uses",
+            "description": "With `wmpy permissions`: each permission plugin.json declares or the code needs, marked needed, unused or missing, with the calls that need it by file and line; then each host with the addresses that reach it. Missing means the call raises PermissionError on the phone. Use it before publishing to declare exactly what the plugin uses.",
+            "inputSchema": {"type": "object", "properties": {"dir": dir_prop()}, "required": ["dir"], "additionalProperties": false},
+            "annotations": read_only,
+        }),
+        json!({
+            "name": "translations",
+            "title": "Translation files",
+            "description": "Work on the plugin's locales/<tag>.json files with `wmpy i18n`. extract adds every text the code passes to _(), gettext() and ngettext() (and plugin.json's @ keys) to each file, empty, keeping translations; langs starts files for new languages. check reports missing or empty translations, {name} mismatches and missing plural forms. stats gives how much of each language is done. Fill in the empty strings after extract, then run check.",
+            "inputSchema": {"type": "object", "properties": {
+                "dir": dir_prop(),
+                "action": {"type": "string", "enum": ["extract", "check", "stats"]},
+                "langs": {"type": "array", "items": {"type": "string"}, "description": "Only these languages, such as [\"bn\", \"pt-BR\"]. extract starts a file for each that has none."},
+                "prune": {"type": "boolean", "default": false, "description": "extract only: also remove keys nothing uses any more."},
+                "dry_run": {"type": "boolean", "default": false, "description": "extract only: say what would change and write nothing."},
+            }, "required": ["dir", "action"], "additionalProperties": false},
+            "annotations": writes,
+        }),
+        json!({
+            "name": "measure_budget",
+            "title": "Measure against the keyboard's limits",
+            "description": "Run the plugin and report, with `wmpy budget`, how close loading, each event and each draw come to the keyboard's step and time limits, as a share of each limit, with the worst call. Over 50% is a warning, over 80% danger; ok is false when anything went over. Runs on the dev host with real https to the plugin's hosts unless a mock answers. device_speed scales the time for a slower phone (0.3 for one three times slower than this computer).",
+            "inputSchema": {"type": "object", "properties": {
+                "dir": dir_prop(),
+                "scenario_file": {"type": "string", "description": SCENARIO},
+                "tests": {"type": "boolean", "default": false, "description": "Measure every session the plugin's tests make instead."},
+                "filter": {"type": "string", "description": "With tests: only the tests whose file::name contains this."},
+                "mock_file": {"type": "string", "description": "A JSON file inside the plugin folder answering host calls by op name before the dev host does."},
+                "device_speed": {"type": "number", "exclusiveMinimum": 0, "description": "How fast the phone is next to this computer."},
+            }, "required": ["dir"], "additionalProperties": false},
+            "annotations": {"readOnlyHint": true, "destructiveHint": false, "idempotentHint": true, "openWorldHint": true},
+        }),
+        json!({
+            "name": "profile_plugin",
+            "title": "Find the slow functions",
+            "description": "Run the plugin with every def timed, with `wmpy profile`, and list the functions that took the most time, with their calls and average, plus each kind of phase's steps. Same runs as measure_budget: a scenario, the tests, or a click on each button of the first draw. Time includes the calls a function makes.",
+            "inputSchema": {"type": "object", "properties": {
+                "dir": dir_prop(),
+                "scenario_file": {"type": "string", "description": SCENARIO},
+                "tests": {"type": "boolean", "default": false},
+                "filter": {"type": "string", "description": "Only the tests whose file::name contains this (implies tests)."},
+                "mock_file": {"type": "string", "description": "A JSON file inside the plugin folder answering host calls first."},
+                "top": {"type": "integer", "minimum": 1, "maximum": 200, "default": 20},
+            }, "required": ["dir"], "additionalProperties": false},
+            "annotations": {"readOnlyHint": true, "destructiveHint": false, "idempotentHint": true, "openWorldHint": true},
+        }),
+        json!({
+            "name": "record_mock",
+            "title": "Record real replies as a mock",
+            "description": "Run the plugin with real https to its hosts, with `wmpy mock record`, and write every host call and its reply to a mock file that run_tests, render_plugin and plugin_test.session(mock=) read. Keys, tokens, passwords, cookies and the plugin's secrets are replaced by <redacted>; redact names more fields. Makes real requests: use it once, then test against the file.",
+            "inputSchema": {"type": "object", "properties": {
+                "dir": dir_prop(),
+                "out": {"type": "string", "description": "The mock file to write, inside the plugin folder, such as tests/mock.json."},
+                "scenario_file": {"type": "string", "description": SCENARIO},
+                "tests": {"type": "boolean", "default": false, "description": "Run the plugin's tests instead (their own mocks are not used)."},
+                "filter": {"type": "string", "description": "With tests: only the tests whose file::name contains this."},
+                "redact": {"type": "array", "items": {"type": "string"}, "description": "More header, query or JSON field names to redact."},
+            }, "required": ["dir", "out"], "additionalProperties": false},
+            "annotations": {"readOnlyHint": false, "destructiveHint": false, "idempotentHint": false, "openWorldHint": true},
+        }),
+        json!({
+            "name": "list_devices",
+            "title": "List connected phones",
+            "description": "The phones adb sees, with `wmpy device`: for each, whether WM Keyboard is installed and whether its plugin developer mode is on (push_plugin needs it). When it is off, the result says where the switch is; ask the user to turn it on.",
+            "inputSchema": {"type": "object", "properties": {"serial": {"type": "string", "description": SERIAL}}, "additionalProperties": false},
+            "annotations": {"readOnlyHint": true, "destructiveHint": false, "idempotentHint": true, "openWorldHint": false},
+        }),
+        json!({
+            "name": "push_plugin",
+            "title": "Install on the phone",
+            "description": "Check, pack and install the plugin on the connected phone over adb, with `wmpy push`, replacing the version installed there; its saved data stays. Needs plugin developer mode on (list_devices). Risky permissions stay off until the user turns them on, and the result names them. Ask the user before pushing to their phone.",
+            "inputSchema": {"type": "object", "properties": {
+                "dir": dir_prop(),
+                "serial": {"type": "string", "description": SERIAL},
+            }, "required": ["dir"], "additionalProperties": false},
+            "annotations": {"readOnlyHint": false, "destructiveHint": false, "idempotentHint": true, "openWorldHint": true},
+        }),
+        json!({
             "name": "write_stubs",
             "title": "Write wm type stubs",
             "description": "Write type stubs of the wm package with `wmpy stubs`, into .wmpy/stubs in the plugin folder, so other editors and type checkers (Pyright, mypy) know its names. Not needed for this server or the wmpy language server.",
@@ -292,6 +384,43 @@ fn mock_of(args: &Value, dir: &Path) -> Result<Value, String> {
         return serde_json::from_str(&text).map_err(|e| format!("{file}: {e}"));
     }
     Ok(args.get("mock").cloned().unwrap_or(Value::Null))
+}
+
+/// [name] under the plugin folder, for a file that may not exist yet: no
+/// `..`, no absolute path.
+fn new_file_inside(dir: &Path, name: &str) -> Result<PathBuf, String> {
+    let rel = Path::new(name);
+    if name.is_empty() || rel.components().any(|c| !matches!(c, std::path::Component::Normal(_))) {
+        return Err(format!("'{name}' is not a file inside the plugin folder"));
+    }
+    Ok(dir.join(rel))
+}
+
+fn flag(args: &Value, key: &str) -> bool {
+    args.get(key).and_then(Value::as_bool).unwrap_or(false)
+}
+
+fn run_strings(exe: &Path, argv: &[String]) -> Result<commands::Output, String> {
+    let argv: Vec<&str> = argv.iter().map(String::as_str).collect();
+    commands::run(exe, &argv, None)
+}
+
+/// `--scenario`, `--tests` and `-k` for budget, profile and mock record.
+fn run_options(args: &Value, dir: &Path, argv: &mut Vec<String>) -> Result<(), String> {
+    if let Some(file) = str_arg(args, "scenario_file") {
+        argv.extend(["--scenario".into(), crate::project::inside(dir, file)?.to_string_lossy().into_owned()]);
+    }
+    let filter = str_arg(args, "filter");
+    if flag(args, "tests") || filter.is_some() {
+        if argv.iter().any(|a| a == "--scenario") {
+            return Err("give scenario_file or tests, not both".into());
+        }
+        argv.push("--tests".into());
+    }
+    if let Some(k) = filter {
+        argv.extend(["-k".into(), k.into()]);
+    }
+    Ok(())
 }
 
 /// A child command's result: its JSON, or what it printed.
@@ -434,6 +563,78 @@ impl Tools {
                     } else {
                         ok(json!({"file": file, "changed": changed, "written": false, "text": formatted}))
                     }
+                }
+                "fix_plugin" => {
+                    let dir = plugin_dir(args)?;
+                    let mut argv = vec!["check".to_string(), dir.to_string_lossy().into_owned(), "--fix".into(), "--json".into()];
+                    if flag(args, "dry_run") {
+                        argv.push("--dry-run".into());
+                    }
+                    if flag(args, "risky") {
+                        argv.push("--fix-risky".into());
+                    }
+                    child(run_strings(&exe, &argv), "wmpy check --fix")
+                }
+                "plugin_permissions" => {
+                    let dir = plugin_dir(args)?;
+                    child(commands::run(&exe, &["permissions", &dir.to_string_lossy(), "--json"], None), "wmpy permissions")
+                }
+                "translations" => {
+                    let dir = plugin_dir(args)?;
+                    let action = str_arg(args, "action").filter(|a| ["extract", "check", "stats"].contains(a)).ok_or("`action` is extract, check or stats")?;
+                    let mut argv = vec!["i18n".to_string(), action.into(), dir.to_string_lossy().into_owned(), "--json".into()];
+                    for lang in args.get("langs").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str) {
+                        argv.extend(["--lang".into(), lang.into()]);
+                    }
+                    if action == "extract" && flag(args, "prune") {
+                        argv.push("--prune".into());
+                    }
+                    if action == "extract" && flag(args, "dry_run") {
+                        argv.push("--dry-run".into());
+                    }
+                    child(run_strings(&exe, &argv), "wmpy i18n")
+                }
+                "measure_budget" | "profile_plugin" => {
+                    let dir = plugin_dir(args)?;
+                    let command = if name == "measure_budget" { "budget" } else { "profile" };
+                    let mut argv = vec![command.to_string(), dir.to_string_lossy().into_owned(), "--json".into()];
+                    run_options(args, &dir, &mut argv)?;
+                    if let Some(mock) = str_arg(args, "mock_file") {
+                        argv.extend(["--mock".into(), crate::project::inside(&dir, mock)?.to_string_lossy().into_owned()]);
+                    }
+                    if let Some(speed) = args.get("device_speed").and_then(Value::as_f64).filter(|_| command == "budget") {
+                        argv.extend(["--device-speed".into(), speed.to_string()]);
+                    }
+                    if let Some(top) = args.get("top").and_then(Value::as_u64).filter(|_| command == "profile") {
+                        argv.extend(["--top".into(), top.clamp(1, 200).to_string()]);
+                    }
+                    child(run_strings(&exe, &argv), &format!("wmpy {command}"))
+                }
+                "record_mock" => {
+                    let dir = plugin_dir(args)?;
+                    let out = str_arg(args, "out").ok_or("`out` is required: the mock file to write, such as tests/mock.json")?;
+                    let out = new_file_inside(&dir, out)?;
+                    let mut argv = vec!["mock".to_string(), "record".into(), dir.to_string_lossy().into_owned(), "--out".into(), out.to_string_lossy().into_owned()];
+                    run_options(args, &dir, &mut argv)?;
+                    for name in args.get("redact").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str) {
+                        argv.extend(["--redact".into(), name.into()]);
+                    }
+                    child(run_strings(&exe, &argv), "wmpy mock record")
+                }
+                "list_devices" => {
+                    let mut argv = vec!["device".to_string(), "--json".into()];
+                    if let Some(serial) = str_arg(args, "serial") {
+                        argv.extend(["-s".into(), serial.into()]);
+                    }
+                    child(run_strings(&exe, &argv), "wmpy device")
+                }
+                "push_plugin" => {
+                    let dir = plugin_dir(args)?;
+                    let mut argv = vec!["push".to_string(), dir.to_string_lossy().into_owned(), "--json".into()];
+                    if let Some(serial) = str_arg(args, "serial") {
+                        argv.extend(["-s".into(), serial.into()]);
+                    }
+                    child(run_strings(&exe, &argv), "wmpy push")
                 }
                 "write_stubs" => {
                     let dir = plugin_dir(args)?;

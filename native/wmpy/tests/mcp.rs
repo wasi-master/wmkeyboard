@@ -80,7 +80,7 @@ fn an_agent_writes_checks_and_runs_a_plugin() {
 
     let tools = mcp.request("tools/list", json!({}));
     let names: Vec<&str> = tools["tools"].as_array().unwrap().iter().map(|t| t["name"].as_str().unwrap()).collect();
-    for want in ["check_plugin", "run_tests", "render_plugin", "session_start", "session_event", "pack_plugin", "api_lookup", "list_permissions", "new_plugin", "pip_check"] {
+    for want in ["check_plugin", "run_tests", "render_plugin", "session_start", "session_event", "pack_plugin", "api_lookup", "list_permissions", "new_plugin", "pip_check", "fix_plugin", "plugin_permissions", "translations", "measure_budget", "profile_plugin", "record_mock", "list_devices", "push_plugin"] {
         assert!(names.contains(&want), "{want} missing from {names:?}");
     }
     for t in tools["tools"].as_array().unwrap() {

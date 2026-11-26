@@ -48,9 +48,11 @@ const CAPS_KEY: &str = "io.modelcontextprotocol/clientCapabilities";
 const INSTRUCTIONS: &str = "Tools for WM Keyboard plugins: Python that runs inside the Android keyboard. \
 A plugin is a folder with plugin.json and main.py (API 5: `from wm import plugin, ui`, other .py files are modules). \
 Workflow: new_plugin (or open an existing folder), read_docs topic api or api_search to find what the keyboard offers, \
-edit main.py and plugin.json, check_plugin after every edit and fix what it reports (its `help` names the fix), \
+edit main.py and plugin.json, check_plugin after every edit and fix what it reports (its `help` names the fix; fix_plugin makes the safe fixes), \
 render_plugin to see the panel, session_start and session_event to click through it, run_tests for test.py, pack_plugin to build the .wmplugin. \
-Host calls (http, ai, field, ...) never leave the machine here: answer them with a mock. \
+In render_plugin, session_* and run_tests, host calls (http, ai, field, ...) never leave the machine: answer them with a mock. \
+measure_budget, profile_plugin and record_mock make real https requests to the plugin's hosts; record_mock writes a mock from them. \
+push_plugin installs on the user's phone over adb: ask first. \
 Risky permissions (network, ai, field.read, clipboard.read, location, files, calendar, todo) start off on the phone; catch PermissionError.";
 
 pub fn run(args: Args) -> u8 {
