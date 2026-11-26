@@ -42,6 +42,9 @@ const CUSTOM_WORD_WEIGHT: f64 = 100.0;
 const SECONDARY_WORD_WEIGHT: f64 = 40.0;
 /// How many one-edit words a known word keeps on the strip (`known_word_slips`).
 const KNOWN_WORD_SLIPS: usize = 2;
+/// One-edit words of a known word the words before choose its
+/// `KNOWN_WORD_SLIPS` from (`slips_by_context`), when there is one.
+const KNOWN_WORD_SLIP_POOL: usize = 6;
 /// Nats a known word's slip stays under it at best: ln 2, half as likely.
 const KNOWN_WORD_SLIP_GAP: f64 = std::f64::consts::LN_2;
 const SECONDARY_SCALE_SHARE: f64 = 0.5;
@@ -1341,7 +1344,9 @@ impl Predictor {
     /// `KNOWN_WORD_SLIPS` one-edit words, best first, each at its own score
     /// but never above `KNOWN_WORD_SLIP_GAP` under the word typed. The phone's
     /// `SuggestionEngine.knownWordSlips`; autocorrect still leaves the word alone.
-    fn known_word_slips(&self, lower: &str, walked: &[ScoredCandidate]) -> Vec<(String, f64)> {
+    /// With a word before it, they are chosen out of `KNOWN_WORD_SLIP_POOL`
+    /// by what the words before say of each (`slips_by_context`).
+    fn known_word_slips(&self, lower: &str, walked: &[ScoredCandidate], previous: &[&str]) -> Vec<(String, f64)> {
         let Some(typed) = walked
             .iter()
             .find(|c| c.edits == 0 && c.completed_chars == 0 && c.word.to_lowercase() == lower)
@@ -1351,15 +1356,57 @@ impl Predictor {
         };
         let ceiling = typed - KNOWN_WORD_SLIP_GAP;
         let key = key_of(lower);
-        walked
+        let prev = previous.first().map(|p| p.to_lowercase()).filter(|p| !p.is_empty());
+        let prev2 = previous.get(1).map(|p| p.to_lowercase()).filter(|p| !p.is_empty());
+        let pool: Vec<(String, f64)> = walked
             .iter()
             .filter(|c| c.edits == 1 && c.completed_chars == 0 && key_of(&c.word) != key)
             // The word with a hyphen in it is not a slip.
             .filter(|c| c.word.replace('-', "").to_lowercase() != lower)
             .filter(|c| !self.suppressed(&c.word))
+            .take(if prev.is_some() { KNOWN_WORD_SLIP_POOL } else { KNOWN_WORD_SLIPS })
+            .map(|c| (c.word.clone(), c.score))
+            .collect();
+        self.slips_by_context(pool, prev.as_deref(), prev2.as_deref())
+            .into_iter()
             .take(KNOWN_WORD_SLIPS)
-            .map(|c| (c.word.clone(), c.score.min(ceiling)))
+            .map(|(word, score)| (word, score.min(ceiling)))
             .collect()
+    }
+
+    /// `pool`, a known word's one-edit words best first, reordered by what
+    /// the words before say of each (#979): `is` typed for `us` after a word
+    /// the user writes `us` after. Each is lifted by the same bounded context
+    /// boost the strip gives every candidate; with no evidence for any of
+    /// them the walk's order stands. The phone's `SuggestionEngine.byContext`.
+    fn slips_by_context(&self, pool: Vec<(String, f64)>, prev: Option<&str>, prev2: Option<&str>) -> Vec<(String, f64)> {
+        let Some(prev) = prev else { return pool };
+        if pool.len() < 2 {
+            return pool;
+        }
+        let lifts: Vec<f64> = pool
+            .iter()
+            .map(|(word, _)| {
+                let candidate = word.to_lowercase();
+                let count = self.context_count(prev, prev2, &candidate);
+                if count > 0 {
+                    context_boost(count)
+                } else if self.english_sources && self.seeds.follows(prev, &candidate) {
+                    seed_context_boost()
+                } else {
+                    0.0
+                }
+            })
+            .collect();
+        if lifts.iter().all(|l| *l == 0.0) {
+            return pool;
+        }
+        let mut order: Vec<usize> = (0..pool.len()).collect();
+        // Stable, so ties keep the walk's order.
+        order.sort_by(|a, b| {
+            (pool[*b].1 + lifts[*b]).partial_cmp(&(pool[*a].1 + lifts[*a])).unwrap_or(Ordering::Equal)
+        });
+        order.into_iter().map(|i| pool[i].clone()).collect()
     }
 
     /// The strip for `composing`, `previous` nearest first. Next words when
@@ -1381,7 +1428,7 @@ impl Predictor {
         let walked = self.ranked(&lower, limit);
         let mut slips: Vec<String> = Vec::new();
         if known {
-            for (word, score) in self.known_word_slips(&lower, &walked) {
+            for (word, score) in self.known_word_slips(&lower, &walked, previous) {
                 slips.push(word.to_lowercase());
                 put(&mut merged, word, score);
             }
