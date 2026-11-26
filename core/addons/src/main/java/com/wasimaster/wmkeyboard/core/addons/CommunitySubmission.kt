@@ -11,8 +11,9 @@ import java.util.zip.ZipOutputStream
 /**
  * Sending an addon to the community repository: the issue the app opens for
  * it, and how the file gets into that issue. Themes, layouts, icon packs,
- * sticker packs and snippets go from the app; the repository also takes sound
- * packs, which the app has no way to make.
+ * sticker packs, snippets and plugins go from the app; the repository also
+ * takes sound packs, which the app has no way to make. `wmpy publish` and the
+ * web plugin editor send plugins the same way, so all three keep to this.
  *
  * The repository takes submissions as GitHub issues filled in from a form. Its
  * bot reads the payload out of the issue, checks it with the same importers the
@@ -21,12 +22,17 @@ import java.util.zip.ZipOutputStream
  *
  * - [Tier.LINK]: the whole payload rides in the link that opens the form, so
  *   the user lands on a filled form and only presses Submit. Fits colour and
- *   gradient themes, every layout and most snippet packs.
+ *   gradient themes, every layout, most snippet packs and most plugins.
  * - [Tier.PASTE]: too long for a link, short enough for the form's text box.
  *   The app copies it and the user pastes it.
  * - [Tier.ATTACH]: a theme carrying photos, and nearly every pack. The app
  *   writes a zip the user drags into the box, which GitHub turns into an
  *   attachment link.
+ *
+ * A plugin is code, so the repository reviews it: its bot runs `wmpy check`
+ * and the plugin's tests, lists every permission and host, and posts the code;
+ * a maintainer reads it before approving. The form offers code licences for it
+ * ([licenses]).
  *
  * The encoding is a contract with the bot, which keeps the same test vectors
  * (`community-submission-vectors.json`): [PREFIX], then base64url without
@@ -83,12 +89,40 @@ object CommunitySubmission {
             maxBytes = 24L * 1024 * 1024,
         ),
         SNIPPETS(AddonType.Snippets, "submit-snippets.yml", "snippets.wmsnippets.json", "[Snippets]"),
+
+        /**
+         * A `.wmplugin`, a zip of its own like a pack; the bot knows it by
+         * the `plugin.json` at its top. At most what the app downloads for a
+         * plugin, [AddonType.Plugin]'s 1 MB.
+         */
+        PLUGIN(AddonType.Plugin, "submit-plugin.yml", "plugin.wmplugin", "[Plugin]", binary = true),
     }
 
     enum class Tier { LINK, PASTE, ATTACH }
 
     /** The licences the form offers, by SPDX id; the form's dropdown lists these exact labels. */
     val LICENSES = listOf("CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0")
+
+    /**
+     * The licences the plugin form offers, in its order: code licences by
+     * SPDX id, the same list as the bot's `CODE_LICENSES` and `wmpy publish`.
+     */
+    val CODE_LICENSES = listOf(
+        "MIT",
+        "Apache-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC",
+        "MPL-2.0",
+        "LGPL-3.0-or-later",
+        "GPL-3.0-or-later",
+        "AGPL-3.0-or-later",
+        "Unlicense",
+        "CC0-1.0",
+    )
+
+    /** The licences [kind]'s form offers; the first is the one picked to start with. */
+    fun licenses(kind: Kind): List<String> = if (kind == Kind.PLUGIN) CODE_LICENSES else LICENSES
 
     /** What the user filled in; each field is a form input id of the same name. */
     data class Fields(

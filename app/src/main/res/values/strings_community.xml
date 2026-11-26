@@ -47,6 +47,16 @@
     <string name="community_publish_sticker_pack_desc">Share <xliff:g id="pack_name" example="Office cats">%1$s</xliff:g> with everyone</string>
     <string name="community_publish_too_big">This <xliff:g id="kind" example="sticker pack">%1$s</xliff:g> is bigger than <xliff:g id="size" example="24 MB">%2$s</xliff:g>, the most a GitHub issue can carry. Take some out and try again.</string>
     <string name="community_publish_attach_body_pack">This <xliff:g id="kind" example="icon pack">%1$s</xliff:g> is too big to paste. Save it as a file and drag that into the big box on the GitHub form.</string>
+    <string name="community_publish_kind_plugin">plugin</string>
+    <string name="community_publish_plugin_desc">Share <xliff:g id="plugin_name" example="Cipher Tool">%1$s</xliff:g> with everyone</string>
+    <string name="community_publish_plugin_title">Share with everyone</string>
+    <string name="community_publish_plugin_subtitle">Send it to the community repository, where a maintainer reads the code before anyone can install it</string>
+    <string name="community_publish_plugin_review">A plugin is code, so it is reviewed first. The bot runs wmpy check and the plugin’s tests, and posts its permissions, the websites it reaches and every file. A maintainer reads the code and publishes it once it does what it says and nothing else. Leave out passwords, keys and anything personal.</string>
+    <string name="community_publish_plugin_problems">Fix the problems in plugin.json before sharing it.</string>
+    <string name="community_publish_attach_body_plugin">This plugin is too big to paste. Save it as a .zip and drag that into the Plugin box on the GitHub form.</string>
+    <string name="community_publish_license_permissive">Anyone can use, change and share the code if they keep your copyright notice.</string>
+    <string name="community_publish_license_weak_copyleft">Anyone can use the code; changes to your files have to be shared under the same licence.</string>
+    <string name="community_publish_license_copyleft">Anyone can use the code; anything built from it has to be shared under the same licence.</string>
     <string name="community_publish_snippets_folder_label">Folder to share</string>
     <string name="community_publish_snippets_all">All snippets</string>
     <plurals name="community_publish_snippets_check">

@@ -62,6 +62,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Publish
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SaveAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
+import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextDecrease
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextIncrease
@@ -414,6 +416,8 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
     var versions by remember { mutableStateOf<List<PluginSnapshot>?>(null) }
     var newFileOpen by rememberSaveable { mutableStateOf(false) }
     var renameFileOpen by rememberSaveable { mutableStateOf(false) }
+    // The draft as it stands, typed text included, for the community repository.
+    var sharing by remember { mutableStateOf<(() -> ByteArray)?>(null) }
     var deleteFileOpen by rememberSaveable { mutableStateOf(false) }
     var fileError by remember { mutableStateOf<String?>(null) }
     var comparing by remember { mutableStateOf<PluginSnapshot?>(null) }
@@ -768,6 +772,29 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                                     }
                                 },
                             )
+                            if (!OfflineBuild.isThisBuild) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.community_publish_plugin_title)) },
+                                    leadingIcon = { Icon(Icons.Outlined.Public, contentDescription = null) },
+                                    onClick = {
+                                        menuOpen = false
+                                        if (PluginManifestCodec.problems(ide.manifest).isNotEmpty()) {
+                                            scope.launch { snackbar.showSnackbar(files.getString(R.string.community_publish_plugin_problems)) }
+                                        } else {
+                                            val manifest = ide.manifest
+                                            val current = editor.text
+                                            val path = textPath
+                                            // Packed when the dialog asks, off the main thread, like Export.
+                                            sharing = {
+                                                val parts = ide.archive(current, path)
+                                                java.io.ByteArrayOutputStream().also {
+                                                    PluginFile.write(it, manifest, parts.script, parts.modules, parts.assets, parts.locales)
+                                                }.toByteArray()
+                                            }
+                                        }
+                                    },
+                                )
+                            }
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.plugin_ide_files_new_action)) },
                                 leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null) },
@@ -1123,6 +1150,10 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         )
     }
 
+
+    sharing?.let { pack ->
+        PublishPluginDialog(name = ide.manifest.name, payload = pack) { sharing = null }
+    }
 
     if (newFileOpen) {
         DraftFileNameDialog(

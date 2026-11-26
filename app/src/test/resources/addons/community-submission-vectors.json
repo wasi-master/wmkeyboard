@@ -1,7 +1,7 @@
 {
   "format": "wmkb-submission-vectors",
   "version": 1,
-  "about": "Shared with the community repository bot. Every encoder must decode each encoded string back to json exactly; encoded bytes are not compared.",
+  "about": "Shared with the community repository bot. Every encoder must decode each encoded string back to json exactly; encoded bytes are not compared. A vector with \"bytes\" instead of \"json\" is a binary file (a .wmplugin), given as standard base64: decode \"encoded\" and compare it to those bytes.",
   "vectors": [
     {
       "name": "theme: midnight",
@@ -22,6 +22,11 @@
       "name": "empty object",
       "json": "{}",
       "encoded": "wmkb:1:eNqrrgUAAXUA-Q"
+    },
+    {
+      "name": "plugin: echo (a .wmplugin, so bytes rather than json)",
+      "bytes": "UEsDBBQAAAAIAAAAIQA5X1DvyQAAAEkBAAALAAAAcGx1Z2luLmpzb25Fj8uOwjAMRff9CitrJoLFbNjzB6PZIBamNa1F85CTUqIR/04eFbP0uTfHzl8HoG5ODEZ1BLWaO6WrQxm+/LyMbNWuFB4kgZ3NjUOdeSjl3hlNTzR+Jk395FrXoqGSnj6kmX4/DnXQe71vGS5xclL7zdTwQKEX9nF78JM8Bbhif4d1wgjJLbAKRwK2wDFH7qk3oef/Td8VzWjHBcd6lU953/YrslFSgQbZap+2a0kMhyIIOTtnlGGIToph18Yb0zzoeoHK5NK9ujdQSwMEFAAAAAgAAAAhAKCX1bywAAAAHQEAAAcAAABtYWluLnB5TY9JDsMgDADvvMLiBBLiAZEi9RG9VzQ4KSpLREyX3xdoqsYnL+OxPOcU4BnAhTVlgtWXxUUFxSmYHXrL2EaGEMZ9pHspCF80ci4ZY6d9kDFazMziDN9UyIFBjYxUcqxKPSVfQhS926K2XFwLiYfxBceu1k2tIMXLdDNxwdGbcLUGcIANK0BZdE4BbyRXgLqvS6mO4mshSlHw83tFcI1rSu+m+8HYX9RUEfE//hNJ9gFQSwECFAMUAAAACAAAACEAOV9Q78kAAABJAQAACwAAAAAAAAAAAAAAgAEAAAAAcGx1Z2luLmpzb25QSwECFAMUAAAACAAAACEAoJfVvLAAAAAdAQAABwAAAAAAAAAAAAAAgAHyAAAAbWFpbi5weVBLBQYAAAAAAgACAG4AAADHAQAAAAA=",
+      "encoded": "wmkb:1:eNoL8GZmEWFgYOAAYkUGy_iA9yeBLE9GBgZuIF2QU5qemaeXVZyf59p_uu-QAY_r979c2tlqTUdzbnxmX3xTQWyZ6VrXzxMmBy0S_O8nJ7r5y07z4-fi2Rfk-fG4lbJsnWW9dLWz5L4_e3pyrq4TkVNpnHu213lupcbTe5K-_iZ1ar5_n0RdX7Rw0jy7JTPr7PlKL1TvzZfUKywK-n32ygeHheLfCqs_TLZh3ZFU3156iOOk7gYud6ZtBwzd3600X_j8v-990bMZx1mPV031r7z_TXtTYFAj282s-duyPXnalTgsrdOnJHb4dSVePyZ92eZFVeOpJ5f27jIPQPHxgulX92wAsmSBPmYH0rmJQP8WVPr2e_IdVuBheL_n0CMWoUeME5W-Cu4NN7HQ1PJ28Zl-Xzxj1TF1_ccbbZ6LPJA80Gqa2nR1-lFX1qOaM2SrTt9waxM4VrukWpMj3qRITzJ5ee0Ew6gzZx7x3A850ejY2xNStMbLVjXeSWTv7UXbYmK4O9s_sh5fd813rcLR0yXGhQcvzi7YylbQwKvtEFnix5ivEt6wa733yr5H2YpegR8-V7sW9GZ7vV_2--CN-Cshgh_t_wl7fmMM8GZkEmHGHZEw0MDIgBqt6BrRwwOh8RMidAK8WdlAgkxAmAekj4NNBQCfo9bL"
     }
   ]
 }

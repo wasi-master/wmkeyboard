@@ -31,18 +31,57 @@ class CommunitySubmissionTest {
     private val fields = CommunitySubmission.Fields(name = "Night Owl", tags = listOf("dark", " blue ", "dark"))
 
     @Test
-    fun `every shared vector decodes to its json`() {
+    fun `every shared vector decodes to its json or its bytes`() {
         val vectors = Json.parseToJsonElement(fixture("community-submission-vectors.json"))
             .jsonObject.getValue("vectors").jsonArray
         assertTrue(vectors.size >= 3)
+        var binary = 0
         for (vector in vectors) {
             val v = vector.jsonObject
             val name = v.getValue("name").jsonPrimitive.content
-            val json = v.getValue("json").jsonPrimitive.content
             val encoded = v.getValue("encoded").jsonPrimitive.content
-            assertEquals(name, json, CommunitySubmission.decodePayload(encoded))
-            assertEquals(name, json, CommunitySubmission.decodePayload(CommunitySubmission.encodePayload(json)))
+            val json = v["json"]?.jsonPrimitive?.content
+            if (json != null) {
+                assertEquals(name, json, CommunitySubmission.decodePayload(encoded))
+                assertEquals(name, json, CommunitySubmission.decodePayload(CommunitySubmission.encodePayload(json)))
+            } else {
+                // A .wmplugin: standard base64 of the zip. A JVM test has java.util.Base64.
+                val bytes = java.util.Base64.getDecoder().decode(v.getValue("bytes").jsonPrimitive.content)
+                assertTrue(name, bytes.contentEquals(CommunitySubmission.decodePayloadBytes(encoded)))
+                assertTrue(name, bytes.contentEquals(CommunitySubmission.decodePayloadBytes(CommunitySubmission.encodePayload(bytes))))
+                binary++
+            }
         }
+        assertTrue("a .wmplugin vector", binary >= 1)
+    }
+
+    @Test
+    fun `a plugin goes to its own form with code licences, as its own zip`() {
+        val vectors = Json.parseToJsonElement(fixture("community-submission-vectors.json")).jsonObject.getValue("vectors").jsonArray
+        val plugin = checkNotNull(
+            vectors.map { it.jsonObject }.firstNotNullOfOrNull { it["bytes"]?.jsonPrimitive?.content }?.let { java.util.Base64.getDecoder().decode(it) },
+        )
+        val kind = CommunitySubmission.Kind.PLUGIN
+        assertEquals(AddonType.Plugin, kind.type)
+        assertTrue(kind.binary)
+        assertEquals(1L * 1024 * 1024, kind.maxBytes)
+        // The same list, in the same order, as the plugin form's dropdown and wmpy publish.
+        assertEquals(
+            listOf("MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MPL-2.0", "LGPL-3.0-or-later", "GPL-3.0-or-later", "AGPL-3.0-or-later", "Unlicense", "CC0-1.0"),
+            CommunitySubmission.licenses(kind),
+        )
+        assertEquals(CommunitySubmission.LICENSES, CommunitySubmission.licenses(CommunitySubmission.Kind.THEME))
+
+        val plan = CommunitySubmission.plan(kind, fields.copy(license = "MIT", description = "Types back what you write"), plugin)
+        assertEquals(CommunitySubmission.Tier.LINK, plan.tier)
+        val params = query(plan.url)
+        assertEquals("submit-plugin.yml", params["template"])
+        assertEquals("[Plugin] Night Owl", params["title"])
+        assertEquals("MIT", params["license"])
+        assertTrue(plugin.contentEquals(CommunitySubmission.decodePayloadBytes(params.getValue("payload"))))
+        // GitHub takes a .zip, and the bot knows a plugin by its plugin.json: sent as it is.
+        assertTrue(plugin.contentEquals(CommunitySubmission.attachment(kind, plugin)))
+        assertEquals("Cipher Tool.zip", CommunitySubmission.attachmentName(kind, "Cipher Tool!"))
     }
 
     @Test

@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PowerSettingsNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
@@ -753,6 +754,7 @@ internal fun PluginDetailScreen(
     val plugin = remember(revision) { store.plugin(pluginId) }
     var refresh by remember { mutableIntStateOf(0) }
     var confirmUninstall by remember { mutableStateOf(false) }
+    var publishing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val place = settings.watch {
         pluginToolPlaceIn(it.toolbarTools, it.toolboxOrder, it.toolbox.folders, pluginId, it.toolbarBehavior.secondRowTools)
@@ -824,6 +826,24 @@ internal fun PluginDetailScreen(
                 onClick = { scope.launch { openPluginCode(context, store, pluginId, onNavigate) } },
             )
         }
+        // The installed copy, as Export writes it, to the community repository's review.
+        item(visible = !OfflineBuild.isThisBuild, waitsOnSetting = false) {
+            WmRow(
+                title = stringResource(R.string.community_publish_plugin_title),
+                icon = Icons.Outlined.Public,
+                subtitle = stringResource(R.string.community_publish_plugin_subtitle),
+                onClick = { publishing = true },
+            )
+        }
+    }
+
+    if (publishing) {
+        PublishPluginDialog(
+            name = plugin.displayName,
+            payload = {
+                java.io.ByteArrayOutputStream().also { out -> check(store.export(pluginId, out)) { "could not export $pluginId" } }.toByteArray()
+            },
+        ) { publishing = false }
     }
 
     // A plugin with a panel can be a tool of its own: pinned to the toolbar or

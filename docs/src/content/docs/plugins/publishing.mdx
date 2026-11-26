@@ -1,0 +1,209 @@
+---
+title: "Publishing"
+description: "Share a plugin: send the .wmplugin file, list it in your own addon repository, or send it to the community repository, where a maintainer reviews the code."
+sidebar:
+  label: "Publishing"
+  order: 8.6
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import SettingsPath from '@components/SettingsPath.astro';
+
+There are three ways to share a plugin. Each one starts from the same
+`.wmplugin` file, the one `wmpy pack` writes and **Export** saves in the
+plugin editor.
+
+| Way | Who can install it | Review |
+|---|---|---|
+| [Send the file](#send-the-file) | Whoever you send it to | None |
+| [Your own addon repository](#your-own-addon-repository) | Anyone who adds your repository | Yours |
+| [The community repository](#the-community-repository) | Everyone, from **Addons** | A maintainer reads the code |
+
+## Send the file
+
+Send the `.wmplugin` like any file: a chat, an email, a download link. On the
+phone, opening it in WM Keyboard shows what the plugin asks for and installs
+it. Its risky permissions stay off until the user turns them on, as with
+every plugin (see [Permissions](/plugins/permissions/)).
+
+Nobody checks a file sent this way. Install plugins from people you trust.
+
+## Your own addon repository
+
+An addon repository is a folder of files on GitHub, Codeberg or any web
+server, with a `wmkeyboard-repo.json` that lists them. Users add its address
+once, and WM Keyboard offers every update after that. See
+[Addon repositories](/development/addon-repos/) to start one.
+
+`wmpy publish --repo` puts a plugin in a checkout of it:
+
+```bash
+wmpy publish --repo ~/code/my-addons --licence MIT
+```
+
+<Steps>
+
+1. It runs `wmpy check`, the plugin's tests and `wmpy pack`, and stops at the first that fails.
+
+2. It copies the archive to `plugins/<id>.wmplugin`. The id is the plugin folder's name; `--update <id>` picks another.
+
+3. It adds the plugin's entry to `wmkeyboard-repo.json`, or updates the one already there: version, `sha256`, `sizeBytes`, and the file types it opens. The rest of the file stays as it was.
+
+4. It prints the `git add`, `git commit` and `git push` to run. It never commits for you.
+
+</Steps>
+
+`--dry-run` prints the entry it would write and changes nothing. Raise
+`pluginVersion` in plugin.json before each new version: phones offer an update
+only when the version goes up.
+
+## The community repository
+
+The [community repository](https://github.com/wasi-master/wmkeyboard-community-addons)
+is listed in every copy of WM Keyboard under **Addons**. It takes plugins with
+any permission, risky ones included. Because a plugin is code, a maintainer
+reads every file before it is published.
+
+You need a GitHub account. Send it from any of these:
+
+<Tabs syncKey="publish">
+<TabItem label="wmpy">
+
+```bash
+cd my-plugin
+wmpy publish
+```
+
+It runs `wmpy check`, the tests and `wmpy pack`, then shows what it is about
+to send: the name, version and size, each permission with the risky ones
+marked, and the hosts. Type `y` to send it.
+
+With a GitHub token in `GITHUB_TOKEN` or `GH_TOKEN`, or the GitHub CLI signed
+in (`gh auth login`), wmpy files the issue itself and prints its link.
+Without one, it opens the form in your browser, filled in. You check it and
+press the button to submit.
+
+| Flag | What it does |
+|---|---|
+| `--licence MIT` | The code's licence, from the list [below](#licences). MIT when you leave it out. |
+| `--tags text,cipher` | Tags for the plugin's card. |
+| `--description "…"` | The card's description, in place of the one in plugin.json. |
+| `--update <id>` | A new version of a plugin you published before. |
+| `--dry-run` | Prints the issue it would file, and sends nothing. |
+| `--yes` | Sends without asking. |
+
+</TabItem>
+<TabItem label="On the phone">
+
+On the plugin's page, <SettingsPath path="Tools / Plugins / Manage plugins / your plugin" />,
+tap **Share with everyone**. In the plugin editor, it is in the ⋮ menu. The
+editor sends the code as it is now, with changes you have not saved.
+
+Fill in the name, description, tags and licence, then tap **Open GitHub**.
+
+</TabItem>
+<TabItem label="In the browser">
+
+In the [plugin editor](/addons/new?type=plugin), choose
+**Submit to community**. It opens the form filled in, the same way the app
+does.
+
+</TabItem>
+</Tabs>
+
+A small plugin travels in the link that opens the form. A larger one is
+copied as a `wmkb:1:` text to paste into the **Plugin** box. Past about
+45 KB, it is saved as a `.zip` to drag into that box, since GitHub does not
+take the `.wmplugin` extension. The bot reads all three the same way. The
+`.wmplugin` can be at most 1 MB, the most the app downloads for a plugin.
+
+### What the bot checks
+
+Within a few minutes the bot posts one comment on the issue and edits it as it
+learns more. It checks:
+
+- the form: a name, a description, a licence from the list, the rights box ticked;
+- the file, read the way the app reads it: at most 64 files and 4 MB unpacked, a `plugin.json`, the script it names, module, asset and translation names the app takes;
+- the plugin id in plugin.json: no other published plugin uses it, since it is the folder the plugin lives in on a phone;
+- `pluginVersion`: three numbers, such as `1.0.0`, and higher than the published version for an update;
+- `wmpy check`, the same check you run, with the app's own manifest rules;
+- the tests, when the `.wmplugin` holds a `test.py` or a `tests/` folder. `wmpy pack` leaves tests out, so wmpy runs them on your computer before it sends anything.
+
+The tests run in the sandbox the keyboard uses, in a job with no access to
+the repository. The issue is marked ready only when every check passes.
+
+### What the comment shows
+
+Under the checks, the comment lists what a reviewer needs:
+
+- every permission, split as the app splits them: those that apply on install, and the risky ones that stay off until the user grants them, each marked ⚠️;
+- a warning when the plugin can both read what the user has and send data off the phone, the same pair the app warns about;
+- the hosts it may reach, and any setting that lets the user type in a server of their own;
+- its providers, selection actions, keyword, settings, and the file types it opens;
+- every file with its size, and the code of each, one collapsed block per file;
+- for an update, the permissions and hosts that are new, and a diff against the published version;
+- a link to try it on your phone before it is published.
+
+The trial copy comes from a separate pending repository. It installs
+switched off, like any plugin from a repository.
+
+### Review and approval
+
+A maintainer reads every file. They check that the plugin does what its
+description says and nothing else, that whatever it reads stays where the
+description says it goes, and that each host has a reason. They also look for
+code loaded at run time, hidden or minified code, and keys or tokens written
+into the source. A user's own key belongs in a `secret` setting (see
+[Saving data and settings](/plugins/guides/saving-and-settings/)).
+
+To make the review quick:
+
+- Say in the description what the plugin does, and if it goes online, which service and why.
+- Ask only for the permissions and hosts the code uses.
+- Keep the code readable. Vendored packages from `wmpy pip` are fine.
+
+If something needs a fix, the comment says what. Edit the issue (the pencil
+on your first post) and the bot checks it again. A maintainer may also ask
+questions in the issue. When it is approved, the bot publishes it, closes the
+issue and posts the plugin's link.
+
+## Updates and ownership
+
+To publish a new version, raise `pluginVersion` and send it with the id the
+bot gave it:
+
+```bash
+wmpy publish --update cipher-tool
+```
+
+From the app or the web editor, put that id in **Updates**. Only the GitHub
+account that published a plugin can update it. The bot checks the numeric
+account id, so renaming your account keeps it yours. An update keeps the
+`id` in plugin.json, or phones would install it beside the old version and
+the plugin's saved data would stay behind. Each update gets the same review,
+and the comment shows the diff.
+
+## Licences
+
+The community repository publishes code under the licence you pick:
+
+| Licence | What others may do |
+|---|---|
+| MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC | Use, change and share it, keeping your copyright notice. |
+| MPL-2.0, LGPL-3.0-or-later | The same, and changes to your files stay under the same licence. |
+| GPL-3.0-or-later, AGPL-3.0-or-later | The same, and anything built from it stays under the same licence. |
+| CC0-1.0, Unlicense | Anything, with no conditions. |
+
+If the plugin includes someone else's code, such as a package vendored with
+`wmpy pip`, your licence has to allow theirs. Keep their notice in the files.
+
+## sha256
+
+Every plugin entry in an addon repository carries the SHA-256 of its
+`.wmplugin`. The app refuses a plugin entry without one, and checks the
+file it downloads against it before installing. For other addons the checksum
+is optional; code is the one kind it is required for.
+
+`wmpy pack` prints it, `wmpy publish --repo` writes it into the entry, and the
+community repository's bot writes it when it publishes. Any change to the file
+changes it, so publish the exact file you checked.

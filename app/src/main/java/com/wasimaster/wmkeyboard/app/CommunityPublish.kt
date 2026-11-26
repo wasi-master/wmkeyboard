@@ -194,6 +194,31 @@ internal fun PublishSnippetsDialog(snippets: List<Snippet>, folders: List<Snippe
     )
 }
 
+/**
+ * Opens the publish dialog for one plugin. [payload] makes its `.wmplugin`,
+ * the same file Export writes: from the installed copy on the plugin's page,
+ * from the draft in the plugin editor. Called off the main thread.
+ */
+@Composable
+internal fun PublishPluginDialog(name: String, payload: () -> ByteArray, onDismiss: () -> Unit) {
+    CommunityPublishDialog(
+        kind = CommunitySubmission.Kind.PLUGIN,
+        defaultName = name,
+        credit = null,
+        payload = { payload() },
+        canShrink = false,
+        onDismiss = onDismiss,
+        extra = {
+            // A plugin is code: say who reads it, and what the bot shows them.
+            Text(
+                stringResource(R.string.community_publish_plugin_review),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+    )
+}
+
 private enum class PublishStep { FORM, BUSY, PASTE, ATTACH, SAVED }
 
 /**
@@ -226,13 +251,15 @@ private fun CommunityPublishDialog(
             CommunitySubmission.Kind.ICON_PACK -> R.string.community_publish_kind_icon_pack
             CommunitySubmission.Kind.STICKERS -> R.string.community_publish_kind_stickers
             CommunitySubmission.Kind.SNIPPETS -> R.string.community_publish_kind_snippets
+            CommunitySubmission.Kind.PLUGIN -> R.string.community_publish_kind_plugin
         },
     )
+    val licenses = CommunitySubmission.licenses(kind)
 
     var name by rememberSaveable(defaultName) { mutableStateOf(defaultName) }
     var description by rememberSaveable { mutableStateOf("") }
     var tags by rememberSaveable { mutableStateOf("") }
-    var license by rememberSaveable { mutableStateOf(CommunitySubmission.LICENSES.first()) }
+    var license by rememberSaveable { mutableStateOf(licenses.first()) }
     var updates by rememberSaveable { mutableStateOf("") }
     // GitHub's issue form keeps every box the link fills in as it was: typing
     // there snaps it back. Off sends description and tags in the link (one
@@ -378,7 +405,7 @@ private fun CommunityPublishDialog(
                         style = MaterialTheme.typography.labelLarge,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        for (option in CommunitySubmission.LICENSES) {
+                        for (option in licenses) {
                             FilterChip(
                                 selected = license == option,
                                 onClick = { license = option },
@@ -454,6 +481,7 @@ private fun CommunityPublishDialog(
                     when {
                         canShrink && !shrunk -> stringResource(R.string.community_publish_attach_body)
                         kind == CommunitySubmission.Kind.LAYOUT -> stringResource(R.string.community_publish_attach_body_layout)
+                        kind == CommunitySubmission.Kind.PLUGIN -> stringResource(R.string.community_publish_attach_body_plugin)
                         else -> stringResource(R.string.community_publish_attach_body_pack, kindLabel)
                     },
                 )
@@ -492,6 +520,10 @@ private fun CommunityPublishDialog(
 private fun licenseExplanation(license: String): Int = when (license) {
     "CC-BY-4.0" -> R.string.community_publish_license_cc_by
     "CC-BY-SA-4.0" -> R.string.community_publish_license_cc_by_sa
+    // The plugin form's code licences, by what they ask of someone reusing the code.
+    "MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC" -> R.string.community_publish_license_permissive
+    "MPL-2.0", "LGPL-3.0-or-later" -> R.string.community_publish_license_weak_copyleft
+    "GPL-3.0-or-later", "AGPL-3.0-or-later" -> R.string.community_publish_license_copyleft
     else -> R.string.community_publish_license_cc0
 }
 
