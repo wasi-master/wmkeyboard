@@ -4514,7 +4514,11 @@ data class KeyboardUiState(
     val dictionaryQuery: String = "",
     /** Typing edits [dictionaryQuery] (letters show under the panel). */
     val dictionarySearchActive: Boolean = false,
-    /** What the Unicode tab of the symbols tool is searching for; null while its box is shut. */
+    /**
+     * What the Unicode tab of the symbols tool, or the calculator's constants
+     * page (#1574), is searching for; null while its box is shut. One buffer
+     * for both: only one of the two panels is ever open.
+     */
     val unicodeQuery: String? = null,
     val vocab: VocabPanelUi = VocabPanelUi(),
     /**
@@ -4949,9 +4953,12 @@ data class KeyboardUiState(
     val typingTestActive: Boolean
         get() = panel == PanelMode.TYPING_TEST && typingTest.result == null
 
-    /** Keystrokes belong to the calculator's expression while its panel is up. */
+    /**
+     * Keystrokes belong to the calculator's expression while its panel is up,
+     * except while its constants page is being searched (#1574).
+     */
     val calcTypingActive: Boolean
-        get() = panel == PanelMode.CALCULATOR
+        get() = panel == PanelMode.CALCULATOR && unicodeQuery == null
 
     /** Keystrokes belong to the converters' amount while either panel is up. */
     val converterTypingActive: Boolean
@@ -5287,7 +5294,8 @@ data class KeyboardUiState(
         // in the floating box (#1155), as are web search's and Wikipedia's (#1265).
         mediaSearchActive && (panel.hasMediaSearch || boxSearchPanel?.let { toolUp(it) } == true) -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive && !boxHolds(PanelMode.DICTIONARY) -> CaptureTarget.DICTIONARY_SEARCH
-        unicodeQuery != null && panel == PanelMode.SYMBOLS -> CaptureTarget.UNICODE_SEARCH
+        unicodeQuery != null && (panel == PanelMode.SYMBOLS || panel == PanelMode.CALCULATOR) ->
+            CaptureTarget.UNICODE_SEARCH
         clipboardSearchActive -> CaptureTarget.CLIPBOARD_SEARCH
         snippetSearchActive -> CaptureTarget.SNIPPET_SEARCH
         panel == PanelMode.TOOLBOX && toolboxView.nameDraft != null -> CaptureTarget.TOOLBOX_FOLDER_NAME

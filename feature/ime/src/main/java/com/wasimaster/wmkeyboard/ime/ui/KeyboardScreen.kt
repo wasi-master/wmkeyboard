@@ -17850,13 +17850,14 @@ private fun KeyboardBody(
                         )
                     }
                 }
-                // Collapsed over the key rows while the focus switch sends the
-                // keys to the app's field (#665), like any tool whose box lets go.
-                PanelMode.CALCULATOR -> FullBleedTool(
-                    state, stringResource(R.string.ime_tool_calculator),
+                // With its math pages as tabs in the header (#1574).
+                PanelMode.CALCULATOR -> CalculatorTool(
+                    state,
                     onClose = { onPanelChange(PanelMode.CALCULATOR) },
-                    compact = state.captureHandedToApp,
-                ) { CalculatorPanel(state, onToolInsert, converter) }
+                    onInsert = onToolInsert,
+                    converter = converter,
+                    onSearchToggle = toolHold.onUnicodeSearchToggle,
+                )
                 // The converters open at the calculator's height too (#665): their
                 // keypad is the flexible part and shrinks to fit under the unit
                 // rows, the way the calculator's does under its functions.

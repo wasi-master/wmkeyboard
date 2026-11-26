@@ -22,6 +22,8 @@ For Wikipedia, web/image search, and the AI writing tools (also reachable from t
 
 Open **Calculator** from the toolbar or toolbox. It isn't pinned by default. On a hardware keyboard, double-tap <KeyCap>Ctrl</KeyCap> for the [leader key](/reference/shortcuts/), then press <KeyCap>L</KeyCap>.
 
+The panel's header holds six tabs: **Calculator**, **Scientific**, **Constants**, **Formulas**, **Graph** and **Chart**. It always opens on **Calculator**, the plain calculator described here; the other five are [math pages](#math-pages) a tap away. Added in 0.6.8 (#1574).
+
 The panel evaluates your expression live as you type. It takes `+ - × ÷ * / mod % ^ ( )`, implicit multiplication (`2π`, `3(4+1)`), and the constants `π`/`pi` and `e`. A scrolling function row offers `C`, `sin`, `cos`, `tan`, `π`, `e`, `^`, `√`, `ln`, `log` (base 10), `abs` and `mod` as one-tap chips. Typed out by name, `asin`/`acos`/`atan`/`sinh`/`cosh`/`tanh`/`sqrt`/`cbrt`/`exp`/`floor`/`ceil`/`round` all work too. A trailing `%` reads the way it does on a pocket calculator: added or subtracted it is a share of what came before, so `100+20%` is `120` and `1500-20%` is `1200`, and a second one compounds on the new total. On its own, or multiplied and divided, it is a plain hundredth: `20%` is `0.2`, `100×20%` is `20`, `100÷20%` is `500`. Wrap it in brackets to force that reading where you don't want the share: `100+(20%)` is `100.2`. A `%` followed by a number is modulo, same as `mod`. Permutations and combinations use the keypad shorthand, `5p3` and `4c2`.
 
 - The **deg**/**rad** chip in the scrolling function row flips trig between degrees and radians, and remembers your choice.
@@ -35,6 +37,27 @@ The custom keypad (`7 8 9 ÷ ⌫`, `4 5 6 × (`, `1 2 3 − )`, `0 . % + =`, or 
 The expression has a caret. Tap between two characters to put it there, and the next key, function or backspace works at that spot, so a wrong digit early in a long sum can be fixed without deleting back to it. A hardware keyboard's arrow keys move it too, and a long press selects, so the next key replaces the selection. `C` and `=` still work on the whole expression. Added in 0.6.8 (#1536).
 
 On a phone turned sideways there's no room for a row of chips over the keypad, so the functions move beside it instead: `C`, the eleven functions and the **deg**/**rad** toggle become keys, four to a row, to the keypad's left.
+
+### Math pages
+
+The five tabs after **Calculator** work entirely on the device. What you leave on them (the memory, a half-filled formula, the graph's functions, the chart's numbers) is still there when you come back, until the keyboard restarts.
+
+**Scientific** shows the same expression and result as the calculator, caret included, over a bigger keypad: `sin`, `cos`, `tan`, `ln`, `log`, `x²`, `xʸ`, `√`, `x!`, `π`, `e`, `x⁻¹`, `|x|`, `nPr`, `nCr`, `mod`, `%`, `eˣ`, `10ˣ` and `×10ˣ`, beside the digits and operators. The chips above the keys are:
+
+- **2nd**, which turns the trig keys into their inverses (`sin⁻¹` and so on), `x²` into `x³` and `√` into `∛`.
+- **hyp**, which turns the trig keys into `sinh`, `cosh` and `tanh`. With **2nd** as well they become the inverse hyperbolic functions.
+- **deg**/**rad**, the same switch as on the calculator.
+- **MC**, **MR**, **M+** and **M−**, a memory. **M+** adds the current result to it, **M−** takes it away, **MR** types the stored number at the caret and **MC** empties it.
+
+The factorial works on fractions too, through the gamma function: `0.5!` is about `0.886`. Typed by name, `asinh`, `acosh` and `atanh` work on the calculator page as well.
+
+**Constants** lists about 80 constants in seven groups: maths (π, e, the golden ratio, γ and others), universal (c, G, h, ħ, g₀), electromagnetic, atomic and nuclear, physico-chemical (Avogadro, Boltzmann, the gas constant, Faraday, molar volume), astronomy, and everyday values such as the density and specific heat of water. Physical values are the CODATA 2022 recommended ones, and those the SI fixes by definition are marked **exact**. Tap a row to type the value and its unit into the app, for example `6.62607015 × 10⁻³⁴ J·s`. The calculator button at the end of the row puts the number into the calculator's expression instead and switches to that tab. **Search** opens a box in the header that the letter rows type into, and searches every group by name, symbol or unit.
+
+**Formulas** has about 100 fill-in formulas under eight topics: algebra, geometry, trigonometry, mechanics, electricity, waves and light, heat, and chemistry (moles, concentration, dilution, the gas laws, pH and more). Pick one, type the values you know into its fields with the keypad beside them, and the answer appears with its unit. Any quantity can be the one worked out: tap its symbol, so `v = u + a·t` also gives `t` from `v`, `u` and `a`. Where an equation has two answers, as a quadratic in time does, the formula gives the smallest positive one. Fields such as g, G, h, c and R start filled with the standard value, and angles are in degrees. **Insert** types the answer, such as `4.75 s`. **Insert with formula** types the formula with your numbers in it as well, such as `v = 3 + 2·4.75 = 12.5 m/s`.
+
+**Graph** plots up to four functions of `x`, each in its own colour. Tap a function's chip to edit it, or the add chip for a new one: a keypad with `x`, the trig and log functions and the digits opens in place of the graph. Drag to move around, pinch or use the buttons on the right to zoom, and the target button fits the view to the curves again. Tap the graph to read every function's value at that `x`, and **Insert** in that box to type the values. **Table** lists the values in steps across the view, and **Insert table** types it as tab-separated rows that paste into a spreadsheet. Trig follows **deg**/**rad**: in degrees the view starts one full turn either way, in radians about three.
+
+**Chart** draws a bar, line or pie chart. **Paste** reads the clipboard, either a list of numbers (`3, 5, 2.5`, or one a line) or a table with a label and a number on each line, as copied from a spreadsheet. **Type** opens a keypad for entering numbers by hand. Under the chart are the count, sum, mean, median, minimum and maximum, and **Insert figures** types them.
 
 ### Sums with units
 

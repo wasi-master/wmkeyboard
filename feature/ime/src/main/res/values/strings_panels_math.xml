@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The calculator tool's math pages (#1574): the tabs in its header, the
+  scientific page's memory, the constants list, the fill-in formulas,
+  the function graph and the chart. Key labels such as sin, nPr and MC stay in
+  the code: a calculator prints them the same way in every language.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- The tabs that take the calculator's title in its header. -->
+    <string name="ime_math_tab_calculator">Calculator</string>
+    <string name="ime_math_tab_scientific">Scientific</string>
+    <string name="ime_math_tab_constants">Constants</string>
+    <string name="ime_math_tab_formulas">Formulas</string>
+    <string name="ime_math_tab_graph">Graph</string>
+    <string name="ime_math_tab_chart">Chart</string>
+
+    <!-- Scientific page: what the memory holds, beside its keys. %1$s is the number. -->
+    <string name="ime_math_memory_value">M = <xliff:g id="value" example="42">%1$s</xliff:g></string>
+
+    <!-- Constants page. -->
+    <string name="ime_math_constants_search">Search</string>
+    <string name="ime_math_constants_search_hint">Search constants</string>
+    <string name="ime_math_constants_search_close">Close search</string>
+    <string name="ime_math_constants_use_desc">Use in the calculator</string>
+    <!-- Marks a value fixed by the definition of the SI units. -->
+    <string name="ime_math_constants_exact">exact</string>
+    <!-- %1$s is what was searched for. -->
+    <string name="ime_math_constants_none">No constant matches “<xliff:g id="query" example="planck">%1$s</xliff:g>”</string>
+
+    <!-- Formulas page. -->
+    <string name="ime_math_formulas_back_desc">All formulas</string>
+    <string name="ime_math_formulas_hint">Type the values you know. Tap a symbol to work that one out instead.</string>
+    <string name="ime_math_formulas_need_values">Type the values you know</string>
+    <string name="ime_math_formulas_no_solution">These values have no solution</string>
+    <string name="ime_math_formulas_insert">Insert</string>
+    <string name="ime_math_formulas_insert_working">Insert with formula</string>
+    <string name="ime_math_formulas_next_desc">Next field</string>
+    <string name="ime_math_formulas_sign_desc">Change the sign</string>
+    <string name="ime_math_formulas_exponent_desc">Times ten to the power</string>
+
+    <!-- Graph page. -->
+    <string name="ime_math_graph_add_desc">Add a function</string>
+    <string name="ime_math_graph_remove_desc">Remove this function</string>
+    <string name="ime_math_graph_done">Done</string>
+    <string name="ime_math_graph_placeholder">A function of x</string>
+    <string name="ime_math_graph_zoom_in_desc">Zoom in</string>
+    <string name="ime_math_graph_zoom_out_desc">Zoom out</string>
+    <string name="ime_math_graph_reset_desc">Fit the graph</string>
+    <string name="ime_math_graph_table">Table</string>
+    <string name="ime_math_graph_plot">Graph</string>
+    <string name="ime_math_graph_insert_table">Insert table</string>
+    <string name="ime_math_graph_insert_value">Insert</string>
+    <string name="ime_math_graph_trace_hint">Tap the graph to read its values</string>
+
+    <!-- Chart page. -->
+    <string name="ime_math_chart_bar">Bar</string>
+    <string name="ime_math_chart_line">Line</string>
+    <string name="ime_math_chart_pie">Pie</string>
+    <string name="ime_math_chart_paste">Paste</string>
+    <string name="ime_math_chart_keypad">Type</string>
+    <string name="ime_math_chart_empty">Paste a list of numbers or a table with a label and a number on each line, or type the numbers.</string>
+    <!-- The figures under a chart. -->
+    <string name="ime_math_chart_stats">n <xliff:g id="count" example="5">%1$d</xliff:g> · sum <xliff:g id="sum" example="40">%2$s</xliff:g> · mean <xliff:g id="mean" example="8">%3$s</xliff:g> · median <xliff:g id="median" example="7">%4$s</xliff:g> · min <xliff:g id="min" example="2">%5$s</xliff:g> · max <xliff:g id="max" example="15">%6$s</xliff:g></string>
+    <string name="ime_math_chart_insert_stats">Insert figures</string>
+</resources>
