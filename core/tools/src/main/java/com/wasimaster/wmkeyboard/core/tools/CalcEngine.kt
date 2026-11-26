@@ -4,8 +4,11 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.tools.R
 import kotlin.math.abs
 import kotlin.math.acos
+import kotlin.math.acosh
 import kotlin.math.asin
+import kotlin.math.asinh
 import kotlin.math.atan
+import kotlin.math.atanh
 import kotlin.math.cbrt
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -25,9 +28,10 @@ import kotlin.math.tanh
 /**
  * Expression evaluator for the calculator tool. Recursive descent over
  * `+ - × ÷ * / mod ^ ( )`, the counting operators `nPr` and `nCr`,
- * scientific functions, the constants π and e, and implicit multiplication
- * (`2π`, `3(4+1)`). Trig honors the tool's degree/radian setting. Pure and
- * synchronous — nothing leaves the device.
+ * scientific functions, the postfix factorial `!`, the constants π and e,
+ * named variables (the math pages' formulas and graphs, #1574), and implicit
+ * multiplication (`2π`, `3(4+1)`, `2x`). Trig honors the tool's degree/radian
+ * setting. Pure and synchronous — nothing leaves the device.
  */
 object CalcEngine {
 
@@ -48,10 +52,16 @@ object CalcEngine {
     /**
      * Evaluates [expression]; throws [CalcException] with a short,
      * user-facing message when it can't. [degrees] applies to the trig
-     * functions (inverse ones return in the same unit).
+     * functions (inverse ones return in the same unit). A name in
+     * [variables] stands for its value, matched case and all before the
+     * built-in names, so a formula's `E` is its energy and not Euler's e.
      */
-    fun evaluate(expression: String, degrees: Boolean = true): Double {
-        val parser = Parser(expression, degrees)
+    fun evaluate(
+        expression: String,
+        degrees: Boolean = true,
+        variables: Map<String, Double> = emptyMap(),
+    ): Double {
+        val parser = Parser(expression, degrees, variables, lenient = false)
         val value = parser.parseExpression()
         parser.skipSpaces()
         if (!parser.atEnd) {
@@ -59,6 +69,28 @@ object CalcEngine {
         }
         if (value.isNaN()) throw CalcException(R.string.core_tools_calc_error_undefined_result)
         if (value.isInfinite()) throw CalcException(R.string.core_tools_calc_error_too_large)
+        return value
+    }
+
+    /**
+     * [evaluate] for drawing and for the formula solver (#1574), which ask
+     * for hundreds of values in a row: where the sum has no value (a square
+     * root of a negative, a division by zero, a pole) this answers NaN or an
+     * infinity instead of throwing, so a plot leaves a gap there rather than
+     * paying for an exception at every point. A sum that does not parse
+     * still throws [CalcException].
+     */
+    fun valueAt(
+        expression: String,
+        degrees: Boolean,
+        variables: Map<String, Double>,
+    ): Double {
+        val parser = Parser(expression, degrees, variables, lenient = true)
+        val value = parser.parseExpression()
+        parser.skipSpaces()
+        if (!parser.atEnd) {
+            throw CalcException(R.string.core_tools_calc_error_unexpected, parser.rest().take(8))
+        }
         return value
     }
 
@@ -122,14 +154,72 @@ object CalcEngine {
     }
 
     private fun requireCounts(n: Double, r: Double) {
-        val whole = n == floor(n) && r == floor(r)
-        if (!whole || n < 0 || r < 0 || r > n) {
+        if (!countsAreValid(n, r)) {
             throw CalcException(R.string.core_tools_calc_error_bad_counts)
         }
     }
 
-    private class Parser(private val text: String, private val degrees: Boolean) {
+    private fun countsAreValid(n: Double, r: Double): Boolean =
+        n == floor(n) && r == floor(r) && n >= 0 && r >= 0 && r <= n
+
+    /**
+     * n! for a whole n, and Γ(n+1) between them, so 0.5! is √π/2 the way a
+     * scientific calculator has it. NaN at the negative whole numbers, where
+     * the gamma function has its poles.
+     */
+    internal fun factorial(n: Double): Double {
+        if (n.isNaN()) return n
+        if (n == floor(n)) {
+            if (n < 0) return Double.NaN
+            if (n > MAX_FACTORIAL) return Double.POSITIVE_INFINITY
+            var result = 1.0
+            var i = 2.0
+            while (i <= n) {
+                result *= i
+                i++
+            }
+            return result
+        }
+        return gamma(n + 1)
+    }
+
+    /** The largest n whose n! a Double holds. */
+    private const val MAX_FACTORIAL = 170.0
+
+    /** Lanczos (g = 7, nine terms): about fifteen digits, enough for a display of twelve. */
+    private val LANCZOS = doubleArrayOf(
+        0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+        771.32342877765313, -176.61502916214059, 12.507343278686905,
+        -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7,
+    )
+
+    private fun gamma(x: Double): Double {
+        // The reflection formula covers the left half, poles and all.
+        if (x < 0.5) return Math.PI / (sin(Math.PI * x) * gamma(1 - x))
+        val y = x - 1
+        var sum = LANCZOS[0]
+        for (i in 1 until LANCZOS.size) sum += LANCZOS[i] / (y + i)
+        val t = y + LANCZOS.size - 1.5
+        return sqrt(2 * Math.PI) * t.pow(y + 0.5) * exp(-t) * sum
+    }
+
+    private class Parser(
+        private val text: String,
+        private val degrees: Boolean,
+        private val variables: Map<String, Double>,
+        /** See [valueAt]: no value is NaN, not a [CalcException]. */
+        private val lenient: Boolean,
+    ) {
         private var pos = 0
+
+        /**
+         * A sum with no value: thrown, or NaN in [lenient] mode. Typed as a
+         * Double so a caller can write `value = if (ok) … else noValue(…)`.
+         */
+        private fun noValue(@StringRes messageRes: Int, detail: String = ""): Double {
+            if (lenient) return Double.NaN
+            throw CalcException(messageRes, detail)
+        }
 
         /**
          * Set by [parsePower] when the value it just read carried a trailing
@@ -189,21 +279,18 @@ object CalcEngine {
                     c == '/' || c == '÷' -> {
                         pos++
                         val rhs = parseUnary()
-                        if (rhs == 0.0) throw CalcException(R.string.core_tools_calc_error_division_by_zero)
-                        value /= rhs
+                        value = if (rhs == 0.0) noValue(R.string.core_tools_calc_error_division_by_zero) else value / rhs
                     }
                     // A "%" still here is the infix one: [parsePower] has
                     // already taken any that stood for a percentage.
                     c == '%' -> {
                         pos++
                         val rhs = parseUnary()
-                        if (rhs == 0.0) throw CalcException(R.string.core_tools_calc_error_division_by_zero)
-                        value = value.mod(rhs)
+                        value = if (rhs == 0.0) noValue(R.string.core_tools_calc_error_division_by_zero) else value.mod(rhs)
                     }
                     text.startsWith("mod", pos) -> { pos += 3
                         val rhs = parseUnary()
-                        if (rhs == 0.0) throw CalcException(R.string.core_tools_calc_error_division_by_zero)
-                        value = value.mod(rhs)
+                        value = if (rhs == 0.0) noValue(R.string.core_tools_calc_error_division_by_zero) else value.mod(rhs)
                     }
                     // "5p3" and "4c2" — the counting operators, written the
                     // way a calculator keypad writes them. A letter that
@@ -212,10 +299,10 @@ object CalcEngine {
                     c in CHOOSE_OPS && text.getOrNull(pos + 1)?.isLetter() != true -> {
                         pos++
                         val r = parseUnary()
-                        value = if (c == 'p' || c == 'P') {
-                            permutations(value, r)
-                        } else {
-                            combinations(value, r)
+                        value = when {
+                            lenient && !countsAreValid(value, r) -> Double.NaN
+                            c == 'p' || c == 'P' -> permutations(value, r)
+                            else -> combinations(value, r)
                         }
                     }
                     // Implicit multiplication: 2π, 2(3+4), (1+2)(3+4), 3√4.
@@ -241,10 +328,19 @@ object CalcEngine {
             }
         }
 
-        // power := atom ('^' unary)? '%'?   (right-associative)
+        // power := atom '!'* ('^' unary)? '%'?   (right-associative)
         private fun parsePower(): Double {
-            val base = parseAtom()
+            var base = parseAtom()
             skipSpaces()
+            // "5!" and "3!!" — the factorial binds tighter than the power, so
+            // "3!^2" is 36.
+            while (peek() == '!') {
+                pos++
+                val n = base
+                base = factorial(n)
+                if (base.isNaN()) base = noValue(R.string.core_tools_calc_error_function_undefined, "!")
+                skipSpaces()
+            }
             val value = if (peek() == '^') {
                 pos++
                 base.pow(parseUnary())
@@ -319,7 +415,9 @@ object CalcEngine {
             if (peek() == 'π') { pos++; return Math.PI }
             val start = pos
             while (pos < text.length && text[pos].isLetter()) pos++
-            val name = text.substring(start, pos).lowercase()
+            val raw = text.substring(start, pos)
+            variables[raw]?.let { return it }
+            val name = raw.lowercase()
             when (name) {
                 "pi" -> return Math.PI
                 "e" -> return Math.E
@@ -348,6 +446,9 @@ object CalcEngine {
                 "sinh" -> sinh(arg)
                 "cosh" -> cosh(arg)
                 "tanh" -> tanh(arg)
+                "asinh" -> asinh(arg)
+                "acosh" -> acosh(arg)
+                "atanh" -> atanh(arg)
                 "ln" -> ln(arg)
                 "log" -> log10(arg)
                 "lg" -> log2(arg)
@@ -365,7 +466,7 @@ object CalcEngine {
 
         private fun applyChecked(name: String, value: Double): Double {
             if (value.isNaN()) {
-                throw CalcException(R.string.core_tools_calc_error_function_undefined, name)
+                return noValue(R.string.core_tools_calc_error_function_undefined, name)
             }
             return value
         }
