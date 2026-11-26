@@ -1707,6 +1707,16 @@ private fun SettingsNavGraph(
                 com.wasimaster.wmkeyboard.app.send.SendHistoryScreen(repository, settings)
             }
         }
+        composable("files/servers") {
+            SettingsScreen(
+                stringResource(R.string.files_servers_title),
+                { navController.popBackStack() },
+                route = "files/servers",
+                subtitle = stringResource(R.string.files_servers_subtitle),
+            ) {
+                FilesServersScreen(repository, settings)
+            }
+        }
         composable("cliprules") {
             SettingsScreen(
                 stringResource(R.string.clipboard_copy_rules_title),

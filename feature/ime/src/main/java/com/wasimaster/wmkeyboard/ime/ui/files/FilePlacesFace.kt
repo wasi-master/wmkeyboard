@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui.files
 
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -39,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.files.FileShortcut
 import com.wasimaster.wmkeyboard.core.files.FileTree
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cloud
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
@@ -76,6 +78,10 @@ internal fun placeTargets(ui: FileManagerUi): List<FileAction> = buildList {
     ui.recentFolders.take(RECENT_SHOWN).forEach { add(FileAction.OpenPin(it)) }
     ui.trees.forEach { add(FileAction.OpenTree(it)) }
     add(FileAction.AddTree)
+    if (InternetPermission.granted) {
+        ui.remotes.forEach { add(FileAction.OpenRemote(it)) }
+        add(FileAction.AddRemote)
+    }
     if (!ui.access && ui.canAskAccess) add(FileAction.AskPermission)
 }
 
@@ -215,6 +221,29 @@ internal fun PlacesFace(ui: FileManagerUi, focused: Int?, compact: Boolean, act:
                 kb.secondaryText,
                 addFocus,
             ) { act(FileAction.AddTree) }
+        }
+        // Servers and clouds: a server, a cloud, a bucket. The offline build
+        // can reach none of them, so it has no section at all.
+        if (InternetPermission.granted) {
+            val remoteFocus = ui.remotes.map { next() }
+            val addRemoteFocus = next()
+            item(key = "remote-head") { SectionLabel(stringResource(R.string.ime_files_section_remote)) }
+            ui.remotes.forEachIndexed { i, place ->
+                item(key = "remote-${place.id}") {
+                    PlaceRow(place.label, null, remoteIcon(place.type), kb.secondaryText, remoteFocus[i]) {
+                        act(FileAction.OpenRemote(place))
+                    }
+                }
+            }
+            item(key = "add-remote") {
+                PlaceRow(
+                    stringResource(R.string.ime_files_add_remote),
+                    stringResource(R.string.ime_files_add_remote_detail).takeIf { !compact },
+                    Icons.Outlined.Add,
+                    kb.secondaryText,
+                    addRemoteFocus,
+                ) { act(FileAction.AddRemote) }
+            }
         }
         if (!ui.access && ui.canAskAccess) {
             val allowFocus = next()
@@ -363,6 +392,12 @@ internal fun SectionLabel(text: String) {
         letterSpacing = 0.4.sp,
         modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 4.dp),
     )
+}
+
+/** A server (one the user runs) as a server; a service as a cloud. */
+private fun remoteIcon(type: String): ImageVector = when (type) {
+    "webdav", "sftp", "smb", "ftp", "nfs", "synology", "qnap" -> Icons.Outlined.Dns
+    else -> Icons.Outlined.Cloud
 }
 
 private fun treeIcon(tree: FileTree): ImageVector = when (tree.kind) {

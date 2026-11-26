@@ -34,12 +34,15 @@ import okhttp3.Response
  * Box's refresh tokens are single use and last 60 days, so every refresh
  * hands back a new one, which [onRefreshTokenRotated] stores before anything
  * else happens. A location left unused for two months has to be signed in to
- * again.
+ * again. The Files tool refreshes the same token, so a refused one is
+ * checked against [storedRefreshToken], the one saved now, before the
+ * location counts as signed out.
  */
 class BoxSink(
     refreshToken: String,
     private val tokens: OAuthTokens,
     private val config: BoxConfig,
+    private val storedRefreshToken: () -> String? = { null },
     private val onRefreshTokenRotated: (String) -> Unit = {},
 ) : BackupSink {
 
@@ -55,12 +58,22 @@ class BoxSink(
 
     private val client by lazy { BackupHttp.client() }
 
-    private fun bearer(): String =
-        tokens.accessToken(refreshToken, onRotated = { rotated ->
+    private fun bearer(): String {
+        val onRotated = { rotated: String ->
             refreshToken = rotated
             onRefreshTokenRotated(rotated)
-        }) ?: throw BackupSinkException(SinkError.PERMISSION_LOST)
-            .also { BackupLog.w("box: refresh refused") }
+        }
+        tokens.accessToken(refreshToken, onRotated = onRotated)?.let { return it }
+        // Single use: the Files tool may have spent the one this sink started
+        // with and saved its successor.
+        val stored = runCatching { storedRefreshToken() }.getOrNull()
+        if (stored != null && stored != refreshToken) {
+            refreshToken = stored
+            tokens.accessToken(stored, onRotated = onRotated)?.let { return it }
+        }
+        BackupLog.w("box: refresh refused")
+        throw BackupSinkException(SinkError.PERMISSION_LOST)
+    }
 
     private fun authorized(url: String): Request.Builder =
         Request.Builder().url(url).header("Authorization", "Bearer ${bearer()}")

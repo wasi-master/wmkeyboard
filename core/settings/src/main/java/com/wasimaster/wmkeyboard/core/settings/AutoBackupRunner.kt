@@ -365,7 +365,17 @@ object AutoBackupRunner {
                 }
             BackupDestination.PROFILE -> MailboxSink(ProfileLink.mailbox(context), "profile", ProfileLink::send)
             BackupDestination.BOX -> BackupClients.box()?.let {
-                BoxSink(location.refreshToken, it, location.box) { rotated ->
+                BoxSink(
+                    location.refreshToken,
+                    it,
+                    location.box,
+                    storedRefreshToken = {
+                        kotlinx.coroutines.runBlocking {
+                            SettingsRepository(context.applicationContext).settings.first().autoBackup.locations
+                                .firstOrNull { saved -> saved.id == location.id }?.refreshToken?.takeIf { t -> t.isNotEmpty() }
+                        }
+                    },
+                ) { rotated ->
                     storeRefreshToken(context, location.id, rotated)
                 }
             }
@@ -391,7 +401,7 @@ object AutoBackupRunner {
      * one is held to it, as [storeHostKey] does for SFTP. Only fills an empty
      * slot.
      */
-    private fun storeCertPin(context: Context, id: String, pin: String) {
+    internal fun storeCertPin(context: Context, id: String, pin: String) {
         storeLocation(context, id, "NAS certificate") {
             if (it.nas.certPin.isEmpty()) it.copy(nas = it.nas.copy(certPin = pin)) else it
         }
@@ -401,7 +411,7 @@ object AutoBackupRunner {
      * Saves what a sink learned mid-run: a rotated token, a new session.
      * Blocking for the reason [storeRefreshToken] gives.
      */
-    private fun storeLocation(context: Context, id: String, what: String, change: (BackupLocation) -> BackupLocation) {
+    internal fun storeLocation(context: Context, id: String, what: String, change: (BackupLocation) -> BackupLocation) {
         runCatching {
             runBlocking { SettingsRepository(context.applicationContext).updateBackupLocation(id, change) }
         }.onFailure { BackupLog.w("could not store the $what for $id", it) }
@@ -412,7 +422,7 @@ object AutoBackupRunner {
      * held to it. Blocking for the same reason as [storeRefreshToken]. Only
      * fills an empty slot: a key already there is never replaced from here.
      */
-    private fun storeHostKey(context: Context, id: String, key: String) {
+    internal fun storeHostKey(context: Context, id: String, key: String) {
         runCatching {
             runBlocking {
                 SettingsRepository(context.applicationContext).updateBackupLocation(id) {
@@ -431,7 +441,7 @@ object AutoBackupRunner {
      * nothing at once, but three months later it is a location that has to be
      * signed in to again.
      */
-    private fun storeRefreshToken(context: Context, id: String, token: String) {
+    internal fun storeRefreshToken(context: Context, id: String, token: String) {
         runCatching {
             runBlocking {
                 SettingsRepository(context.applicationContext).updateBackupLocation(id) {

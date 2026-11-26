@@ -117,6 +117,7 @@ internal object SettingsRoutes {
         "kdeconnect/devices",
         "send/instances",
         "send/history",
+        "files/servers",
         "phoneformats",
         "cliprules",
         "hwshortcuts",

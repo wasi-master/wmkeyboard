@@ -969,6 +969,7 @@ internal object SettingsRouteIcons {
         "kdeconnect/devices" to { Icons.Outlined.Devices },
         "send/instances" to { Icons.Outlined.Dns },
         "send/history" to { Icons.Outlined.History },
+        "files/servers" to { Icons.Outlined.Dns },
         "supporters" to { Icons.Outlined.VolunteerActivism },
     )
 

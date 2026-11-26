@@ -74,6 +74,17 @@ abstract class NasSink(
         return url
     }
 
+    /**
+     * This sink's client, certificate pin and all, for the Files tool's NAS
+     * adapters: they sign in through this sink and must then hold the NAS to
+     * the very certificate that sign-in was held to, not a second pin of
+     * their own that a first connection could set differently.
+     */
+    internal val http: OkHttpClient get() = client
+
+    /** The NAS's address under the same HTTPS-only rule as [base], for the same adapters. */
+    internal fun address(): HttpUrl = base()
+
     /** Runs [block] with a session, signing in again once if the NAS says it expired. */
     protected fun <T> withSession(block: (String) -> T): T {
         val sid = session ?: login().also { session = it }

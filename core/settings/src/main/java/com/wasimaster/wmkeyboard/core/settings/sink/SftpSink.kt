@@ -178,7 +178,7 @@ class SftpSink(
      * server shows; with nothing stored it says "not included" and, host key
      * checking being off for that first connection, JSch goes on and adds it.
      */
-    private class TofuKeys(stored: String) : HostKeyRepository {
+    internal class TofuKeys(stored: String) : HostKeyRepository {
         private val trusted: ByteArray? = stored.substringAfter(' ', "").takeIf { it.isNotEmpty() }
             ?.let { runCatching { JavaBase64Compat.decode(it) }.getOrNull() }
 
@@ -202,7 +202,7 @@ class SftpSink(
     }
 
     /** Answers a password prompt, including keyboard-interactive ones, and nothing else. */
-    private class Answers(private val password: String) : UserInfo, UIKeyboardInteractive {
+    internal class Answers(private val password: String) : UserInfo, UIKeyboardInteractive {
         override fun getPassphrase(): String? = null
         override fun getPassword(): String? = password.ifEmpty { null }
         override fun promptPassword(message: String?): Boolean = password.isNotEmpty()

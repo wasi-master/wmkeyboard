@@ -233,7 +233,7 @@ internal class Smb2Client private constructor(
 
     // ---- Files ----
 
-    class Handle(val id: ByteArray, val size: Long, val modifiedMs: Long)
+    class Handle(val id: ByteArray, val size: Long, val modifiedMs: Long, val directory: Boolean = false)
 
     class DirEntry(val name: String, val size: Long, val modifiedMs: Long, val directory: Boolean)
 
@@ -252,6 +252,7 @@ internal class Smb2Client private constructor(
             id = b.slice(HEADER_BYTES + 64, 16),
             size = b.u64(HEADER_BYTES + 48),
             modifiedMs = FileTime.toMillis(b.u64(HEADER_BYTES + 24)),
+            directory = b.u32(HEADER_BYTES + 56) and ATTRIBUTE_DIRECTORY != 0L,
         )
     }
 
@@ -273,6 +274,58 @@ internal class Smb2Client private constructor(
             val written = response.bytes.u32(HEADER_BYTES + 4).toInt()
             if (written <= 0) throw SmbStatusException(STATUS_DISK_FULL, "write: nothing written")
             offset += written
+        }
+    }
+
+    /**
+     * Writes everything [from] holds to [handle] from offset 0, a chunk at a
+     * time, for files too big to hold whole. [onSent] hears each chunk.
+     */
+    fun writeFrom(handle: Handle, from: java.io.InputStream, onSent: (Long) -> Unit = {}) {
+        val chunk = ByteArray(maxWrite)
+        var offset = 0L
+        while (true) {
+            var n = 0
+            while (n < chunk.size) {
+                val r = from.read(chunk, n, chunk.size - n)
+                if (r < 0) break
+                n += r
+            }
+            if (n == 0) break
+            var sent = 0
+            while (sent < n) {
+                val body = LeWriter()
+                body.u16(49).u16(HEADER_BYTES + 48).u32(n - sent).u64(offset).bytes(handle.id)
+                body.u32(0).u32(0).u16(0).u16(0).u32(0)
+                body.bytes(chunk.copyOfRange(sent, n))
+                val response = call(COMMAND_WRITE, body.toByteArray())
+                response.expect(STATUS_SUCCESS, "write")
+                val written = response.bytes.u32(HEADER_BYTES + 4).toInt()
+                if (written <= 0) throw SmbStatusException(STATUS_DISK_FULL, "write: nothing written")
+                sent += written
+                offset += written
+                onSent(written.toLong())
+            }
+            if (n < chunk.size) break
+        }
+    }
+
+    /** Reads [handle] from the start into [to], a chunk at a time. [to] may throw to stop. */
+    fun readTo(handle: Handle, to: java.io.OutputStream) {
+        var offset = 0L
+        while (true) {
+            val body = LeWriter()
+            body.u16(49).u8(0x50).u8(0).u32(maxRead).u64(offset).bytes(handle.id)
+            body.u32(0).u32(0).u32(0).u16(0).u16(0).u8(0)
+            val response = call(COMMAND_READ, body.toByteArray())
+            if (response.status == STATUS_END_OF_FILE) break
+            response.expect(STATUS_SUCCESS, "read")
+            val b = response.bytes
+            val dataOffset = b.u8(HEADER_BYTES + 2)
+            val length = b.u32(HEADER_BYTES + 4).toInt()
+            if (length == 0) break
+            to.write(b, dataOffset, length)
+            offset += length
         }
     }
 
@@ -557,6 +610,9 @@ internal class Smb2Client private constructor(
         const val ACCESS_SYNCHRONIZE = 0x100000L
 
         const val DISPOSITION_OPEN = 1
+
+        /** Creates, and fails with a name collision when something has the name. */
+        const val DISPOSITION_CREATE = 2
         const val DISPOSITION_OPEN_IF = 3
         const val DISPOSITION_OVERWRITE_IF = 5
 

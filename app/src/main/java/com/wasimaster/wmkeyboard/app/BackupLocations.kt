@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.PersistableBundle
 import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.StringRes
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -91,6 +92,7 @@ import com.wasimaster.wmkeyboard.core.settings.PlaceWire
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.isLink
+import com.wasimaster.wmkeyboard.core.settings.remote.RemoteAdapters
 import com.wasimaster.wmkeyboard.core.settings.signsIn
 import com.wasimaster.wmkeyboard.core.settings.sink.ProfileCode
 import com.wasimaster.wmkeyboard.core.settings.sink.ProfileLink
@@ -266,11 +268,18 @@ internal fun needsSetupRes(type: BackupDestination): Int = when {
 /**
  * The Locations card on the Backup & restore screen: one row per location,
  * with how its last backup went, and a row that adds another.
+ *
+ * [forFiles] is the same card on the Files tool's Servers and clouds page:
+ * the same stored locations, but only the kinds the Files tool can browse,
+ * and one added there starts with automatic backups off. A location belongs
+ * to both pages at once, so a server signed in to for backups is there for
+ * files with no second sign-in.
  */
 @Composable
 internal fun LocationsGroup(
     repository: SettingsRepository,
     auto: AutoBackupSettings,
+    forFiles: Boolean = false,
     onMessage: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -280,6 +289,10 @@ internal fun LocationsGroup(
     var editingIsNew by remember { mutableStateOf(false) }
     var restoring by remember { mutableStateOf<BackupLocation?>(null) }
     var removing by remember { mutableStateOf<BackupLocation?>(null) }
+    val offered = remember(forFiles) {
+        availableDestinations().filter { !forFiles || it in RemoteAdapters.BROWSABLE }
+    }
+    val shown = if (forFiles) auto.locations.filter { it.type in RemoteAdapters.BROWSABLE } else auto.locations
 
     // A place WM Pass handed over opens in the editor as a new one, not yet
     // saved: an account still needs its sign-in here, a folder its folder.
@@ -289,12 +302,12 @@ internal fun LocationsGroup(
         val place = PlaceWire.decode(raw)
         when {
             place == null -> onMessage(context.getString(R.string.wmpass_place_from_unknown))
-            place.type !in availableDestinations() -> onMessage(
+            place.type !in offered -> onMessage(
                 context.getString(R.string.wmpass_place_from_unavailable, destinationName(context, place.type)),
             )
             else -> {
                 editingIsNew = true
-                editing = place
+                editing = if (forFiles) place.copy(backup = false) else place
             }
         }
     }
@@ -318,14 +331,15 @@ internal fun LocationsGroup(
     }
 
     SettingsGroup(
-        stringResource(R.string.backup_locations_title),
-        info = stringResource(R.string.backup_locations_info),
+        stringResource(if (forFiles) R.string.files_servers_group else R.string.backup_locations_title),
+        info = stringResource(if (forFiles) R.string.files_servers_info else R.string.backup_locations_info),
     ) {
-        for (location in auto.locations) {
+        for (location in shown) {
             item(key = location.id) {
                 LocationRow(
                     location = location,
-                    syncs = auto.sync.enabled && location.id in auto.sync.locationIds,
+                    forFiles = forFiles,
+                    syncs = !forFiles && auto.sync.enabled && location.id in auto.sync.locationIds,
                     status = auto.locationStatus[location.id] ?: LocationStatus(),
                     onOpen = {
                         editingIsNew = false
@@ -338,8 +352,8 @@ internal fun LocationsGroup(
         }
         item {
             WmRow(
-                title = stringResource(R.string.backup_location_add),
-                subtitle = stringResource(R.string.backup_location_add_subtitle),
+                title = stringResource(if (forFiles) R.string.files_servers_add else R.string.backup_location_add),
+                subtitle = stringResource(if (forFiles) R.string.files_servers_add_subtitle else R.string.backup_location_add_subtitle),
                 icon = Icons.Outlined.Add,
                 onClick = { adding = true },
             )
@@ -348,14 +362,17 @@ internal fun LocationsGroup(
 
     if (adding) {
         LocationTypeSheet(
+            types = offered,
+            subtitle = if (forFiles) R.string.files_servers_type_subtitle else R.string.backup_location_type_subtitle,
             onPick = { type ->
                 adding = false
                 editingIsNew = true
                 editing = BackupLocation(
                     id = BackupLocation.newId(),
                     type = type,
-                    // A link only syncs.
-                    backup = !type.isLink,
+                    // A link only syncs. One added for files gets no backups
+                    // until it is ticked on Automatic backup.
+                    backup = !forFiles && !type.isLink,
                     profileCode = if (type == BackupDestination.PROFILE) ProfileCode.format(ProfileCode.generate()) else "",
                 )
             },
@@ -395,7 +412,9 @@ internal fun LocationsGroup(
         AlertDialog(
             onDismissRequest = { removing = null },
             title = { Text(stringResource(R.string.backup_location_remove_title, location.title(context))) },
-            text = { Text(stringResource(R.string.backup_location_remove_body)) },
+            text = {
+                Text(stringResource(if (forFiles) R.string.files_servers_remove_body else R.string.backup_location_remove_body))
+            },
             confirmButton = {
                 TextButton(onClick = {
                     removing = null
@@ -445,6 +464,8 @@ private fun releaseFolderUri(context: Context, uri: String, others: List<BackupL
 @Composable
 private fun LocationRow(
     location: BackupLocation,
+    /** On the Files tool's page: says whether backups go there too, and offers no restore. */
+    forFiles: Boolean,
     syncs: Boolean,
     status: LocationStatus,
     onOpen: () -> Unit,
@@ -462,6 +483,9 @@ private fun LocationRow(
             stringResource(R.string.backup_location_no_internet) to true
         !location.enabled -> stringResource(R.string.backup_location_paused) to false
         !location.configured -> stringResource(needsSetupRes(location.type)) to true
+        forFiles -> stringResource(
+            if (location.backup) R.string.files_servers_backups_too else R.string.files_servers_files_only,
+        ) to false
         !location.backup -> stringResource(R.string.backup_location_not_backed_up) to false
         status.backupError.isNotEmpty() ->
             (autoBackupErrorText(context, status.backupError, location.type) ?: "") to true
@@ -512,8 +536,9 @@ private fun LocationRow(
             }
         },
         swipeActions = buildList {
-            // A link holds sync files only, never a backup to restore.
-            if (location.configured && !location.type.isLink) {
+            // A link holds sync files only, never a backup to restore. A
+            // restore belongs on Backup, not on the Files tool's page.
+            if (location.configured && !location.type.isLink && !forFiles) {
                 add(SwipeAction(Icons.Outlined.Restore, stringResource(R.string.backup_location_restore, title), onClick = onRestore))
             }
             add(deleteSwipeAction(stringResource(R.string.backup_location_remove), onRemove))
@@ -529,7 +554,7 @@ private fun LocationRow(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     // Its own schedule and contents, or the shared ones. A
                     // link only syncs, so it has none.
-                    if (!location.type.isLink) {
+                    if (!location.type.isLink && !forFiles) {
                         val navigate = LocalSettingsNavigate.current
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.backup_location_page_title)) },
@@ -539,14 +564,16 @@ private fun LocationRow(
                             },
                         )
                     }
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.backup_location_restore, title)) },
-                        enabled = location.configured && !location.type.isLink,
-                        onClick = {
-                            menu = false
-                            onRestore()
-                        },
-                    )
+                    if (!forFiles) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.backup_location_restore, title)) },
+                            enabled = location.configured && !location.type.isLink,
+                            onClick = {
+                                menu = false
+                                onRestore()
+                            },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.backup_location_remove)) },
                         onClick = {
@@ -573,6 +600,8 @@ internal fun destinationIcon(type: BackupDestination) =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LocationTypeSheet(
+    types: List<BackupDestination>,
+    @StringRes subtitle: Int,
     onPick: (BackupDestination) -> Unit,
     /** Null where WM Pass is not installed, or is not the real one. */
     onFromWmPass: (() -> Unit)?,
@@ -595,7 +624,7 @@ private fun LocationTypeSheet(
                 modifier = Modifier.padding(horizontal = 24.dp),
             )
             Text(
-                stringResource(R.string.backup_location_type_subtitle),
+                stringResource(subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -609,7 +638,7 @@ private fun LocationTypeSheet(
                     onClick = onFromWmPass,
                 )
             }
-            for (type in availableDestinations()) {
+            for (type in types) {
                 WmRow(
                     title = destinationName(context, type),
                     subtitle = stringResource(destinationDescRes(type)),

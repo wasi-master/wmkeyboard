@@ -72,7 +72,14 @@ class OAuthTokens(
      * die 90 days after they were issued however often they are used: keep
      * only the first and every OneDrive backup fails three months after the
      * sign-in. Dropbox never rotates, so for it this is never called.
+     *
+     * One caller at a time: the backup and the Files tool's remote places
+     * share this instance, and Box's refresh tokens are single use. Two
+     * refreshes at once with the same token would see the second refused and
+     * the location reported as signed out; one after the other, the second
+     * finds the first one's answer cached for both tokens.
      */
+    @Synchronized
     fun accessToken(
         refreshToken: String,
         nowMs: Long = System.currentTimeMillis(),

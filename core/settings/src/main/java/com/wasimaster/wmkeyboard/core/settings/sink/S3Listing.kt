@@ -30,6 +30,12 @@ object S3Listing {
         val keys: List<Key>,
         /** Null when this was the last page. */
         val continuationToken: String?,
+        /**
+         * The `CommonPrefixes` of a listing asked with a delimiter: the
+         * "folders" one level down, each ending in the delimiter. Empty for a
+         * listing without one, which is all the backup asks for.
+         */
+        val prefixes: List<String> = emptyList(),
     )
 
     private val DOCTYPE = Regex("""<!DOCTYPE""", RegexOption.IGNORE_CASE)
@@ -54,7 +60,7 @@ object S3Listing {
             }
             factory.newSAXParser().parse(InputSource(StringReader(xml)), handler)
         }
-        return Page(handler.keys, handler.token?.takeIf { it.isNotEmpty() })
+        return Page(handler.keys, handler.token?.takeIf { it.isNotEmpty() }, handler.prefixes)
     }
 
     /**
@@ -82,9 +88,14 @@ object S3Listing {
     private class Handler : DefaultHandler() {
 
         val keys = ArrayList<Key>()
+        val prefixes = ArrayList<String>()
         var token: String? = null
 
         private var inContents = false
+
+        // The request's own <Prefix> sits at the top level too; only the ones
+        // inside <CommonPrefixes> are folders.
+        private var inCommonPrefixes = false
         private var key: String? = null
         private var size = -1L
         private var modified = 0L
@@ -92,6 +103,7 @@ object S3Listing {
 
         override fun startElement(uri: String?, localName: String?, qName: String, at: Attributes?) {
             text = StringBuilder()
+            if (local(qName) == "CommonPrefixes") inCommonPrefixes = true
             if (local(qName) == "Contents") {
                 inContents = true
                 key = null
@@ -111,6 +123,8 @@ object S3Listing {
                 "Size" -> if (inContents) size = value.toLongOrNull() ?: -1L
                 "LastModified" -> if (inContents) modified = parseIso8601(value)
                 "NextContinuationToken" -> if (!inContents) token = value
+                "Prefix" -> if (inCommonPrefixes && value.isNotEmpty()) prefixes += value
+                "CommonPrefixes" -> inCommonPrefixes = false
                 "Contents" -> {
                     key?.takeIf { it.isNotEmpty() }?.let {
                         keys += Key(key = it, sizeBytes = size, modifiedAtMs = modified)

@@ -221,6 +221,8 @@ open class WMApplication : Application() {
         // The Files tool's preview tells a theme, a backup or another
         // keyboard's file by the import dialog's own reading of it.
         com.wasimaster.wmkeyboard.ime.files.ImportableFiles.reader = ::describeForKeyboard
+        // The backup locations that hold files, as places in the Files tool.
+        com.wasimaster.wmkeyboard.core.settings.remote.BackupRemotePlaces.start(this, repository)
         // "Ask AI" in other apps' selection menus follows its switch and the
         // AI tool's, wherever either is changed from (#897).
         AskAiSelectionMenu.start(this, repository)

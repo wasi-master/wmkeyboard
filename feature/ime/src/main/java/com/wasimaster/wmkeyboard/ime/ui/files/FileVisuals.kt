@@ -159,6 +159,10 @@ internal fun KindTile(
     val kind = FileKinds.of(entry)
     val colour = kindColour(kind)
     val shape = RoundedCornerShape(corner)
+    // A picture of a file on a server is the whole file fetched: a folder of
+    // photos would download them all. Icons there, pictures in the preview.
+    @Suppress("NAME_SHADOWING")
+    val thumbnails = thumbnails && !com.wasimaster.wmkeyboard.core.files.RemoteFiles.isRemote(entry.path)
     Box(modifier.size(side), contentAlignment = Alignment.Center) {
         Box(Modifier.fillMaxSize().clip(shape).background(if (picked) kb.accent else colour.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
             val media = kind == FileKind.IMAGE || kind == FileKind.VIDEO

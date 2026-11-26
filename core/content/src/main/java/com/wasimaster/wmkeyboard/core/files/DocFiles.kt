@@ -27,6 +27,12 @@ import java.io.OutputStream
  *
  * Every call blocks and wants a background thread. A provider that refuses
  * something answers null or a failure count, never an exception to the caller.
+ *
+ * A folder on a server or in a cloud ([RemoteFiles]) is a `content://` path
+ * too, so it travels the same way; every call here sends one to
+ * [RemoteFiles] instead of a document provider, and a copy onto one goes
+ * through [RemoteFiles.write], which uploads under a temporary name and
+ * names the file only once it is whole.
  */
 object DocFiles {
 
@@ -51,7 +57,7 @@ object DocFiles {
     fun rootOf(tree: Uri): Uri = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
 
     /** What [path] is, asked of its provider; null when it is gone or the grant is. */
-    fun entry(context: Context, path: String): FileEntry? = runCatching {
+    fun entry(context: Context, path: String): FileEntry? = if (RemoteFiles.isRemote(path)) RemoteFiles.entry(context, path) else runCatching {
         val uri = Uri.parse(path)
         context.contentResolver.query(uri, COLUMNS, null, null, null)?.use { c ->
             if (c.moveToFirst()) entryOf(uri, c) else null
@@ -67,6 +73,14 @@ object DocFiles {
         showHidden: Boolean = false,
         mimes: List<String> = emptyList(),
     ): List<FileEntry>? {
+        if (RemoteFiles.isRemote(path)) {
+            val found = RemoteFiles.list(context, path) ?: return null
+            return FileStore.sorted(
+                found.filter { (showHidden || !it.name.startsWith(".")) && (it.isDirectory || FileStore.mimeMatches(it.mime, mimes)) },
+                sort,
+                descending,
+            )
+        }
         val dir = Uri.parse(path)
         val children = runCatching {
             DocumentsContract.buildChildDocumentsUriUsingTree(dir, DocumentsContract.getDocumentId(dir))
@@ -143,6 +157,7 @@ object DocFiles {
     fun newFolder(context: Context, dir: String, name: String): String? {
         if (!FileOps.validName(name)) return null
         val clean = name.trim()
+        if (RemoteFiles.isRemote(dir)) return RemoteFiles.makeFolder(context, dir, clean, unique = false)
         if (list(context, dir, showHidden = true)?.any { it.name == clean } != false) return null
         return runCatching {
             DocumentsContract.createDocument(context.contentResolver, Uri.parse(dir), Document.MIME_TYPE_DIR, clean)
@@ -152,6 +167,7 @@ object DocFiles {
     /** Renames [path] where it is. Its new name, which a provider may hand back as a new URI; null when refused. */
     fun rename(context: Context, path: String, name: String): String? {
         if (!FileOps.validName(name)) return null
+        if (RemoteFiles.isRemote(path)) return RemoteFiles.rename(context, path, name.trim())
         val uri = Uri.parse(path)
         return runCatching {
             (DocumentsContract.renameDocument(context.contentResolver, uri, name.trim()) ?: uri).toString()
@@ -218,6 +234,11 @@ object DocFiles {
             when {
                 node == null || (node.isDirectory && holds(source, dir)) -> failed++
                 clashes && clash == Clash.SKIP -> skipped++
+                // Within one server, the server moves it: nothing is downloaded or lost on the way.
+                move && !clashes && RemoteFiles.moveWithin(context, source, dir)?.also { moves += source to it } != null -> {
+                    bytes.add(node.size.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                    done++
+                }
                 else -> {
                     val copied = copyInto(context, node, dir, touched, bytes)
                     val final = when {
@@ -316,6 +337,7 @@ object DocFiles {
         val nodes = sources.mapNotNull { nodeOf(context, it) }
         if (nodes.isEmpty()) return null
         val zipName = if (name.endsWith(".zip", ignoreCase = true)) name else "$name.zip"
+        if (RemoteFiles.isRemote(dir)) return zipOnto(context, nodes, dir, zipName, onProgress)
         val target = makeFile(context, dir, Node("", zipName, false, "application/zip", 0)) ?: return null
         val total = nodes.sumOf { sizeOf(context, it) }
         val whole = try {
@@ -339,6 +361,46 @@ object DocFiles {
     }
 
     /**
+     * A zip for a server: packed into a local file first, then uploaded the
+     * way every file onto a server is, so a zip that fails halfway leaves
+     * nothing there.
+     */
+    private suspend fun zipOnto(
+        context: Context,
+        nodes: List<Node>,
+        dir: String,
+        zipName: String,
+        onProgress: (FileOpProgress) -> Unit,
+    ): String? {
+        val total = nodes.sumOf { sizeOf(context, it) }
+        val scope = currentCoroutineContext()
+        // Packed here, where it can be stopped, since the writer's body is
+        // not a coroutine; the writer then sends this file as it is.
+        val packed = File.createTempFile("zip", ".zip", context.cacheDir)
+        try {
+            packed.outputStream().buffered().use { out ->
+                FileZip.write(out, nodes.map { zipSource(context, it) }) { b, n ->
+                    onProgress(FileOpProgress(0, 1, n, b, total))
+                }
+            }
+            scope.ensureActive()
+            return RemoteFiles.write(
+                context,
+                dir,
+                zipName,
+                body = { out -> packed.inputStream().use { it.copyTo(out) } },
+                check = { scope.ensureActive() },
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            return null
+        } finally {
+            packed.delete()
+        }
+    }
+
+    /**
      * Unpacks the zip at [archive] into a new folder named after it inside
      * [dir], so nothing already there is touched. The new folder, or null
      * when the zip could not be read whole (and what was unpacked is gone).
@@ -349,6 +411,7 @@ object DocFiles {
         dir: String,
         onProgress: (FileOpProgress) -> Unit = {},
     ): String? {
+        if (RemoteFiles.isRemote(dir)) return unzipOnto(context, archive, dir, onProgress)
         val node = nodeOf(context, archive) ?: return null
         val stem = node.name.substringBeforeLast('.').ifEmpty { node.name }
         val folder = makeFolder(context, dir, stem) ?: return null
@@ -388,6 +451,26 @@ object DocFiles {
             return null
         }
         return folder
+    }
+
+    /**
+     * Unpacks onto a server: into a folder in the cache, then copied up as a
+     * whole folder, which [copyInto] takes back if any of it fails.
+     */
+    private suspend fun unzipOnto(
+        context: Context,
+        archive: String,
+        dir: String,
+        onProgress: (FileOpProgress) -> Unit,
+    ): String? {
+        val scratch = File(context.cacheDir, "remote-unzip/${System.nanoTime()}").apply { mkdirs() }
+        try {
+            val local = unzip(context, archive, scratch.path, onProgress) ?: return null
+            val node = nodeOf(context, local) ?: return null
+            return copyInto(context, node, dir, ArrayList(), ByteCounter(sizeOf(context, node)) { b -> onProgress(FileOpProgress(0, 1, node.name, b, 0)) })
+        } finally {
+            scratch.deleteRecursively()
+        }
     }
 
     /** What the zip at [path] holds, for its preview; null when it is not one, or unreadable. */
@@ -432,7 +515,7 @@ object DocFiles {
 
     /** The first [max] bytes of a text file, as words, for its preview and for typing into a field. */
     fun readText(context: Context, path: String, max: Int): String? = runCatching {
-        input(context, path)?.use { input ->
+        (if (RemoteFiles.isRemote(path)) RemoteFiles.input(context, path, max.toLong()) else input(context, path))?.use { input ->
             val buffer = ByteArray(max)
             var read = 0
             while (read < max) {
@@ -445,12 +528,22 @@ object DocFiles {
     }.getOrNull()
 
     /** The file or document at [path], opened to read. */
-    fun input(context: Context, path: String): InputStream? =
-        if (isDoc(path)) context.contentResolver.openInputStream(Uri.parse(path)) else File(path).inputStream()
+    fun input(context: Context, path: String): InputStream? = when {
+        RemoteFiles.isRemote(path) -> RemoteFiles.input(context, path)
+        isDoc(path) -> context.contentResolver.openInputStream(Uri.parse(path))
+        else -> File(path).inputStream()
+    }
 
-    /** The file or document at [path], opened to write over from the start. */
-    fun output(context: Context, path: String): OutputStream? =
-        if (isDoc(path)) context.contentResolver.openOutputStream(Uri.parse(path), "w") else File(path).outputStream()
+    /**
+     * The file or document at [path], opened to write over from the start.
+     * Null for one on a server: a stream gives no way to say the upload
+     * failed, so those are written whole through [RemoteFiles.write].
+     */
+    fun output(context: Context, path: String): OutputStream? = when {
+        RemoteFiles.isRemote(path) -> null
+        isDoc(path) -> context.contentResolver.openOutputStream(Uri.parse(path), "w")
+        else -> File(path).outputStream()
+    }
 
     // ---- Inside ------------------------------------------------------------
 
@@ -475,6 +568,11 @@ object DocFiles {
 
     /** Whether [dir] is [folder] itself or inside it: a folder cannot be copied into itself. */
     private fun holds(folder: String, dir: String): Boolean {
+        if (RemoteFiles.isRemote(folder) || RemoteFiles.isRemote(dir)) {
+            val (a, outer) = RemoteFiles.parse(folder) ?: return false
+            val (b, inner) = RemoteFiles.parse(dir) ?: return false
+            return a == b && inner.size >= outer.size && inner.subList(0, outer.size) == outer
+        }
         if (!isDoc(folder) && !isDoc(dir)) return FileOps.isInside(File(folder), File(dir))
         if (!isDoc(folder) || !isDoc(dir)) return false
         val a = Uri.parse(folder)
@@ -488,6 +586,7 @@ object DocFiles {
     /** Copies [node] into [dir]; what it made there, or null when nothing whole arrived (and the part that did is gone). */
     private suspend fun copyInto(context: Context, node: Node, dir: String, touched: MutableList<String>, bytes: ByteCounter? = null): String? {
         currentCoroutineContext().ensureActive()
+        if (RemoteFiles.isRemote(dir) && !node.isDirectory) return upload(context, node, dir, bytes)
         val target = (if (node.isDirectory) makeFolder(context, dir, node.name) else makeFile(context, dir, node)) ?: return null
         val whole = try {
             if (node.isDirectory) {
@@ -510,8 +609,30 @@ object DocFiles {
         return target
     }
 
+    /**
+     * One file onto a server: read whole into a local copy, uploaded under a
+     * temporary name, checked, then named. Null when anything failed, with
+     * nothing of it left on the server.
+     */
+    private suspend fun upload(context: Context, node: Node, dir: String, bytes: ByteCounter?): String? {
+        val scope = currentCoroutineContext()
+        return RemoteFiles.write(
+            context,
+            dir,
+            node.name,
+            body = { out ->
+                val source = input(context, node.path) ?: throw java.io.IOException("unreadable")
+                source.use { it.copyTo(out, BUFFER) }
+            },
+            onSent = { n -> bytes?.add(n.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()) },
+            check = { scope.ensureActive() },
+        )
+    }
+
     private fun makeFolder(context: Context, dir: String, name: String): String? =
-        if (isDoc(dir)) {
+        if (RemoteFiles.isRemote(dir)) {
+            RemoteFiles.makeFolder(context, dir, name, unique = true)
+        } else if (isDoc(dir)) {
             runCatching {
                 DocumentsContract.createDocument(context.contentResolver, Uri.parse(dir), Document.MIME_TYPE_DIR, name)
             }.getOrNull()?.toString()
@@ -521,7 +642,10 @@ object DocFiles {
 
     /** An empty file for [node] in [dir]. A provider picks its own free name; a folder on the phone gets `name (1)`. */
     private fun makeFile(context: Context, dir: String, node: Node): String? =
-        if (isDoc(dir)) {
+        if (RemoteFiles.isRemote(dir)) {
+            // Files reach a server whole, through [upload]; an empty one first would be half a file.
+            null
+        } else if (isDoc(dir)) {
             val mime = node.mime.ifEmpty { FilePlaces.mimeOf(node.name) ?: OCTET }
             runCatching {
                 DocumentsContract.createDocument(context.contentResolver, Uri.parse(dir), mime, node.name)
@@ -532,11 +656,7 @@ object DocFiles {
 
     private suspend fun stream(context: Context, from: String, to: String, bytes: ByteCounter?): Boolean {
         val scope = currentCoroutineContext()
-        val input: InputStream = if (isDoc(from)) {
-            context.contentResolver.openInputStream(Uri.parse(from)) ?: return false
-        } else {
-            File(from).inputStream()
-        }
+        val input: InputStream = input(context, from) ?: return false
         input.use { source ->
             val output: OutputStream = if (isDoc(to)) {
                 context.contentResolver.openOutputStream(Uri.parse(to), "w") ?: return false
@@ -559,6 +679,7 @@ object DocFiles {
 
     /** [path] gone, folders and all; a link on the phone goes on its own, and what it points at stays. */
     private fun remove(context: Context, path: String, touched: MutableList<String>): Boolean {
+        if (RemoteFiles.isRemote(path)) return RemoteFiles.remove(context, path)
         if (isDoc(path)) {
             return runCatching { DocumentsContract.deleteDocument(context.contentResolver, Uri.parse(path)) }.getOrDefault(false)
         }
@@ -576,7 +697,7 @@ object DocFiles {
     }
 
     private fun nameOf(path: String): String =
-        if (isDoc(path)) Uri.parse(path).lastPathSegment?.substringAfterLast('/').orEmpty() else File(path).name
+        if (RemoteFiles.isRemote(path)) RemoteFiles.nameOf(path) else if (isDoc(path)) Uri.parse(path).lastPathSegment?.substringAfterLast('/').orEmpty() else File(path).name
 
     private fun entryOf(uri: Uri, c: Cursor): FileEntry {
         val type = c.getString(2).orEmpty()

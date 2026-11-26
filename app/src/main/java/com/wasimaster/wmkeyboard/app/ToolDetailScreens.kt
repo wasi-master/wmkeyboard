@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
+import com.wasimaster.wmkeyboard.core.settings.remote.RemoteAdapters
 import com.wasimaster.wmkeyboard.core.settings.key
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import android.content.ComponentName
@@ -4118,60 +4120,76 @@ internal fun ToolDetailSettings(
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)
         ToolbarTool.GALLERY -> GalleryToolSettings(repository, settings)
         // The panel's own header switches it too; this is the same setting (#1267).
-        ToolbarTool.FILES -> SettingsGroup {
-            item {
-                ToggleSetting(
-                    R.string.files_tool_two_panes_title,
-                    stringResource(R.string.files_tool_two_panes_subtitle),
-                    settings.watch { it.filesTool.twoPanes },
-                    default = SettingsDefaults.filesTool.twoPanes,
-                    info = stringResource(R.string.files_tool_two_panes_info),
-                ) { scope.launch { repository.setFilesTwoPanes(it) } }
+        ToolbarTool.FILES -> {
+            // Servers and clouds: the offline build can reach none of them.
+            if (!OfflineBuild.isThisBuild) {
+                val servers = settings.watch { s -> s.autoBackup.locations.count { it.type in RemoteAdapters.BROWSABLE } }
+                SettingsGroup {
+                    item {
+                        NavRow(
+                            R.string.files_servers_title,
+                            stringResource(R.string.files_servers_subtitle),
+                            value = servers.takeIf { it > 0 }?.toString(),
+                            icon = Icons.Outlined.Dns,
+                        ) { onNavigate("files/servers") }
+                    }
+                }
             }
-            item {
-                ToggleSetting(
-                    R.string.files_tool_grid_title,
-                    stringResource(R.string.files_tool_grid_subtitle),
-                    settings.watch { it.filesTool.grid },
-                    default = SettingsDefaults.filesTool.grid,
-                    info = stringResource(R.string.files_tool_grid_info),
-                ) { scope.launch { repository.setFilesGrid(it) } }
-            }
-            item {
-                ToggleSetting(
-                    R.string.files_tool_tap_previews_title,
-                    stringResource(R.string.files_tool_tap_previews_subtitle),
-                    settings.watch { it.filesTool.tapPreviews },
-                    default = SettingsDefaults.filesTool.tapPreviews,
-                    info = stringResource(R.string.files_tool_tap_previews_info),
-                ) { scope.launch { repository.setFilesTapPreviews(it) } }
-            }
-            item {
-                ToggleSetting(
-                    R.string.files_tool_thumbnails_title,
-                    stringResource(R.string.files_tool_thumbnails_subtitle),
-                    settings.watch { it.filesTool.thumbnails },
-                    default = SettingsDefaults.filesTool.thumbnails,
-                    info = stringResource(R.string.files_tool_thumbnails_info),
-                ) { scope.launch { repository.setFilesThumbnails(it) } }
-            }
-            item {
-                ToggleSetting(
-                    R.string.files_tool_folders_first_title,
-                    stringResource(R.string.files_tool_folders_first_subtitle),
-                    settings.watch { it.filesTool.foldersFirst },
-                    default = SettingsDefaults.filesTool.foldersFirst,
-                    info = stringResource(R.string.files_tool_folders_first_info),
-                ) { scope.launch { repository.setFilesFoldersFirst(it) } }
-            }
-            item {
-                ToggleSetting(
-                    R.string.files_tool_show_hidden_title,
-                    stringResource(R.string.files_tool_show_hidden_subtitle),
-                    settings.watch { it.filesTool.showHidden },
-                    default = SettingsDefaults.filesTool.showHidden,
-                    info = stringResource(R.string.files_tool_show_hidden_info),
-                ) { scope.launch { repository.setFilesShowHidden(it) } }
+            SettingsGroup {
+                item {
+                    ToggleSetting(
+                        R.string.files_tool_two_panes_title,
+                        stringResource(R.string.files_tool_two_panes_subtitle),
+                        settings.watch { it.filesTool.twoPanes },
+                        default = SettingsDefaults.filesTool.twoPanes,
+                        info = stringResource(R.string.files_tool_two_panes_info),
+                    ) { scope.launch { repository.setFilesTwoPanes(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.files_tool_grid_title,
+                        stringResource(R.string.files_tool_grid_subtitle),
+                        settings.watch { it.filesTool.grid },
+                        default = SettingsDefaults.filesTool.grid,
+                        info = stringResource(R.string.files_tool_grid_info),
+                    ) { scope.launch { repository.setFilesGrid(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.files_tool_tap_previews_title,
+                        stringResource(R.string.files_tool_tap_previews_subtitle),
+                        settings.watch { it.filesTool.tapPreviews },
+                        default = SettingsDefaults.filesTool.tapPreviews,
+                        info = stringResource(R.string.files_tool_tap_previews_info),
+                    ) { scope.launch { repository.setFilesTapPreviews(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.files_tool_thumbnails_title,
+                        stringResource(R.string.files_tool_thumbnails_subtitle),
+                        settings.watch { it.filesTool.thumbnails },
+                        default = SettingsDefaults.filesTool.thumbnails,
+                        info = stringResource(R.string.files_tool_thumbnails_info),
+                    ) { scope.launch { repository.setFilesThumbnails(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.files_tool_folders_first_title,
+                        stringResource(R.string.files_tool_folders_first_subtitle),
+                        settings.watch { it.filesTool.foldersFirst },
+                        default = SettingsDefaults.filesTool.foldersFirst,
+                        info = stringResource(R.string.files_tool_folders_first_info),
+                    ) { scope.launch { repository.setFilesFoldersFirst(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.files_tool_show_hidden_title,
+                        stringResource(R.string.files_tool_show_hidden_subtitle),
+                        settings.watch { it.filesTool.showHidden },
+                        default = SettingsDefaults.filesTool.showHidden,
+                        info = stringResource(R.string.files_tool_show_hidden_info),
+                    ) { scope.launch { repository.setFilesShowHidden(it) } }
+                }
             }
         }
         ToolbarTool.SEND_FILES -> com.wasimaster.wmkeyboard.app.send.SendToolSettings(repository, settings, onNavigate)

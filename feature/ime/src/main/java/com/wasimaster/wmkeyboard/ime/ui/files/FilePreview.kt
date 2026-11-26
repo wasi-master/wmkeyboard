@@ -711,7 +711,8 @@ private fun Filmstrip(ui: FileManagerUi, preview: PreviewUi, act: (FileAction) -
     val kb = LocalKbTheme.current
     val context = LocalContext.current
     val media = remember(ui.entries) {
-        ui.entries.filter { val k = FileKinds.of(it); k == FileKind.IMAGE || k == FileKind.VIDEO }
+        // A strip of a server's pictures would fetch each one whole; there it is left out.
+        ui.entries.filter { val k = FileKinds.of(it); (k == FileKind.IMAGE || k == FileKind.VIDEO) && !com.wasimaster.wmkeyboard.core.files.RemoteFiles.isRemote(it.path) }
     }
     if (media.size < 2) return
     val at = media.indexOfFirst { it.path == preview.entry.path }.coerceAtLeast(0)

@@ -110,9 +110,11 @@ class FtpSink(private val config: FtpConfig) : BackupSink {
      * One control connection, and whatever data connections it opens.
      *
      * Short-lived on purpose: a backup runs once a day, and a socket held open
-     * between runs is a socket that has silently died since.
+     * between runs is a socket that has silently died since. Internal so the
+     * Files tool's FTP place (`FtpFs`) speaks through the same login, TLS and
+     * passive-mode code rather than a second copy of it.
      */
-    private class Session(private val config: FtpConfig) : Closeable {
+    internal class Session(private val config: FtpConfig) : Closeable {
 
         private val control: Socket
         private var reader: BufferedReader
@@ -236,8 +238,66 @@ class FtpSink(private val config: FtpConfig) : BackupSink {
             if (codeOf(reply) !in 200..299) throw BackupSinkException(statusError(reply))
         }
 
+        /**
+         * RETR [name], streamed into [out] rather than held, for files of any
+         * size. [out] may throw to stop early; the session is then mid-transfer
+         * and must be closed, not reused. Returns the bytes received.
+         */
+        fun retrieveTo(name: String, out: OutputStream): Long {
+            var total = 0L
+            try {
+                openDataConnection().use { data ->
+                    val reply = command("RETR $name")
+                    if (codeOf(reply) !in 100..199) throw BackupSinkException(statusError(reply))
+                    data.getInputStream().use { input ->
+                        val buffer = ByteArray(STREAM_BUFFER)
+                        while (true) {
+                            val n = input.read(buffer)
+                            if (n < 0) break
+                            out.write(buffer, 0, n)
+                            total += n
+                        }
+                    }
+                }
+            } finally {
+                netCall.received(total)
+            }
+            val done = readReply()
+            if (codeOf(done) !in 200..299) throw BackupSinkException(statusError(done))
+            return total
+        }
+
+        /**
+         * STOR [name] from [input], streamed, telling [onSent] each piece's
+         * byte count as it goes; [onSent] may throw to stop. STOR replaces a
+         * file of that name, so the caller makes sure the name is free.
+         */
+        fun storeFrom(name: String, input: InputStream, onSent: (Long) -> Unit) {
+            var total = 0L
+            try {
+                openDataConnection().use { data ->
+                    val reply = command("STOR $name")
+                    if (codeOf(reply) !in 100..199) throw BackupSinkException(statusError(reply))
+                    data.getOutputStream().use { output ->
+                        val buffer = ByteArray(STREAM_BUFFER)
+                        while (true) {
+                            val n = input.read(buffer)
+                            if (n < 0) break
+                            output.write(buffer, 0, n)
+                            total += n
+                            onSent(n.toLong())
+                        }
+                    }
+                }
+            } finally {
+                netCall.sent(total)
+            }
+            val done = readReply()
+            if (codeOf(done) !in 200..299) throw BackupSinkException(statusError(done))
+        }
+
         /** Runs a command whose answer arrives on a data connection. */
-        private fun dataCommand(request: String): ByteArray {
+        fun dataCommand(request: String): ByteArray {
             val bytes = openDataConnection().use { data ->
                 val reply = command(request)
                 if (codeOf(reply) !in 100..199) throw BackupSinkException(statusError(reply))
@@ -336,5 +396,6 @@ class FtpSink(private val config: FtpConfig) : BackupSink {
 
         private const val CONNECT_TIMEOUT_MS = 15_000
         private const val READ_TIMEOUT_MS = 30_000
+        private const val STREAM_BUFFER = 64 * 1024
     }
 }

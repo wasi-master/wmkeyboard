@@ -422,6 +422,7 @@
     <string name="search_kw_launchercombos">split screen, multi window, two apps, side by side, app pairs</string>
     <string name="search_kw_kdeconnect_devices">pair computer, paired devices, pc, laptop, desktop, gsconnect, valent, unpair, add by ip address</string>
     <string name="search_kw_send_instances">server, host, self hosted, mirror, upload limit</string>
+    <string name="search_kw_files_servers">webdav, sftp, smb, ftp, s3, nfs, nas, nextcloud, synology, dropbox, onedrive, google drive, cloud, network drive, remote files</string>
     <string name="search_kw_send_history">uploads, downloads used, expiry, received files</string>
     <string name="search_kw_ime_tool_send_files">upload expire transfer wifi direct hotspot shareit wetransfer firefox</string>
     <string name="search_kw_ime_tool_kde_connect">gsconnect valent pc laptop desktop linux remote touchpad sync share presentation slides</string>

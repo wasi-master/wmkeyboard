@@ -1732,6 +1732,17 @@
             android:exported="false"
             android:grantUriPermissions="true" />
 
+        <!-- Files on the servers and clouds the Files tool browses (the backup
+             locations), read only, fetched into the cache on open. Not
+             exported: another app reaches one file only through the grant a
+             Share or Open with gives it. In every build, Play's included,
+             since it needs no storage permission. -->
+        <provider
+            android:name="com.wasimaster.wmkeyboard.core.files.RemoteFilesProvider"
+            android:authorities="${applicationId}.remotefiles"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <!-- Same trampoline pattern for the file manager's storage pair, on
              Android 7 to 10. From Android 11 it asks through SpecialAccessActivity. -->
         <activity

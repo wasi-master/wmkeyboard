@@ -34,7 +34,7 @@ object FileThumbs {
 
     /** Whether [entry] is a kind this draws a picture for. */
     fun covers(entry: FileEntry): Boolean {
-        if (entry.isDirectory) return false
+        if (entry.isDirectory || com.wasimaster.wmkeyboard.core.files.RemoteFiles.isRemote(entry.path)) return false
         val kind = FileKinds.of(entry)
         return kind == FileKind.PDF || kind == FileKind.AUDIO || kind == FileKind.APK ||
             FileKinds.isTextual(kind) || (kind == FileKind.ARCHIVE || kind == FileKind.EBOOK) && FileKinds.isZip(entry.name)

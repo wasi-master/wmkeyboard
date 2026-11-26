@@ -20,4 +20,15 @@
     <string name="files_tool_show_hidden_title">Show hidden files</string>
     <string name="files_tool_show_hidden_subtitle">Files and folders whose names start with a dot</string>
     <string name="files_tool_show_hidden_info">Lists files and folders whose names start with a dot, which apps use for their own settings and caches. The panel\'s ⋮ menu switches it too. This setting is off by default.</string>
+    <!-- Servers and clouds: the Files tool's page of remote places, shared with Backup's locations. -->
+    <string name="files_servers_title">Servers and clouds</string>
+    <string name="files_servers_subtitle">Your own servers and cloud accounts, under Places in the Files tool</string>
+    <string name="files_servers_group">Servers and clouds</string>
+    <string name="files_servers_info">The Files tool lists these under Places, where you can open, add, rename and move files on them. They share one list with the locations on Backup: a location you set up for backups shows here, and one that you add here gets automatic backups only if you tick it on Automatic backup. Nothing goes to a WM Keyboard server.</string>
+    <string name="files_servers_add">Add a server or cloud</string>
+    <string name="files_servers_add_subtitle">Your own server, a NAS, a bucket or a cloud account</string>
+    <string name="files_servers_type_subtitle">Where are the files?</string>
+    <string name="files_servers_remove_body">The app forgets how to sign in to it and stops using it, for files and for backups. Nothing on the server is deleted.</string>
+    <string name="files_servers_backups_too">Automatic backups go here too</string>
+    <string name="files_servers_files_only">Files only, no automatic backups</string>
 </resources>

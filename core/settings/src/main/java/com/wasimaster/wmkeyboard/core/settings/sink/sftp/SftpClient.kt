@@ -159,7 +159,15 @@ class SftpClient(input: InputStream, output: OutputStream) {
         }
     }
 
-    fun get(path: String, onReceived: (Long) -> Unit = {}): ByteArray {
+    fun get(path: String, onReceived: (Long) -> Unit = {}): ByteArray =
+        ByteArrayOutputStream().also { download(path, it, onReceived) }.toByteArray()
+
+    /**
+     * Streams [path] into [to], a window of reads in flight, for files too
+     * big to hold. [to] may throw to stop; the replies still on their way
+     * are then left unread, so the session must not be used again.
+     */
+    fun download(path: String, to: OutputStream, onReceived: (Long) -> Unit = {}) {
         val handle = handleOf(
             request(FXP_OPEN) {
                 it.string(path)
@@ -168,7 +176,7 @@ class SftpClient(input: InputStream, output: OutputStream) {
             },
             "open",
         )
-        val out = ByteArrayOutputStream()
+        val out = to
         try {
             var offset = 0L
             var eof = false
@@ -210,7 +218,90 @@ class SftpClient(input: InputStream, output: OutputStream) {
         } finally {
             runCatching { close(handle) }
         }
-        return out.toByteArray()
+    }
+
+    /**
+     * Creates [path] and writes everything [from] holds to it, a window of
+     * writes in flight. Refused when anything is already called [path]
+     * (`EXCL`): this never writes over a file.
+     */
+    fun upload(path: String, from: InputStream, onSent: (Long) -> Unit = {}) {
+        val handle = handleOf(
+            request(FXP_OPEN) {
+                it.string(path)
+                it.writeInt(FXF_WRITE or FXF_CREAT or FXF_EXCL)
+                it.writeInt(0)
+            },
+            "open",
+        )
+        var failure: Throwable? = null
+        try {
+            val pending = ArrayDeque<Int>()
+            var offset = 0L
+            var done = false
+            val chunk = ByteArray(CHUNK)
+            while (!done || pending.isNotEmpty()) {
+                while (!done && pending.size < WINDOW) {
+                    var n = 0
+                    while (n < CHUNK) {
+                        val r = from.read(chunk, n, CHUNK - n)
+                        if (r < 0) break
+                        n += r
+                    }
+                    if (n < CHUNK) done = true
+                    if (n == 0) break
+                    val at = offset
+                    val size = n
+                    pending += request(FXP_WRITE) {
+                        it.bytes(handle)
+                        it.writeLong(at)
+                        it.writeInt(size)
+                        it.write(chunk, 0, size)
+                    }
+                    onSent(n.toLong())
+                    offset += n
+                }
+                if (pending.isNotEmpty()) expectOk(pending.removeFirst(), "write")
+            }
+        } catch (t: Throwable) {
+            failure = t
+            throw t
+        } finally {
+            val closed = runCatching { close(handle) }
+            if (failure == null) closed.getOrThrow()
+        }
+    }
+
+    /** Removes the empty folder [path]. */
+    fun rmdir(path: String) {
+        expectOk(request(FXP_RMDIR) { it.string(path) }, "rmdir")
+    }
+
+    /**
+     * Renames [from] to [to] with plain version 3 `RENAME`, which refuses a
+     * [to] that exists (OpenSSH links then unlinks), never the replacing
+     * `posix-rename` extension.
+     */
+    fun renameStrict(from: String, to: String) {
+        val id = request(FXP_RENAME) {
+            it.string(from)
+            it.string(to)
+        }
+        expectOk(id, "rename")
+    }
+
+    /** The server's absolute form of [path]; `.` is where the login lands. */
+    fun realpath(path: String): String {
+        val id = request(FXP_REALPATH) { it.string(path) }
+        val (type, body) = reply(id)
+        return when (type) {
+            FXP_NAME -> {
+                body.readInt()
+                body.string()
+            }
+            FXP_STATUS -> throw SftpStatusException(body.status(), "realpath")
+            else -> throw IOException("SFTP: realpath got reply $type")
+        }
     }
 
     private fun close(handle: ByteArray) {
@@ -327,6 +418,8 @@ class SftpClient(input: InputStream, output: OutputStream) {
         private const val FXP_READDIR = 12
         private const val FXP_REMOVE = 13
         private const val FXP_MKDIR = 14
+        private const val FXP_RMDIR = 15
+        private const val FXP_REALPATH = 16
         private const val FXP_STAT = 17
         private const val FXP_RENAME = 18
         private const val FXP_STATUS = 101
@@ -340,6 +433,7 @@ class SftpClient(input: InputStream, output: OutputStream) {
         private const val FXF_WRITE = 0x2
         private const val FXF_CREAT = 0x8
         private const val FXF_TRUNC = 0x10
+        private const val FXF_EXCL = 0x20
 
         private const val ATTR_SIZE = 0x1
         private const val ATTR_UIDGID = 0x2

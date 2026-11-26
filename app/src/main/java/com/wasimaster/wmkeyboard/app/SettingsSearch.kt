@@ -3759,6 +3759,15 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             screenParent = R.string.home_tools_title,
             keywords = R.string.search_kw_send_history,
         ),
+        // The Files tool's servers and clouds, the same shape again.
+        entry(
+            title = R.string.files_servers_title,
+            subtitle = R.string.files_servers_subtitle,
+            screen = toolTitle(ToolbarTool.FILES),
+            route = "files/servers",
+            screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_files_servers,
+        ),
         // The Clipboard screen has a row for this, but the row only opens this
         // screen, so it is indexed once and points straight at it.
         under(
@@ -4016,7 +4025,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
  */
 internal val OfflineHiddenRoutes: Set<String> = setOf(
     "datasaver", "network_activity", "provider_credits", "kdeconnect/devices",
-    "send/instances", "send/history", "ai_mcp", "photos", "addons",
+    "send/instances", "send/history", "ai_mcp", "photos", "addons", "files/servers",
 )
 
 /**

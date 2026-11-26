@@ -352,11 +352,27 @@ internal class FileManagerController(
             show(FileView.Folder(path, trail.take(at + 1)))
             return
         }
-        val name = s.entries.firstOrNull { it.path == path }?.name ?: Uri.parse(path).lastPathSegment.orEmpty()
+        val name = s.entries.firstOrNull { it.path == path }?.name
+            ?: com.wasimaster.wmkeyboard.core.files.RemoteFiles.nameOf(path).takeIf { it.isNotEmpty() }
+            ?: Uri.parse(path).lastPathSegment.orEmpty()
         show(FileView.Folder(path, trail + FileCrumb(path, name)))
     }
 
     private fun openTree(tree: FileTree) = show(FileView.Folder(tree.root, listOf(FileCrumb(tree.root, tree.label))))
+
+    /** A server or a cloud opens at its top, with a trail of its own, as an added folder does. */
+    private fun openRemote(place: com.wasimaster.wmkeyboard.core.files.RemotePlace) {
+        val root = com.wasimaster.wmkeyboard.core.files.RemoteFiles.rootOf(app, place)
+        show(FileView.Folder(root, listOf(FileCrumb(root, place.label))))
+    }
+
+    /** The Files tool's Servers and clouds page in settings, where a server or a cloud is added. */
+    private fun addRemote() {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("wmkeyboard://settings/files/servers"))
+            .setPackage(app.packageName)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (runCatching { app.startActivity(intent) }.isFailure) notice(FileNotice.Kind.NO_APP)
+    }
 
     /** A pinned or recent folder: a document one starts a trail of its own, as an added folder does. */
     private fun openPin(pin: FilePin) {
@@ -452,6 +468,7 @@ internal class FileManagerController(
         placesJob = scope.launch {
             val volumes = if (access) withContext(Dispatchers.IO) { FilePlaces.volumes(app) } else emptyList()
             val trees = withContext(Dispatchers.IO) { FileTrees.list(app) }
+            val remotes = withContext(Dispatchers.IO) { com.wasimaster.wmkeyboard.core.files.RemoteFiles.places(app) }
             val space = withContext(Dispatchers.IO) { volumes.mapNotNull { v -> FileDetails.space(v.path)?.let { v.path to it } }.toMap() }
             val shortcuts = if (access) {
                 withContext(Dispatchers.IO) { FileShortcut.entries.filter { FilePlaces.folderOf(it).isDirectory } }
@@ -465,6 +482,7 @@ internal class FileManagerController(
                 it.copy(
                     volumes = volumes,
                     trees = trees,
+                    remotes = remotes,
                     space = space,
                     shortcuts = shortcuts,
                     pins = pins,
@@ -1614,6 +1632,8 @@ internal class FileManagerController(
             is FileAction.OpenCategory -> show(FileView.Category(action.category))
             is FileAction.OpenShortcut -> show(FileView.Folder(FilePlaces.folderOf(action.shortcut).path))
             is FileAction.OpenTree -> openTree(action.tree)
+            is FileAction.OpenRemote -> openRemote(action.place)
+            FileAction.AddRemote -> addRemote()
             is FileAction.OpenPin -> openPin(action.pin)
             is FileAction.Unpin -> unpin(action.pin)
             FileAction.TogglePin -> togglePin()

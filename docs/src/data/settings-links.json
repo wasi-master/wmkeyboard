@@ -123,6 +123,7 @@
   {"title":"Devices","name":"kdeconnect_devices_title","route":"kdeconnect/devices","screens":["Tools","KDE Connect"],"screen":false,"description":"Paired computers, and the ones nearby"},
   {"title":"Send instances","name":"send_instances_screen_title","route":"send/instances","screens":["Tools","Send files"],"screen":false,"description":"Public servers and your own"},
   {"title":"Send history","name":"send_history_screen_title","route":"send/history","screens":["Tools","Send files"],"screen":false,"description":"Links this phone made and files it received"},
+  {"title":"Servers and clouds","name":"files_servers_title","route":"files/servers","screens":["Tools","Files"],"screen":false,"description":"Your own servers and cloud accounts, under Places in the Files tool"},
   {"title":"Phone number formats","name":"home_screen_phoneformats_title","route":"phoneformats","screens":["Clipboard","Rules and privacy"],"screen":true,"description":"Numbers that become chips"},
   {"title":"Copy rules","name":"clipboard_copy_rules_title","route":"cliprules","screens":["Clipboard","Rules and privacy"],"screen":true,"description":"Patterns applied to copies"},
   {"title":"Tool shortcuts list","name":"typing_hw_shortcuts_list_title","route":"hwshortcuts","screens":["Typing","Physical keyboard"],"screen":true,"description":"Which letter opens which tool"},

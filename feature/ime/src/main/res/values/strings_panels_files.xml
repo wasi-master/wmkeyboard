@@ -125,6 +125,12 @@
     <!-- Stops offering plugins for files of this type. -->
     <string name="ime_files_offer_not_now">Not now</string>
     <string name="ime_files_view_built_in">Built-in</string>
+    <!-- Places: heading over the backup locations that can be browsed (WebDAV, SFTP, SMB servers, Dropbox, S3 buckets...). -->
+    <string name="ime_files_section_remote">Servers and clouds</string>
+    <!-- Places: opens WM Keyboard's backup settings, where a server or cloud is added as a location. -->
+    <string name="ime_files_add_remote">Add a server or cloud</string>
+    <!-- Places: under "Add a server or cloud". -->
+    <string name="ime_files_add_remote_detail">Servers and cloud accounts you add in settings show here</string>
     <!-- A "View with" choice: the file as WM Keyboard would import it (a theme, a layout, another keyboard's backup). -->
     <string name="ime_files_view_import">Import</string>
     <!-- Button in a file's preview: opens WM Keyboard's import for the file (a theme, a backup, a layout). -->

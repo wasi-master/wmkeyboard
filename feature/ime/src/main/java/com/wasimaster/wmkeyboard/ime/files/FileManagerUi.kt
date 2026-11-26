@@ -52,6 +52,8 @@ data class FileManagerUi(
     val shortcuts: List<FileShortcut> = emptyList(),
     /** Folders added through Android's folder picker: a USB stick, a share, a cloud drive's folder. */
     val trees: List<FileTree> = emptyList(),
+    /** The backup locations that hold files (a WebDAV or SFTP server, Dropbox, an S3 bucket), browsed like folders. */
+    val remotes: List<com.wasimaster.wmkeyboard.core.files.RemotePlace> = emptyList(),
     val pins: List<FilePin> = emptyList(),
     val recentFolders: List<FilePin> = emptyList(),
     val searches: List<String> = emptyList(),
@@ -344,6 +346,12 @@ sealed interface FileAction {
     data class OpenCategory(val category: FileCategory) : FileAction
     data class OpenShortcut(val shortcut: FileShortcut) : FileAction
     data class OpenTree(val tree: FileTree) : FileAction
+
+    /** A server or a cloud, at its top folder. */
+    data class OpenRemote(val place: com.wasimaster.wmkeyboard.core.files.RemotePlace) : FileAction
+
+    /** The app's backup settings, where a server or a cloud is added. */
+    data object AddRemote : FileAction
     data class OpenPin(val pin: FilePin) : FileAction
     data class Unpin(val pin: FilePin) : FileAction
 

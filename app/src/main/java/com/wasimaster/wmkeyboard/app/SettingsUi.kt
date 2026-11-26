@@ -524,6 +524,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     // Children of the Send files tool, so they keep that tool's teal.
     "send/instances" to Color(0xFF26A69A),
     "send/history" to Color(0xFF26A69A),
+    // The Files tool's amber, as above.
+    "files/servers" to Color(0xFFFFA000),
 )
 
 /** The accent for a route with no colour of its own. */

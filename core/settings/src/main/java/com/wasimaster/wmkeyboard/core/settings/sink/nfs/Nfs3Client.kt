@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.settings.sink.nfs
 
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 
 /** An NFS or MOUNT call that came back with a status other than OK. */
 class NfsStatusException(val status: Int, what: String) : IOException("$what: nfs status $status")
@@ -27,6 +29,9 @@ class Nfs3Client private constructor(
 
     /** One directory entry from [list]. */
     data class Entry(val name: String, val directory: Boolean, val size: Long, val modifiedMs: Long)
+
+    /** What [getattr] reports of one file or folder. */
+    data class Attributes(val directory: Boolean, val size: Long, val modifiedMs: Long)
 
     private var writeChunk = DEFAULT_CHUNK
     private var readChunk = DEFAULT_CHUNK
@@ -180,6 +185,105 @@ class Nfs3Client private constructor(
         }
     }
 
+    /** GETATTR: whether [handle] is a folder, its size and when it last changed. */
+    fun getattr(handle: ByteArray): Attributes {
+        val r = call(PROC_GETATTR, XdrWriter().opaque(handle))
+        val status = r.int()
+        if (status != NFS_OK) throw NfsStatusException(status, "getattr")
+        val type = r.int()
+        r.skip(FATTR_AFTER_TYPE_TO_SIZE)
+        val size = r.long()
+        r.skip(FATTR_SIZE_TO_MTIME)
+        val modified = r.uint() * 1000L + r.uint() / 1_000_000L
+        return Attributes(directory = type == TYPE_DIR, size = size, modifiedMs = modified)
+    }
+
+    /**
+     * Makes [name] in [dir] as a new empty file, GUARDED: where something
+     * already has the name the server answers NFS3ERR_EXIST and nothing is
+     * touched, unlike [create], which empties what is there.
+     */
+    fun createNew(dir: ByteArray, name: String, mode: Int = FILE_MODE): ByteArray {
+        val args = XdrWriter().opaque(dir).string(name).int(CREATE_GUARDED).also { sattr(it, mode, 0L) }
+        val r = call(PROC_CREATE, args)
+        val status = r.int()
+        if (status != NFS_OK) throw NfsStatusException(status, "create")
+        return handleOrLookup(r, dir, name)
+    }
+
+    /**
+     * Writes all of [input] from the start of [file], a chunk at a time and
+     * each committed before the next, as [write] does, without holding more
+     * than a chunk. [onSent] hears each chunk's byte count and may throw to
+     * stop. Returns the bytes written.
+     */
+    fun writeFrom(file: ByteArray, input: InputStream, onSent: (Long) -> Unit = {}): Long {
+        val buffer = ByteArray(writeChunk)
+        var offset = 0L
+        while (true) {
+            // Fill the chunk, since a stream may hand over less than asked.
+            var filled = 0
+            while (filled < buffer.size) {
+                val n = input.read(buffer, filled, buffer.size - filled)
+                if (n < 0) break
+                filled += n
+            }
+            if (filled == 0) return offset
+            var at = 0
+            while (at < filled) {
+                val count = filled - at
+                val r = call(
+                    PROC_WRITE,
+                    XdrWriter().opaque(file).long(offset).int(count).int(FILE_SYNC)
+                        .opaque(buffer.copyOfRange(at, filled)),
+                )
+                val status = r.int()
+                skipWcc(r)
+                if (status != NFS_OK) throw NfsStatusException(status, "write")
+                val written = r.uint().toInt()
+                if (written <= 0 || written > count) throw IOException("nfs: wrote $written of $count")
+                at += written
+                offset += written
+                onSent(written.toLong())
+            }
+            if (filled < buffer.size) return offset
+        }
+    }
+
+    /** Reads all of [file] into [out], a chunk at a time. [out] may throw to stop. Returns the bytes read. */
+    fun readTo(file: ByteArray, out: OutputStream): Long {
+        var offset = 0L
+        while (true) {
+            val r = call(PROC_READ, XdrWriter().opaque(file).long(offset).int(readChunk))
+            val status = r.int()
+            skipPostOpAttr(r)
+            if (status != NFS_OK) throw NfsStatusException(status, "read")
+            r.uint() // count
+            val eof = r.bool()
+            val data = r.opaque()
+            out.write(data)
+            offset += data.size
+            if (eof || data.isEmpty()) return offset
+        }
+    }
+
+    /** Removes the empty folder [name] from [dir]; already gone is fine, one with something in it is refused. */
+    fun rmdir(dir: ByteArray, name: String) {
+        val r = call(PROC_RMDIR, XdrWriter().opaque(dir).string(name))
+        val status = r.int()
+        if (status != NFS_OK && status != NFS3ERR_NOENT) throw NfsStatusException(status, "rmdir")
+    }
+
+    /**
+     * Renames [from] in [fromDir] to [to] in [toDir]. Like [rename], NFS
+     * replaces a [to] that exists, so the caller makes sure it does not.
+     */
+    fun renameTo(fromDir: ByteArray, from: String, toDir: ByteArray, to: String) {
+        val r = call(PROC_RENAME, XdrWriter().opaque(fromDir).string(from).opaque(toDir).string(to))
+        val status = r.int()
+        if (status != NFS_OK) throw NfsStatusException(status, "rename")
+    }
+
     override fun close() = nfs.close()
 
     companion object {
@@ -188,6 +292,7 @@ class Nfs3Client private constructor(
         const val NFS3ERR_NOENT = 2
         const val NFS3ERR_ACCES = 13
         const val NFS3ERR_EXIST = 17
+        const val NFS3ERR_XDEV = 18
         const val NFS3ERR_NOTDIR = 20
         const val NFS3ERR_FBIG = 27
         const val NFS3ERR_NOSPC = 28
@@ -210,17 +315,20 @@ class Nfs3Client private constructor(
 
         private const val NFS_PROGRAM = 100003
         private const val NFS_VERSION = 3
+        private const val PROC_GETATTR = 1
         private const val PROC_LOOKUP = 3
         private const val PROC_READ = 6
         private const val PROC_WRITE = 7
         private const val PROC_CREATE = 8
         private const val PROC_MKDIR = 9
         private const val PROC_REMOVE = 12
+        private const val PROC_RMDIR = 13
         private const val PROC_RENAME = 14
         private const val PROC_READDIRPLUS = 17
         private const val PROC_FSINFO = 19
 
         private const val CREATE_UNCHECKED = 0
+        private const val CREATE_GUARDED = 1
         private const val FILE_SYNC = 2
         private const val TYPE_DIR = 2
         private const val FILE_MODE = 0x1a4 // 0644

@@ -21,6 +21,7 @@ The keyboard has its own file manager. It opens in a panel over the keys, in the
 - **Pinned** folders as chips. Pin any folder with the pin at the end of its path row, or from its Properties card. Press and hold a chip to take it off.
 - **Recent**: the newest files on the phone, and the folders you opened last.
 - **Added folders**, and **Add a folder** to add another (see below).
+- **Servers and clouds**: your own servers and cloud accounts, such as a Nextcloud, an SFTP server or a Dropbox (see below).
 
 The storage cards, the tiles and Recent need Android's **All files access**, which the Google Play build cannot ask for.
 
@@ -29,6 +30,26 @@ The storage cards, the tiles and Recent need Android's **All files access**, whi
 **Add a folder** opens Android's folder picker. Pick a folder on the phone, the top of a USB drive or SD card, or a folder that another app offers there, such as a network share or a cloud drive whose app shows up in the picker. The keyboard keeps a grant for that folder only, so it needs no All files access, and this works in every build, Play included. Press and hold an added folder to take it off the list. The folder and its files stay where they are.
 
 How fast an added folder answers depends on the app behind it. A network share or a cloud folder is read over the network, a folder at a time.
+
+### Servers and clouds
+
+Add a server or a cloud account on the tool's own page, <SettingsPath path="Tools / Files / Servers and clouds" />, or with **Add a server or cloud** under Places, which opens that page. It takes WebDAV (Nextcloud and the others), SFTP, Windows shares (SMB), FTP, S3, NFS, Google Drive, Dropbox, OneDrive, Box, pCloud, Synology, QNAP, MEGA, iCloud Drive and Proton Drive, set up with the same sheet and **Test the connection** button as a backup location.
+
+The page and the [backup locations](/privacy/backup/#automatic-backup) share one list. A location you set up for backups shows here with the same address and sign-in, and one you add here gets no automatic backups unless you tick it on the Automatic backup screen. Removing one from either page removes it from both; nothing on the server is deleted. Git, email, a nearby device and the other profile hold backups rather than folders, so they show only on Backup. The offline build has no internet, so it has no Servers and clouds.
+
+A server opens at the top of what its login reaches rather than at the backup's own folder: an SFTP account's home, a share's root, the whole bucket, the whole Nextcloud account. Dropbox and OneDrive give the app only a folder of its own under Apps, so that folder is what they show.
+
+Everything works there as on the phone: open, preview, send, share, search inside a folder, copy and move both ways, rename, new folder, zip and unzip, delete. A few things work differently, so that nothing gets lost on the way:
+
+- A file going to a server is copied whole to the phone first, uploaded under a hidden temporary name, and given its real name only once its size checks out. If the upload fails or you stop it, the temporary file is removed and nothing under the real name changes.
+- A name already taken is never written over. A copy gets `name (1)`, as on the phone, and **Replace** removes the old file only after the new one has arrived whole.
+- A move deletes the original only after its copy has arrived. A move inside one server is done by the server itself.
+- A file is fetched whole before it opens, since players and PDF pages need to jump around in it. The keyboard keeps up to 512 MB of fetched files and reuses one until the server reports a different size or date.
+- Folders on a server show icons rather than thumbnails, and a preview has no strip of the folder's other pictures, since each picture would be a download. **Import** reads a file on a server only when it is 8 MB or smaller.
+- A delete is permanent, as on the phone, and a folder goes one file at a time. If the server refuses one, the rest stays.
+- Google Drive and MEGA let one folder hold two things with the same name. Both show, each with its own date and size, and each row is its own file: whatever you do to one never touches the other.
+
+The connection to a server stays open while you browse and closes after about a minute and a half of quiet. Changing a location's details in settings closes it at once, so the next look signs in with the new ones.
 
 ## The first time
 
@@ -146,6 +167,7 @@ The Play build has no built-in picker, so these tools open Android's picker ther
 
 The Files tool's page (<SettingsPath path="Tools / Files" />) has:
 
+- **Servers and clouds**, the servers and cloud accounts the tool can open (see [above](#servers-and-clouds)).
 - **Two lists side by side**, off by default.
 - **Show files as a grid**, on by default. Off shows a list.
 - **Tap a file to preview it**, on by default. Off opens a file in its app.

@@ -53,6 +53,8 @@ object ImportableFiles {
         val kind = FileKinds.of(entry)
         // A long log or a data dump would be read whole only to be turned down.
         if (FileKinds.isTextual(kind) && entry.size > MAX_TEXT_BYTES) return false
+        // On a server, reading it means fetching it; only small files are worth that unasked.
+        if (com.wasimaster.wmkeyboard.core.files.RemoteFiles.isRemote(entry.path) && entry.size > MAX_REMOTE_BYTES) return false
         return kind != FileKind.IMAGE && kind != FileKind.VIDEO && kind != FileKind.AUDIO &&
             kind != FileKind.PDF && kind != FileKind.APK
     }
@@ -86,4 +88,7 @@ object ImportableFiles {
 
     /** Past this, a text or code file is not a theme, a layout or a snippet list. */
     private const val MAX_TEXT_BYTES = 16L * 1024 * 1024
+
+    /** A theme, a layout or a backup of settings; not a pack of stickers on a slow server. */
+    private const val MAX_REMOTE_BYTES = 8L * 1024 * 1024
 }
