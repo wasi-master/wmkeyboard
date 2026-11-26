@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import com.wasimaster.wmkeyboard.core.notes.NoteAttachments
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -19,6 +20,13 @@ import kotlinx.serialization.json.jsonPrimitive
 object NotesBackup {
 
     private const val NOTES = "notes"
+
+    /**
+     * The key the notes' pictures ride under beside `notes` (#1586), name to
+     * base64; see `SettingsRepository.withNoteAttachments`.
+     */
+    const val ATTACHMENTS = "attachments"
+    private const val BODY = "body"
     private const val LOCKED = "locked"
     private const val DELETED_AT = "deletedAt"
     private const val ID = "id"
@@ -51,6 +59,17 @@ object NotesBackup {
         val missingLocked = localNotes.filter { it.isLocked() && it.id()?.let { id -> id !in knownIds } == true }
         if (missingLocked.isEmpty()) return incoming
         return JsonObject(incoming + (NOTES to JsonArray(incomingNotes + missingLocked)))
+    }
+
+    /** The attachment names the notes in [root] show, trash included. */
+    fun attachmentNames(root: JsonObject): Set<String> {
+        val notes = root[NOTES] as? JsonArray ?: return emptySet()
+        val out = LinkedHashSet<String>()
+        for (note in notes) {
+            val body = runCatching { (note.jsonObject[BODY] as? JsonPrimitive)?.content }.getOrNull() ?: continue
+            out += NoteAttachments.referenced(body)
+        }
+        return out
     }
 
     /** Notes outside the trash, for the import dialog's count line. */

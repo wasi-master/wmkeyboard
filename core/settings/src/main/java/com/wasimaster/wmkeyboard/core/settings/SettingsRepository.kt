@@ -14613,6 +14613,7 @@ class SettingsRepository(private val context: Context) {
         private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
         private val NOTES_KEEP_TOOLBAR = booleanPreferencesKey("notes_keep_toolbar")
         private val NOTES_TAP_INSERTS = booleanPreferencesKey("notes_tap_inserts")
+        private val NOTES_EDITOR = stringPreferencesKey("notes_editor")
         private val NOTES_ASSIST = booleanPreferencesKey("notes_assist")
         private val NOTES_ASSIST_HEADINGS = booleanPreferencesKey("notes_assist_headings")
         private val NOTES_ASSIST_SUMMARIES = booleanPreferencesKey("notes_assist_summaries")
@@ -17726,6 +17727,7 @@ class SettingsRepository(private val context: Context) {
             trashDays = p[NOTES_TRASH_DAYS]?.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) ?: defaults.notes.trashDays,
             keepToolbar = p[NOTES_KEEP_TOOLBAR] ?: defaults.notes.keepToolbar,
             tapInserts = p[NOTES_TAP_INSERTS] ?: defaults.notes.tapInserts,
+            editor = p[NOTES_EDITOR]?.let { runCatching { NoteEditorKind.valueOf(it) }.getOrNull() } ?: defaults.notes.editor,
             assist = NotesAssistSettings(
                 enabled = p[NOTES_ASSIST] ?: defaults.notes.assist.enabled,
                 headings = p[NOTES_ASSIST_HEADINGS] ?: defaults.notes.assist.headings,
@@ -19972,6 +19974,7 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNotesKeepToolbar(value: Boolean) = editPrefs { it[NOTES_KEEP_TOOLBAR] = value }
     suspend fun setNotesTapInserts(value: Boolean) = editPrefs { it[NOTES_TAP_INSERTS] = value }
+    suspend fun setNotesEditor(value: NoteEditorKind) = editPrefs { it[NOTES_EDITOR] = value.name }
 
     /**
      * One change to the notes assistant's settings (#1293), applied to what
@@ -23092,6 +23095,49 @@ class SettingsRepository(private val context: Context) {
     /** A pack file's path inside its pack: `templates/x.json`, at most a folder or two deep. */
     private val DYN_STICKER_PATH_DEPTH = 4
 
+    /**
+     * Most bytes of note pictures the Notes section carries (#1586). Past it
+     * the rest are left out and those notes restore without them; the
+     * section has to stay one a backup never drops whole.
+     */
+    private val NOTE_ATTACHMENTS_MAX_BYTES = 24L * 1024 * 1024
+
+    /**
+     * The notes file with the pictures its notes show beside it, as
+     * `attachments: { name: base64 }`, the way the snippets section carries
+     * its pictures. Only the notes [element] holds: a locked note left out of
+     * a bundle without secrets takes its pictures with it. A build without
+     * rich notes ignores the key; sync splits it by name, so a picture
+     * travels once.
+     */
+    private fun withNoteAttachments(element: JsonElement): JsonElement {
+        val obj = element as? JsonObject ?: return element
+        val names = NotesBackup.attachmentNames(obj)
+        if (names.isEmpty()) return element
+        var total = 0L
+        val files = buildJsonObject {
+            for (name in names) {
+                val file = com.wasimaster.wmkeyboard.core.notes.NoteAttachments.file(context.filesDir, name)?.takeIf { it.isFile } ?: continue
+                total += file.length()
+                if (total > NOTE_ATTACHMENTS_MAX_BYTES) break
+                val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+                put(name, JsonPrimitive(Base64.encodeToString(bytes, Base64.NO_WRAP)))
+            }
+        }
+        if (files.isEmpty()) return element
+        return JsonObject(obj + (NotesBackup.ATTACHMENTS to files))
+    }
+
+    /** Writes a backup's note pictures back, under names of the attachments' own shape only. */
+    private fun restoreNoteAttachments(files: JsonObject) {
+        for ((name, value) in files) {
+            val bytes = (value as? JsonPrimitive)?.contentOrNull
+                ?.let { runCatching { Base64.decode(it, Base64.DEFAULT) }.getOrNull() }
+                ?: continue
+            com.wasimaster.wmkeyboard.core.notes.NoteAttachments.restore(context.filesDir, name, bytes)
+        }
+    }
+
     /** The key picture snippets' files ride under inside the snippets section. */
     private val SNIPPET_IMAGES_KEY = "images"
 
@@ -23611,6 +23657,9 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.DYNAMIC_STICKERS in sections) {
             onDisk += ownDynStickerPackDirs().sumOf { bytesUnder(it) }
         }
+        if (ConfigBackup.Section.NOTES in sections) {
+            onDisk += minOf(bytesUnder(com.wasimaster.wmkeyboard.core.notes.NoteAttachments.dir(context.filesDir)), NOTE_ATTACHMENTS_MAX_BYTES)
+        }
         return onDisk * 4 / 3
     }
 
@@ -23651,6 +23700,10 @@ class SettingsRepository(private val context: Context) {
             out[ConfigBackup.Section.WORDLISTS] = root.listFiles().orEmpty().filter { it.isDirectory }.sumOf { dir ->
                 CustomDictionaries.lists(context.filesDir, dir.name).sumOf { size(it) }
             }
+        }
+        if (ConfigBackup.Section.NOTES in sections) {
+            val dir = com.wasimaster.wmkeyboard.core.notes.NoteAttachments.dir(context.filesDir)
+            out[ConfigBackup.Section.NOTES] = minOf(dir.listFiles().orEmpty().sumOf { size(it) }, NOTE_ATTACHMENTS_MAX_BYTES)
         }
         return out.mapValues { (_, bytes) -> bytes * 4 / 3 }
     }
@@ -23794,7 +23847,7 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.NOTES in sections) {
             // Locked notes travel only with the secrets: the same switch, for
             // the same reason — this file is easy to send somewhere.
-            readStore(NoteStore.FILE_PATH)?.let { out[ConfigBackup.Section.NOTES] = NotesBackup.portable(it, includeSecrets) }
+            readStore(NoteStore.FILE_PATH)?.let { out[ConfigBackup.Section.NOTES] = withNoteAttachments(NotesBackup.portable(it, includeSecrets)) }
         }
         if (ConfigBackup.Section.CLOCK in sections) {
             // Only when the clock was ever used: its store file is the sign.
@@ -24101,9 +24154,11 @@ class SettingsRepository(private val context: Context) {
             }
         }
         (parsed.sections[ConfigBackup.Section.NOTES] as? JsonObject)?.let { obj ->
+            // The pictures first, so no restored note shows a missing one (#1586).
+            (obj[NotesBackup.ATTACHMENTS] as? JsonObject)?.let(::restoreNoteAttachments)
             // A bundle made without secrets left this phone's locked notes
             // out; restoring it must not delete them.
-            val merged = NotesBackup.keepingLocalLocked(obj, readStore(NoteStore.FILE_PATH) as? JsonObject)
+            val merged = NotesBackup.keepingLocalLocked(JsonObject(obj - NotesBackup.ATTACHMENTS), readStore(NoteStore.FILE_PATH) as? JsonObject)
             if (writeStore(NoteStore.FILE_PATH, merged)) {
                 restored.add(ConfigBackup.Section.NOTES)
                 // The keyboard holds the notes in memory; without this it

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.content.R
 import com.wasimaster.wmkeyboard.core.clipboard.capClipText
 import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
+import com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup
 import com.wasimaster.wmkeyboard.core.tools.AiMarkdownBlocks
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -108,12 +109,14 @@ data class Note(
      * than [PREVIEW_CHARS_PER_LINE] a line. Text layout measures every
      * character it is handed, however few lines are drawn, so a row that
      * shows three lines of a long paragraph is handed a few hundred
-     * characters of it, not the whole (#1466).
+     * characters of it, not the whole (#1466). The rich editor's tags
+     * (#1586) are taken out and its pictures shown by their descriptions: a
+     * row prints words, not `<span style="color:…">`.
      */
     fun preview(lines: Int): String {
         val shown = lines.coerceAtLeast(1)
         val cap = shown * PREVIEW_CHARS_PER_LINE
-        return clipPreviewText(previewBody(cap), shown, cap)
+        return clipPreviewText(NoteMarkup.strip(previewBody(cap)), shown, cap)
     }
 
     /** Words in the body, as whitespace separates them. */

@@ -176,7 +176,11 @@ object NoteHighlights {
         limit: Int = MAX_HIGHLIGHTS,
         languages: List<String> = listOf(locale.toLanguageTag()),
     ): List<NoteHighlight> {
-        val scanned = if (text.length > MAX_SCANNED_CHARS) text.substring(0, MAX_SCANNED_CHARS) else text
+        // The rich editor's tags (#1586) as spaces: `#e53935` is no amount and
+        // `font-size:2em` no date, and every offset still points at its word.
+        val scanned = com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.blank(
+            if (text.length > MAX_SCANNED_CHARS) text.substring(0, MAX_SCANNED_CHARS) else text,
+        )
         if (scanned.isBlank()) return emptyList()
         val claimed = ArrayList<IntRange>()
         val found = ArrayList<NoteHighlight>()

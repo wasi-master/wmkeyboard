@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.notes
 
+import com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.text.SimpleDateFormat
@@ -251,16 +253,33 @@ object NoteFiles {
         return candidate
     }
 
-    /** [notes] as one zip, one file each, named by [fileName]. */
-    fun writeZip(notes: List<Note>, format: Format, out: OutputStream) {
+    /**
+     * [notes] as one zip, one file each, named by [fileName]. As Markdown,
+     * the pictures the notes show (#1586) go along in an `attachments/`
+     * folder beside them, where the notes' own addresses point, when
+     * [attachment] finds their files; as plain text, the rich editor's tags
+     * are taken out and a picture is its description.
+     */
+    fun writeZip(notes: List<Note>, format: Format, out: OutputStream, attachment: ((String) -> File?)? = null) {
         val taken = HashSet<String>()
         ZipOutputStream(out).use { zip ->
             for (note in notes) {
                 val entry = ZipEntry(fileName(note, format, taken))
                 if (note.updatedAt > 0) entry.time = note.updatedAt
                 zip.putNextEntry(entry)
-                zip.write(toText(note).toByteArray())
+                val written = if (format == Format.TEXT) note.copy(body = NoteMarkup.strip(note.body)) else note
+                zip.write(toText(written).toByteArray())
                 zip.closeEntry()
+            }
+            if (format == Format.MARKDOWN && attachment != null) {
+                val names = notes.flatMapTo(sortedSetOf()) { NoteAttachments.referenced(it.body) }
+                for (name in names) {
+                    val file = attachment(name)?.takeIf { it.isFile && it.length() <= NoteAttachments.MAX_BYTES } ?: continue
+                    val bytes = runCatching { file.readBytes() }.getOrNull() ?: continue
+                    zip.putNextEntry(ZipEntry(NoteAttachments.URL_PREFIX + name).apply { time = file.lastModified() })
+                    zip.write(bytes)
+                    zip.closeEntry()
+                }
             }
         }
     }
@@ -269,13 +288,20 @@ object NoteFiles {
      * The notes in a zip: every `.md`/`.txt` entry at any depth, folders and
      * other files skipped, capped by [MAX_IMPORT_FILES] and [MAX_IMPORT_BYTES].
      */
-    fun readZip(input: InputStream): List<Note> {
+    fun readZip(input: InputStream, onAttachment: ((name: String, bytes: ByteArray) -> Unit)? = null): List<Note> {
         val out = ArrayList<Note>()
         ZipInputStream(input).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
                 if (entry.isDirectory) continue
                 val name = entry.name.substringAfterLast('/')
+                // A picture a note shows (#1586), from an `attachments/` folder at any depth.
+                if (onAttachment != null && entry.name.substringBeforeLast('/', "").substringAfterLast('/') == "attachments" &&
+                    NoteAttachments.isName(name)
+                ) {
+                    readCapped(zip, NoteAttachments.MAX_BYTES)?.let { onAttachment(name, it) }
+                    continue
+                }
                 if (!isNoteFile(name)) continue
                 if (out.size >= MAX_IMPORT_FILES) break
                 val bytes = readCapped(zip, MAX_IMPORT_BYTES) ?: continue

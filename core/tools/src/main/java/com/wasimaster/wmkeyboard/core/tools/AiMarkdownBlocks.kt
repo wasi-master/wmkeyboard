@@ -30,11 +30,20 @@ object AiMarkdownBlocks {
      * [MATH] is a formula inside a sentence (#811), written out by [LatexMath.inline].
      * [FORMULA] marks one that needs drawing in two dimensions: its [Span.url]
      * is the LaTeX source, and the text under it is the plain version.
+     *
+     * [COLOR], [BACKGROUND], [FONT] and [SIZE] come from a note's rich text
+     * (#1586): `<span style="…">` and `<mark style="background:…">`. Their
+     * [Span.value] is the CSS value as written (a colour, a generic font
+     * family, a size); an [UNDERLINE]'s value is its style (`wavy`, `dotted`,
+     * `dashed`, `double`) or null for a plain line.
      */
-    enum class Style { BOLD, ITALIC, CODE, STRIKE, UNDERLINE, HIGHLIGHT, SUPERSCRIPT, SUBSCRIPT, LINK, MATH, FORMULA }
+    enum class Style { BOLD, ITALIC, CODE, STRIKE, UNDERLINE, HIGHLIGHT, SUPERSCRIPT, SUBSCRIPT, LINK, MATH, FORMULA, COLOR, BACKGROUND, FONT, SIZE }
 
-    /** [style] over `[start, end)` of [Inline.text]. [url] is set on a [Style.LINK] or [Style.FORMULA] span only. */
-    data class Span(val start: Int, val end: Int, val style: Style, val url: String? = null)
+    /**
+     * [style] over `[start, end)` of [Inline.text]. [url] is set on a [Style.LINK]
+     * or [Style.FORMULA] span only; [value] on the styles that carry a CSS value.
+     */
+    data class Span(val start: Int, val end: Int, val style: Style, val url: String? = null, val value: String? = null)
 
     /** One run of text with its markers removed and turned into [spans]. */
     data class Inline(val text: String, val spans: List<Span> = emptyList())
@@ -116,6 +125,9 @@ object AiMarkdownBlocks {
     private val LINK_DEFINITION by lazy { Regex("""^ {0,3}\[([^\]^\n][^\]\n]*)]: *<?([^\s>]+)>?(?: +(?:"[^"]*"|'[^']*'|\([^)]*\)))? *$""") }
     private val FOOTNOTE_DEFINITION by lazy { Regex("""^ {0,3}\[\^([^\]\s]+)]: ?(.*)$""") }
 
+    /** Two or more images and nothing else on a line: a row of pictures side by side (#1586). */
+    private val IMAGES_LINE by lazy { Regex("""^ {0,3}(?:!\[[^\]\n]*]\(\s*<?[^\s)>]+>?(?:\s+"[^"]*")?\s*\) *){2,}$""") }
+
     /** An image, linked or not, with nothing else on its line. */
     private val IMAGE_LINE by lazy {
         Regex("""^ {0,3}(?:\[!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)|!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)) *$""")
@@ -131,9 +143,15 @@ object AiMarkdownBlocks {
     // first in [INLINE_RULES] wins, so a linked image beats the link around it.
     private val CODE by lazy { Regex("""(`+)(.+?)\1(?!`)""") }
     private val AUTOLINK by lazy { Regex("""<((?:https?|ftp)://[^\s<>]+|mailto:[^\s<>]+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+)>""") }
+    /**
+     * The opening tag of an inline HTML pair; its close is found by counting,
+     * so a `<span>` inside a `<span>` (how a note's rich text nests a size
+     * inside a colour) closes where it should.
+     */
     private val HTML_PAIR by lazy {
-        Regex("""<(b|strong|i|em|del|s|strike|u|ins|code|kbd|mark|sub|sup)>(.+?)</\1>""", RegexOption.IGNORE_CASE)
+        Regex("""<(b|strong|i|em|del|s|strike|u|ins|code|kbd|mark|sub|sup|span|font)((?:\s[^<>]*)?)>""", RegexOption.IGNORE_CASE)
     }
+    private val HTML_ATTRIBUTE by lazy { Regex("""([A-Za-z-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""") }
     private val HTML_BREAK by lazy { Regex("""<br *\/?>""", RegexOption.IGNORE_CASE) }
     private val LINKED_IMAGE by lazy {
         Regex("""\[!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)""")
@@ -342,6 +360,13 @@ object AiMarkdownBlocks {
                     blocks += Block.Table(header.map { inl(it, lineIndex) }, align, rows, lineIndex)
                     continue
                 }
+            }
+            if (IMAGES_LINE.matches(line)) {
+                flush()
+                // One block per picture, all on the same line: a reader draws
+                // the images that share a line side by side.
+                for (m in IMAGE.findAll(line)) blocks += Block.Image(m.groupValues[1], m.groupValues[2], null, lineIndex)
+                continue
             }
             val image = IMAGE_LINE.matchEntire(line)
             if (image != null) {
@@ -594,6 +619,7 @@ object AiMarkdownBlocks {
             val (kind, m) = best
             out.append(text, at, m.range.first)
             val g = m.groupValues
+            var next = m.range.last + 1
             when (kind) {
                 Kind.CODE -> {
                     val code = g[2].let { if (it.length > 2 && it.startsWith(' ') && it.endsWith(' ')) it.substring(1, it.length - 1) else it }
@@ -610,19 +636,21 @@ object AiMarkdownBlocks {
                     val url = if ('@' in target && !target.contains("://") && !target.startsWith("mailto:")) "mailto:$target" else target
                     plain(target.removePrefix("mailto:"), Style.LINK, url)
                 }
-                Kind.HTML_PAIR -> nested(
-                    g[2],
-                    when (g[1].lowercase()) {
-                        "b", "strong" -> Style.BOLD
-                        "i", "em" -> Style.ITALIC
-                        "del", "s", "strike" -> Style.STRIKE
-                        "u", "ins" -> Style.UNDERLINE
-                        "code", "kbd" -> Style.CODE
-                        "mark" -> Style.HIGHLIGHT
-                        "sub" -> Style.SUBSCRIPT
-                        else -> Style.SUPERSCRIPT
-                    },
-                )
+                Kind.HTML_PAIR -> {
+                    val name = g[1].lowercase()
+                    val close = htmlClose(text, name, m.range.last + 1)
+                    if (close == null) {
+                        // No close: the tag is text, as it always was.
+                        out.append(m.value)
+                    } else {
+                        val start = out.length
+                        nested(text.substring(m.range.last + 1, close.first), null)
+                        if (out.length > start) {
+                            for ((style, value) in htmlStyles(name, g[2])) spans += Span(start, out.length, style, value = value)
+                        }
+                        next = close.last + 1
+                    }
+                }
                 Kind.HTML_BREAK -> out.append('\n')
                 Kind.LINKED_IMAGE -> plain(g[1].ifBlank { g[3] }, Style.LINK, g[3].ifEmpty { g[2] })
                 Kind.IMAGE -> plain(g[1].ifBlank { g[2] }, Style.LINK, g[2])
@@ -646,11 +674,73 @@ object AiMarkdownBlocks {
                     plain(url, Style.LINK, if (url.startsWith("www.")) "https://$url" else url)
                 }
             }
-            at = m.range.last + 1
+            at = next
         }
         out.append(text, at, text.length)
         return Inline(out.toString(), spans)
     }
+
+    /** Where the close of a `<name>` opened before [from] sits in [text], counting nested ones; null when it never closes. */
+    private fun htmlClose(text: String, name: String, from: Int): IntRange? {
+        val same = Regex("</?$name(?:\\s[^<>]*)?>", RegexOption.IGNORE_CASE)
+        var depth = 1
+        for (t in same.findAll(text, from)) {
+            if (t.value.startsWith("</")) depth-- else if (!t.value.endsWith("/>")) depth++
+            if (depth == 0) return t.range
+        }
+        return null
+    }
+
+    /** What an inline tag named [name] with [attributes] draws its text as. */
+    private fun htmlStyles(name: String, attributes: String): List<Pair<Style, String?>> {
+        val attrs = HashMap<String, String>()
+        for (a in HTML_ATTRIBUTE.findAll(attributes)) {
+            attrs[a.groupValues[1].lowercase()] = a.groups[2]?.value ?: a.groups[3]?.value ?: a.groups[4]?.value ?: ""
+        }
+        val css = attrs["style"].orEmpty().split(';').mapNotNull { part ->
+            val colon = part.indexOf(':')
+            if (colon <= 0) null else part.substring(0, colon).trim().lowercase() to part.substring(colon + 1).trim().trim('"', '\'').lowercase()
+        }
+        val decoration = css.firstOrNull { it.first == "text-decoration-style" }?.second
+            ?: css.firstOrNull { it.first == "text-decoration" || it.first == "text-decoration-line" }?.second
+                ?.split(' ')?.firstOrNull { it in UNDERLINE_STYLES }
+        val underline = decoration?.takeIf { it != "solid" && it in UNDERLINE_STYLES }
+        val out = ArrayList<Pair<Style, String?>>()
+        when (name) {
+            "b", "strong" -> out += Style.BOLD to null
+            "i", "em" -> out += Style.ITALIC to null
+            "del", "s", "strike" -> out += Style.STRIKE to null
+            "u", "ins" -> out += Style.UNDERLINE to underline
+            "code", "kbd" -> out += Style.CODE to null
+            "sub" -> out += Style.SUBSCRIPT to null
+            "sup" -> out += Style.SUPERSCRIPT to null
+            "mark" -> {
+                val bg = css.firstOrNull { it.first == "background" || it.first == "background-color" }?.second
+                out += if (bg == null) Style.HIGHLIGHT to null else Style.BACKGROUND to bg
+            }
+            "font" -> {
+                attrs["color"]?.let { out += Style.COLOR to it.lowercase() }
+                attrs["face"]?.let { out += Style.FONT to it.split(',').first().trim().lowercase() }
+            }
+        }
+        for ((prop, value) in css) {
+            when (prop) {
+                "color" -> out += Style.COLOR to value
+                "background", "background-color" -> if (name != "mark") out += Style.BACKGROUND to value
+                "font-family" -> out += Style.FONT to value.split(',').first().trim().trim('"', '\'')
+                "font-size" -> out += Style.SIZE to value
+                "font-weight" -> if (value == "bold" || (value.toIntOrNull() ?: 0) >= 600) out += Style.BOLD to null
+                "font-style" -> if (value == "italic") out += Style.ITALIC to null
+                "text-decoration", "text-decoration-line" -> {
+                    if ("line-through" in value) out += Style.STRIKE to null
+                    if ("underline" in value && name != "u" && name != "ins") out += Style.UNDERLINE to underline
+                }
+            }
+        }
+        return out
+    }
+
+    private val UNDERLINE_STYLES = setOf("solid", "wavy", "dotted", "dashed", "double")
 
     /**
      * The first match of [regex] at or after [at] that is really a [kind]:

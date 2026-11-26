@@ -175,7 +175,10 @@ object NoteRelated {
     /** The distinctive words of [text] and how often each comes. */
     fun terms(text: String): Map<String, Int> {
         val out = HashMap<String, Int>()
-        val scanned = if (text.length > MAX_TEXT_CHARS) text.substring(0, MAX_TEXT_CHARS) else text
+        // Words only: the rich editor's tags (#1586) would make "span" and "color" every note's words.
+        val scanned = com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.blank(
+            if (text.length > MAX_TEXT_CHARS) text.substring(0, MAX_TEXT_CHARS) else text,
+        )
         for (match in WORD.findAll(scanned)) {
             val word = fold(match.value) ?: continue
             out[word] = (out[word] ?: 0) + 1

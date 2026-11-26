@@ -11,6 +11,19 @@ enum class NotesPanelStart {
     LAST_NOTE,
 }
 
+/**
+ * Which editor a note opens in (#1586), in the app and in the keyboard alike.
+ * Both edit the same stored Markdown, so either can open any note, and the
+ * editor's menu switches one note over for that visit.
+ */
+enum class NoteEditorKind {
+    /** What the note looks like as it is written: bold is bold, a list has bullets, pictures show. */
+    RICH,
+
+    /** The Markdown as text, with its helper chips and a preview. */
+    MARKDOWN,
+}
+
 /** How the keyboard's Notes panel lays its list out. */
 enum class NotesPanelLayout {
     /** Pinned notes on a shelf of wide cards, the rest in a two-column grid. */
@@ -58,6 +71,12 @@ data class NotesSettings(
      * opens it. Off by default: a tap opens the note.
      */
     val tapInserts: Boolean = false,
+    /**
+     * The editor notes open in (#1586). Rich text by default: what the owner
+     * asked for on the issue, and nothing about the stored text changes, so
+     * Markdown stays a setting away.
+     */
+    val editor: NoteEditorKind = NoteEditorKind.RICH,
     /** The on-device assistant over notes and pinned clips (#1293); off until turned on. */
     val assist: NotesAssistSettings = NotesAssistSettings(),
     /**
