@@ -46,7 +46,17 @@ const DIVERGES: &[(&str, &str)] = &[
     // 2026-11-27: comparison and JSON errors read as CPython's do.
     ("013-builtins-sorted-mixed.py", "ERROR: Line 1: TypeError: '<' not supported between instances of 'str' and 'int'\n"),
     ("029-compare-err.py", "ERROR: Line 1: TypeError: '<' not supported between instances of 'int' and 'str'\n"),
-    ("105-json-dumps-err.py", "ERROR: TypeError: Object of type function is not JSON serializable\n"),
+    // 2026-11-27: an error from a native function (json, re, format) has the
+    // line it was raised on, as CPython's traceback gives it; PyMini had none.
+    ("056-format-unknown.py", concat!(r##"ERROR: Line 1: ValueError: unknown format code 'q'"##, "\n")),
+    ("057-format-float-as-int.py", concat!(r##"ERROR: Line 1: ValueError: cannot format a float with 'd'"##, "\n")),
+    ("104-json-loads-err.py", concat!(r##"ERROR: Line 2: ValueError: expected a JSON string"##, "\n")),
+    ("105-json-dumps-err.py", concat!(r##"ERROR: Line 2: TypeError: Object of type function is not JSON serializable"##, "\n")),
+    ("114-re-errors.py", concat!(r##"ERROR: Line 2: ValueError: missing ')' in pattern"##, "\n")),
+    ("179-edge-regex-bad-range.py", concat!(r##"ERROR: Line 2: ValueError: bad character range in pattern"##, "\n")),
+    ("181-edge-regex-possessive.py", concat!(r##"ERROR: Line 2: ValueError: possessive quantifiers are not supported"##, "\n")),
+    ("183-edge-json-surrogate.py", concat!(r##"ERROR: Line 2: ValueError: invalid \u escape in JSON"##, "\n")),
+    ("184-edge-json-trailing.py", concat!(r##"ERROR: Line 2: ValueError: could not parse JSON"##, "\n")),
     ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
     ("034-strings-split.py", concat!(r##"[['a', 'b', 'c'], ['a', 'b', '', 'c'], ['a', 'b,c'], ['a,b', 'c'], ['', 'a', '', 'b', ''], ['a', 'b', 'c'], ['a', 'b c']]"##, "\n")),
     ("045-strings-graphemes.py", concat!(r##"[2, ['é', 'x'], True, 1, '🇫🇷', 1, ['e', 'f', 'é']]"##, "\n")),

@@ -6,6 +6,7 @@
 //! ```text
 //! { "id": "com.example.todo", "version": "3.0.0", "permissions": ["storage", "reminders"],
 //!   "mode": "panel" | "action",
+//!   "entry": "main.py",                            // the manifest's entry, named in errors; main.py when absent
 //!   "storagePath": "/…/storage.json" | null,      // null or absent: in memory
 //!   "remindersPath": "/…/reminders.json" | null,
 //!   "limits": { "load": {"steps": 9000000, "millis": 3000}, "event": {…}, "render": {…}, "action": {…} } }
@@ -127,6 +128,8 @@ pub struct SessionConfig {
     /// package ([`v5`]); anything lower keeps the API 4 globals.
     pub api: i64,
     pub extras: v5::Extras,
+    /// The file the plugin's source comes from, as errors and tracebacks name it.
+    pub entry: String,
 }
 
 impl SessionConfig {
@@ -191,6 +194,7 @@ impl SessionConfig {
             limits,
             api,
             extras,
+            entry: Some(s("entry")).filter(|e| !e.is_empty()).unwrap_or_else(|| "main.py".to_string()),
         })
     }
 }
@@ -431,6 +435,7 @@ impl Session {
         } else {
             api::install(&mut rt, &self.config.info, storage, reminders, self.clock.clone())
         };
+        rt.set_module_file("__main__", &self.config.entry);
         self.meta = None;
         self.rt = Some(rt);
         self.state = Some(state);
@@ -523,7 +528,7 @@ impl Session {
         self.begin();
         if let Err(e) = check(source) {
             let mut e = PyError::at(e.message, &e.kind, e.line);
-            e.file = Some("main.py".to_string());
+            e.file = Some(self.config.entry.clone());
             return self.result(Err(Failure::Compile(e)), None);
         }
         self.source = Some(source.to_string());

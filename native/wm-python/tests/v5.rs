@@ -880,5 +880,13 @@ fn errors_carry_their_file_and_traceback() {
         let r = parse(session(&[], json!({})).load("def (:\n"));
         assert_eq!(r["error"]["file"], "main.py", "{r:#}");
         assert_eq!(r["error"]["traceback"], json!([]), "{r:#}");
+        // The manifest's entry names the plugin's own file.
+        let r = parse(session(&[], json!({"entry": "plugin.py"})).load("from wm import ui\n\ndef render():\n    return 1 / 0\n"));
+        assert_eq!((&r["error"]["file"], &r["error"]["line"]), (&json!("plugin.py"), &json!(4)), "{r:#}");
+        assert_eq!(r["error"]["traceback"].as_array().unwrap().last().unwrap()["file"], "plugin.py", "{r:#}");
+        assert_eq!(parse(session(&[], json!({"entry": "plugin.py"})).load("def (:\n"))["error"]["file"], "plugin.py");
+        // A native function's error has the line of the call that raised it.
+        let r = parse(session(&[], json!({})).load("import json\nfrom wm import ui\n\ndef render():\n    json.loads('{')\n"));
+        assert_eq!((&r["error"]["file"], &r["error"]["line"]), (&json!("main.py"), &json!(5)), "{r:#}");
     });
 }

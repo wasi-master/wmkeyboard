@@ -316,8 +316,12 @@ and raises; test those through `plugin_test.session(mock=...)`.
 ## Reading an error
 
 When your code raises an error nothing catches, the run stops and the console
-or the panel shows the error, the file it was raised in and the line. The
-[Help](/plugins/help/#error-messages) page explains the common ones.
+or the panel shows the error, the file it was raised in and the line. That
+holds for an error a built-in module raises too, such as `json.loads` on bad
+JSON: the line is the call that raised it. The file is named as your
+`plugin.json` names it, so an `"entry": "plugin.py"` reads as `plugin.py`, not
+`main.py`. The [Help](/plugins/help/#error-messages) page explains the common
+ones.
 
 `wmpy test`, `wmpy run`, `wmpy preview` and the web editor also list the
 calls that led there, outermost first, as Python's own traceback does:

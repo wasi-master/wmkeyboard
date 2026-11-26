@@ -3991,6 +3991,10 @@ impl Interp {
         let file = self.module_files.get(module).cloned();
         if e.frames.is_empty() && e.file.is_none() {
             e.file = file.clone();
+            // An error from native code has no line yet: the frame's is where it was raised.
+            if e.line.is_none() {
+                e.line = line;
+            }
         }
         if e.frames.len() < super::error::MAX_FRAMES {
             e.frames.insert(0, super::error::Frame { file, line, function: function.to_string() });
