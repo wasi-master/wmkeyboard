@@ -275,6 +275,23 @@ class SettingsCrumbTrailTest {
     }
 
     @Test
+    fun `a sibling picked from under a seeded step replaces that step`() {
+        // #1583: Keyboard modes opened from search reads Home › Advanced ›
+        // Keyboard modes, with Advanced seeded. Picking Appearance beside
+        // Advanced pops to Home and opens Appearance at once, so Home is
+        // never drawn to trim the trail itself.
+        val walk = walkTo("a" to "Home")
+        walk.trail.seed(listOf(SettingsCrumb("seed:Advanced", "Advanced", "advanced")))
+        walk.push("b", "Keyboard modes")
+
+        walk.trail.goTo(walk.trail.path.first { it.entryId == "a" })
+        walk.push("c", "Appearance")
+
+        assertEquals(listOf("a", "c"), walk.stack)
+        assertEquals(listOf("Home", "Appearance"), walk.trail.path.map { it.title })
+    }
+
+    @Test
     fun `a saved path remembers which steps nobody opened`() {
         val walk = walkTo("a" to "Home")
         walk.trail.seed(listOf(SettingsCrumb("seed:Typing", "Typing", "typing")))

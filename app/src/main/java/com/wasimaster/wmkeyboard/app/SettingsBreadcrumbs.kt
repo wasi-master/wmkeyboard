@@ -300,6 +300,21 @@ internal class SettingsCrumbTrail {
         while (left-- > 0 && topEntryId() != entryId) {
             if (!pop()) return
         }
+        // Once the stack is back on the step, nothing above it is real any
+        // more, so it goes now rather than when that screen is next drawn.
+        // A step's own screen trims the trail as it is entered, but a sibling
+        // pick pops and opens another page in the same breath (#1583): the
+        // screen popped to is never drawn, and a step nobody opened, which
+        // has no entry to forget it, stayed between it and the new page.
+        // "Home › Advanced › Appearance" for a page right under Home.
+        if (topEntryId() == entryId) trimAbove(entryId)
+    }
+
+    /** Drops every step after [entryId]'s. */
+    private fun trimAbove(entryId: String) {
+        val at = steps.indexOfFirst { it.entryId == entryId }
+        if (at < 0) return
+        while (steps.size > at + 1) steps.removeAt(steps.lastIndex)
     }
 
     /**
