@@ -239,8 +239,9 @@ class bytearray:
             result = method(*args, **kwargs)
             if isinstance(result, bytes):
                 return bytearray(result)
-            if isinstance(result, list):
-                return [bytearray(x) if isinstance(x, bytes) else x for x in result]
+            if isinstance(result, (list, tuple)):
+                items = [bytearray(x) if isinstance(x, bytes) else x for x in result]
+                return items if isinstance(result, list) else tuple(items)
             return result
 
         return call
@@ -551,3 +552,91 @@ def __union__(a, b):
     if len(args) == 1:
         return args[0]
     return UnionType(tuple(args))
+
+
+def _slot_names(cls):
+    names = []
+    for klass in getattr(cls, "__mro__", (cls,)):
+        slots = getattr(klass, "__dict__", {}).get("__slots__", ())
+        if isinstance(slots, str):
+            slots = (slots,)
+        names.extend(n for n in slots if n not in ("__dict__", "__weakref__"))
+    return names
+
+
+def __object_getstate__(self):
+    """object.__getstate__: the instance's attributes, None when it has
+    none, and (attributes, slots) when its class has __slots__."""
+    slots = _slot_names(type(self))
+    attrs = {k: v for k, v in getattr(self, "__dict__", {}).items() if k not in slots}
+    state = attrs or None
+    if slots:
+        values = {}
+        for name in slots:
+            try:
+                values[name] = getattr(self, name)
+            except AttributeError:
+                pass
+        if values:
+            return (state, values)
+    return state
+
+
+def _own(cls, name):
+    """Whether a class in cls's resolution order, object aside, defines name."""
+    for klass in getattr(cls, "__mro__", (cls,)):
+        if klass is object:
+            return False
+        if name in getattr(klass, "__dict__", {}):
+            return True
+    return False
+
+
+def _builtin_base_of(cls):
+    for klass in getattr(cls, "__mro__", (cls,)):
+        if klass is not object and "__dict__" not in dir(klass) and type(klass) is type and klass in (int, float, str, bytes, tuple, list, dict, set, frozenset, bytearray):
+            return klass
+    return object
+
+
+def _common_reduce(self, protocol):
+    import copyreg
+
+    cls = type(self)
+    if protocol < 2:
+        # copyreg._reduce_ex: rebuilt from the nearest built-in base's value.
+        base = _builtin_base_of(cls)
+        state = None if base is object else base(self)
+        getstate = getattr(self, "__getstate__", None)
+        if _own(cls, "__slots__") and not _own(cls, "__getstate__"):
+            raise TypeError(f"cannot pickle {cls.__name__!r} object: a class that defines __slots__ without defining __getstate__ cannot be pickled with protocol {protocol}")
+        attrs = getstate() if getstate is not None else None
+        args = (cls, base, state)
+        if attrs:
+            return copyreg._reconstructor, args, attrs
+        return copyreg._reconstructor, args
+    # typeobject.c's reduce_newobj.
+    args, kwargs = (), None
+    if hasattr(self, "__getnewargs_ex__"):
+        args, kwargs = self.__getnewargs_ex__()
+    elif hasattr(self, "__getnewargs__"):
+        args = self.__getnewargs__()
+    if kwargs:
+        newobj, newargs = copyreg.__newobj_ex__, (cls, tuple(args), kwargs)
+    else:
+        newobj, newargs = copyreg.__newobj__, (cls,) + tuple(args)
+    state = self.__getstate__()
+    listitems = iter(self) if isinstance(self, list) else None
+    dictitems = iter(self.items()) if isinstance(self, dict) else None
+    return newobj, newargs, state, listitems, dictitems
+
+
+def __object_reduce__(self):
+    return _common_reduce(self, 0)
+
+
+def __object_reduce_ex__(self, protocol=0):
+    """object.__reduce_ex__: the class's own __reduce__ when it has one."""
+    if _own(type(self), "__reduce__"):
+        return self.__reduce__()
+    return _common_reduce(self, protocol)

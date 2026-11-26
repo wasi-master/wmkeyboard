@@ -28,6 +28,8 @@ use super::value::*;
 pub(crate) enum Iter {
     /// Counting, as `range` does.
     Range { next: Option<i64>, stop: i64, step: i64 },
+    /// Counting past the i64 range: the next number, the stop and the step.
+    BigRange(Box<(num_bigint::BigInt, num_bigint::BigInt, num_bigint::BigInt)>),
     Items(std::vec::IntoIter<Value>),
     /// A generator or an iterator object: anyone holding it shares its progress.
     Object(Rc<Object>),
@@ -213,6 +215,7 @@ impl Interp {
             Value::Object(o) => match o.as_ref() {
                 Object::Generator(_) | Object::Iterator(_) => Iter::Object(o.clone()),
                 Object::Range(start, stop, step) => Iter::Range { next: Some(*start), stop: *stop, step: *step },
+                Object::BigRange(r) => Iter::BigRange(Box::new((r.start.clone(), r.stop.clone(), r.step.clone()))),
                 Object::DictView(k, d) => Iter::Items(view_items(*k, d).into_iter()),
                 _ => Iter::Items(self.iterate(v)?.into_iter()),
             },
@@ -275,6 +278,16 @@ impl Interp {
                     *next = None;
                     Ok(None)
                 }
+            }
+            Iter::BigRange(state) => {
+                let (next, stop, step) = state.as_mut();
+                let more = if num_traits::Signed::is_positive(step) { next < stop } else { next > stop };
+                if !more {
+                    return Ok(None);
+                }
+                let v = super::bigint::int_value(next.clone());
+                *next += &*step;
+                Ok(Some(v))
             }
             Iter::Items(items) => Ok(items.next()),
             Iter::Object(o) => {

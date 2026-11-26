@@ -300,6 +300,8 @@ pub enum Object {
     AsyncGen(Rc<str>, Value),
     /// `range(start, stop, step)`, which counts without holding its numbers.
     Range(i64, i64, i64),
+    /// A range past the i64 range (see bigint.rs).
+    BigRange(Rc<super::bigint::BigRange>),
     /// `d.keys()`, `d.values()` or `d.items()`: a live view of the dict.
     DictView(ViewKind, DictRef),
 }
@@ -845,7 +847,7 @@ impl Value {
                 Object::Generator(_) => "generator",
                 Object::Coroutine(_) => "coroutine",
                 Object::AsyncGen(..) => "async_generator",
-                Object::Range(..) => "range",
+                Object::Range(..) | Object::BigRange(_) => "range",
                 Object::DictView(k, _) => k.type_name(),
                 Object::Slice(..) => "slice",
                 Object::Pattern { .. } => "re.Pattern",
@@ -867,6 +869,7 @@ impl Value {
             Value::Bytes(b) => !b.is_empty(),
             Value::Object(o) => match o.as_ref() {
                 Object::Range(a, b, c) => range_len(*a, *b, *c) > 0,
+                Object::BigRange(r) => num_traits::Signed::is_positive(&r.len()),
                 Object::DictView(_, d) => !d.borrow().is_empty(),
                 _ => true,
             },
@@ -1014,7 +1017,10 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::Module(n) => format!("<module '{n}'>"),
         Value::ModuleFunction(mf) => format!("<builtin {}.{}>", mf.0, mf.1),
         Value::Exception(e) => e.message.clone(),
-        Value::Match(m) => format!("<Match {}>", str_repr(&m.value())),
+        Value::Match(m) => {
+            let (s, e) = m.spans.first().copied().flatten().unwrap_or((0, 0));
+            format!("<re.Match object; span=({s}, {e}), match={}>", py_repr(&m.subject.piece(&m.value())))
+        }
         Value::Class(c) => match c.attrs.borrow().get("__module__") {
             Some(Value::Str(m)) if m.as_ref() != "builtins" => format!("<class '{m}.{}'>", c.name),
             _ => format!("<class '{}'>", c.name),
@@ -1033,6 +1039,8 @@ pub(crate) fn py_str(v: &Value) -> String {
             Object::Slice(a, b, c) => format!("slice({}, {}, {})", py_repr(a), py_repr(b), py_repr(c)),
             Object::Range(a, b, c) if *c == 1 => format!("range({a}, {b})"),
             Object::Range(a, b, c) => format!("range({a}, {b}, {c})"),
+            Object::BigRange(r) if num_traits::One::is_one(&r.step) => format!("range({}, {})", r.start, r.stop),
+            Object::BigRange(r) => format!("range({}, {}, {})", r.start, r.stop, r.step),
             Object::DictView(k, d) => format!("{}({})", k.type_name(), py_repr(&Value::list(view_items(*k, d)))),
             Object::Generator(g) => format!("<generator object {}>", g.name),
             Object::Coroutine(c) => format!("<coroutine object {}>", c.name),
@@ -1043,10 +1051,15 @@ pub(crate) fn py_str(v: &Value) -> String {
                     .filter(|(bit, _)| flags & bit != 0)
                     .map(|(_, n)| *n)
                     .collect();
-                if names.is_empty() {
-                    format!("re.compile({})", str_repr(pattern))
+                let shown = if flags & super::regex::BYTES != 0 {
+                    py_repr(&Value::bytes(&super::regex::latin1_bytes(pattern)))
                 } else {
-                    format!("re.compile({}, {})", str_repr(pattern), names.join("|"))
+                    str_repr(pattern)
+                };
+                if names.is_empty() {
+                    format!("re.compile({shown})")
+                } else {
+                    format!("re.compile({shown}, {})", names.join("|"))
                 }
             }
             _ => format!("<{} object>", v.static_type_name()),
@@ -1262,6 +1275,11 @@ pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
                 // Equal when they count the same numbers.
                 let (n1, n2) = (range_len(*a1, *b1, *c1), range_len(*a2, *b2, *c2));
                 return n1 == n2 && (n1 == 0 || (a1 == a2 && (n1 == 1 || c1 == c2)));
+            }
+            if let (Some(p), Some(q)) = (super::bigint::range_parts(x), super::bigint::range_parts(y)) {
+                let (n1, n2) = (p.len(), q.len());
+                let one = num_bigint::BigInt::from(1);
+                return n1 == n2 && (num_traits::Zero::is_zero(&n1) || (p.start == q.start && (n1 == one || p.step == q.step)));
             }
             Rc::ptr_eq(x, y)
         }

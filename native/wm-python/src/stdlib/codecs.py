@@ -557,3 +557,10 @@ def unicode_escape_encode(input, errors="strict"):
 def unicode_escape_decode(input, errors="strict", final=True):
     data = input.encode("latin-1") if isinstance(input, str) else bytes(input)
     return data.decode("unicode_escape", errors), len(data)
+
+
+# In CPython these live in the C module _codecs, and pickles name them
+# there (`_codecs.encode` rebuilds bytes in protocols 0 to 2).
+for _f in (encode, decode, lookup, register, register_error, lookup_error, escape_decode, escape_encode, unicode_escape_encode, unicode_escape_decode):
+    _f.__module__ = "_codecs"
+del _f

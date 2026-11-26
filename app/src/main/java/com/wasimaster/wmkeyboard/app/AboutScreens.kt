@@ -269,6 +269,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/anti-ltd/PyMini",
         ),
     )
+    // Modules of CPython's standard library the interpreter carries as they
+    // are (decimal, pickle, ipaddress, tokenize...): native/wm-python/src/stdlib.
+    add(
+        Attribution(
+            "Python standard library",
+            R.string.about_bundled_python_stdlib_used,
+            "Copyright (c) 2001 Python Software Foundation; All Rights Reserved",
+            "PSF-2.0", "psf-2.0.txt",
+            "https://github.com/python/cpython",
+        ),
+    )
     // Spell checking against an imported Hunspell dictionary, in every build:
     // packaged, pinned for download, or a Play split. See native/hunspell-jni.
     add(

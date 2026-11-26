@@ -387,6 +387,12 @@ fn is_space_separator(c: char) -> bool {
 }
 
 /// Foundation's `trimmingCharacters(in: .whitespaces)`: tab and the Zs space separators.
+/// [s] without the whitespace `int()` and `float()` take off their text:
+/// newlines included, the separators \x1c to \x1f not.
+pub(crate) fn trim_python_space(s: &str) -> &str {
+    s.trim_matches(scalar_is_whitespace)
+}
+
 pub(crate) fn trim_whitespaces(s: &str) -> &str {
     s.trim_matches(|c: char| c == '\t' || is_space_separator(c))
 }

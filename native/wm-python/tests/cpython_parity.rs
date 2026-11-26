@@ -2191,6 +2191,445 @@ True 0"#
 }
 
 #[test]
+fn ipaddress_module() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import ipaddress
+a = ipaddress.ip_address('192.168.1.10')
+print(repr(a), a.version, a.is_private, a.is_global, int(a), a + 5, a.packed, a.reverse_pointer)
+n = ipaddress.ip_network('10.0.0.0/30')
+print(n, list(n), n.num_addresses, n.netmask, n.hostmask, n.broadcast_address, list(n.hosts()), a in n)
+i = ipaddress.ip_interface('192.168.1.10/24')
+print(i, i.network, i.ip, i.with_netmask, i.with_prefixlen)
+six = ipaddress.ip_address('2001:db8::1')
+print(repr(six), six.exploded, six.compressed, six.is_private, int(six), six.reverse_pointer[:20], six.version)
+print(ipaddress.ip_address('::ffff:1.2.3.4').ipv4_mapped, ipaddress.IPv6Network('2001:db8::/126').num_addresses, list(ipaddress.ip_network('2001:db8::/126')))
+print(list(ipaddress.summarize_address_range(ipaddress.IPv4Address('10.0.0.0'), ipaddress.IPv4Address('10.0.0.10'))))
+print(list(ipaddress.collapse_addresses([ipaddress.ip_network('10.0.0.0/25'), ipaddress.ip_network('10.0.0.128/25')])))
+print(list(ipaddress.ip_network('10.0.0.0/24').subnets(new_prefix=26)), ipaddress.ip_network('10.0.0.0/24').supernet())
+print(sorted([ipaddress.ip_address('10.0.0.2'), ipaddress.ip_address('10.0.0.1')]), ipaddress.ip_address('1.2.3.4') < ipaddress.ip_address('1.2.3.5'))
+for bad in ['300.1.1.1', '1.2.3', 'zz::1', '10.0.0.1/24']:
+    try:
+        print(ipaddress.ip_network(bad) if '/' in bad else ipaddress.ip_address(bad))
+    except ValueError as e:
+        print(type(e).__name__, e)
+print(ipaddress.ip_address('fe80::1%eth0'), ipaddress.ip_address('fe80::1%eth0').scope_id, hash(a) == hash(ipaddress.ip_address('192.168.1.10')))
+print(format(a, 'b')[:12], format(six, 'X')[:8], f"{a:#x}", ipaddress.ip_network('192.168.0.0/16').overlaps(n), n.subnet_of(ipaddress.ip_network('10.0.0.0/8')))
+print(list(ipaddress.ip_network('10.0.0.0/24').address_exclude(ipaddress.ip_network('10.0.0.0/26'))))
+'\n'.join(_out)"#),
+        r#"IPv4Address('192.168.1.10') 4 True False 3232235786 192.168.1.15 b'\xc0\xa8\x01\n' 10.1.168.192.in-addr.arpa
+10.0.0.0/30 [IPv4Address('10.0.0.0'), IPv4Address('10.0.0.1'), IPv4Address('10.0.0.2'), IPv4Address('10.0.0.3')] 4 255.255.255.252 0.0.0.3 10.0.0.3 [IPv4Address('10.0.0.1'), IPv4Address('10.0.0.2')] False
+192.168.1.10/24 192.168.1.0/24 192.168.1.10 192.168.1.10/255.255.255.0 192.168.1.10/24
+IPv6Address('2001:db8::1') 2001:0db8:0000:0000:0000:0000:0000:0001 2001:db8::1 True 42540766411282592856903984951653826561 1.0.0.0.0.0.0.0.0.0. 6
+1.2.3.4 4 [IPv6Address('2001:db8::'), IPv6Address('2001:db8::1'), IPv6Address('2001:db8::2'), IPv6Address('2001:db8::3')]
+[IPv4Network('10.0.0.0/29'), IPv4Network('10.0.0.8/31'), IPv4Network('10.0.0.10/32')]
+[IPv4Network('10.0.0.0/24')]
+[IPv4Network('10.0.0.0/26'), IPv4Network('10.0.0.64/26'), IPv4Network('10.0.0.128/26'), IPv4Network('10.0.0.192/26')] 10.0.0.0/23
+[IPv4Address('10.0.0.1'), IPv4Address('10.0.0.2')] True
+ValueError '300.1.1.1' does not appear to be an IPv4 or IPv6 address
+ValueError '1.2.3' does not appear to be an IPv4 or IPv6 address
+ValueError 'zz::1' does not appear to be an IPv4 or IPv6 address
+ValueError 10.0.0.1/24 has host bits set
+fe80::1%eth0 eth0 True
+110000001010 20010DB8 0xc0a8010a False True
+[IPv4Network('10.0.0.128/25'), IPv4Network('10.0.0.64/26')]"#
+    );
+}
+
+#[test]
+fn decimal_module() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import decimal
+from decimal import Decimal, getcontext, localcontext, ROUND_HALF_UP, InvalidOperation
+print(Decimal('0.1') + Decimal('0.2'), Decimal(1) / Decimal(7), Decimal('1.10') * 3, Decimal(0.1), Decimal('3.14159').quantize(Decimal('0.01')))
+print(Decimal('2').sqrt(), Decimal('1e100') + 1, Decimal('-0'), Decimal('NaN'), Decimal('Infinity') > 10**100, Decimal('1.5').to_integral_value(), round(Decimal('2.675'), 2))
+getcontext().prec = 50
+print(Decimal(1) / Decimal(3), Decimal(2).ln(), Decimal(10).log10(), Decimal(1).exp())
+with localcontext() as ctx:
+    ctx.prec = 5
+    ctx.rounding = ROUND_HALF_UP
+try:
+    Decimal('abc')
+except InvalidOperation as e:
+    print('InvalidOperation', type(e).__name__)
+print(repr(Decimal('12.50')), str(Decimal('1E+2')), f"{Decimal('1234.5678'):,.2f}", Decimal('7.00').normalize(), Decimal(5).as_tuple(), int(Decimal('42.9')), float(Decimal('0.5')), Decimal('1.23') == 1.23, hash(Decimal(2)) == hash(2), Decimal(3) % 2, divmod(Decimal(7), 2))
+print(sorted([Decimal('1.1'), Decimal('0.9'), 1]), sum([Decimal('0.1')] * 10), Decimal('100').as_integer_ratio(), Decimal.from_float(0.25), Decimal(2) ** 100)
+'\n'.join(_out)"#),
+        r#"0.3 0.1428571428571428571428571429 3.30 0.1000000000000000055511151231257827021181583404541015625 3.14
+1.414213562373095048801688724 1.000000000000000000000000000E+100 -0 NaN True 2 2.68
+0.33333333333333333333333333333333333333333333333333 0.69314718055994530941723212145817656807550013436026 1 2.7182818284590452353602874713526624977572470937000
+InvalidOperation InvalidOperation
+Decimal('12.50') 1E+2 1,234.57 7 DecimalTuple(sign=0, digits=(5,), exponent=0) 42 0.5 False True 1 (Decimal('3'), Decimal('1'))
+[Decimal('0.9'), 1, Decimal('1.1')] 1.0 (100, 1) 0.25 1267650600228229401496703205376"#
+    );
+}
+
+#[test]
+fn pickle_module() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import pickle, collections, datetime
+from dataclasses import dataclass
+data = {'a': [1, 2.5, None, True, 'x' * 3, b'\x00\xff', (1, 2), {3, 4}, frozenset([5])], 'big': 2**100, 'neg': -7, 'nested': [[[]]], 'uni': 'héllo ✓'}
+for proto in range(0, pickle.HIGHEST_PROTOCOL + 1):
+    s = pickle.dumps(data, protocol=proto)
+    print(proto, pickle.loads(s) == data, len(s))
+print(pickle.dumps([1, 'a', None], protocol=4))
+print(pickle.loads(b'\x80\x04\x95\x0b\x00\x00\x00\x00\x00\x00\x00]\x94(K\x01\x8c\x01a\x94Ne.'))
+import collections
+print(pickle.loads(pickle.dumps(collections.OrderedDict(a=1))), pickle.loads(pickle.dumps(collections.Counter('aab'))))
+lst = [1]; lst.append(lst); r = pickle.loads(pickle.dumps(lst)); print(r[1] is r)
+print(pickle.loads(pickle.dumps(datetime.date(2024, 2, 29))), pickle.loads(pickle.dumps(datetime.timedelta(days=1, seconds=5))))
+try:
+    pickle.dumps(lambda: 1)
+except (pickle.PicklingError, AttributeError) as e:
+    print(type(e).__name__)
+'\n'.join(_out)"#),
+        r#"0 True 323
+1 True 284
+2 True 260
+3 True 213
+4 True 135
+5 True 135
+b'\x80\x04\x95\x0c\x00\x00\x00\x00\x00\x00\x00]\x94(K\x01\x8c\x01a\x94Ne.'
+[1, 'a', None]
+OrderedDict({'a': 1}) Counter({'a': 2, 'b': 1})
+True
+2024-02-29 1 day, 0:00:05
+PicklingError"#
+    );
+}
+
+#[test]
+fn tokenize_module() {
+    assert_eq!(
+        py(r##"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import io, tokenize, token
+src = 'def f(a, b=2):\n    # a comment\n    return a + b  # trailing\n\nx = [1,\n     2]\nif x:\n    print("hi", \'there\', 3.5e-2, 0x1F)\n'
+for t in tokenize.generate_tokens(io.StringIO(src).readline):
+    print(tokenize.tok_name[t.type], repr(t.string), t.start, t.end)
+toks = list(tokenize.tokenize(io.BytesIO(b"a = 1\n").readline))
+print([(tokenize.tok_name[t.type], t.string) for t in toks])
+print(tokenize.untokenize([(t.type, t.string) for t in tokenize.generate_tokens(io.StringIO("a=1+2\n").readline)]))
+print(token.NAME, token.OP, token.EXACT_TOKEN_TYPES['+'], token.ISTERMINAL(token.NAME), tokenize.detect_encoding(io.BytesIO(b"# -*- coding: latin-1 -*-\nx").readline))
+try:
+    list(tokenize.generate_tokens(io.StringIO("(1,\n").readline))
+except tokenize.TokenError as e:
+    print('TokenError', e.args)
+for src in ['x = 1', '# only\n', 's = """a\nb"""\n', 'a = 1 \\\n  + 2\n', 'x = 0xFF_FF + 1_000j + 1e10\n', 'λ = 1\n', '@decorator\ndef f(): ...\n', 'x: int = 3 ** 2 // 4 != 5 -> 6\n', 'async def f():\n    await x\n']:
+    try:
+        print(repr(src), [(tokenize.tok_name[t.type], t.string, t.start, t.end) for t in tokenize.generate_tokens(io.StringIO(src).readline)])
+    except Exception as e:
+        print(repr(src), type(e).__name__, e)
+'\n'.join(_out)"##),
+        r#"NAME 'def' (1, 0) (1, 3)
+NAME 'f' (1, 4) (1, 5)
+OP '(' (1, 5) (1, 6)
+NAME 'a' (1, 6) (1, 7)
+OP ',' (1, 7) (1, 8)
+NAME 'b' (1, 9) (1, 10)
+OP '=' (1, 10) (1, 11)
+NUMBER '2' (1, 11) (1, 12)
+OP ')' (1, 12) (1, 13)
+OP ':' (1, 13) (1, 14)
+NEWLINE '\n' (1, 14) (1, 15)
+COMMENT '# a comment' (2, 4) (2, 15)
+NL '\n' (2, 15) (2, 16)
+INDENT '    ' (3, 0) (3, 4)
+NAME 'return' (3, 4) (3, 10)
+NAME 'a' (3, 11) (3, 12)
+OP '+' (3, 13) (3, 14)
+NAME 'b' (3, 15) (3, 16)
+COMMENT '# trailing' (3, 18) (3, 28)
+NEWLINE '\n' (3, 28) (3, 29)
+NL '\n' (4, 0) (4, 1)
+DEDENT '' (5, 0) (5, 0)
+NAME 'x' (5, 0) (5, 1)
+OP '=' (5, 2) (5, 3)
+OP '[' (5, 4) (5, 5)
+NUMBER '1' (5, 5) (5, 6)
+OP ',' (5, 6) (5, 7)
+NL '\n' (5, 7) (5, 8)
+NUMBER '2' (6, 5) (6, 6)
+OP ']' (6, 6) (6, 7)
+NEWLINE '\n' (6, 7) (6, 8)
+NAME 'if' (7, 0) (7, 2)
+NAME 'x' (7, 3) (7, 4)
+OP ':' (7, 4) (7, 5)
+NEWLINE '\n' (7, 5) (7, 6)
+INDENT '    ' (8, 0) (8, 4)
+NAME 'print' (8, 4) (8, 9)
+OP '(' (8, 9) (8, 10)
+STRING '"hi"' (8, 10) (8, 14)
+OP ',' (8, 14) (8, 15)
+STRING "'there'" (8, 16) (8, 23)
+OP ',' (8, 23) (8, 24)
+NUMBER '3.5e-2' (8, 25) (8, 31)
+OP ',' (8, 31) (8, 32)
+NUMBER '0x1F' (8, 33) (8, 37)
+OP ')' (8, 37) (8, 38)
+NEWLINE '\n' (8, 38) (8, 39)
+DEDENT '' (9, 0) (9, 0)
+ENDMARKER '' (9, 0) (9, 0)
+[('ENCODING', 'utf-8'), ('NAME', 'a'), ('OP', '='), ('NUMBER', '1'), ('NEWLINE', '\n'), ('ENDMARKER', '')]
+a =1 +2 
+
+1 55 14 True ('iso-8859-1', [b'# -*- coding: latin-1 -*-\n'])
+TokenError ('unexpected EOF in multi-line statement', (1, 0))
+'x = 1' [('NAME', 'x', (1, 0), (1, 1)), ('OP', '=', (1, 2), (1, 3)), ('NUMBER', '1', (1, 4), (1, 5)), ('NEWLINE', '', (1, 5), (1, 6)), ('ENDMARKER', '', (2, 0), (2, 0))]
+'# only\n' [('COMMENT', '# only', (1, 0), (1, 6)), ('NL', '\n', (1, 6), (1, 7)), ('ENDMARKER', '', (2, 0), (2, 0))]
+'s = """a\nb"""\n' [('NAME', 's', (1, 0), (1, 1)), ('OP', '=', (1, 2), (1, 3)), ('STRING', '"""a\nb"""', (1, 4), (2, 4)), ('NEWLINE', '\n', (2, 4), (2, 5)), ('ENDMARKER', '', (3, 0), (3, 0))]
+'a = 1 \\\n  + 2\n' [('NAME', 'a', (1, 0), (1, 1)), ('OP', '=', (1, 2), (1, 3)), ('NUMBER', '1', (1, 4), (1, 5)), ('OP', '+', (2, 2), (2, 3)), ('NUMBER', '2', (2, 4), (2, 5)), ('NEWLINE', '\n', (2, 5), (2, 6)), ('ENDMARKER', '', (3, 0), (3, 0))]
+'x = 0xFF_FF + 1_000j + 1e10\n' [('NAME', 'x', (1, 0), (1, 1)), ('OP', '=', (1, 2), (1, 3)), ('NUMBER', '0xFF_FF', (1, 4), (1, 11)), ('OP', '+', (1, 12), (1, 13)), ('NUMBER', '1_000j', (1, 14), (1, 20)), ('OP', '+', (1, 21), (1, 22)), ('NUMBER', '1e10', (1, 23), (1, 27)), ('NEWLINE', '\n', (1, 27), (1, 28)), ('ENDMARKER', '', (2, 0), (2, 0))]
+'λ = 1\n' [('NAME', 'λ', (1, 0), (1, 1)), ('OP', '=', (1, 2), (1, 3)), ('NUMBER', '1', (1, 4), (1, 5)), ('NEWLINE', '\n', (1, 5), (1, 6)), ('ENDMARKER', '', (2, 0), (2, 0))]
+'@decorator\ndef f(): ...\n' [('OP', '@', (1, 0), (1, 1)), ('NAME', 'decorator', (1, 1), (1, 10)), ('NEWLINE', '\n', (1, 10), (1, 11)), ('NAME', 'def', (2, 0), (2, 3)), ('NAME', 'f', (2, 4), (2, 5)), ('OP', '(', (2, 5), (2, 6)), ('OP', ')', (2, 6), (2, 7)), ('OP', ':', (2, 7), (2, 8)), ('OP', '...', (2, 9), (2, 12)), ('NEWLINE', '\n', (2, 12), (2, 13)), ('ENDMARKER', '', (3, 0), (3, 0))]
+'x: int = 3 ** 2 // 4 != 5 -> 6\n' [('NAME', 'x', (1, 0), (1, 1)), ('OP', ':', (1, 1), (1, 2)), ('NAME', 'int', (1, 3), (1, 6)), ('OP', '=', (1, 7), (1, 8)), ('NUMBER', '3', (1, 9), (1, 10)), ('OP', '**', (1, 11), (1, 13)), ('NUMBER', '2', (1, 14), (1, 15)), ('OP', '//', (1, 16), (1, 18)), ('NUMBER', '4', (1, 19), (1, 20)), ('OP', '!=', (1, 21), (1, 23)), ('NUMBER', '5', (1, 24), (1, 25)), ('OP', '->', (1, 26), (1, 28)), ('NUMBER', '6', (1, 29), (1, 30)), ('NEWLINE', '\n', (1, 30), (1, 31)), ('ENDMARKER', '', (2, 0), (2, 0))]
+'async def f():\n    await x\n' [('NAME', 'async', (1, 0), (1, 5)), ('NAME', 'def', (1, 6), (1, 9)), ('NAME', 'f', (1, 10), (1, 11)), ('OP', '(', (1, 11), (1, 12)), ('OP', ')', (1, 12), (1, 13)), ('OP', ':', (1, 13), (1, 14)), ('NEWLINE', '\n', (1, 14), (1, 15)), ('INDENT', '    ', (2, 0), (2, 4)), ('NAME', 'await', (2, 4), (2, 9)), ('NAME', 'x', (2, 10), (2, 11)), ('NEWLINE', '\n', (2, 11), (2, 12)), ('DEDENT', '', (3, 0), (3, 0)), ('ENDMARKER', '', (3, 0), (3, 0))]"#
+    );
+}
+
+#[test]
+fn lazy_itertools() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import itertools as it
+from itertools import *
+print(list(chain([1, 2], (3,), 'ab')), list(chain.from_iterable([[1], [2, 3]])), next(chain(repeat(7))))
+print(list(islice(count(), 5)), list(islice(count(10, 2), 2, 8, 2)), list(islice('abcdefg', 2, None)), list(islice(cycle('ab'), 5)))
+print(list(accumulate([1, 2, 3, 4])), list(accumulate([1, 2, 3], _mul := (lambda a, b: a * b))), list(accumulate([1, 2], initial=100)), list(accumulate([])))
+print(list(batched('abcdefg', 3)), list(compress('abcdef', [1, 0, 1, 0, 1, 1])), list(dropwhile(lambda x: x < 5, [1, 4, 6, 4, 1])), list(filterfalse(None, [0, 1, '', 'a'])))
+print([(k, list(g)) for k, g in groupby('AAAABBBCCDAABBB')], [k for k, g in groupby([1, 1, 2])])
+g = groupby('aabb'); k1, g1 = next(g); k2, g2 = next(g); print(k1, list(g1), k2, list(g2))
+print(list(pairwise('ABCD')), list(starmap(pow, [(2, 5), (3, 2)])), list(takewhile(lambda x: x < 5, [1, 4, 6, 1])))
+a, b = tee(iter([1, 2, 3])); print(next(a), list(a), list(b), len(tee('x', 3)))
+print(list(zip_longest('ABCD', 'xy', fillvalue='-')), list(zip_longest()), list(product('ab', range(2))), list(product([0, 1], repeat=2)), list(product()))
+print(list(permutations('ABC', 2)), list(permutations(range(3))), list(combinations('ABCD', 2)), list(combinations_with_replacement('ABC', 2)), list(combinations('AB', 3)))
+print(repr(count(3)), repr(count(1, 0.5)), repr(repeat('x', 2)), list(repeat(1, 3)), list(repeat(1, -1)), list(product('a', [])))
+for f in [lambda: islice('a', -1), lambda: batched('a', 0), lambda: combinations('a', -1), lambda: permutations('a', -1), lambda: list(batched('abc', 2, strict=True))]:
+    try:
+        f()
+    except ValueError as e:
+        print('ValueError', e)
+seen = []
+def src():
+    for i in range(3):
+        seen.append(i)
+        yield i
+c = chain(src()); print(seen, next(c), seen)
+print(sum(1 for _ in islice(count(), 1000)), list(map(lambda t: t[0], zip(count(), 'ab'))))
+'\n'.join(_out)"#),
+        r#"[1, 2, 3, 'a', 'b'] [1, 2, 3] 7
+[0, 1, 2, 3, 4] [14, 18, 22] ['c', 'd', 'e', 'f', 'g'] ['a', 'b', 'a', 'b', 'a']
+[1, 3, 6, 10] [1, 2, 6] [100, 101, 103] []
+[('a', 'b', 'c'), ('d', 'e', 'f'), ('g',)] ['a', 'c', 'e', 'f'] [6, 4, 1] [0, '']
+[('A', ['A', 'A', 'A', 'A']), ('B', ['B', 'B', 'B']), ('C', ['C', 'C']), ('D', ['D']), ('A', ['A', 'A']), ('B', ['B', 'B', 'B'])] [1, 2]
+a [] b ['b', 'b']
+[('A', 'B'), ('B', 'C'), ('C', 'D')] [32, 9] [1, 4]
+1 [2, 3] [1, 2, 3] 3
+[('A', 'x'), ('B', 'y'), ('C', '-'), ('D', '-')] [] [('a', 0), ('a', 1), ('b', 0), ('b', 1)] [(0, 0), (0, 1), (1, 0), (1, 1)] [()]
+[('A', 'B'), ('A', 'C'), ('B', 'A'), ('B', 'C'), ('C', 'A'), ('C', 'B')] [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)] [('A', 'B'), ('A', 'C'), ('A', 'D'), ('B', 'C'), ('B', 'D'), ('C', 'D')] [('A', 'A'), ('A', 'B'), ('A', 'C'), ('B', 'B'), ('B', 'C'), ('C', 'C')] []
+count(3) count(1, 0.5) repeat('x', 2) [1, 1, 1] [] []
+ValueError Stop argument for islice() must be None or an integer: 0 <= x <= sys.maxsize.
+ValueError n must be at least one
+ValueError r must be non-negative
+ValueError r must be non-negative
+ValueError batched(): incomplete batch
+[0] 0 [0]
+1000 [0, 1]"#
+    );
+}
+
+#[test]
+fn bytes_methods() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+b = b'  Hello World\tx\r\ny\nz  '
+print(b.partition(b'o'), b.rpartition(b'o'), b.partition(b'#'), b.rpartition(b'#'), b.removeprefix(b'  He'), b.removesuffix(b'  '), b.splitlines(), b.splitlines(True))
+print(b.split(), b.split(None, 1), b.rsplit(None, 1), b.rsplit(b'o', 1), b.split(b'o', 1), b'a,b,,c'.rsplit(b','), b'  a  b  '.rsplit(maxsplit=1), b''.split(), b'x'.split(b'x'))
+print(b'ab'.center(7, b'*'), b'abc'.center(6), b'ab'.ljust(5, b'.'), b'ab'.rjust(5), b'-42'.zfill(6), b'42'.zfill(1), b'a\tbc\td'.expandtabs(4), b'hELLO wORLD'.capitalize(), b'Hi There'.swapcase(), b"they're bill's".title())
+print(b'abc1'.isalnum(), b'ab'.isalpha(), b'\xe9'.isalpha(), b'\x80'.isascii(), b'123'.isdigit(), b'abc'.islower(), b'ABC1'.isupper(), b' \t'.isspace(), b'Hello World'.istitle(), b''.isalpha(), b''.isascii())
+t = bytes.maketrans(b'abc', b'xyz'); print(b'aabbcc'.translate(t), b'hello'.translate(None, b'l'), len(t))
+print(b'abcabc'.count(b'a', 1), b'abcabc'.startswith((b'x', b'ab')), b'abcabc'.endswith(b'b', 0, 5), b'aaa'.replace(b'a', b'b', 2), b'ab'.replace(b'', b'-'), b''.replace(b'', b'x'))
+print(float.fromhex('0x1.8p1'), float.fromhex('-0x1p-2'), float.fromhex('inf'), float.fromhex('0x.8'), float.fromhex(' 0X10 '), float.fromhex((1.1).hex()) == 1.1, float.fromhex('0x1p-1074'))
+ba = bytearray(b'a,b'); print(ba.partition(b','), ba.split(b','), ba.upper(), ba.find(b'b'))
+print(float.fromhex('0x1.fffffffffffff8p1023') if False else 0, float.fromhex('0x1.000000000000081p0'), float.fromhex('0x1.0000000000000800p0'), float.fromhex('0x1.0000000000001800p0'), float.fromhex('0x0.0000000000001p-1022'), float.fromhex('0x1.8p-1074'), float.fromhex('0x1p-1076'), float.fromhex('0x1.fffffffffffffp1023'))
+try: float.fromhex('0x1p1024')
+except OverflowError as e: print(e)
+try: float.fromhex('zz')
+except ValueError as e: print(e)
+'\n'.join(_out)"#),
+        r#"(b'  Hell', b'o', b' World\tx\r\ny\nz  ') (b'  Hello W', b'o', b'rld\tx\r\ny\nz  ') (b'  Hello World\tx\r\ny\nz  ', b'', b'') (b'', b'', b'  Hello World\tx\r\ny\nz  ') b'llo World\tx\r\ny\nz  ' b'  Hello World\tx\r\ny\nz' [b'  Hello World\tx', b'y', b'z  '] [b'  Hello World\tx\r\n', b'y\n', b'z  ']
+[b'Hello', b'World', b'x', b'y', b'z'] [b'Hello', b'World\tx\r\ny\nz  '] [b'  Hello World\tx\r\ny', b'z'] [b'  Hello W', b'rld\tx\r\ny\nz  '] [b'  Hell', b' World\tx\r\ny\nz  '] [b'a', b'b', b'', b'c'] [b'  a', b'b'] [] [b'', b'']
+b'***ab**' b' abc  ' b'ab...' b'   ab' b'-00042' b'42' b'a   bc  d' b'Hello world' b'hI tHERE' b"They'Re Bill'S"
+True True False False True True True True True False True
+b'xxyyzz' b'heo' 256
+1 True True b'bba' b'-a-b-' b'x'
+3.0 -0.25 inf 0.5 16.0 True 5e-324
+(bytearray(b'a'), bytearray(b','), bytearray(b'b')) [bytearray(b'a'), bytearray(b'b')] bytearray(b'A,B') 2
+0 1.0000000000000002 1.0 1.0000000000000004 5e-324 1e-323 0.0 1.7976931348623157e+308
+hexadecimal value too large to represent as a float
+invalid hexadecimal floating-point string"#
+    );
+}
+
+#[test]
+fn regex_bytes_and_escapes() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import re
+p = re.compile(br'^[ \t\f]*(?:[#\r\n]|$)', re.ASCII)
+print(p.match(b'  # x'), bool(p.match(b'\r\n')), p.match(b'x = 1'), p.pattern, p.flags)
+print(re.findall(rb'\d+', b'a1 b22 c333'), re.sub(rb'\s+', b'-', b'a  b\tc'), re.split(rb',', b'a,b,,c'), re.subn(b'a', b'X', b'banana'))
+m = re.search(rb'(?P<k>\w+)=(\w+)', b'key=val')
+print(m.group(), m.group(1), m['k'], m.groups(), m.groupdict(), m.span(2), m.string, m)
+print(re.escape(b'a.b'), re.sub(rb'(\w)', lambda m: m.group(1).upper(), b'ab'), re.compile(b'\xe9').search(b'caf\xe9'))
+for bad in [lambda: re.search(b'a', 'a'), lambda: re.search('a', b'a'), lambda: re.sub(b'a', 'x', b'a'), lambda: re.compile(b'a', re.U)]:
+    try:
+        bad()
+    except (TypeError, ValueError) as e:
+        print(type(e).__name__, e)
+print(re.compile('a').flags, re.compile('a', re.I).flags, re.compile('a', re.A).flags, re.compile(b'a').flags, re.compile(b'a', re.I).flags, re.compile('(?i)a').flags)
+print(repr(re.compile(b'a\\d')), repr(re.compile(b'a', re.I)), re.match('ab', 'abc'))
+print(re.fullmatch(rb'[\x00-\xff]+', bytes(range(256))) is not None, re.findall(rb'\w', b'a\xe9_1'))
+print(re.findall(r'[\x41-\x43]', 'ABCD'), re.findall(r'\x41', 'AB'), re.findall(r'[é]', 'café'), re.findall(r'é', 'café'), re.findall(r'[\101]', 'AB'), re.findall(r'\0', 'a\0'), re.findall(r'[\t\n]', 'a\tb\n'), re.findall(r'\N{BULLET}', '•'))
+bad = [i for i in range(256) if not re.fullmatch(rb'[\x00-\xff]', bytes([i]))]
+print(bad, re.findall(r'\x41B\U00000043', 'ABC'), re.findall(r'[\0-\x08]', '\x00\x05\x09'), re.findall(r'\101(.)\1', 'Abb'), re.findall(r'(a)\1', 'aa'))
+'\n'.join(_out)"#),
+        r#"<re.Match object; span=(0, 3), match=b'  #'> True None b'^[ \\t\\f]*(?:[#\\r\\n]|$)' 256
+[b'1', b'22', b'333'] b'a-b-c' [b'a', b'b', b'', b'c'] (b'bXnXnX', 3)
+b'key=val' b'key' b'key' (b'key', b'val') {'k': b'key'} (4, 7) b'key=val' <re.Match object; span=(0, 7), match=b'key=val'>
+b'a\\.b' b'AB' <re.Match object; span=(3, 4), match=b'\xe9'>
+TypeError cannot use a bytes pattern on a string-like object
+TypeError cannot use a string pattern on a bytes-like object
+TypeError sequence item 0: expected a bytes-like object, str found
+ValueError cannot use UNICODE flag with a bytes pattern
+32 34 256 0 2 34
+re.compile(b'a\\d') re.compile(b'a', re.IGNORECASE) <re.Match object; span=(0, 2), match='ab'>
+True [b'a', b'_', b'1']
+['A', 'B', 'C'] ['A'] ['é'] ['é'] ['A'] ['\x00'] ['\t', '\n'] ['•']
+[] ['ABC'] ['\x00', '\x05'] ['b'] ['a']"#
+    );
+}
+
+#[test]
+fn numeric_and_tuple_hashes() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+print(hash(2), hash(-1), hash(-2), hash(2**61 - 1), hash(2**61), hash(2**64), hash(-(2**64)), hash(10**30), hash(1.5), hash(0.1), hash(-0.5), hash(1e300), hash(float('inf')), hash(float('-inf')), hash(2.0), hash(True), hash(2**100) == hash(float(2**100)))
+print(hash(None), hash((1, 2)), hash(()), hash((1, (2, 3.5))), hash(-1.0), hash(5e-324), hash(-2.5e-310), hash(123.456), hash(2**1000), hash(-(2**61)))
+import sys
+print(sys.hash_info.modulus, sys.hash_info.inf, sys.int_info.default_max_str_digits, sys.float_info.epsilon, sys.float_info.max, sys.float_info.dig)
+'\n'.join(_out)"#),
+        r#"2 -2 -2 0 1 8 -8 465258685558744706 1152921504606846977 230584300921369408 -1152921504606846976 1224995262755759164 314159 -314159 2 1 True
+4238894112 -3550055125485641917 5740354900026072187 -9148893311433065316 -2 16777216 -386353265232576880 1051464412201451643 16777216 -2
+2305843009213693951 314159 4300 2.220446049250313e-16 1.7976931348623157e+308 15"#
+    );
+}
+
+#[test]
+fn set_updates_take_many_iterables() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+s = {1, 2, 3}
+s.intersection_update({1, 2}, [2]); print(s)
+s = {1, 2, 3}; s.difference_update([1], (2,)); print(s)
+s = {1, 2}; s.symmetric_difference_update([2, 3]); print(s)
+print({1}.union([2], (3,)), {1, 2, 3}.intersection([1, 2], {2}), {1, 2, 3}.difference([1], [2]), {1}.union(), {1, 2}.issubset(range(5)))
+s = {1}; s.update([2], {3}); print(s)
+'\n'.join(_out)"#),
+        r#"{2}
+{3}
+{1, 3}
+{1, 2, 3} {2} {3} {1} True
+{1, 2, 3}"#
+    );
+}
+
+#[test]
+fn ranges_past_64_bits() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+r = range(2**64, 2**64 + 10, 3)
+print(r, len(r), list(r), r[0], r[-1], r[1:3], 2**64 + 3 in r, 2**64 + 4 in r, r.index(2**64 + 6), r.count(2**64), r.start, r.stop, r.step, bool(r), list(reversed(r)))
+big = range(2**100)
+print(big[2**99], 2**99 in big, -1 in big, big[-1] == 2**100 - 1, big[10:20:5], bool(range(2**70, 2**70)), range(2**70, 0, -2**68)[1])
+try:
+    len(big)
+except OverflowError as e:
+    print('OverflowError', e)
+for i in range(2**64, 2**64 + 2):
+    print(i)
+print(range(2**64) == range(0, 2**64), range(5, 2**70, 2**70) == range(5, 6), sum(range(2**63 - 2, 2**63 + 2)), list(range(-2**63 - 1, -2**63 + 1)))
+class I:
+    def __index__(self):
+        return 3
+print(list(range(I())), [x for x in range(I())])
+'\n'.join(_out)"#),
+        r#"range(18446744073709551616, 18446744073709551626, 3) 4 [18446744073709551616, 18446744073709551619, 18446744073709551622, 18446744073709551625] 18446744073709551616 18446744073709551625 range(18446744073709551619, 18446744073709551625, 3) True False 2 1 18446744073709551616 18446744073709551626 3 True [18446744073709551625, 18446744073709551622, 18446744073709551619, 18446744073709551616]
+633825300114114700748351602688 True False True range(10, 20, 5) False 885443715538058477568
+OverflowError Python int too large to convert to C ssize_t
+18446744073709551616
+18446744073709551617
+True True 36893488147419103230 [-9223372036854775809, -9223372036854775808]
+[0, 1, 2] [0, 1, 2]"#
+    );
+}
+
+#[test]
+fn text_over_bytes_and_crlf_lines() {
+    assert_eq!(
+        py(r#"__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import io
+b = io.BytesIO('héllo\r\nwörld\nend'.encode('utf-8'))
+t = io.TextIOWrapper(b, encoding='utf-8')
+print(t.readline(), repr(t.readline()), t.read(), t.encoding)
+w = io.BytesIO(); t2 = io.TextIOWrapper(w, encoding='utf-16-le', newline='\r\n'); n = t2.write('a\nb'); t2.flush(); print(n, w.getvalue())
+t3 = io.TextIOWrapper(io.BytesIO(b'x\ny\n')); print(list(t3), io.TextIOWrapper(io.BytesIO(b'one\ntwo')).readlines())
+s = io.StringIO('a\r\nb\r\nc'); print([s.readline(), s.readline(), s.readline(), s.readline()], io.StringIO('p\nq').readlines())
+'\n'.join(_out)"#),
+        r#"héllo
+ 'wörld\n' end utf-8
+3 b'a\x00\r\x00\n\x00b\x00'
+['x\n', 'y\n'] ['one\n', 'two']
+['a\r\n', 'b\r\n', 'c', ''] ['p\n', 'q']"#
+    );
+}
+
+#[test]
 fn print_takes_sep_and_end() {
     let lines = big_stack(|| {
         let mut rt = Runtime::default();

@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use super::error::{AbortKind, PyError};
+use super::value::Value;
 use super::text::{char_is_letter, char_is_number, char_is_whitespace, graphemes, parse_swift_int, str_compare, str_eq, swift_lower, swift_upper};
 
 pub(crate) const IGNORE_CASE: i64 = 2;
@@ -25,6 +26,9 @@ pub(crate) const DOT_ALL: i64 = 16;
 pub(crate) const UNICODE: i64 = 32;
 pub(crate) const VERBOSE: i64 = 64;
 pub(crate) const ASCII: i64 = 256;
+/// Not one of Python's flags: marks a pattern made from bytes, which
+/// searches bytes. Hidden from `pattern.flags`.
+pub(crate) const BYTES: i64 = 1 << 40;
 
 /// Longest subject this engine will scan.
 pub(crate) const MAX_SUBJECT: usize = 40_000;
@@ -41,15 +45,35 @@ fn verr(message: &str) -> PyError {
     PyError::new(message, "ValueError")
 }
 
-/// A subject as grapheme clusters.
+/// A subject as grapheme clusters, or bytes as one character each.
 pub struct Subject {
     text: Rc<str>,
     b: Rc<[u32]>,
+    /// Bytes read as Latin-1, one character a byte; what comes out of a
+    /// match goes back to bytes.
+    pub(crate) bytes: bool,
 }
 
 impl Subject {
     pub(crate) fn new(text: Rc<str>, b: Rc<[u32]>) -> Subject {
-        Subject { text, b }
+        Subject { text, b, bytes: false }
+    }
+
+    /// [data] to search with a bytes pattern.
+    pub(crate) fn of_bytes(data: &[u8]) -> Subject {
+        let text: Rc<str> = Rc::from(latin1_text(data));
+        let mut b: Vec<u32> = text.char_indices().map(|(i, _)| i as u32).collect();
+        b.push(text.len() as u32);
+        Subject { text, b: b.into(), bytes: true }
+    }
+
+    /// A piece of the subject as the script sees it: bytes for a bytes subject.
+    pub(crate) fn piece(&self, s: &str) -> Value {
+        if self.bytes {
+            Value::bytes(&latin1_bytes(s))
+        } else {
+            Value::str(s)
+        }
     }
 
     pub(crate) fn len(&self) -> usize {
@@ -203,7 +227,7 @@ impl Regex {
             pattern
         };
         let chars = graphemes(pattern);
-        let ascii = flags & ASCII != 0 || leading.contains('a');
+        let ascii = flags & (ASCII | BYTES) != 0 || leading.contains('a');
         let mut p =
             RxParser { chars: &chars, pos: 0, group_count: 0, names: HashMap::new(), depth: 0, inline: 0, backrefs: Vec::new(), ascii };
         let root = p.parse_alternation()?;
@@ -539,6 +563,8 @@ impl RxParser<'_> {
                     "B" => Node::WordBoundary(false),
                     "A" => Node::AnchorStart,
                     "Z" | "z" => Node::AnchorEnd,
+                    // `\101`: three octal digits are a character, not a group.
+                    "1" | "2" | "3" | "4" | "5" | "6" | "7" if self.octal_follows(2) => Node::Char(self.octal(&e)),
                     "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
                         // Up to two digits, as Python reads `\12`.
                         let mut n = e.parse::<usize>().unwrap_or(0);
@@ -549,7 +575,7 @@ impl RxParser<'_> {
                         self.backrefs.push(n);
                         Node::Backref(n)
                     }
-                    other => Node::Char(escape_char(other)),
+                    other => Node::Char(self.escaped(other)?),
                 })
             }
             other => {
@@ -572,6 +598,66 @@ impl RxParser<'_> {
             self.pos += 1;
         }
         Err(verr("unterminated group name"))
+    }
+
+    /// The character an escape names, past its backslash and [e]: `\xhh`,
+    /// `\uhhhh`, `\Uhhhhhhhh`, `\N{NAME}`, `\0` with up to two more octal
+    /// digits, or one of the single letters.
+    fn escaped(&mut self, e: &str) -> Res<String> {
+        let digits = |me: &mut Self, n: usize, what: &str| -> Res<String> {
+            let mut code = 0u32;
+            let mut read = what.to_string();
+            for _ in 0..n {
+                let d = me.peek().filter(|d| d.len() == 1).and_then(|d| d.chars().next()?.to_digit(16));
+                let Some(d) = d else { return Err(verr(&format!("incomplete escape \\{read}"))) };
+                read.push_str(me.chars[me.pos]);
+                code = code * 16 + d;
+                me.pos += 1;
+            }
+            char::from_u32(code).map(String::from).ok_or_else(|| verr(&format!("bad escape \\{read}")))
+        };
+        match e {
+            "x" => digits(self, 2, "x"),
+            "u" => digits(self, 4, "u"),
+            "U" => digits(self, 8, "U"),
+            "N" if self.peek() == Some("{") => {
+                self.pos += 1;
+                let name = self.read_until("}").map_err(|_| verr("missing }, unterminated name"))?;
+                super::charnames::lookup(&name).map(String::from).ok_or_else(|| verr(&format!("undefined character name '{name}'")))
+            }
+            "0" => {
+                let mut code = 0u32;
+                for _ in 0..2 {
+                    match self.peek().filter(|d| d.len() == 1).and_then(|d| d.chars().next()?.to_digit(8)) {
+                        Some(d) => {
+                            code = code * 8 + d;
+                            self.pos += 1;
+                        }
+                        None => break,
+                    }
+                }
+                Ok(char::from_u32(code).map(String::from).unwrap_or_default())
+            }
+            other => Ok(escape_char(other)),
+        }
+    }
+
+    /// Whether the next [n] characters are octal digits.
+    fn octal_follows(&self, n: usize) -> bool {
+        (0..n).all(|k| self.chars.get(self.pos + k).is_some_and(|d| d.len() == 1 && matches!(d.as_bytes()[0], b'0'..=b'7')))
+    }
+
+    /// An octal escape whose first digit [first] is read: up to two more digits.
+    fn octal(&mut self, first: &str) -> String {
+        let mut code = first.chars().next().and_then(|c| c.to_digit(8)).unwrap_or(0);
+        for _ in 0..2 {
+            if !self.octal_follows(1) {
+                break;
+            }
+            code = code * 8 + self.chars[self.pos].chars().next().and_then(|c| c.to_digit(8)).unwrap_or(0);
+            self.pos += 1;
+        }
+        char::from_u32(code).map(String::from).unwrap_or_default()
     }
 
     fn parse_class(&mut self) -> Res<Class> {
@@ -598,7 +684,11 @@ impl RxParser<'_> {
                     cls.items.push(item);
                     continue;
                 }
-                escape_char(&e)
+                if matches!(e.as_str(), "1" | "2" | "3" | "4" | "5" | "6" | "7") {
+                    self.octal(&e)
+                } else {
+                    self.escaped(&e)?
+                }
             } else {
                 c
             };
@@ -608,9 +698,9 @@ impl RxParser<'_> {
                 let mut hi = self.chars[self.pos].to_string();
                 self.pos += 1;
                 if hi == "\\" {
-                    if let Some(e) = self.peek() {
-                        hi = escape_char(e);
+                    if let Some(e) = self.peek().map(str::to_string) {
                         self.pos += 1;
+                        hi = if matches!(e.as_str(), "1" | "2" | "3" | "4" | "5" | "6" | "7") { self.octal(&e) } else { self.escaped(&e)? };
                     }
                 }
                 if str_compare(&lo, &hi).is_gt() {
@@ -982,4 +1072,14 @@ fn strip_verbose(pattern: &str) -> String {
         }
     }
     out
+}
+
+/// Bytes as text, a character each (Latin-1), for a bytes pattern or subject.
+pub(crate) fn latin1_text(data: &[u8]) -> String {
+    data.iter().map(|&b| b as char).collect()
+}
+
+/// [latin1_text] undone. Every character came from a byte.
+pub(crate) fn latin1_bytes(s: &str) -> Vec<u8> {
+    s.chars().map(|c| c as u32 as u8).collect()
 }

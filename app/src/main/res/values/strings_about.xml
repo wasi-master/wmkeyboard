@@ -201,6 +201,7 @@
     <string name="about_bundled_freetype_used">Reads the fonts that sticker template text is drawn with (native library)</string>
     <string name="about_bundled_skia_deps_used">Break text into lines and decode the pictures in sticker templates, inside the Skia library (native library)</string>
     <string name="about_bundled_pymini_plugins">The Python interpreter, ported to Rust, that runs plugins and Clink actions</string>
+    <string name="about_bundled_python_stdlib_used">Python\'s own modules that plugins import, such as decimal, pickle and ipaddress</string>
     <string name="about_bundled_kleidi_used">Faster matrix and image arithmetic on newer ARM processors for on-device AI, dictation and the document scanner (native library)</string>
     <string name="about_bundled_divvun_runtime_used">Runs GiellaLT\'s grammar checkers for the Sámi languages and Faroese (native library, GPL-3.0)</string>
     <string name="about_bundled_kokoro_used">Reads English and Mandarin aloud for Read back and the speaker buttons, once downloaded</string>

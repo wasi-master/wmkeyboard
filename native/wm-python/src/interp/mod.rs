@@ -30,6 +30,7 @@
 
 mod ast;
 mod bigint;
+mod hashing;
 mod builtins;
 mod bytes;
 mod charnames;

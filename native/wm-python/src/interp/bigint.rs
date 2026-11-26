@@ -11,7 +11,7 @@ use num_integer::Integer;
 use num_traits::{FromPrimitive, One, Signed, ToPrimitive, Zero};
 
 use super::ast::BinOp;
-use super::value::Value;
+use super::value::{Object, Value};
 
 /// The most bits an int may have: about 315,000 decimal digits. Python
 /// itself would go on until memory ran out; a plugin stops here instead.
@@ -326,4 +326,55 @@ pub(crate) fn product(factors: impl Iterator<Item = BigInt>) -> Result<Value, Fa
         acc *= f;
     }
     Ok(int_value(acc))
+}
+
+/// `range(start, stop, step)` whose numbers or length pass the i64 range:
+/// IPv6 networks, say. One that fits is `Object::Range`.
+pub struct BigRange {
+    pub(crate) start: BigInt,
+    pub(crate) stop: BigInt,
+    pub(crate) step: BigInt,
+}
+
+impl BigRange {
+    /// How many numbers it counts.
+    pub(crate) fn len(&self) -> BigInt {
+        let one = BigInt::one();
+        let n = if self.step.is_positive() {
+            (&self.stop - &self.start + &self.step - &one).div_floor(&self.step)
+        } else {
+            (&self.start - &self.stop - &self.step - &one).div_floor(&-&self.step)
+        };
+        n.max(BigInt::zero())
+    }
+
+    /// The [i]th number, for an [i] already in `0..len`.
+    pub(crate) fn at(&self, i: &BigInt) -> BigInt {
+        &self.start + i * &self.step
+    }
+
+    /// Where [x] falls in it, if it is one of its numbers.
+    pub(crate) fn position(&self, x: &BigInt) -> Option<BigInt> {
+        let (q, r) = (x - &self.start).div_mod_floor(&self.step);
+        (r.is_zero() && !q.is_negative() && q < self.len()).then_some(q)
+    }
+}
+
+/// A range value: `Object::Range` when its numbers and its length fit an
+/// i64, `Object::BigRange` when not.
+pub(crate) fn range_value(start: BigInt, stop: BigInt, step: BigInt) -> Value {
+    let r = BigRange { start, stop, step };
+    if let (Some(a), Some(b), Some(c), Some(_)) = (r.start.to_i64(), r.stop.to_i64(), r.step.to_i64(), r.len().to_i64()) {
+        return Value::Object(Rc::new(Object::Range(a, b, c)));
+    }
+    Value::Object(Rc::new(Object::BigRange(Rc::new(r))))
+}
+
+/// Any range's start, stop and step at full size.
+pub(crate) fn range_parts(o: &Object) -> Option<BigRange> {
+    match o {
+        Object::Range(a, b, c) => Some(BigRange { start: BigInt::from(*a), stop: BigInt::from(*b), step: BigInt::from(*c) }),
+        Object::BigRange(r) => Some(BigRange { start: r.start.clone(), stop: r.stop.clone(), step: r.step.clone() }),
+        _ => None,
+    }
 }

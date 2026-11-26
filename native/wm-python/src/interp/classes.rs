@@ -42,6 +42,21 @@ pub(crate) const HIDDEN_OBJECT_INIT_SUBCLASS: &str = "__object_init_subclass__";
 pub(crate) const HIDDEN_TYPE_NEW: &str = "__type_new__";
 pub(crate) const HIDDEN_TYPE_CALL: &str = "__type_call__";
 pub(crate) const HIDDEN_TYPE_INIT: &str = "__type_init__";
+/// `object.__reduce_ex__`, `__reduce__` and `__getstate__`, written in
+/// Python in _builtins.py under these names.
+pub(crate) const HIDDEN_OBJECT_REDUCE_EX: &str = "__object_reduce_ex__";
+pub(crate) const HIDDEN_OBJECT_REDUCE: &str = "__object_reduce__";
+pub(crate) const HIDDEN_OBJECT_GETSTATE: &str = "__object_getstate__";
+
+/// Which of the three [name] is, if any.
+pub(crate) fn pickling_dunder(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "__reduce_ex__" => HIDDEN_OBJECT_REDUCE_EX,
+        "__reduce__" => HIDDEN_OBJECT_REDUCE,
+        "__getstate__" => HIDDEN_OBJECT_GETSTATE,
+        _ => return None,
+    })
+}
 
 /// The forward and reflected method names for a binary operator.
 fn operator_methods(op: BinOp) -> (&'static str, &'static str) {
@@ -665,6 +680,9 @@ impl Interp {
         match name {
             "__str__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_STR))))),
             "__repr__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_REPR))))),
+            _ if pickling_dunder(name).is_some() && !inst.class.is_type => {
+                return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(pickling_dunder(name).unwrap())))));
+            }
             // An exception's cause and context are None until `raise … from` sets one.
             "__cause__" | "__context__" | "__traceback__" if inst.class.exception_root.is_some() => return Ok(Some(Value::None)),
             _ => {}
@@ -709,6 +727,7 @@ impl Interp {
             "__init_subclass__" => object(Object::Bound(Value::Class(class.clone()), hidden(HIDDEN_OBJECT_INIT_SUBCLASS))),
             "__str__" => hidden(HIDDEN_DEFAULT_STR),
             "__repr__" => hidden(HIDDEN_DEFAULT_REPR),
+            _ if !class.is_type && pickling_dunder(name).is_some() => hidden(pickling_dunder(name).unwrap()),
             "__base__" => class.base().cloned().map(Value::Class).or_else(builtin_base).unwrap_or(Value::Builtin(Rc::from("object"))),
             "__bases__" => {
                 let mut out: Vec<Value> = class.bases.iter().cloned().map(Value::Class).collect();
@@ -794,6 +813,7 @@ impl Interp {
             "__getattr__" | "__getattribute__" => bound(HIDDEN_OBJECT_GETATTR),
             "__str__" => bound(HIDDEN_DEFAULT_STR),
             "__repr__" => bound(HIDDEN_DEFAULT_REPR),
+            _ if !is_type && pickling_dunder(name).is_some() => bound(pickling_dunder(name).unwrap()),
             _ => None,
         })
     }
@@ -1110,8 +1130,8 @@ impl Interp {
                 let mut ints = Vec::with_capacity(args.len());
                 for a in args {
                     if is_inst(a) {
-                        match self.index_of_instance(a)? {
-                            Some(i) => ints.push(Value::Int(i)),
+                        match self.index_value_of_instance(a)? {
+                            Some(i) => ints.push(i),
                             None => return Err(not_int(self, a)),
                         }
                     } else {
@@ -1158,6 +1178,10 @@ impl Interp {
                 return self.binary_op(op, &x, &y);
             }
         }
+        // `"%s has host bits set" % obj`: str's own formatting.
+        if let (BinOp::Mod, Value::Str(s)) = (op, a) {
+            return Ok(Value::str(self.printf_style(s, b)?));
+        }
         // `"ab" * n` repeats by what `n.__index__()` says.
         if op == BinOp::Mul {
             let is_seq = |v: &Value| matches!(v, Value::Str(_) | Value::List(_) | Value::Tuple(_) | Value::Bytes(_));
@@ -1171,10 +1195,8 @@ impl Interp {
                 }
             }
         }
-        Err(self.error(
-            format!("unsupported operand type(s) for {forward}: '{}' and '{}'", a.type_name(), b.type_name()),
-            "TypeError",
-        ))
+        let symbol = if op == BinOp::Pow { "** or pow()" } else { super::eval::op_symbol(op) };
+        Err(self.error(format!("unsupported operand type(s) for {symbol}: '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
     }
 
     /// Python truth, asking `__bool__` and then `__len__` of an instance.
@@ -1810,6 +1832,7 @@ impl Interp {
                             Value::Dict(_) => "dict_keyiterator",
                             Value::Set(_) => "set_iterator",
                             Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => "range_iterator",
+                            Value::Object(o) if matches!(o.as_ref(), Object::BigRange(_)) => "longrange_iterator",
                             _ => "iterator",
                         };
                         let it = self.iter_of(other)?;
@@ -1875,8 +1898,12 @@ impl Interp {
             }
             "id" => {
                 self.arity(name, args, 1)?;
+                // A value held behind a pointer is that pointer, so two live
+                // tuples or strings never share an id; a number is its value.
+                let at = identity(&args[0]);
                 Value::Int(match HKey::from_value(&args[0]) {
-                    Some(HKey::Ref(_)) | None => identity(&args[0]),
+                    _ if at != 0 => at,
+                    Some(HKey::Ref(_)) | None => at,
                     Some(k) => {
                         use std::hash::{Hash, Hasher};
                         let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -1994,6 +2021,10 @@ impl Interp {
                     Value::Bool(!self.truth(&eq)?)
                 }
             }
+            HIDDEN_OBJECT_REDUCE_EX | HIDDEN_OBJECT_REDUCE | HIDDEN_OBJECT_GETSTATE => {
+                let f = self.python_builtin(name)?;
+                self.call_value(&f, args.to_vec(), kwargs.to_vec())?
+            }
             HIDDEN_OBJECT_HASH => match arg(0) {
                 Some(v) => Value::Int(identity(&v) >> 4),
                 None => return Err(self.error("__hash__ expected an object", "TypeError")),
@@ -2089,7 +2120,7 @@ impl Interp {
                 "set" => matches!(value, Value::Set(_)),
                 "bytes" => matches!(value, Value::Bytes(_)),
                 "slice" => matches!(value, Value::Object(o) if matches!(o.as_ref(), Object::Slice(..))),
-                "range" => matches!(value, Value::Object(o) if matches!(o.as_ref(), Object::Range(..))),
+                "range" => matches!(value, Value::Object(o) if matches!(o.as_ref(), Object::Range(..) | Object::BigRange(_))),
                 "type" => matches!(value, Value::Class(_)) || matches!(value, Value::Builtin(n) if super::builtins::is_type_name(n)),
                 "object" => true,
                 kind if EXCEPTION_KINDS.contains(&kind) => match value {
@@ -2381,6 +2412,14 @@ fn identity(v: &Value) -> i64 {
         Value::Instance(i) => Rc::as_ptr(i) as *const u8 as usize,
         Value::Function(f) => Rc::as_ptr(f) as *const u8 as usize,
         Value::Object(o) => Rc::as_ptr(o) as *const u8 as usize,
+        Value::Tuple(t) => Rc::as_ptr(t) as *const u8 as usize,
+        Value::Str(s) => Rc::as_ptr(s) as *const u8 as usize,
+        Value::Bytes(b) => Rc::as_ptr(b) as *const u8 as usize,
+        Value::Big(b) => Rc::as_ptr(b) as *const u8 as usize,
+        Value::Exception(e) => Rc::as_ptr(e) as *const u8 as usize,
+        Value::Match(m) => Rc::as_ptr(m) as *const u8 as usize,
+        Value::HostFunction(f) => Rc::as_ptr(f) as *const u8 as usize,
+        Value::ModuleFunction(f) => Rc::as_ptr(f) as *const u8 as usize,
         _ => 0,
     };
     (p >> 3) as i64

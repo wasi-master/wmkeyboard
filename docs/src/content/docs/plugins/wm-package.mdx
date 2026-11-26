@@ -114,6 +114,9 @@ needs:
   hooks (`__index__`, `__int__`, `__float__`, `__abs__`, `__round__` and the
   rest) that the builtins and `math` ask
 
+`hash()` of a number or a tuple is CPython's, so `hash(2)` is 2 and
+`hash(2.5)` is the same on the phone as on a computer.
+
 Not there: `compile`, `open`, complex numbers and `%` formatting of bytes.
 
 **Modules you can import:**
@@ -121,7 +124,7 @@ Not there: `compile`, `open`, complex numbers and `%` formatting of bytes.
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `csv`, `dataclasses`, `datetime`, `difflib`, `email` and its modules, `enum`, `errno`, `fnmatch`, `functools`, `gzip`, `hashlib`, `heapq`, `hmac`, `html`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `itertools`, `keyword`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pprint`, `secrets`, `shlex`, `statistics`, `string`, `struct`, `textwrap`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `zlib` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `enum`, `errno`, `fnmatch`, `functools`, `gzip`, `hashlib`, `heapq`, `hmac`, `html`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pickle`, `pprint`, `secrets`, `shlex`, `statistics`, `string`, `struct`, `textwrap`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `zlib` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -131,14 +134,16 @@ Not there: `compile`, `open`, complex numbers and `%` formatting of bytes.
 `"EEE d MMM yyyy"`, and Python's own `localtime`, `gmtime`, `strftime`,
 `strptime`, `mktime`, `asctime`, `perf_counter` and `time_ns`. It has no
 `sleep`: a plugin waits with a timer. `sys` has `version_info` (3.12),
-`platform` (`"android"`), `maxsize`, `argv`, `exit`, `getrecursionlimit` and
-`setrecursionlimit`. `sys.stdout.write`, `print(..., file=sys.stderr)`,
+`platform` (`"android"`), `maxsize`, `argv`, `exit`, `getrecursionlimit`,
+`setrecursionlimit`, `float_info`, `int_info`, `hash_info` and
+`set_int_max_str_digits`. `sys.stdout.write`, `print(..., file=sys.stderr)`,
 `logging` and `warnings` all write to the plugin's log, where `print` goes.
 `os` is only its path functions and an empty `environ`: files go through
 [`wm.storage`](#storage) and [`wm.files`](#files). `unicodedata` has normal
-forms, categories, digit values and character names. In `itertools`, `count`, `cycle` and `repeat` are endless
-iterators: `islice`, `takewhile`, `zip` and `next()` take only what they need
-from them. `collections.Counter`, `defaultdict` and `OrderedDict` are dict
+forms, categories, digit values and character names. Everything in
+`itertools` hands out one item at a time, as in Python: `count`, `cycle` and
+`repeat` go on without end, and `chain`, `groupby` and `tee` read their input
+only as far as you take from them. `collections.Counter`, `defaultdict` and `OrderedDict` are dict
 subclasses and `namedtuple` and `typing.NamedTuple` make tuple subclasses, as
 in Python, so they go into `json.dumps` and pass `isinstance(x, dict)` or
 `isinstance(p, tuple)`. In `enum`, an `IntEnum`, `StrEnum` or `IntFlag`
@@ -165,7 +170,18 @@ signatures and kinds of object but has no source to show, `ast` has only
 alive, since there is no garbage collector to watch it go. `secrets` draws on
 a seed taken once from the system's random source. `uuid` has `uuid1`,
 `uuid3`, `uuid4` and `uuid5`; with no hardware address to read, `uuid1` uses
-a random node, as CPython does when it finds none.
+a random node, as CPython does when it finds none. `io.TextIOWrapper` reads
+and writes text over a `BytesIO`.
+
+`decimal`, `pickle`, `ipaddress` and `tokenize` are CPython's own modules,
+run as they are. `decimal` is the pure-Python one CPython keeps beside its C
+copy: exact and complete, but slower. A `Decimal` hashes like the int it
+equals, though it is a different dict key from that int. `pickle` turns
+values to bytes and back with `dumps` and `loads`, protocols 0 to 5, and
+reads pickles CPython wrote; with no files, `dump` and `load` take a
+`BytesIO`. `tokenize` is Python 3.11's tokenizer, the last one written in
+Python, so an f-string comes out as one `STRING` token rather than 3.12's
+`FSTRING_START` and the rest, and a `\r\n` line end comes out as `\n`.
 
 The [classic reference](/plugins/api-reference/#the-python-you-get) has more
 detail on the built-in modules, strings and dicts.

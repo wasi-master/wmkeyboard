@@ -59,7 +59,7 @@ impl Interp {
                 let seq = match v {
                     Value::List(l) => l.borrow().clone(),
                     Value::Tuple(t) => t.as_ref().clone(),
-                    Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => self.iterate(v)?,
+                    Value::Object(o) if matches!(o.as_ref(), Object::Range(..) | Object::BigRange(_)) => self.iterate(v)?,
                     _ => return Ok(false),
                 };
                 let Some((at, name)) = star else {

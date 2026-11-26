@@ -11,7 +11,7 @@ use super::error::{Exc, R};
 use super::eval::Interp;
 use super::format::py_format;
 use super::generators::{iterator_object, Iter};
-use super::text::{decimal_value, grapheme_count, longer_than, parse_swift_double, trim_whitespaces};
+use super::text::{decimal_value, grapheme_count, longer_than, parse_swift_double, trim_python_space};
 use super::bigint::{int_value, to_big};
 use super::value::*;
 use num_traits::Signed;
@@ -367,6 +367,12 @@ impl Interp {
                         let it = Iter::Range { next: (n > 0).then_some(last), stop: a - c, step: -c };
                         return Ok(iterator_object("range_iterator", it));
                     }
+                    if let Object::BigRange(r) = o.as_ref() {
+                        let n = r.len();
+                        let last = if num_traits::Signed::is_positive(&n) { r.at(&(n - 1)) } else { r.start.clone() };
+                        let it = Iter::BigRange(Box::new((last, &r.start - &r.step, -&r.step)));
+                        return Ok(iterator_object("longrange_iterator", it));
+                    }
                 }
                 if let Some(r) = self.dunder(&args[0], "__reversed__", Vec::new())? {
                     return Ok(r);
@@ -613,6 +619,11 @@ impl Interp {
                 let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
                 range_len(*a, *b, *c) as usize
             }
+            Value::Object(o) if matches!(o.as_ref(), Object::BigRange(_)) => {
+                let Object::BigRange(r) = o.as_ref() else { unreachable!() };
+                num_traits::ToPrimitive::to_i64(&r.len())
+                    .ok_or_else(|| self.error("Python int too large to convert to C ssize_t", "OverflowError"))? as usize
+            }
             Value::Instance(_) => match self.dunder(v, "__len__", Vec::new())? {
                 Some(n) => match n.as_int() {
                     Some(n) if n >= 0 => n as usize,
@@ -667,7 +678,7 @@ impl Interp {
             let Value::Str(s) = a else {
                 return Err(self.error("int() can't convert non-string with explicit base", "TypeError"));
             };
-            return parse_int_value(trim_whitespaces(s), base as u32)
+            return parse_int_value(trim_python_space(s), base as u32)
                 .map_err(|(m, k)| self.error(m, k))?
                 .ok_or_else(|| self.error(format!("invalid literal for int() with base {base}: {}", py_repr(a)), "ValueError"));
         }
@@ -676,7 +687,7 @@ impl Interp {
             Value::Big(_) => Ok(a.clone()),
             Value::Float(f) => self.float_to_int(*f),
             Value::Str(s) => {
-                let t = trim_whitespaces(s);
+                let t = trim_python_space(s);
                 if let Some(v) = parse_int_value(t, 10).map_err(|(m, k)| self.error(m, k))? {
                     return Ok(v);
                 }
@@ -697,8 +708,14 @@ impl Interp {
         if let Some(d) = a.as_float() {
             return Ok(Value::Float(d));
         }
-        if let Value::Str(s) = a {
-            if let Some(d) = parse_swift_double(trim_whitespaces(s)) {
+        let text = match a {
+            Value::Str(s) => Some(s.clone()),
+            // `float(b"1.5")`: bytes read as ASCII digits, as int's are.
+            Value::Bytes(b) => Some(Rc::from(String::from_utf8_lossy(b).as_ref())),
+            _ => None,
+        };
+        if let Some(s) = text {
+            if let Some(d) = parse_swift_double(trim_python_space(&s)) {
                 return Ok(Value::Float(d));
             }
         }
@@ -796,6 +813,9 @@ impl Interp {
     }
 
     fn range_builtin(&self, args: &[Value]) -> R<Value> {
+        if args.iter().any(|a| matches!(a, Value::Big(_))) {
+            return self.big_range(args);
+        }
         let mut nums = Vec::new();
         for a in args {
             nums.push(a.as_int().ok_or_else(|| {
@@ -812,7 +832,30 @@ impl Interp {
         if step == 0 {
             return Err(self.error("range() arg 3 must not be zero", "ValueError"));
         }
+        // A length past i64, `range(-2**63, 2**63)`, needs the big form.
+        if range_len(start, stop, step) == i64::MAX {
+            return self.big_range(args);
+        }
         Ok(Value::Object(Rc::new(Object::Range(start, stop, step))))
+    }
+
+    /// `range(...)` with an argument past the i64 range.
+    fn big_range(&self, args: &[Value]) -> R<Value> {
+        let mut nums = Vec::new();
+        for a in args {
+            nums.push(to_big(a).ok_or_else(|| self.error(format!("'{}' object cannot be interpreted as an integer", a.type_name()), "TypeError"))?);
+        }
+        let one = num_bigint::BigInt::from(1);
+        let (start, stop, step) = match nums.len() {
+            1 => (num_bigint::BigInt::from(0), nums.remove(0), one),
+            2 => (nums.remove(0), nums.remove(0), one),
+            3 => (nums.remove(0), nums.remove(0), nums.remove(0)),
+            n => return Err(self.error(format!("range expected at most 3 arguments, got {n}"), "TypeError")),
+        };
+        if num_traits::Zero::is_zero(&step) {
+            return Err(self.error("range() arg 3 must not be zero", "ValueError"));
+        }
+        Ok(super::bigint::range_value(start, stop, step))
     }
 
     /// `dict()`, `dict(mapping)`, `dict(pairs)`, each with `key=value` keywords on top.
@@ -981,7 +1024,7 @@ impl Interp {
             ByteError::Decode(message) => self.error(message, "UnicodeDecodeError"),
             ByteError::Hex(message) => self.error(message, "ValueError"),
             ByteError::Encode(message) => self.error(message, "UnicodeEncodeError"),
-            ByteError::Errors(name) if name == "surrogateescape" || name == "surrogatepass" => {
+            ByteError::Errors(name) if name == "surrogateescape" => {
                 self.error(format!("error handler '{name}' is not supported: strings here cannot hold lone surrogates"), "LookupError")
             }
             ByteError::Errors(name) => self.error(format!("unknown error handler name '{name}'"), "LookupError"),

@@ -1,3 +1,7 @@
+# Follows CPython 3.13's Lib/uuid.py, with no hardware address to read.
+# Python Software Foundation License Version 2; the text ships as
+# app/src/main/assets/licenses/psf-2.0.txt.
+
 """uuid: UUID objects and the uuid1, uuid3, uuid4 and uuid5 generators, as
 CPython's module has them (RFC 4122). A UUID holds its 128-bit int.
 

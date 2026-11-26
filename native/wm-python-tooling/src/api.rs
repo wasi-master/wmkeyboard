@@ -106,15 +106,16 @@ pub const MODULES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// Their members are not modelled, so code using them is not checked name by name.
 pub const LIBRARY: &[&str] = &[
     "abc", "argparse", "array", "ast", "asyncio", "base64", "binascii", "bisect", "builtins", "calendar", "codecs",
-    "collections", "collections.abc", "configparser", "contextlib", "contextvars", "copy", "csv", "dataclasses",
-    "datetime", "difflib", "email", "email.charset", "email.errors", "email.header", "email.message", "email.mime",
-    "email.mime.application", "email.mime.audio", "email.mime.base", "email.mime.image", "email.mime.message",
-    "email.mime.multipart", "email.mime.nonmultipart", "email.mime.text", "email.parser", "email.policy",
-    "email.utils", "enum", "errno", "fnmatch", "functools", "gzip", "hashlib", "heapq", "hmac", "html", "importlib",
-    "importlib.metadata", "importlib.resources", "importlib.util", "inspect", "io", "itertools", "keyword", "logging",
-    "mimetypes", "numbers", "operator", "os", "os.path", "pprint", "secrets", "shlex", "statistics", "string",
-    "struct", "textwrap", "traceback", "types", "typing", "unicodedata", "unittest", "unittest.mock", "urllib",
-    "urllib.parse", "uuid", "warnings", "weakref", "zlib",
+    "collections", "collections.abc", "configparser", "contextlib", "contextvars", "copy", "copyreg", "csv",
+    "dataclasses", "datetime", "decimal", "difflib", "email", "email.charset", "email.errors", "email.header",
+    "email.message", "email.mime", "email.mime.application", "email.mime.audio", "email.mime.base",
+    "email.mime.image", "email.mime.message", "email.mime.multipart", "email.mime.nonmultipart", "email.mime.text",
+    "email.parser", "email.policy", "email.utils", "enum", "errno", "fnmatch", "functools", "gzip", "hashlib",
+    "heapq", "hmac", "html", "importlib", "importlib.metadata", "importlib.resources", "importlib.util", "inspect",
+    "io", "ipaddress", "itertools", "keyword", "logging", "mimetypes", "numbers", "operator", "os", "os.path",
+    "pickle", "pprint", "secrets", "shlex", "statistics", "string", "struct", "textwrap", "token", "tokenize",
+    "traceback", "types", "typing", "unicodedata", "unittest", "unittest.mock", "urllib", "urllib.parse", "uuid",
+    "warnings", "weakref", "zlib",
 ];
 pub const CONTRACT: &[&str] = &["render", "on_event", "transform"];
 

@@ -11,7 +11,7 @@ use super::datefmt::{civil, format_pattern};
 use super::error::R;
 use super::eval::Interp;
 use super::json;
-use super::regex::{Regex, Subject, ASCII, DOT_ALL, IGNORE_CASE, MULTILINE, UNICODE, VERBOSE};
+use super::regex::{latin1_bytes, latin1_text, Regex, Subject, ASCII, BYTES, DOT_ALL, IGNORE_CASE, MULTILINE, UNICODE, VERBOSE};
 use super::text::{char_is_number, graphemes, grapheme_count, java_hash, longer_than, parse_swift_int};
 use super::value::*;
 
@@ -42,6 +42,8 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
         "sys" => &[
             "getrecursionlimit",
             "setrecursionlimit",
+            "audit",
+            "addaudithook",
             "get_int_max_str_digits",
             "set_int_max_str_digits",
             "exit",
@@ -66,7 +68,7 @@ pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
         ],
         "sys" => &[
             "version", "version_info", "hexversion", "maxsize", "maxunicode", "byteorder", "platform", "argv", "path",
-            "modules", "stdout", "stderr", "stdin", "executable",
+            "modules", "stdout", "stderr", "stdin", "executable", "hash_info", "int_info", "float_info",
         ],
         "sys.stdout" | "sys.stderr" | "sys.stdin" => &["encoding"],
         _ => &[],
@@ -225,6 +227,7 @@ impl Interp {
     pub(crate) fn sys_member(&self, name: &str) -> Option<Value> {
         Some(match name {
             "version_info" => Value::Tuple(self.version_info.clone()),
+            "hash_info" | "int_info" | "float_info" => Value::Tuple(self.struct_seqs.iter().find(|(n, _, _)| *n == name)?.2.clone()),
             "stdout" => self.stdout_target.clone().unwrap_or_else(|| Value::Module(Rc::from("sys.stdout"))),
             "stderr" => self.stderr_target.clone().unwrap_or_else(|| Value::Module(Rc::from("sys.stderr"))),
             "argv" => Value::list(vec![Value::str("")]),
@@ -242,6 +245,8 @@ impl Interp {
     fn sys_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         match name {
             "getrecursionlimit" => Ok(Value::Int(self.recursion_limit as i64)),
+            // Nothing listens: a plugin has no audit hooks to run.
+            "audit" | "addaudithook" => Ok(Value::None),
             "get_int_max_str_digits" => Ok(Value::Int(self.int_max_str_digits as i64)),
             "set_int_max_str_digits" => {
                 let v = args.first().or_else(|| kwarg(kwargs, "maxdigits")).ok_or_else(|| {
@@ -1016,14 +1021,17 @@ impl Interp {
     #[inline(never)]
     fn regex_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         if name == "escape" {
-            let Some(Value::Str(s)) = args.first() else {
-                return Err(self.error("re.escape() needs a string", "TypeError"));
+            return match args.first() {
+                Some(Value::Str(s)) => Ok(Value::str(Regex::escape(s))),
+                Some(Value::Bytes(b)) => Ok(Value::bytes(&latin1_bytes(&Regex::escape(&latin1_text(b))))),
+                _ => Err(self.error("re.escape() needs a string", "TypeError")),
             };
-            return Ok(Value::str(Regex::escape(s)));
         }
         // A pattern string, or a compiled pattern with its own flags.
         let (pattern, mut flags) = match args.first() {
             Some(Value::Str(p)) => (p.clone(), 0),
+            // A bytes pattern matches bytes, with ASCII's classes.
+            Some(Value::Bytes(p)) => (Rc::from(latin1_text(p)), BYTES),
             Some(Value::Object(o)) => match o.as_ref() {
                 Object::Pattern { pattern, flags } => (pattern.clone(), *flags),
                 _ => return Err(self.error(format!("re.{name}() needs a pattern string"), "TypeError")),
@@ -1040,6 +1048,9 @@ impl Interp {
             _ => 2,
         };
         if let Some(f) = args.get(flag_index).or_else(|| kwarg(kwargs, "flags")).and_then(Value::as_int) {
+            if flags & BYTES != 0 && f & UNICODE != 0 {
+                return Err(self.error("cannot use UNICODE flag with a bytes pattern", "ValueError"));
+            }
             flags |= f;
         }
         if name == "compile" {
@@ -1096,18 +1107,24 @@ impl Interp {
         let regex = Regex::compile(pattern, flags)?;
         let is_sub = name == "sub" || name == "subn";
         let subject_index = if is_sub { 1 } else { 0 };
-        let Some(Value::Str(full_text)) = rest.get(subject_index).or_else(|| kwarg(kwargs, "string")) else {
-            return Err(self.error(format!("re.{name}() needs a string to search"), "TypeError"));
+        let bytes = flags & BYTES != 0;
+        let subject = match (rest.get(subject_index).or_else(|| kwarg(kwargs, "string")), bytes) {
+            (Some(Value::Str(full_text)), false) => {
+                let full_text = full_text.clone();
+                let b = self.chars(&full_text);
+                // `endpos` ends the subject early, as if the text stopped there.
+                let subject_text: Rc<str> = match endpos {
+                    Some(e) if e + 1 < b.len() => Rc::from(&full_text[..b[e] as usize]),
+                    _ => full_text.clone(),
+                };
+                let b = self.chars(&subject_text);
+                Rc::new(Subject::new(subject_text, b))
+            }
+            (Some(Value::Bytes(data)), true) => Rc::new(Subject::of_bytes(&data[..endpos.unwrap_or(data.len()).min(data.len())])),
+            (Some(Value::Bytes(_)), false) => return Err(self.error("cannot use a string pattern on a bytes-like object", "TypeError")),
+            (Some(Value::Str(_)), true) => return Err(self.error("cannot use a bytes pattern on a string-like object", "TypeError")),
+            _ => return Err(self.error(format!("re.{name}() needs a string to search"), "TypeError")),
         };
-        let full_text = full_text.clone();
-        let b = self.chars(&full_text);
-        // `endpos` ends the subject early, as if the text stopped there.
-        let subject_text: Rc<str> = match endpos {
-            Some(e) if e + 1 < b.len() => Rc::from(&full_text[..b[e] as usize]),
-            _ => full_text.clone(),
-        };
-        let b = self.chars(&subject_text);
-        let subject = Rc::new(Subject::new(subject_text.clone(), b));
         let pos = pos.min(subject.len());
         let limit_of = |v: Option<&Value>| -> usize {
             let l = v.and_then(Value::as_int).unwrap_or(0);
@@ -1128,9 +1145,9 @@ impl Interp {
                 Ok(Value::list(
                     all.iter()
                         .map(|m| match regex.group_count {
-                            0 => Value::str(m.value()),
-                            1 => Value::str(m.text(1).unwrap_or_default()),
-                            n => Value::tuple((1..=n).map(|g| Value::str(m.text(g).unwrap_or_default())).collect()),
+                            0 => subject.piece(&m.value()),
+                            1 => subject.piece(&m.text(1).unwrap_or_default()),
+                            n => Value::tuple((1..=n).map(|g| subject.piece(&m.text(g).unwrap_or_default())).collect()),
                         })
                         .collect(),
                 ))
@@ -1148,13 +1165,13 @@ impl Interp {
                     if s == e {
                         continue;
                     }
-                    out.push(Value::str(subject.join(at, s)));
+                    out.push(subject.piece(subject.join(at, s)));
                     for g in 1..=regex.group_count {
-                        out.push(m.text(g).map(Value::str).unwrap_or(Value::None));
+                        out.push(m.text(g).map(|t| subject.piece(&t)).unwrap_or(Value::None));
                     }
                     at = e;
                 }
-                out.push(Value::str(subject.join(at, subject.len())));
+                out.push(subject.piece(subject.join(at, subject.len())));
                 Ok(Value::list(out))
             }
             "sub" | "subn" => {
@@ -1163,16 +1180,33 @@ impl Interp {
                 let mut out = String::new();
                 let mut at = 0;
                 let mut count = 0;
+                // CPython joins the pieces at the end: a wrong one is named by
+                // its place among them.
+                let mut pieces = 0;
+                let wrong = |me: &Interp, item: usize, found: &Value| {
+                    let want = if bytes { "a bytes-like object" } else { "str instance" };
+                    me.error(format!("sequence item {item}: expected {want}, {} found", found.type_name()), "TypeError")
+                };
                 for m in all {
                     let Some((s, e)) = m.spans[0] else { continue };
                     out.push_str(subject.join(at, s));
+                    if s > at {
+                        pieces += 1;
+                    }
                     match &replacement {
-                        Value::Str(t) => out.push_str(&expand_template(t, &m)),
+                        Value::Str(t) if !bytes => out.push_str(&expand_template(t, &m)),
+                        Value::Bytes(t) if bytes => out.push_str(&expand_template(&latin1_text(t), &m)),
+                        Value::Str(_) | Value::Bytes(_) => return Err(wrong(self, pieces, &replacement)),
                         other => {
                             let r = self.invoke(other, vec![Value::Match(Rc::new(m))])?;
-                            out.push_str(&py_str(&r));
+                            match (&r, bytes) {
+                                (Value::Bytes(b), true) => out.push_str(&latin1_text(b)),
+                                (Value::Str(s), false) => out.push_str(s),
+                                _ => return Err(wrong(self, pieces, &r)),
+                            }
                         }
                     }
+                    pieces += 1;
                     at = e;
                     count += 1;
                     if out.len() > self.max_string && grapheme_count(&out) > self.max_string {
@@ -1180,10 +1214,11 @@ impl Interp {
                     }
                 }
                 out.push_str(subject.join(at, subject.len()));
+                let out = subject.piece(&out);
                 if name == "sub" {
-                    Ok(Value::str(out))
+                    Ok(out)
                 } else {
-                    Ok(Value::tuple(vec![Value::str(out), Value::Int(count)]))
+                    Ok(Value::tuple(vec![out, Value::Int(count)]))
                 }
             }
             _ => Err(self.error(format!("module 're' has no attribute '{name}'"), "AttributeError")),

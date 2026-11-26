@@ -3,8 +3,9 @@
 //!
 //! Encodings: UTF-8 (and `utf-8-sig`), UTF-16 and UTF-32 (with a byte order
 //! mark, or `-le` / `-be` without), ASCII, Latin-1 and Windows-1252. Strings
-//! here cannot hold a lone surrogate, so `surrogateescape` and
-//! `surrogatepass` are refused rather than quietly losing bytes.
+//! here cannot hold a lone surrogate, so `surrogateescape` is refused rather
+//! than quietly losing bytes. `surrogatepass` is `strict`: it only differs
+//! on a surrogate, which no string here has and no decode here makes.
 
 pub(crate) enum ByteError {
     UnknownEncoding(String),
@@ -97,7 +98,7 @@ enum Handler {
 
 fn handler(errors: &str, encoding: bool) -> Result<Handler, ByteError> {
     Ok(match errors {
-        "strict" => Handler::Strict,
+        "strict" | "surrogatepass" => Handler::Strict,
         "ignore" => Handler::Ignore,
         "replace" => Handler::Replace,
         "backslashreplace" => Handler::BackslashReplace,

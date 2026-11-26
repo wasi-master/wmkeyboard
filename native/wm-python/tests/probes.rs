@@ -40,6 +40,9 @@ const DIVERGES: &[(&str, &str)] = &[
     // 2026-11-27: a one-line block runs every `;`-separated statement, as
     // CPython's does; PyMini ran only the first.
     ("206-edge-semicolon-block.py", "[6, 1, 2]\n"),
+    // 2026-11-27: a match object's repr is CPython's.
+    ("115-re-backref-err.py", "<re.Match object; span=(0, 2), match='aa'>\n"),
+    ("180-edge-regex-lookahead.py", "<re.Match object; span=(0, 1), match='a'>\n"),
     ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
     ("034-strings-split.py", concat!(r##"[['a', 'b', 'c'], ['a', 'b', '', 'c'], ['a', 'b,c'], ['a,b', 'c'], ['', 'a', '', 'b', ''], ['a', 'b', 'c'], ['a', 'b c']]"##, "\n")),
     ("045-strings-graphemes.py", concat!(r##"[2, ['é', 'x'], True, 1, '🇫🇷', 1, ['e', 'f', 'é']]"##, "\n")),

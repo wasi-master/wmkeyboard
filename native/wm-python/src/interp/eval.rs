@@ -204,6 +204,9 @@ pub(crate) struct Interp {
     pub(crate) stderr_target: Option<Value>,
     /// `sys.version_info`, one tuple so its fields can be read by name.
     pub(crate) version_info: Rc<Vec<Value>>,
+    /// `sys.hash_info`, `sys.int_info` and `sys.float_info`, read by name as
+    /// version_info is.
+    pub(crate) struct_seqs: Rc<[(&'static str, &'static [&'static str], Rc<Vec<Value>>)]>,
     /// What [ascii_char] hands out, made on first use.
     ascii_chars: Vec<Value>,
     /// Frames of finished calls that nothing kept, for the next calls.
@@ -312,6 +315,45 @@ impl Interp {
             stdout_target: None,
             stderr_target: None,
             version_info: Rc::new(vec![Value::Int(3), Value::Int(12), Value::Int(0), Value::str("final"), Value::Int(0)]),
+            struct_seqs: Rc::new([
+                (
+                    "hash_info",
+                    &["width", "modulus", "inf", "nan", "imag", "algorithm", "hash_bits", "seed_bits", "cutoff"][..],
+                    Rc::new(vec![
+                        Value::Int(64),
+                        Value::Int(super::hashing::MODULUS as i64),
+                        Value::Int(super::hashing::INF),
+                        Value::Int(0),
+                        Value::Int(1_000_003),
+                        Value::str("siphash13"),
+                        Value::Int(64),
+                        Value::Int(128),
+                        Value::Int(0),
+                    ]),
+                ),
+                (
+                    "int_info",
+                    &["bits_per_digit", "sizeof_digit", "default_max_str_digits", "str_digits_check_threshold"][..],
+                    Rc::new(vec![Value::Int(30), Value::Int(4), Value::Int(4300), Value::Int(640)]),
+                ),
+                (
+                    "float_info",
+                    &["max", "max_exp", "max_10_exp", "min", "min_exp", "min_10_exp", "dig", "mant_dig", "epsilon", "radix", "rounds"][..],
+                    Rc::new(vec![
+                        Value::Float(f64::MAX),
+                        Value::Int(1024),
+                        Value::Int(308),
+                        Value::Float(f64::MIN_POSITIVE),
+                        Value::Int(-1021),
+                        Value::Int(-307),
+                        Value::Int(15),
+                        Value::Int(53),
+                        Value::Float(f64::EPSILON),
+                        Value::Int(2),
+                        Value::Int(1),
+                    ]),
+                ),
+            ]),
             ascii_chars: Vec::new(),
             spare: Vec::new(),
             stack_base: 0,
@@ -1082,11 +1124,32 @@ impl Interp {
         Ok(HKey::Obj { hash, canon: v.clone(), value: v.clone() })
     }
 
-    /// `hash(v)`: an instance's own `__hash__` answer, or a hash of its key.
+    /// `hash(v)`: an instance's own `__hash__` answer; for numbers and
+    /// tuples CPython's own hash, so `hash(2)` is 2; a hash of its key else.
     pub(crate) fn hash_of(&mut self, v: &Value) -> R<i64> {
         use std::hash::{Hash, Hasher};
+        match v {
+            Value::Int(i) => return Ok(super::hashing::of_int(*i)),
+            Value::Bool(b) => return Ok(*b as i64),
+            Value::Float(f) => return Ok(super::hashing::of_float(*f)),
+            Value::Big(b) => return Ok(super::hashing::of_big(b)),
+            Value::None => return Ok(super::hashing::NONE),
+            Value::Tuple(items) => {
+                let mut lanes = Vec::with_capacity(items.len());
+                for item in items.iter() {
+                    lanes.push(self.hash_of(item)?);
+                }
+                return Ok(super::hashing::of_tuple(&lanes));
+            }
+            _ => {}
+        }
         match self.hashable(v)? {
             HKey::Obj { hash, .. } => Ok(hash),
+            // A subclass of a built-in type hashes as its value does.
+            HKey::Sub(p) => {
+                let plain = p.0.to_value();
+                self.hash_of(&plain)
+            }
             key => {
                 let mut h = std::collections::hash_map::DefaultHasher::new();
                 key.hash(&mut h);
@@ -2070,6 +2133,13 @@ impl Interp {
                     "index" | "count" => Ok(self.method_value(obj, name)),
                     _ => Err(self.error(format!("'range' object has no attribute '{name}'"), "AttributeError")),
                 },
+                Object::BigRange(r) => match name {
+                    "start" => Ok(super::bigint::int_value(r.start.clone())),
+                    "stop" => Ok(super::bigint::int_value(r.stop.clone())),
+                    "step" => Ok(super::bigint::int_value(r.step.clone())),
+                    "index" | "count" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'range' object has no attribute '{name}'"), "AttributeError")),
+                },
                 Object::Coroutine(c) => match name {
                     "__name__" | "__qualname__" => Ok(Value::Str(c.name.clone())),
                     "cr_running" => Ok(Value::Bool(matches!(*c.state.borrow(), super::generators::CoState::Running))),
@@ -2091,7 +2161,11 @@ impl Interp {
                     _ => Err(self.error(format!("'{}' object has no attribute '{name}'", i.kind), "AttributeError")),
                 },
                 Object::Pattern { pattern, flags } => match name {
+                    "pattern" if flags & super::regex::BYTES != 0 => Ok(Value::bytes(&super::regex::latin1_bytes(pattern))),
                     "pattern" => Ok(Value::Str(pattern.clone())),
+                    // Python's: a str pattern has UNICODE on unless ASCII is.
+                    "flags" if flags & super::regex::BYTES != 0 => Ok(Value::Int(flags & !super::regex::BYTES)),
+                    "flags" if flags & super::regex::ASCII == 0 => Ok(Value::Int(flags | super::regex::UNICODE)),
                     "flags" => Ok(Value::Int(*flags)),
                     "groups" | "groupindex" => self.call_method(obj, name, Vec::new(), Vec::new()),
                     _ if super::modules::PATTERN_METHODS.contains(&name) => Ok(self.method_value(obj, name)),
@@ -2213,6 +2287,7 @@ impl Interp {
                     "__new__" => super::classes::HIDDEN_OBJECT_NEW,
                     "__str__" => super::classes::HIDDEN_DEFAULT_STR,
                     "__repr__" => super::classes::HIDDEN_DEFAULT_REPR,
+                    _ if super::classes::pickling_dunder(name).is_some() => super::classes::pickling_dunder(name).unwrap(),
                     "__base__" => return Ok(Value::None),
                     "__bases__" => return Ok(Value::tuple(Vec::new())),
                     "__mro__" => return Ok(Value::tuple(vec![obj.clone()])),
@@ -2231,6 +2306,13 @@ impl Interp {
                 .member(m, name)
                 .ok_or_else(|| self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
             // `sys.version_info.major` and the rest of its fields.
+            Value::Tuple(t) if self.struct_seqs.iter().any(|(_, _, v)| Rc::ptr_eq(t, v)) => {
+                let (seq, fields, values) = self.struct_seqs.iter().find(|(_, _, v)| Rc::ptr_eq(t, v)).unwrap();
+                match fields.iter().position(|f| *f == name) {
+                    Some(i) => Ok(values[i].clone()),
+                    None => Err(self.error(format!("'sys.{seq}' object has no attribute '{name}'"), "AttributeError")),
+                }
+            }
             Value::Tuple(t) if Rc::ptr_eq(t, &self.version_info) => {
                 let at = match name {
                     "major" => 0,
@@ -2259,7 +2341,7 @@ impl Interp {
                 _ => Err(self.error(format!("'{}' object has no attribute '{name}'", e.kind), "AttributeError")),
             },
             Value::Match(m) => match name {
-                "string" => Ok(Value::str(m.subject.text())),
+                "string" => Ok(m.subject.piece(m.subject.text())),
                 "lastindex" => Ok(Value::Int(m.spans.len().saturating_sub(1) as i64)),
                 _ => Err(self.error(format!("Match has no attribute '{name}'"), "AttributeError")),
             },
@@ -2969,7 +3051,7 @@ impl Interp {
     }
 
     /// `"%s scored %d" % (name, score)`.
-    fn printf_style(&mut self, format: &Rc<str>, rhs: &Value) -> R<String> {
+    pub(crate) fn printf_style(&mut self, format: &Rc<str>, rhs: &Value) -> R<String> {
         let args: Vec<Value> = match rhs {
             Value::Tuple(t) => t.as_ref().clone(),
             other => vec![other.clone()],
@@ -3320,6 +3402,13 @@ impl Interp {
                         _ => false,
                     });
                 }
+                Object::BigRange(r) => {
+                    let x = match item {
+                        Value::Float(f) if f.is_finite() && f.fract() == 0.0 => <num_bigint::BigInt as num_traits::FromPrimitive>::from_f64(*f),
+                        other => super::bigint::to_big(other),
+                    };
+                    return Ok(x.is_some_and(|x| r.position(&x).is_some()));
+                }
                 Object::Generator(_) | Object::Iterator(_) => {
                     // Consumes the iterator up to the first match, as Python does.
                     let mut it = Iter::Object(o.clone());
@@ -3411,6 +3500,13 @@ impl Interp {
                     let mut it = Iter::Range { next: Some(*a), stop: *b, step: *c };
                     return self.collect_iter(&mut it, "range");
                 }
+                Object::BigRange(r) => {
+                    if r.len() > num_bigint::BigInt::from(self.max_container) {
+                        return Err(self.container_abort("range"));
+                    }
+                    let mut it = Iter::BigRange(Box::new((r.start.clone(), r.stop.clone(), r.step.clone())));
+                    return self.collect_iter(&mut it, "range");
+                }
                 _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
             },
             _ => return Err(self.error(format!("'{}' object is not iterable", value.type_name()), "TypeError")),
@@ -3422,8 +3518,8 @@ impl Interp {
     /// range object, a list or tuple nothing else holds is not copied, and a
     /// generator or iterator runs only as far as the loop goes.
     pub(crate) fn loop_items(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<Iter> {
-        if let Some((start, stop, step)) = self.loop_range(iterable, env)? {
-            return Ok(Iter::Range { next: Some(start), stop, step });
+        if let Some(it) = self.loop_range(iterable, env)? {
+            return Ok(it);
         }
         let it = self.eval(iterable, env)?;
         Ok(match it {
@@ -3436,9 +3532,9 @@ impl Interp {
         })
     }
 
-    /// The (start, stop, step) of `range(...)` when [iterable] is a call of
+    /// What a loop over `range(...)` counts, when [iterable] is a call of
     /// the builtin range, charged the steps evaluating the call would be.
-    fn loop_range(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<Option<(i64, i64, i64)>> {
+    fn loop_range(&mut self, iterable: &Expr, env: &Rc<Env>) -> R<Option<Iter>> {
         let Expr::Call(callee, args, kwargs) = iterable else { return Ok(None) };
         let Expr::Name(n) = callee.as_ref() else { return Ok(None) };
         if n.id.as_ref() != "range" || !kwargs.is_empty() || !(1..=3).contains(&args.len()) || args.iter().any(|a| matches!(a, Expr::Starred(_))) {
@@ -3456,7 +3552,15 @@ impl Interp {
         }
         let mut nums = [0i64; 3];
         for (slot, v) in nums.iter_mut().zip(&values) {
-            *slot = v.as_int().ok_or_else(|| self.error(format!("'{}' object cannot be interpreted as an integer", v.type_name()), "TypeError"))?;
+            match v {
+                Value::Int(i) => *slot = *i,
+                Value::Bool(b) => *slot = *b as i64,
+                // Big ints and `__index__`: the range builtin sorts them out.
+                _ => {
+                    let r = self.call_builtin("range", &values, &[])?;
+                    return self.iter_of(&r).map(Some);
+                }
+            }
         }
         let (start, stop, step) = match args.len() {
             1 => (0, nums[0], 1),
@@ -3466,7 +3570,7 @@ impl Interp {
         if step == 0 {
             return Err(self.error("range() arg 3 must not be zero", "ValueError"));
         }
-        Ok(Some((start, stop, step)))
+        Ok(Some(Iter::Range { next: Some(start), stop, step }))
     }
 
     pub fn list_index(&self, idx: &Value, count: usize) -> R<usize> {
@@ -3522,9 +3626,22 @@ impl Interp {
                 let i = self.list_index(idx, b.len())?;
                 Ok(Value::Int(b[i] as i64))
             }
+            Value::Object(o) if matches!(o.as_ref(), Object::BigRange(_)) => {
+                let Object::BigRange(r) = o.as_ref() else { unreachable!() };
+                let n = r.len();
+                let i = super::bigint::to_big(idx).ok_or_else(|| self.error("range indices must be integers or slices", "TypeError"))?;
+                let i = if num_traits::Signed::is_negative(&i) { i + &n } else { i };
+                if num_traits::Signed::is_negative(&i) || i >= n {
+                    return Err(self.error("range object index out of range", "IndexError"));
+                }
+                Ok(super::bigint::int_value(r.at(&i)))
+            }
             Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) => {
                 let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
                 let n = range_len(*a, *b, *c);
+                if matches!(idx, Value::Big(_)) {
+                    return Err(self.error("range object index out of range", "IndexError"));
+                }
                 let i = idx.as_int().ok_or_else(|| self.error("range indices must be integers or slices", "TypeError"))?;
                 let i = if i < 0 { i + n } else { i };
                 if i < 0 || i >= n {
@@ -3541,8 +3658,12 @@ impl Interp {
                 }
             }
             Value::Match(m) => {
-                let text = idx.as_int().and_then(|i| if i < 0 { None } else { m.text(i as usize) });
-                text.map(Value::str).ok_or_else(|| self.error("no such group", "IndexError"))
+                let group = match idx {
+                    Value::Str(name) => m.names.get(name.as_ref()).map(|i| *i as i64),
+                    other => other.as_int(),
+                };
+                let text = group.and_then(|i| if i < 0 { None } else { m.text(i as usize) });
+                text.map(|t| m.subject.piece(&t)).ok_or_else(|| self.error("no such group", "IndexError"))
             }
             Value::Class(c) => {
                 let c = c.clone();
@@ -3618,6 +3739,20 @@ impl Interp {
                 let start = pos(l, if step > 0 { 0 } else { n - 1 });
                 let stop = pos(h, if step > 0 { n } else { -1 });
                 Value::Object(Rc::new(Object::Range(a + start * c, a + stop * c, c * step)))
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::BigRange(_)) => {
+                use num_bigint::BigInt;
+                let Object::BigRange(r) = o.as_ref() else { unreachable!() };
+                let n = r.len();
+                let (lo, hi) = if step > 0 { (BigInt::from(0), n.clone()) } else { (BigInt::from(-1), &n - 1) };
+                let pos = |v: Option<i64>, default: BigInt| match v {
+                    None => default,
+                    Some(v) if v < 0 => (BigInt::from(v) + &n).clamp(lo.clone(), hi.clone()),
+                    Some(v) => BigInt::from(v).clamp(lo.clone(), hi.clone()),
+                };
+                let start = pos(l, if step > 0 { BigInt::from(0) } else { &n - 1 });
+                let stop = pos(h, if step > 0 { n.clone() } else { BigInt::from(-1) });
+                super::bigint::range_value(r.at(&start), r.at(&stop), &r.step * step)
             }
             _ => return Err(self.error(format!("'{}' object is not subscriptable", base.type_name()), "TypeError")),
         })
@@ -3912,7 +4047,7 @@ fn type_like(v: &Value) -> bool {
     }
 }
 
-fn op_symbol(op: BinOp) -> &'static str {
+pub(crate) fn op_symbol(op: BinOp) -> &'static str {
     match op {
         BinOp::Add => "+",
         BinOp::Sub => "-",

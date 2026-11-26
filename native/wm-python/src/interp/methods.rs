@@ -30,14 +30,16 @@ pub(crate) const LIST_METHODS: &[&str] = &["append", "extend", "insert", "remove
 pub(crate) const TUPLE_METHODS: &[&str] = &["index", "count"];
 pub(crate) const SET_METHODS: &[&str] = &[
     "add", "remove", "discard", "pop", "clear", "union", "intersection", "difference", "symmetric_difference", "update",
-    "issubset", "issuperset", "isdisjoint", "copy", "intersection_update", "difference_update",
+    "issubset", "issuperset", "isdisjoint", "copy", "intersection_update", "difference_update", "symmetric_difference_update",
 ];
 pub(crate) const INT_METHODS: &[&str] = &["to_bytes", "bit_length", "bit_count", "conjugate", "as_integer_ratio", "is_integer"];
 pub(crate) const FLOAT_METHODS: &[&str] = &["is_integer", "as_integer_ratio", "conjugate", "hex"];
 pub(crate) const DICT_METHODS: &[&str] = &["keys", "values", "items", "get", "pop", "popitem", "setdefault", "update", "clear", "copy"];
 pub(crate) const BYTES_METHODS: &[&str] = &[
-    "decode", "hex", "find", "count", "startswith", "endswith", "split", "strip", "replace", "upper", "lower", "join", "index",
-    "rfind", "rindex", "lstrip", "rstrip",
+    "capitalize", "center", "count", "decode", "endswith", "expandtabs", "find", "hex", "index", "isalnum", "isalpha",
+    "isascii", "isdigit", "islower", "isspace", "istitle", "isupper", "join", "ljust", "lower", "lstrip", "partition",
+    "removeprefix", "removesuffix", "replace", "rfind", "rindex", "rjust", "rpartition", "rsplit", "rstrip", "split",
+    "splitlines", "startswith", "strip", "swapcase", "title", "translate", "upper", "zfill",
 ];
 /// The builtin name a method taken as a value calls through.
 pub(crate) const METHOD_PREFIX: &str = "__method__:";
@@ -46,7 +48,8 @@ pub(crate) const METHOD_PREFIX: &str = "__method__:";
 pub(crate) const UNBOUND_PREFIX: &str = "__unbound__:";
 
 /// Methods called on the type itself rather than on a value.
-const TYPE_STATICS: &[(&str, &str)] = &[("str", "maketrans"), ("dict", "fromkeys"), ("int", "from_bytes"), ("bytes", "fromhex")];
+const TYPE_STATICS: &[(&str, &str)] =
+    &[("str", "maketrans"), ("dict", "fromkeys"), ("int", "from_bytes"), ("bytes", "fromhex"), ("bytes", "maketrans"), ("float", "fromhex")];
 
 /// Whether `ty.name` (as "dict.fromkeys") is one of [TYPE_STATICS].
 pub(crate) fn is_type_static(path: &str) -> bool {
@@ -287,6 +290,15 @@ impl Interp {
                     None => Err(self.error("", "StopIteration")),
                 }
             }
+            Value::Object(o) if matches!(o.as_ref(), Object::BigRange(_)) && matches!(name, "index" | "count") => {
+                let Object::BigRange(r) = o.as_ref() else { unreachable!() };
+                let hit = args.first().and_then(super::bigint::to_big).and_then(|x| r.position(&x));
+                match (name, hit) {
+                    ("count", h) => Ok(Value::Int(h.is_some() as i64)),
+                    (_, Some(i)) => Ok(super::bigint::int_value(i)),
+                    _ => Err(self.error(format!("{} is not in range", args.first().map(py_repr).unwrap_or_default()), "ValueError")),
+                }
+            }
             Value::Object(o) if matches!(o.as_ref(), Object::Range(..)) && matches!(name, "index" | "count") => {
                 let Object::Range(a, b, c) = o.as_ref() else { unreachable!() };
                 let (a, c) = (*a, *c);
@@ -346,6 +358,26 @@ impl Interp {
         let (ty, name) = path.split_once('.').unwrap_or((path, ""));
         match (ty, name) {
             ("str", "maketrans") => return self.maketrans(&args),
+            ("bytes", "maketrans") => {
+                let (Some(Value::Bytes(from)), Some(Value::Bytes(to))) = (args.first(), args.get(1)) else {
+                    return Err(self.error("maketrans() arguments must be bytes-like objects", "TypeError"));
+                };
+                if from.len() != to.len() {
+                    return Err(self.error("maketrans arguments must have same length", "ValueError"));
+                }
+                let mut table: Vec<u8> = (0..=255).collect();
+                for (&a, &b) in from.iter().zip(to.iter()) {
+                    table[a as usize] = b;
+                }
+                return Ok(Value::bytes(&table));
+            }
+            ("float", "fromhex") => {
+                let s = self.arg_str(&args, 0, "fromhex")?;
+                return match float_from_hex(&s) {
+                    Ok(f) => Ok(Value::Float(f)),
+                    Err((m, k)) => Err(self.error(m, k)),
+                };
+            }
             // `D.fromkeys(keys)` for a dict subclass D: a D.
             ("dict", "fromkeys") if matches!(args.first(), Some(Value::Class(c)) if c.builtin_base.as_deref() == Some("dict")) => {
                 let Some(Value::Class(c)) = args.first().cloned() else { unreachable!() };
@@ -1277,20 +1309,46 @@ impl Interp {
                 Ok(Value::None)
             }
             "copy" => Ok(Value::new_set(s.borrow().clone())),
-            "update" => {
-                let o = other(self, 0)?;
-                s.borrow_mut().extend(o);
+            // Each takes any number of iterables, as CPython's do, except the
+            // symmetric ones, which take exactly one.
+            "update" | "intersection_update" | "difference_update" | "symmetric_difference_update" => {
+                if name == "symmetric_difference_update" {
+                    self.arity(name, args, 1)?;
+                }
+                for i in 0..args.len() {
+                    let o = other(self, i)?;
+                    let op = match name {
+                        "update" => BinOp::BitOr,
+                        "intersection_update" => BinOp::BitAnd,
+                        "difference_update" => BinOp::Sub,
+                        _ => BinOp::BitXor,
+                    };
+                    let Some(Value::Set(next)) = set_algebra(op, &s.borrow(), &o) else { unreachable!() };
+                    let next = next.borrow().clone();
+                    if next.len() > self.max_container {
+                        return Err(self.container_abort("set"));
+                    }
+                    *s.borrow_mut() = next;
+                }
                 Ok(Value::None)
             }
             "union" | "intersection" | "difference" | "symmetric_difference" => {
-                let o = other(self, 0)?;
+                if name == "symmetric_difference" {
+                    self.arity(name, args, 1)?;
+                }
                 let op = match name {
                     "union" => BinOp::BitOr,
                     "intersection" => BinOp::BitAnd,
                     "difference" => BinOp::Sub,
                     _ => BinOp::BitXor,
                 };
-                Ok(set_algebra(op, &s.borrow(), &o).unwrap())
+                let mut acc = s.borrow().clone();
+                for i in 0..args.len() {
+                    let o = other(self, i)?;
+                    let Some(Value::Set(next)) = set_algebra(op, &acc, &o) else { unreachable!() };
+                    acc = next.borrow().clone();
+                }
+                Ok(Value::new_set(acc))
             }
             "issubset" => {
                 let o = other(self, 0)?;
@@ -1402,12 +1460,12 @@ impl Interp {
             if i < 0 {
                 return Value::None;
             }
-            m.text(i as usize).map(Value::str).unwrap_or(Value::None)
+            m.text(i as usize).map(|t| m.subject.piece(&t)).unwrap_or(Value::None)
         };
         match name {
             "group" => {
                 if args.is_empty() {
-                    return Ok(Value::str(m.value()));
+                    return Ok(m.subject.piece(&m.value()));
                 }
                 if args.len() == 1 {
                     let i = group_index(self, &args[0])?;
@@ -1425,7 +1483,7 @@ impl Interp {
             "groups" => {
                 let fallback = args.first().cloned().unwrap_or(Value::None);
                 Ok(Value::tuple(
-                    (1..m.spans.len().max(1)).map(|i| m.text(i).map(Value::str).unwrap_or_else(|| fallback.clone())).collect(),
+                    (1..m.spans.len().max(1)).map(|i| m.text(i).map(|t| m.subject.piece(&t)).unwrap_or_else(|| fallback.clone())).collect(),
                 ))
             }
             "groupdict" => {
@@ -1491,8 +1549,20 @@ impl Interp {
                 Ok(Value::Bytes(Rc::from(out)))
             }
             "startswith" | "endswith" => {
-                let sub = self.arg_bytes(args, 0, name)?;
-                Ok(Value::Bool(if name == "startswith" { b.starts_with(&sub) } else { b.ends_with(&sub) }))
+                // A prefix or a tuple of them, within [start:end].
+                let (start, end) = byte_bounds(b.len(), args.get(1), args.get(2));
+                let part = &b[start..end.max(start)];
+                let subs: Vec<Vec<u8>> = match args.first() {
+                    Some(Value::Tuple(t)) => {
+                        let mut out = Vec::new();
+                        for v in t.iter() {
+                            out.push(self.arg_bytes(std::slice::from_ref(v), 0, name)?);
+                        }
+                        out
+                    }
+                    _ => vec![self.arg_bytes(args, 0, name)?],
+                };
+                Ok(Value::Bool(subs.iter().any(|sub| if name == "startswith" { part.starts_with(sub) } else { part.ends_with(sub) })))
             }
             "find" | "index" | "rfind" | "rindex" => {
                 let sub = self.arg_bytes(args, 0, name)?;
@@ -1514,11 +1584,13 @@ impl Interp {
             }
             "count" => {
                 let sub = self.arg_bytes(args, 0, name)?;
+                let (start, end) = byte_bounds(b.len(), args.get(1), args.get(2));
+                let part = &b[start..end.max(start)];
                 if sub.is_empty() {
-                    return Ok(Value::Int(b.len() as i64 + 1));
+                    return Ok(Value::Int(part.len() as i64 + 1));
                 }
                 let (mut n, mut at) = (0i64, 0usize);
-                while let Some(i) = find_bytes(&b[at..], &sub) {
+                while let Some(i) = find_bytes(&part[at..], &sub) {
                     n += 1;
                     at += i + sub.len();
                 }
@@ -1527,37 +1599,216 @@ impl Interp {
             "replace" => {
                 let old = self.arg_bytes(args, 0, name)?;
                 let new = self.arg_bytes(args, 1, name)?;
-                if old.is_empty() {
-                    return Ok(Value::Bytes(b.clone()));
-                }
+                let count = args.get(2).or_else(|| kwarg(kwargs, "count")).and_then(Value::as_int).unwrap_or(-1);
+                let mut left = if count < 0 { usize::MAX } else { count as usize };
                 let mut out = Vec::with_capacity(b.len());
+                if old.is_empty() {
+                    // Between every byte, and at both ends, as CPython puts it.
+                    for (i, &c) in b.iter().enumerate() {
+                        if left > 0 {
+                            out.extend_from_slice(&new);
+                            left -= 1;
+                        }
+                        out.push(c);
+                        if i == b.len() - 1 && left > 0 {
+                            out.extend_from_slice(&new);
+                        }
+                    }
+                    if b.is_empty() && left > 0 {
+                        out.extend_from_slice(&new);
+                    }
+                    return Ok(Value::Bytes(Rc::from(out)));
+                }
                 let mut at = 0usize;
-                while let Some(i) = find_bytes(&b[at..], &old) {
+                while left > 0 {
+                    let Some(i) = find_bytes(&b[at..], &old) else { break };
                     out.extend_from_slice(&b[at..at + i]);
                     out.extend_from_slice(&new);
                     at += i + old.len();
+                    left -= 1;
                 }
                 out.extend_from_slice(&b[at..]);
                 Ok(Value::Bytes(Rc::from(out)))
             }
-            "split" => {
-                let pieces: Vec<Vec<u8>> = match args.first().or_else(|| kwarg(kwargs, "sep")) {
-                    None | Some(Value::None) => b.split(|c| c.is_ascii_whitespace()).filter(|p| !p.is_empty()).map(<[u8]>::to_vec).collect(),
-                    Some(_) => {
-                        let sep = self.arg_bytes(args, 0, name)?;
-                        if sep.is_empty() {
-                            return Err(self.error("empty separator", "ValueError"));
+            "split" | "rsplit" => {
+                let maxsplit = args.get(1).or_else(|| kwarg(kwargs, "maxsplit")).and_then(Value::as_int).unwrap_or(-1);
+                let limit = if maxsplit < 0 { usize::MAX } else { maxsplit as usize };
+                let sep = match args.first().or_else(|| kwarg(kwargs, "sep")) {
+                    None | Some(Value::None) => None,
+                    Some(v) => Some(self.arg_bytes(std::slice::from_ref(v), 0, name)?),
+                };
+                if sep.as_ref().is_some_and(Vec::is_empty) {
+                    return Err(self.error("empty separator", "ValueError"));
+                }
+                let pieces = split_bytes(b, sep.as_deref(), limit, name == "rsplit");
+                Ok(Value::list(pieces.into_iter().map(|p| Value::Bytes(Rc::from(p))).collect()))
+            }
+            "partition" | "rpartition" => {
+                let sep = self.arg_bytes(args, 0, name)?;
+                if sep.is_empty() {
+                    return Err(self.error("empty separator", "ValueError"));
+                }
+                let found = if name == "partition" { find_bytes(b, &sep) } else { rfind_bytes(b, &sep) };
+                let parts: [&[u8]; 3] = match found {
+                    Some(i) => [&b[..i], &sep, &b[i + sep.len()..]],
+                    None if name == "partition" => [b, b"", b""],
+                    None => [b"", b"", b],
+                };
+                Ok(Value::tuple(parts.iter().map(|p| Value::bytes(p)).collect()))
+            }
+            "removeprefix" | "removesuffix" => {
+                let affix = self.arg_bytes(args, 0, name)?;
+                let out = if name == "removeprefix" { b.strip_prefix(&affix[..]) } else { b.strip_suffix(&affix[..]) };
+                Ok(Value::bytes(out.unwrap_or(b)))
+            }
+            "splitlines" => {
+                let keep = args.first().or_else(|| kwarg(kwargs, "keepends")).is_some_and(Value::truthy);
+                let mut out = Vec::new();
+                let mut at = 0usize;
+                let mut i = 0usize;
+                while i < b.len() {
+                    let end = match b[i] {
+                        b'\r' if b.get(i + 1) == Some(&b'\n') => Some(i + 2),
+                        b'\r' | b'\n' => Some(i + 1),
+                        _ => None,
+                    };
+                    match end {
+                        Some(e) => {
+                            out.push(Value::bytes(&b[at..if keep { e } else { i }]));
+                            at = e;
+                            i = e;
                         }
-                        let (mut out, mut at) = (Vec::new(), 0usize);
-                        while let Some(i) = find_bytes(&b[at..], &sep) {
-                            out.push(b[at..at + i].to_vec());
-                            at += i + sep.len();
-                        }
-                        out.push(b[at..].to_vec());
-                        out
+                        None => i += 1,
+                    }
+                }
+                if at < b.len() {
+                    out.push(Value::bytes(&b[at..]));
+                }
+                Ok(Value::list(out))
+            }
+            "center" | "ljust" | "rjust" | "zfill" => {
+                let width = args.first().and_then(Value::as_int).ok_or_else(|| self.error(format!("{name}() needs an integer width"), "TypeError"))?;
+                let fill = match (name, args.get(1)) {
+                    ("zfill", _) | (_, None) => if name == "zfill" { b'0' } else { b' ' },
+                    (_, Some(Value::Bytes(f))) if f.len() == 1 => f[0],
+                    (_, Some(other)) => {
+                        return Err(self.error(
+                            format!("{name}() argument 2 must be a byte string of length 1, not {}", other.type_name()),
+                            "TypeError",
+                        ))
                     }
                 };
-                Ok(Value::list(pieces.into_iter().map(|p| Value::Bytes(Rc::from(p))).collect()))
+                let width = width.max(0) as usize;
+                if b.len() >= width {
+                    return Ok(Value::Bytes(b.clone()));
+                }
+                let pad = width - b.len();
+                let (left, right) = match name {
+                    "ljust" => (0, pad),
+                    "rjust" => (pad, 0),
+                    // CPython's centring puts the odd byte on the left when the width is odd.
+                    "center" => {
+                        let left = pad / 2 + (pad & width & 1);
+                        (left, pad - left)
+                    }
+                    _ => (pad, 0),
+                };
+                let mut out = Vec::with_capacity(width);
+                if name == "zfill" && matches!(b.first(), Some(b'+' | b'-')) {
+                    out.push(b[0]);
+                    out.extend(std::iter::repeat_n(b'0', pad));
+                    out.extend_from_slice(&b[1..]);
+                } else {
+                    out.extend(std::iter::repeat_n(fill, left));
+                    out.extend_from_slice(b);
+                    out.extend(std::iter::repeat_n(fill, right));
+                }
+                Ok(Value::Bytes(Rc::from(out)))
+            }
+            "expandtabs" => {
+                let size = args.first().or_else(|| kwarg(kwargs, "tabsize")).and_then(Value::as_int).unwrap_or(8).max(0) as usize;
+                let mut out = Vec::with_capacity(b.len());
+                let mut col = 0usize;
+                for &c in b.iter() {
+                    match c {
+                        b'\t' => {
+                            if size > 0 {
+                                let n = size - col % size;
+                                out.extend(std::iter::repeat_n(b' ', n));
+                                col += n;
+                            }
+                        }
+                        b'\n' | b'\r' => {
+                            out.push(c);
+                            col = 0;
+                        }
+                        _ => {
+                            out.push(c);
+                            col += 1;
+                        }
+                    }
+                }
+                Ok(Value::Bytes(Rc::from(out)))
+            }
+            "capitalize" => {
+                let mut out = b.to_ascii_lowercase();
+                if let Some(first) = out.first_mut() {
+                    first.make_ascii_uppercase();
+                }
+                Ok(Value::Bytes(Rc::from(out)))
+            }
+            "swapcase" => Ok(Value::Bytes(b.iter().map(|c| if c.is_ascii_lowercase() { c.to_ascii_uppercase() } else { c.to_ascii_lowercase() }).collect())),
+            "title" => {
+                let mut out = Vec::with_capacity(b.len());
+                let mut after_letter = false;
+                for &c in b.iter() {
+                    out.push(if after_letter { c.to_ascii_lowercase() } else { c.to_ascii_uppercase() });
+                    after_letter = c.is_ascii_alphabetic();
+                }
+                Ok(Value::Bytes(Rc::from(out)))
+            }
+            "isalnum" => Ok(Value::Bool(!b.is_empty() && b.iter().all(u8::is_ascii_alphanumeric))),
+            "isalpha" => Ok(Value::Bool(!b.is_empty() && b.iter().all(u8::is_ascii_alphabetic))),
+            "isascii" => Ok(Value::Bool(b.is_ascii())),
+            "isdigit" => Ok(Value::Bool(!b.is_empty() && b.iter().all(u8::is_ascii_digit))),
+            "isspace" => Ok(Value::Bool(!b.is_empty() && b.iter().all(|c| matches!(c, b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c)))),
+            "islower" | "isupper" => {
+                let cased = b.iter().any(u8::is_ascii_alphabetic);
+                let ok = if name == "islower" { !b.iter().any(u8::is_ascii_uppercase) } else { !b.iter().any(u8::is_ascii_lowercase) };
+                Ok(Value::Bool(cased && ok))
+            }
+            "istitle" => {
+                let (mut cased, mut after_letter) = (false, false);
+                for &c in b.iter() {
+                    if c.is_ascii_uppercase() {
+                        if after_letter {
+                            return Ok(Value::Bool(false));
+                        }
+                        cased = true;
+                        after_letter = true;
+                    } else if c.is_ascii_lowercase() {
+                        if !after_letter {
+                            return Ok(Value::Bool(false));
+                        }
+                        cased = true;
+                    } else {
+                        after_letter = false;
+                    }
+                }
+                Ok(Value::Bool(cased))
+            }
+            "translate" => {
+                let table = match args.first() {
+                    None | Some(Value::None) => None,
+                    Some(Value::Bytes(t)) if t.len() == 256 => Some(t.clone()),
+                    Some(_) => return Err(self.error("translation table must be 256 characters long", "ValueError")),
+                };
+                let delete = match args.get(1).or_else(|| kwarg(kwargs, "delete")) {
+                    None => Vec::new(),
+                    Some(_) => self.arg_bytes(args, 1, name)?,
+                };
+                let out: Vec<u8> = b.iter().filter(|c| !delete.contains(c)).map(|&c| table.as_ref().map_or(c, |t| t[c as usize])).collect();
+                Ok(Value::Bytes(Rc::from(out)))
             }
             "strip" | "lstrip" | "rstrip" => {
                 let chars: Vec<u8> = match args.first() {
@@ -1576,7 +1827,25 @@ impl Interp {
 
     /// `int.from_bytes(data, byteorder="big", signed=False)`, up to 8 bytes.
     fn int_from_bytes(&mut self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
-        let data = self.arg_bytes(args, 0, "from_bytes")?;
+        // Bytes, or any iterable of ints that are bytes, as CPython takes.
+        let data = match args.first() {
+            Some(Value::Bytes(x)) => x.to_vec(),
+            Some(v @ (Value::Str(_) | Value::Int(_) | Value::Big(_) | Value::Bool(_) | Value::Float(_) | Value::None)) => {
+                return Err(self.error(format!("cannot convert '{}' object to bytes", v.type_name()), "TypeError"));
+            }
+            Some(v) => {
+                let mut out = Vec::new();
+                for item in self.iterate(v)? {
+                    let Some(n) = item.as_int() else {
+                        return Err(self.error(format!("'{}' object cannot be interpreted as an integer", item.type_name()), "TypeError"));
+                    };
+                    let byte = u8::try_from(n).map_err(|_| self.error("bytes must be in range(0, 256)", "ValueError"))?;
+                    out.push(byte);
+                }
+                out
+            }
+            None => return Err(self.error("from_bytes() missing required argument 'bytes' (pos 1)", "TypeError")),
+        };
         let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
         let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
         if data.len() as u64 * 8 > super::bigint::MAX_BITS {
@@ -1602,8 +1871,11 @@ impl Interp {
         let length = args.first().or_else(|| kwarg(kwargs, "length")).and_then(Value::as_int).unwrap_or(1);
         let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
         let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
-        if !(0..=4096).contains(&length) {
-            return Err(self.error("to_bytes() length must be 0 to 4096", "ValueError"));
+        if length < 0 {
+            return Err(self.error("length argument must be non-negative", "ValueError"));
+        }
+        if length > 1 << 17 {
+            return Err(self.error("to_bytes() length must be 0 to 131072", "ValueError"));
         }
         if n < 0 && !signed {
             return Err(self.error("can't convert negative int to unsigned", "OverflowError"));
@@ -1632,7 +1904,10 @@ impl Interp {
         let length = args.first().or_else(|| kwarg(kwargs, "length")).and_then(Value::as_int).unwrap_or(1);
         let little = byte_order(self, args.get(1).or_else(|| kwarg(kwargs, "byteorder")))?;
         let signed = args.get(2).or_else(|| kwarg(kwargs, "signed")).is_some_and(Value::truthy);
-        if !(0..=1 << 17).contains(&length) {
+        if length < 0 {
+            return Err(self.error("length argument must be non-negative", "ValueError"));
+        }
+        if length > 1 << 17 {
             return Err(self.error("to_bytes() length must be 0 to 131072", "ValueError"));
         }
         match super::bigint::to_bytes(b, length as usize, little, signed) {
@@ -1698,6 +1973,142 @@ impl Interp {
             None => Err(self.error(format!("{method}() is missing an argument"), "TypeError")),
         }
     }
+}
+
+/// `float.fromhex(s)`: `[sign][0x]digits[.digits][p exponent]`, or inf and nan.
+fn float_from_hex(s: &str) -> Result<f64, (String, &'static str)> {
+    let bad = || ("invalid hexadecimal floating-point string".to_string(), "ValueError");
+    let t = s.trim();
+    let (negative, t) = match t.as_bytes().first() {
+        Some(b'-') => (true, &t[1..]),
+        Some(b'+') => (false, &t[1..]),
+        _ => (false, t),
+    };
+    let sign = if negative { -1.0 } else { 1.0 };
+    match t.to_ascii_lowercase().as_str() {
+        "inf" | "infinity" => return Ok(sign * f64::INFINITY),
+        "nan" => return Ok(f64::NAN),
+        _ => {}
+    }
+    let t = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")).unwrap_or(t);
+    let (body, exp) = match t.find(['p', 'P']) {
+        Some(i) => (&t[..i], t[i + 1..].parse::<i64>().map_err(|_| bad())?),
+        None => (t, 0),
+    };
+    let (whole, frac) = body.split_once('.').unwrap_or((body, ""));
+    if whole.is_empty() && frac.is_empty() {
+        return Err(bad());
+    }
+    let digits = format!("{whole}{frac}");
+    let m = num_bigint::BigInt::parse_bytes(digits.as_bytes(), 16).ok_or_else(bad)?;
+    let e2 = exp.saturating_sub(4 * frac.len() as i64);
+    let too_big = || ("hexadecimal value too large to represent as a float".to_string(), "OverflowError");
+    if num_traits::Zero::is_zero(&m) {
+        return Ok(sign * 0.0);
+    }
+    // m * 2**e2, rounded once to the bits a float has there (fewer for a
+    // subnormal result), half to even.
+    let n = m.bits() as i64;
+    let top = n - 1 + e2;
+    if top > 1023 {
+        return Err(too_big());
+    }
+    let bits = if top >= -1022 { 53 } else { 53 - (-1022 - top) };
+    let (mut q, mut e) = (m, e2);
+    if n > bits {
+        let shift = (n - bits.max(0)) as u64;
+        let half = num_bigint::BigInt::from(1) << (shift - 1);
+        let rest = &q & ((num_bigint::BigInt::from(1) << shift) - 1);
+        q >>= shift;
+        e += shift as i64;
+        if rest > half || (rest == half && num_integer::Integer::is_odd(&q)) {
+            q += 1;
+        }
+    }
+    let q = num_traits::ToPrimitive::to_f64(&q).unwrap_or(0.0);
+    // Two exact steps, so a subnormal power of two never rounds on its own.
+    let value = if e < -1000 { q * 2f64.powi(-1000) * 2f64.powi((e + 1000) as i32) } else { q * 2f64.powi(e as i32) };
+    if value.is_infinite() {
+        return Err(too_big());
+    }
+    Ok(sign * value)
+}
+
+/// `start` and `end` of a bytes method, counted from the end when negative.
+fn byte_bounds(len: usize, start: Option<&Value>, end: Option<&Value>) -> (usize, usize) {
+    let len = len as i64;
+    let at = |v: Option<&Value>, default: i64| match v.and_then(Value::as_int) {
+        Some(i) if i < 0 => (len + i).max(0),
+        Some(i) => i.min(len),
+        None => default,
+    };
+    (at(start, 0) as usize, at(end, len) as usize)
+}
+
+/// `split` and `rsplit` of bytes: at [sep], or at runs of ASCII whitespace
+/// when there is none, at most [limit] times, from the right for [right].
+fn split_bytes(b: &[u8], sep: Option<&[u8]>, limit: usize, right: bool) -> Vec<Vec<u8>> {
+    let mut out: Vec<Vec<u8>> = Vec::new();
+    match sep {
+        Some(sep) => {
+            let mut rest = b;
+            let mut n = 0;
+            while n < limit {
+                let found = if right { rfind_bytes(rest, sep) } else { find_bytes(rest, sep) };
+                let Some(i) = found else { break };
+                if right {
+                    out.push(rest[i + sep.len()..].to_vec());
+                    rest = &rest[..i];
+                } else {
+                    out.push(rest[..i].to_vec());
+                    rest = &rest[i + sep.len()..];
+                }
+                n += 1;
+            }
+            out.push(rest.to_vec());
+        }
+        None => {
+            let space = |c: &u8| matches!(c, b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c);
+            let mut rest: &[u8] = b;
+            let mut n = 0;
+            loop {
+                rest = if right {
+                    let end = rest.iter().rposition(|c| !space(c)).map_or(0, |i| i + 1);
+                    &rest[..end]
+                } else {
+                    let start = rest.iter().position(|c| !space(c)).unwrap_or(rest.len());
+                    &rest[start..]
+                };
+                if rest.is_empty() {
+                    break;
+                }
+                if n == limit {
+                    out.push(rest.to_vec());
+                    break;
+                }
+                let cut = if right { rest.iter().rposition(space) } else { rest.iter().position(space) };
+                match cut {
+                    Some(i) if right => {
+                        out.push(rest[i + 1..].to_vec());
+                        rest = &rest[..i];
+                    }
+                    Some(i) => {
+                        out.push(rest[..i].to_vec());
+                        rest = &rest[i + 1..];
+                    }
+                    None => {
+                        out.push(rest.to_vec());
+                        break;
+                    }
+                }
+                n += 1;
+            }
+        }
+    }
+    if right {
+        out.reverse();
+    }
+    out
 }
 
 /// `byteorder`: "big" (the default) or "little"; true for little.

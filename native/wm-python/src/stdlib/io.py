@@ -1,5 +1,5 @@
-"""io: StringIO and BytesIO, text and bytes held in memory. Nothing here
-opens a file."""
+"""io: StringIO and BytesIO, text and bytes held in memory, and
+TextIOWrapper for text over bytes. Nothing here opens a file."""
 
 
 class UnsupportedOperation(OSError, ValueError):
@@ -54,8 +54,10 @@ class _Buffer:
     def readline(self, size=-1):
         self._check()
         rest = self._value[self._pos:]
-        at = rest.find(self._newline)
-        line = rest if at < 0 else rest[:at + 1]
+        # partition, not find: "\r\n" is one character here, and find's
+        # index would land inside it.
+        head, sep, _ = rest.partition(self._newline)
+        line = head + sep
         if size is not None and size >= 0:
             line = line[:size]
         self._pos += len(line)
@@ -152,6 +154,122 @@ class BytesIO(_Buffer):
 TextIOBase = _Buffer
 IOBase = _Buffer
 BufferedIOBase = _Buffer
+
+
+class TextIOWrapper:
+    """Text over a binary buffer, such as a BytesIO: reads decode what the
+    buffer holds, writes encode into it. With newline None, reading turns
+    "\r\n" and "\r" into "\n", as Python's universal newlines do."""
+
+    def __init__(self, buffer, encoding=None, errors=None, newline=None, line_buffering=False, write_through=False):
+        if newline not in (None, "", "\n", "\r", "\r\n"):
+            raise ValueError(f"illegal newline value: {newline!r}")
+        self.buffer = buffer
+        self.encoding = encoding or "utf-8"
+        self.errors = errors or "strict"
+        self._newline = newline
+        self.line_buffering = line_buffering
+        self.write_through = write_through
+        self._text = None
+        self._pos = 0
+
+    @property
+    def closed(self):
+        return self.buffer.closed
+
+    @property
+    def newlines(self):
+        return None
+
+    def _check(self):
+        if self.buffer.closed:
+            raise ValueError("I/O operation on closed file.")
+
+    def _load(self):
+        if self._text is None:
+            text = self.buffer.read().decode(self.encoding, self.errors)
+            if self._newline is None:
+                text = text.replace("\r\n", "\n").replace("\r", "\n")
+            self._text = text
+        return self._text
+
+    def read(self, size=-1):
+        self._check()
+        text = self._load()
+        if size is None or size < 0:
+            out = text[self._pos:]
+        else:
+            out = text[self._pos:self._pos + size]
+        self._pos += len(out)
+        return out
+
+    def readline(self, size=-1):
+        self._check()
+        head, sep, _ = self._load()[self._pos:].partition("\n")
+        line = head + sep
+        if size is not None and size >= 0:
+            line = line[:size]
+        self._pos += len(line)
+        return line
+
+    def readlines(self, hint=-1):
+        out = []
+        while True:
+            line = self.readline()
+            if not line:
+                return out
+            out.append(line)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = self.readline()
+        if not line:
+            raise StopIteration
+        return line
+
+    def write(self, s):
+        self._check()
+        if not isinstance(s, str):
+            raise TypeError(f"write() argument must be str, not {type(s).__name__}")
+        text = s if self._newline in (None, "", "\n") else s.replace("\n", self._newline)
+        self.buffer.write(text.encode(self.encoding, self.errors))
+        return len(s)
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+
+    def detach(self):
+        buffer = self.buffer
+        self.buffer = None
+        return buffer
+
+    def flush(self):
+        self.buffer.flush()
+
+    def close(self):
+        self.buffer.close()
+
+    def readable(self):
+        return self.buffer.readable()
+
+    def writable(self):
+        return self.buffer.writable()
+
+    def seekable(self):
+        return self.buffer.seekable()
+
+    def isatty(self):
+        return False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
 
 
 def open(*args, **kwargs):

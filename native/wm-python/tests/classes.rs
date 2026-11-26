@@ -215,10 +215,10 @@ fn functools_and_itertools() {
     assert_eq!("10", run("from functools import reduce\nreduce(lambda a, b: a + b, [1, 2, 3, 4])"));
     assert_eq!("8", run("from functools import partial\npow2 = partial(pow, 2)\npow2(3)"));
     assert_eq!("55 9", run("from functools import lru_cache\ncalls = 0\n@lru_cache(maxsize=None)\ndef fib(n):\n    global calls\n    calls += 1\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\nf'{fib(10)} {calls - 2}'"));
-    assert_eq!("[(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]", run("from itertools import product\nproduct([1, 2], 'ab')"));
-    assert_eq!("[(1, 2), (1, 3), (2, 3)]", run("import itertools\nitertools.combinations([1, 2, 3], 2)"));
+    assert_eq!("[(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]", run("from itertools import product\nlist(product([1, 2], 'ab'))"));
+    assert_eq!("[(1, 2), (1, 3), (2, 3)]", run("import itertools\nlist(itertools.combinations([1, 2, 3], 2))"));
     assert_eq!("[1, 2, 3, 4]", run("from itertools import chain\nlist(chain([1, 2], [3, 4]))"));
-    assert_eq!("[('a', ['ant', 'ape']), ('b', ['bee'])]", run("from itertools import groupby\n[(k, g) for k, g in groupby(['ant', 'ape', 'bee'], key=lambda w: w[0])]"));
+    assert_eq!("[('a', ['ant', 'ape']), ('b', ['bee'])]", run("from itertools import groupby\n[(k, list(g)) for k, g in groupby(['ant', 'ape', 'bee'], key=lambda w: w[0])]"));
 }
 
 #[test]

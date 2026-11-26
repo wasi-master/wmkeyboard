@@ -1535,6 +1535,242 @@ print(all(0 <= b < 10**30 for b in big), max(big) > 10**28)
 print(random.getrandbits(100) < 2**100, random.getrandbits(0))
 '\n'.join(_out)
 '''),
+    ('ipaddress_module', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import ipaddress
+a = ipaddress.ip_address('192.168.1.10')
+print(repr(a), a.version, a.is_private, a.is_global, int(a), a + 5, a.packed, a.reverse_pointer)
+n = ipaddress.ip_network('10.0.0.0/30')
+print(n, list(n), n.num_addresses, n.netmask, n.hostmask, n.broadcast_address, list(n.hosts()), a in n)
+i = ipaddress.ip_interface('192.168.1.10/24')
+print(i, i.network, i.ip, i.with_netmask, i.with_prefixlen)
+six = ipaddress.ip_address('2001:db8::1')
+print(repr(six), six.exploded, six.compressed, six.is_private, int(six), six.reverse_pointer[:20], six.version)
+print(ipaddress.ip_address('::ffff:1.2.3.4').ipv4_mapped, ipaddress.IPv6Network('2001:db8::/126').num_addresses, list(ipaddress.ip_network('2001:db8::/126')))
+print(list(ipaddress.summarize_address_range(ipaddress.IPv4Address('10.0.0.0'), ipaddress.IPv4Address('10.0.0.10'))))
+print(list(ipaddress.collapse_addresses([ipaddress.ip_network('10.0.0.0/25'), ipaddress.ip_network('10.0.0.128/25')])))
+print(list(ipaddress.ip_network('10.0.0.0/24').subnets(new_prefix=26)), ipaddress.ip_network('10.0.0.0/24').supernet())
+print(sorted([ipaddress.ip_address('10.0.0.2'), ipaddress.ip_address('10.0.0.1')]), ipaddress.ip_address('1.2.3.4') < ipaddress.ip_address('1.2.3.5'))
+for bad in ['300.1.1.1', '1.2.3', 'zz::1', '10.0.0.1/24']:
+    try:
+        print(ipaddress.ip_network(bad) if '/' in bad else ipaddress.ip_address(bad))
+    except ValueError as e:
+        print(type(e).__name__, e)
+print(ipaddress.ip_address('fe80::1%eth0'), ipaddress.ip_address('fe80::1%eth0').scope_id, hash(a) == hash(ipaddress.ip_address('192.168.1.10')))
+print(format(a, 'b')[:12], format(six, 'X')[:8], f"{a:#x}", ipaddress.ip_network('192.168.0.0/16').overlaps(n), n.subnet_of(ipaddress.ip_network('10.0.0.0/8')))
+print(list(ipaddress.ip_network('10.0.0.0/24').address_exclude(ipaddress.ip_network('10.0.0.0/26'))))
+'\n'.join(_out)
+'''),
+    ('decimal_module', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import decimal
+from decimal import Decimal, getcontext, localcontext, ROUND_HALF_UP, InvalidOperation
+print(Decimal('0.1') + Decimal('0.2'), Decimal(1) / Decimal(7), Decimal('1.10') * 3, Decimal(0.1), Decimal('3.14159').quantize(Decimal('0.01')))
+print(Decimal('2').sqrt(), Decimal('1e100') + 1, Decimal('-0'), Decimal('NaN'), Decimal('Infinity') > 10**100, Decimal('1.5').to_integral_value(), round(Decimal('2.675'), 2))
+getcontext().prec = 50
+print(Decimal(1) / Decimal(3), Decimal(2).ln(), Decimal(10).log10(), Decimal(1).exp())
+with localcontext() as ctx:
+    ctx.prec = 5
+    ctx.rounding = ROUND_HALF_UP
+try:
+    Decimal('abc')
+except InvalidOperation as e:
+    print('InvalidOperation', type(e).__name__)
+print(repr(Decimal('12.50')), str(Decimal('1E+2')), f"{Decimal('1234.5678'):,.2f}", Decimal('7.00').normalize(), Decimal(5).as_tuple(), int(Decimal('42.9')), float(Decimal('0.5')), Decimal('1.23') == 1.23, hash(Decimal(2)) == hash(2), Decimal(3) % 2, divmod(Decimal(7), 2))
+print(sorted([Decimal('1.1'), Decimal('0.9'), 1]), sum([Decimal('0.1')] * 10), Decimal('100').as_integer_ratio(), Decimal.from_float(0.25), Decimal(2) ** 100)
+'\n'.join(_out)
+'''),
+    ('pickle_module', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import pickle, collections, datetime
+from dataclasses import dataclass
+data = {'a': [1, 2.5, None, True, 'x' * 3, b'\x00\xff', (1, 2), {3, 4}, frozenset([5])], 'big': 2**100, 'neg': -7, 'nested': [[[]]], 'uni': 'héllo ✓'}
+for proto in range(0, pickle.HIGHEST_PROTOCOL + 1):
+    s = pickle.dumps(data, protocol=proto)
+    print(proto, pickle.loads(s) == data, len(s))
+print(pickle.dumps([1, 'a', None], protocol=4))
+print(pickle.loads(b'\x80\x04\x95\x0b\x00\x00\x00\x00\x00\x00\x00]\x94(K\x01\x8c\x01a\x94Ne.'))
+import collections
+print(pickle.loads(pickle.dumps(collections.OrderedDict(a=1))), pickle.loads(pickle.dumps(collections.Counter('aab'))))
+lst = [1]; lst.append(lst); r = pickle.loads(pickle.dumps(lst)); print(r[1] is r)
+print(pickle.loads(pickle.dumps(datetime.date(2024, 2, 29))), pickle.loads(pickle.dumps(datetime.timedelta(days=1, seconds=5))))
+try:
+    pickle.dumps(lambda: 1)
+except (pickle.PicklingError, AttributeError) as e:
+    print(type(e).__name__)
+'\n'.join(_out)
+'''),
+    ('tokenize_module', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import io, tokenize, token
+src = 'def f(a, b=2):\n    # a comment\n    return a + b  # trailing\n\nx = [1,\n     2]\nif x:\n    print("hi", \'there\', 3.5e-2, 0x1F)\n'
+for t in tokenize.generate_tokens(io.StringIO(src).readline):
+    print(tokenize.tok_name[t.type], repr(t.string), t.start, t.end)
+toks = list(tokenize.tokenize(io.BytesIO(b"a = 1\n").readline))
+print([(tokenize.tok_name[t.type], t.string) for t in toks])
+print(tokenize.untokenize([(t.type, t.string) for t in tokenize.generate_tokens(io.StringIO("a=1+2\n").readline)]))
+print(token.NAME, token.OP, token.EXACT_TOKEN_TYPES['+'], token.ISTERMINAL(token.NAME), tokenize.detect_encoding(io.BytesIO(b"# -*- coding: latin-1 -*-\nx").readline))
+try:
+    list(tokenize.generate_tokens(io.StringIO("(1,\n").readline))
+except tokenize.TokenError as e:
+    print('TokenError', e.args)
+for src in ['x = 1', '# only\n', 's = """a\nb"""\n', 'a = 1 \\\n  + 2\n', 'x = 0xFF_FF + 1_000j + 1e10\n', 'λ = 1\n', '@decorator\ndef f(): ...\n', 'x: int = 3 ** 2 // 4 != 5 -> 6\n', 'async def f():\n    await x\n']:
+    try:
+        print(repr(src), [(tokenize.tok_name[t.type], t.string, t.start, t.end) for t in tokenize.generate_tokens(io.StringIO(src).readline)])
+    except Exception as e:
+        print(repr(src), type(e).__name__, e)
+'\n'.join(_out)
+'''),
+    ('lazy_itertools', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import itertools as it
+from itertools import *
+print(list(chain([1, 2], (3,), 'ab')), list(chain.from_iterable([[1], [2, 3]])), next(chain(repeat(7))))
+print(list(islice(count(), 5)), list(islice(count(10, 2), 2, 8, 2)), list(islice('abcdefg', 2, None)), list(islice(cycle('ab'), 5)))
+print(list(accumulate([1, 2, 3, 4])), list(accumulate([1, 2, 3], _mul := (lambda a, b: a * b))), list(accumulate([1, 2], initial=100)), list(accumulate([])))
+print(list(batched('abcdefg', 3)), list(compress('abcdef', [1, 0, 1, 0, 1, 1])), list(dropwhile(lambda x: x < 5, [1, 4, 6, 4, 1])), list(filterfalse(None, [0, 1, '', 'a'])))
+print([(k, list(g)) for k, g in groupby('AAAABBBCCDAABBB')], [k for k, g in groupby([1, 1, 2])])
+g = groupby('aabb'); k1, g1 = next(g); k2, g2 = next(g); print(k1, list(g1), k2, list(g2))
+print(list(pairwise('ABCD')), list(starmap(pow, [(2, 5), (3, 2)])), list(takewhile(lambda x: x < 5, [1, 4, 6, 1])))
+a, b = tee(iter([1, 2, 3])); print(next(a), list(a), list(b), len(tee('x', 3)))
+print(list(zip_longest('ABCD', 'xy', fillvalue='-')), list(zip_longest()), list(product('ab', range(2))), list(product([0, 1], repeat=2)), list(product()))
+print(list(permutations('ABC', 2)), list(permutations(range(3))), list(combinations('ABCD', 2)), list(combinations_with_replacement('ABC', 2)), list(combinations('AB', 3)))
+print(repr(count(3)), repr(count(1, 0.5)), repr(repeat('x', 2)), list(repeat(1, 3)), list(repeat(1, -1)), list(product('a', [])))
+for f in [lambda: islice('a', -1), lambda: batched('a', 0), lambda: combinations('a', -1), lambda: permutations('a', -1), lambda: list(batched('abc', 2, strict=True))]:
+    try:
+        f()
+    except ValueError as e:
+        print('ValueError', e)
+seen = []
+def src():
+    for i in range(3):
+        seen.append(i)
+        yield i
+c = chain(src()); print(seen, next(c), seen)
+print(sum(1 for _ in islice(count(), 1000)), list(map(lambda t: t[0], zip(count(), 'ab'))))
+'\n'.join(_out)
+'''),
+    ('bytes_methods', "builtins", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+b = b'  Hello World\tx\r\ny\nz  '
+print(b.partition(b'o'), b.rpartition(b'o'), b.partition(b'#'), b.rpartition(b'#'), b.removeprefix(b'  He'), b.removesuffix(b'  '), b.splitlines(), b.splitlines(True))
+print(b.split(), b.split(None, 1), b.rsplit(None, 1), b.rsplit(b'o', 1), b.split(b'o', 1), b'a,b,,c'.rsplit(b','), b'  a  b  '.rsplit(maxsplit=1), b''.split(), b'x'.split(b'x'))
+print(b'ab'.center(7, b'*'), b'abc'.center(6), b'ab'.ljust(5, b'.'), b'ab'.rjust(5), b'-42'.zfill(6), b'42'.zfill(1), b'a\tbc\td'.expandtabs(4), b'hELLO wORLD'.capitalize(), b'Hi There'.swapcase(), b"they're bill's".title())
+print(b'abc1'.isalnum(), b'ab'.isalpha(), b'\xe9'.isalpha(), b'\x80'.isascii(), b'123'.isdigit(), b'abc'.islower(), b'ABC1'.isupper(), b' \t'.isspace(), b'Hello World'.istitle(), b''.isalpha(), b''.isascii())
+t = bytes.maketrans(b'abc', b'xyz'); print(b'aabbcc'.translate(t), b'hello'.translate(None, b'l'), len(t))
+print(b'abcabc'.count(b'a', 1), b'abcabc'.startswith((b'x', b'ab')), b'abcabc'.endswith(b'b', 0, 5), b'aaa'.replace(b'a', b'b', 2), b'ab'.replace(b'', b'-'), b''.replace(b'', b'x'))
+print(float.fromhex('0x1.8p1'), float.fromhex('-0x1p-2'), float.fromhex('inf'), float.fromhex('0x.8'), float.fromhex(' 0X10 '), float.fromhex((1.1).hex()) == 1.1, float.fromhex('0x1p-1074'))
+ba = bytearray(b'a,b'); print(ba.partition(b','), ba.split(b','), ba.upper(), ba.find(b'b'))
+print(float.fromhex('0x1.fffffffffffff8p1023') if False else 0, float.fromhex('0x1.000000000000081p0'), float.fromhex('0x1.0000000000000800p0'), float.fromhex('0x1.0000000000001800p0'), float.fromhex('0x0.0000000000001p-1022'), float.fromhex('0x1.8p-1074'), float.fromhex('0x1p-1076'), float.fromhex('0x1.fffffffffffffp1023'))
+try: float.fromhex('0x1p1024')
+except OverflowError as e: print(e)
+try: float.fromhex('zz')
+except ValueError as e: print(e)
+'\n'.join(_out)
+'''),
+    ('regex_bytes_and_escapes', "regex", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import re
+p = re.compile(br'^[ \t\f]*(?:[#\r\n]|$)', re.ASCII)
+print(p.match(b'  # x'), bool(p.match(b'\r\n')), p.match(b'x = 1'), p.pattern, p.flags)
+print(re.findall(rb'\d+', b'a1 b22 c333'), re.sub(rb'\s+', b'-', b'a  b\tc'), re.split(rb',', b'a,b,,c'), re.subn(b'a', b'X', b'banana'))
+m = re.search(rb'(?P<k>\w+)=(\w+)', b'key=val')
+print(m.group(), m.group(1), m['k'], m.groups(), m.groupdict(), m.span(2), m.string, m)
+print(re.escape(b'a.b'), re.sub(rb'(\w)', lambda m: m.group(1).upper(), b'ab'), re.compile(b'\xe9').search(b'caf\xe9'))
+for bad in [lambda: re.search(b'a', 'a'), lambda: re.search('a', b'a'), lambda: re.sub(b'a', 'x', b'a'), lambda: re.compile(b'a', re.U)]:
+    try:
+        bad()
+    except (TypeError, ValueError) as e:
+        print(type(e).__name__, e)
+print(re.compile('a').flags, re.compile('a', re.I).flags, re.compile('a', re.A).flags, re.compile(b'a').flags, re.compile(b'a', re.I).flags, re.compile('(?i)a').flags)
+print(repr(re.compile(b'a\\d')), repr(re.compile(b'a', re.I)), re.match('ab', 'abc'))
+print(re.fullmatch(rb'[\x00-\xff]+', bytes(range(256))) is not None, re.findall(rb'\w', b'a\xe9_1'))
+print(re.findall(r'[\x41-\x43]', 'ABCD'), re.findall(r'\x41', 'AB'), re.findall(r'[é]', 'café'), re.findall(r'é', 'café'), re.findall(r'[\101]', 'AB'), re.findall(r'\0', 'a\0'), re.findall(r'[\t\n]', 'a\tb\n'), re.findall(r'\N{BULLET}', '•'))
+bad = [i for i in range(256) if not re.fullmatch(rb'[\x00-\xff]', bytes([i]))]
+print(bad, re.findall(r'\x41B\U00000043', 'ABC'), re.findall(r'[\0-\x08]', '\x00\x05\x09'), re.findall(r'\101(.)\1', 'Abb'), re.findall(r'(a)\1', 'aa'))
+'\n'.join(_out)
+'''),
+    ('numeric_and_tuple_hashes', "builtins", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+print(hash(2), hash(-1), hash(-2), hash(2**61 - 1), hash(2**61), hash(2**64), hash(-(2**64)), hash(10**30), hash(1.5), hash(0.1), hash(-0.5), hash(1e300), hash(float('inf')), hash(float('-inf')), hash(2.0), hash(True), hash(2**100) == hash(float(2**100)))
+print(hash(None), hash((1, 2)), hash(()), hash((1, (2, 3.5))), hash(-1.0), hash(5e-324), hash(-2.5e-310), hash(123.456), hash(2**1000), hash(-(2**61)))
+import sys
+print(sys.hash_info.modulus, sys.hash_info.inf, sys.int_info.default_max_str_digits, sys.float_info.epsilon, sys.float_info.max, sys.float_info.dig)
+'\n'.join(_out)
+'''),
+    ('set_updates_take_many_iterables', "builtins", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+s = {1, 2, 3}
+s.intersection_update({1, 2}, [2]); print(s)
+s = {1, 2, 3}; s.difference_update([1], (2,)); print(s)
+s = {1, 2}; s.symmetric_difference_update([2, 3]); print(s)
+print({1}.union([2], (3,)), {1, 2, 3}.intersection([1, 2], {2}), {1, 2, 3}.difference([1], [2]), {1}.union(), {1, 2}.issubset(range(5)))
+s = {1}; s.update([2], {3}); print(s)
+'\n'.join(_out)
+'''),
+    ('ranges_past_64_bits', "builtins", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+r = range(2**64, 2**64 + 10, 3)
+print(r, len(r), list(r), r[0], r[-1], r[1:3], 2**64 + 3 in r, 2**64 + 4 in r, r.index(2**64 + 6), r.count(2**64), r.start, r.stop, r.step, bool(r), list(reversed(r)))
+big = range(2**100)
+print(big[2**99], 2**99 in big, -1 in big, big[-1] == 2**100 - 1, big[10:20:5], bool(range(2**70, 2**70)), range(2**70, 0, -2**68)[1])
+try:
+    len(big)
+except OverflowError as e:
+    print('OverflowError', e)
+for i in range(2**64, 2**64 + 2):
+    print(i)
+print(range(2**64) == range(0, 2**64), range(5, 2**70, 2**70) == range(5, 6), sum(range(2**63 - 2, 2**63 + 2)), list(range(-2**63 - 1, -2**63 + 1)))
+class I:
+    def __index__(self):
+        return 3
+print(list(range(I())), [x for x in range(I())])
+'\n'.join(_out)
+'''),
+    ('text_over_bytes_and_crlf_lines', "modules", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import io
+b = io.BytesIO('héllo\r\nwörld\nend'.encode('utf-8'))
+t = io.TextIOWrapper(b, encoding='utf-8')
+print(t.readline(), repr(t.readline()), t.read(), t.encoding)
+w = io.BytesIO(); t2 = io.TextIOWrapper(w, encoding='utf-16-le', newline='\r\n'); n = t2.write('a\nb'); t2.flush(); print(n, w.getvalue())
+t3 = io.TextIOWrapper(io.BytesIO(b'x\ny\n')); print(list(t3), io.TextIOWrapper(io.BytesIO(b'one\ntwo')).readlines())
+s = io.StringIO('a\r\nb\r\nc'); print([s.readline(), s.readline(), s.readline(), s.readline()], io.StringIO('p\nq').readlines())
+'\n'.join(_out)
+'''),
 ]
 
 
