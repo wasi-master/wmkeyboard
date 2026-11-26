@@ -58145,7 +58145,9 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.MAP -> openMap(offer)
             SelectionMacro.CALENDAR -> addCalendarEvent(offer)
             // Doors to ladders: the bar opens them and never sends the tap.
-            SelectionMacro.FANCY, SelectionMacro.COLOUR, SelectionMacro.TIME_ZONES, SelectionMacro.CONVERT_SCRIPT -> {}
+            SelectionMacro.FANCY, SelectionMacro.COLOUR, SelectionMacro.TIME_ZONES, SelectionMacro.CONVERT_SCRIPT,
+            SelectionMacro.STATS,
+            -> {}
         }
     }
 
@@ -58161,6 +58163,12 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onSelectionPick(macro: SelectionMacro, arg: String, source: String) {
         if (_uiState.value.selectionMacros == null) return
+        // Count's figures (#1569) rewrite nothing: a tap copies the figure, or the word.
+        if (macro == SelectionMacro.STATS) {
+            KeyboardClipboard.copy(this, arg.substringAfter(':'))
+            maybeToastCopied()
+            return
+        }
         val out = when (macro) {
             SelectionMacro.FANCY -> FancyStyles.byId(arg)?.let { FancyStyles.transform(source, it) }
             SelectionMacro.COLOUR -> ColourCodes.parse(source)?.let { colour ->
