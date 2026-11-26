@@ -193,7 +193,7 @@ class PluginPreviewRunner(
 
     @Suppress("TooGenericExceptionCaught")
     private fun execute(call: Call, spec: PluginPreviewSpec, script: String, source: PreviewSource) {
-        val log = PluginLog(store.logFile(call.plugin.id))
+        val log = PluginLog(store.logFile(call.plugin.id), pluginId = call.plugin.id)
         val result: PluginPreviewResult? = try {
             val (outcome, _) = draw(call.plugin, spec, script, source, thumb = false) { session ->
                 call.python = session

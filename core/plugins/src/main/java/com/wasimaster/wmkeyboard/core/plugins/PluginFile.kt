@@ -9,7 +9,8 @@ import java.util.zip.ZipOutputStream
 
 /** The outcome of reading a `.wmplugin` file. */
 sealed interface PluginImportResult {
-    data class Imported(val plugin: InstalledPlugin, val replaced: Boolean) : PluginImportResult
+    /** [reloaded]: an open panel had the version this replaced, and loads this one. */
+    data class Imported(val plugin: InstalledPlugin, val replaced: Boolean, val reloaded: Boolean = false) : PluginImportResult
 
     /** No manifest, or a manifest for something else entirely. */
     data object NotAPlugin : PluginImportResult
@@ -319,7 +320,7 @@ object PluginFile {
                 locales = outcome.locales,
             )
         ) {
-            is PluginAdoptResult.Adopted -> PluginImportResult.Imported(adopted.plugin, adopted.replaced)
+            is PluginAdoptResult.Adopted -> PluginImportResult.Imported(adopted.plugin, adopted.replaced, adopted.reloaded)
             PluginAdoptResult.TooManyPlugins -> PluginImportResult.TooManyPlugins
             PluginAdoptResult.Failed -> PluginImportResult.Failed
         }

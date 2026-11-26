@@ -197,8 +197,11 @@ data class ParkedPlugin(
 
 /** The outcome of writing a plugin into the store. */
 sealed interface PluginAdoptResult {
-    /** [replaced] is true when this overwrote an install of the same id. */
-    data class Adopted(val plugin: InstalledPlugin, val replaced: Boolean) : PluginAdoptResult
+    /**
+     * [replaced] is true when this overwrote an install of the same id;
+     * [reloaded] when a panel that had the old version open loads the new one.
+     */
+    data class Adopted(val plugin: InstalledPlugin, val replaced: Boolean, val reloaded: Boolean = false) : PluginAdoptResult
 
     data object TooManyPlugins : PluginAdoptResult
 
@@ -466,6 +469,29 @@ class PluginStore(
         return true
     }
 
+    /**
+     * Told a plugin's id when an update replaced it ([adopt]) or adb asked
+     * for a reload ([PluginDevProvider]). True from a listener whose panel
+     * has that plugin open and loads it again.
+     */
+    private val updateListeners = java.util.concurrent.CopyOnWriteArrayList<(String) -> Boolean>()
+
+    fun addUpdateListener(listener: (String) -> Boolean) {
+        updateListeners.addIfAbsent(listener)
+    }
+
+    fun removeUpdateListener(listener: (String) -> Boolean) {
+        updateListeners.remove(listener)
+    }
+
+    /**
+     * Tells every open panel of [id] to load it again; true when one had it
+     * open. Never under the store's lock: a listener reaches the runtime,
+     * which takes its own and then reads the store.
+     */
+    fun announceUpdate(id: String): Boolean =
+        updateListeners.fold(false) { any, listener -> runCatching { listener(id) }.getOrDefault(false) || any }
+
     /** The plugin's page has shown what the last update added. */
     @Synchronized
     fun dismissNewSinceUpdate(id: String) {
@@ -707,8 +733,11 @@ class PluginStore(
      *
      * A plugin with the id of a retired one gets the retired one's parked data
      * back, unless it already has data of its own.
+     *
+     * An update is announced ([announceUpdate]) once it is written and the
+     * lock is let go, so a panel that has the plugin open loads the new
+     * version.
      */
-    @Synchronized
     fun adopt(
         manifest: PluginManifest,
         script: String,
@@ -717,6 +746,22 @@ class PluginStore(
         modules: Map<String, String> = emptyMap(),
         assets: Map<String, ByteArray> = emptyMap(),
         locales: Map<String, String> = emptyMap(),
+    ): PluginAdoptResult {
+        val result = synchronized(this) { adoptLocked(manifest, script, now, keepState, modules, assets, locales) }
+        if (result is PluginAdoptResult.Adopted && result.replaced) {
+            return result.copy(reloaded = announceUpdate(result.plugin.id))
+        }
+        return result
+    }
+
+    private fun adoptLocked(
+        manifest: PluginManifest,
+        script: String,
+        now: Long,
+        keepState: Boolean,
+        modules: Map<String, String>,
+        assets: Map<String, ByteArray>,
+        locales: Map<String, String>,
     ): PluginAdoptResult {
         if (baseDir == null) return PluginAdoptResult.Failed
         val dir = dirFor(manifest.id) ?: return PluginAdoptResult.Failed

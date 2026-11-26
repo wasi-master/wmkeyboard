@@ -3018,6 +3018,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         plugin(R.string.tooldetail_plugins_manage_title, R.string.tooldetail_plugins_manage_subtitle),
         plugin(R.string.plugins_install_file_title, R.string.plugins_install_file_subtitle),
         plugin(R.string.plugin_ide_entry_title, R.string.plugin_ide_entry_subtitle_python),
+        plugin(R.string.plugin_dev_mode_title, R.string.plugin_dev_mode_subtitle_off),
         privacy(R.string.privacy_incognito_title, R.string.privacy_incognito_subtitle, weight = EntryWeight.PRIMARY),
         privacy(R.string.privacy_auto_incognito_title, R.string.privacy_auto_incognito_subtitle),
         privacy(R.string.privacy_secure_window_title, R.string.privacy_secure_window_subtitle),

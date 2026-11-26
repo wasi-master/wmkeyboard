@@ -99,7 +99,7 @@ class PluginProviderRunner(
     @Suppress("TooGenericExceptionCaught")
     private fun execute(call: Call, script: String, request: JsonObject): JsonElement {
         val plugin = call.ref.plugin
-        val log = PluginLog(store.logFile(plugin.id))
+        val log = PluginLog(store.logFile(plugin.id), pluginId = plugin.id)
         try {
             val python = PythonSession.create(
                 PythonSession.Config(

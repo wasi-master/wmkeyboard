@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Manage plugins: the group for people who write plugins, holding the developer mode switch. -->
+    <string name="plugin_dev_group_title">For plugin developers</string>
+    <!-- Switch that lets a computer connected over adb install plugins. "adb" is the Android tool's name; keep it. -->
+    <string name="plugin_dev_mode_title">Plugin developer mode</string>
+    <string name="plugin_dev_mode_subtitle_off">Install and test plugins from a computer over adb</string>
+    <string name="plugin_dev_mode_subtitle_on">On: a computer connected over adb can install plugins. Turn it off when you\'re done.</string>
+    <!-- The (?) explanation of the switch, also the body of the dialog that asks before turning it on. -->
+    <string name="plugin_dev_mode_info">While this is on, a computer connected with USB debugging or wireless debugging (adb) can install and update plugins without the confirmation screen, and what plugins print goes to the system log, where adb can read it. Risky permissions still stay off until you turn them on yourself. Apps on the phone cannot use it: only adb can. Turn it off when you\'re done.</string>
+    <string name="plugin_dev_mode_confirm_title">Turn on plugin developer mode?</string>
+    <string name="plugin_dev_mode_confirm_button">Turn on</string>
+
+</resources>

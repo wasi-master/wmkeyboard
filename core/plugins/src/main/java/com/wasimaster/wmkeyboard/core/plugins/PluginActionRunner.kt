@@ -138,7 +138,7 @@ class PluginActionRunner(
 
     @Suppress("TooGenericExceptionCaught")
     private fun execute(call: Call, script: String, input: String) {
-        val log = PluginLog(store.logFile(call.plugin.id))
+        val log = PluginLog(store.logFile(call.plugin.id), pluginId = call.plugin.id)
         val result = try {
             runPython(call, log, script, input)
         } catch (failure: Throwable) {

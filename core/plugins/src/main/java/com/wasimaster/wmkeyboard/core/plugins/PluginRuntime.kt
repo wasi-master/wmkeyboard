@@ -198,7 +198,7 @@ class PluginRuntime(
             Draft(
                 plugin = plugin,
                 script = script,
-                log = PluginLog(store.logFile(pluginId)),
+                log = PluginLog(store.logFile(pluginId), pluginId = pluginId),
                 storage = store.storageFile(pluginId),
                 recordStrikes = true,
                 reminders = store.remindersFile(pluginId),
@@ -253,6 +253,22 @@ class PluginRuntime(
         }
     }
 
+    /**
+     * The open plugin was updated, or adb asked for a reload: the panel loads
+     * the new version in place of the old, on the host's thread. Only an
+     * installed plugin's session: a draft is the editor's, not the store's.
+     */
+    private val updateListener: (String) -> Boolean = update@{ id ->
+        val current = synchronized(this) { session }
+        if (current == null || current.plugin.id != id || !current.recordStrikes) return@update false
+        post {
+            synchronized(this) {
+                if (session === current) open(id)
+            }
+        }
+        true
+    }
+
     /** A value on the plugin's settings page changed. */
     fun settingChanged(key: String, value: kotlinx.serialization.json.JsonElement) = dispatch(
         PythonSession.hostEvent("setting", mapOf("key" to kotlinx.serialization.json.JsonPrimitive(key), "value" to value)),
@@ -277,6 +293,7 @@ class PluginRuntime(
         val current = session ?: return
         session = null
         store.removeSettingListener(settingListener)
+        store.removeUpdateListener(updateListener)
         current.revoked = true
         current.python?.cancel()
         current.watch?.cancel(false)
@@ -310,6 +327,7 @@ class PluginRuntime(
         val fresh = Session(draft.plugin, draft.log, draft.recordStrikes)
         session = fresh
         store.addSettingListener(settingListener)
+        store.addUpdateListener(updateListener)
         fresh.watch = watchdog.scheduleWithFixedDelay(
             { patrol(fresh) },
             limits.watchdogPeriodMillis,

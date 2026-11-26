@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Plugin developer mode's way in, for wmpy push, dev and logs over adb
+     (`adb shell content write/call`). Exported because the adb shell is
+     another uid, and behind DUMP, which the shell holds and an app from a
+     store cannot (signature, privileged or development), so the system turns
+     other apps away before PluginDevProvider runs. The provider then checks
+     the caller is the shell or root and that the user turned the mode on, on
+     every call. Merged into the app, so the authority is the app's own id.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <provider
+            android:name="com.wasimaster.wmkeyboard.core.plugins.PluginDevProvider"
+            android:authorities="${applicationId}.plugindev"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+    </application>
+
+</manifest>

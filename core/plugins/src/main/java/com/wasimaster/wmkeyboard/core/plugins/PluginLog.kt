@@ -12,8 +12,17 @@ import java.io.File
  * A ring buffer rather than an ever-growing list, because the failure mode being
  * guarded against is a plugin that prints inside its render loop — which is
  * every plugin, the first time its author is debugging a render loop.
+ *
+ * With [pluginId] given and plugin developer mode on ([PluginDevMode]), each
+ * line added is also written to logcat as `<id>: <line>` under the
+ * `WMPlugin` tag, for `wmpy logs`. Never in normal use, and never the lines
+ * [restore] reads back.
  */
-class PluginLog(private val file: File?, private val maxEntries: Int = MAX_ENTRIES) {
+class PluginLog(
+    private val file: File?,
+    private val maxEntries: Int = MAX_ENTRIES,
+    private val pluginId: String? = null,
+) {
 
     private val lines = ArrayDeque<String>()
 
@@ -23,10 +32,17 @@ class PluginLog(private val file: File?, private val maxEntries: Int = MAX_ENTRI
         private const val MAX_FILE_BYTES = 128 * 1024
     }
 
-    @Synchronized
     fun add(line: String) {
-        lines.addLast(line.take(MAX_LINE))
+        val kept = keep(line)
+        pluginId?.let { PluginDevMode.echo(it, kept) }
+    }
+
+    @Synchronized
+    private fun keep(line: String): String {
+        val kept = line.take(MAX_LINE)
+        lines.addLast(kept)
         while (lines.size > maxEntries) lines.removeFirst()
+        return kept
     }
 
     @Synchronized
@@ -60,7 +76,7 @@ class PluginLog(private val file: File?, private val maxEntries: Int = MAX_ENTRI
         val source = file ?: return
         if (!source.isFile) return
         runCatching {
-            source.readText().lineSequence().forEach { add(it) }
+            source.readText().lineSequence().forEach { keep(it) }
         }
     }
 }

@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
+import com.wasimaster.wmkeyboard.core.plugins.PluginDevMode
 import com.wasimaster.wmkeyboard.core.plugins.PluginLog
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
 import com.wasimaster.wmkeyboard.core.plugins.ParkedPlugin
@@ -305,6 +306,8 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
         }
     }
 
+    PluginDeveloperModeGroup()
+
     // Outside the master switch: the Lua plugins went whether or not plugins
     // are on now, and their data is the user's either way.
     if (retired.isNotEmpty() || parked.isNotEmpty()) RetiredPluginsGroup(store, retired, parked)
@@ -406,6 +409,55 @@ internal fun PluginsScreen(repository: SettingsRepository, settings: LiveSetting
             confirmButton = {
                 TextButton({ importMessage = null }) { Text(stringResource(CommonR.string.common_ok)) }
             },
+        )
+    }
+}
+
+/**
+ * Plugin developer mode: while on, `wmpy` on a computer connected over adb
+ * installs and updates plugins without the confirmation screen, and plugin
+ * logs go to the system log ([PluginDevMode], [com.wasimaster.wmkeyboard.core.plugins.PluginDevProvider]).
+ *
+ * Outside the master switch, so a mode left on stays in view to be turned
+ * off even after plugins are. Turning it on asks first; turning it off does not.
+ */
+@Composable
+private fun PluginDeveloperModeGroup() {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(PluginDevMode.isOn(context)) }
+    var confirm by remember { mutableStateOf(false) }
+    SettingsGroup(stringResource(R.string.plugin_dev_group_title), level = SettingLevel.STANDARD) {
+        item {
+            ToggleSetting(
+                R.string.plugin_dev_mode_title,
+                stringResource(if (on) R.string.plugin_dev_mode_subtitle_on else R.string.plugin_dev_mode_subtitle_off),
+                on,
+                info = stringResource(R.string.plugin_dev_mode_info),
+                icon = Icons.Outlined.Code,
+                default = false,
+            ) { wanted ->
+                if (wanted) {
+                    confirm = true
+                } else {
+                    PluginDevMode.setOn(context, false)
+                    on = false
+                }
+            }
+        }
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(R.string.plugin_dev_mode_confirm_title)) },
+            text = { Text(stringResource(R.string.plugin_dev_mode_info)) },
+            confirmButton = {
+                TextButton({
+                    PluginDevMode.setOn(context, true)
+                    on = true
+                    confirm = false
+                }) { Text(stringResource(R.string.plugin_dev_mode_confirm_button)) }
+            },
+            dismissButton = { TextButton({ confirm = false }) { Text(stringResource(CommonR.string.common_cancel)) } },
         )
     }
 }
