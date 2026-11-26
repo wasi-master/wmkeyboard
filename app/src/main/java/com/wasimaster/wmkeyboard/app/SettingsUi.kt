@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import com.wasimaster.wmkeyboard.core.settings.TopBarButton
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.os.Build
 import android.view.HapticFeedbackConstants
@@ -485,6 +486,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "backup/history" to Color(0xFF78909C),
     "backup/contents" to Color(0xFF78909C),
     "about" to Color(0xFF90A4AE),
+    "about/top_bar" to Color(0xFF90A4AE),
     "licenses" to Color(0xFF90A4AE),
     "supporters" to Color(0xFFFFB300),
     // Behind the version row's seven taps, so it keeps About's grey.
@@ -1708,6 +1710,14 @@ internal class SettingsSnackbar(
             if (result == SnackbarResult.ActionPerformed) onUndo()
         }
     }
+
+    /** Says [message] with nothing to press, replacing whatever the bar was saying. */
+    fun say(message: String) {
+        scope.launch {
+            host.currentSnackbarData?.dismiss()
+            host.showSnackbar(message = message, duration = SnackbarDuration.Short)
+        }
+    }
 }
 
 /** The screen's undo bar. Null outside a settings screen's frame. */
@@ -2611,6 +2621,9 @@ internal fun WmCollapsingTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val density = LocalDensity.current
+    // The quick buttons the user put in the bar (#1579), past the search
+    // button the furniture width already counts.
+    val topBarExtraWidth = topBarExtraWidth(route)
     val collapsedPx = with(density) { CollapsedBarHeight.toPx() }
     // A subtitle that stays through the collapse has to fit the strip, so it
     // is one line whatever the caller asked for.
@@ -2791,7 +2804,7 @@ internal fun WmCollapsingTopBar(
         // measured before the shrink, hence the divide.
         val titleMax = minOf(
             barWidth - startXDp - TitleInset,
-            (barWidth - CollapsedFurnitureWidth - if (keepIcon) barIconLane else 0.dp) /
+            (barWidth - CollapsedFurnitureWidth - topBarExtraWidth - if (keepIcon) barIconLane else 0.dp) /
                 collapsedScale,
         ).coerceAtLeast(0.dp)
         Box(
@@ -3226,7 +3239,10 @@ private fun WmScreenFrame(
                                 actions = {
                                     // Ahead of the screen's own, so an overflow
                                     // menu keeps the bar's last place (#898).
-                                    SettingsSearchButton(route)
+                                    // The user's quick buttons first (#1579),
+                                    // then search, if they kept it.
+                                    TopBarQuickButtons(route)
+                                    if (TopBarButton.SEARCH in LocalTopBarButtons.current) SettingsSearchButton(route)
                                     FavouritesButton(crumbTitle ?: title)
                                     // Shows only once this visit changed something (#1242).
                                     PageUndoButton()

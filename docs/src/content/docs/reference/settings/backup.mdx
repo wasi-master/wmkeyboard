@@ -185,7 +185,7 @@ This screen takes settings back to how they were, without a file. It has three g
 
 An undo says how many settings it put back, with a **Redo** button on the bar at the bottom of the screen. The undo is in the history too, so it can be taken back later from there.
 
-Every settings page has its own undo too. Once you change something on a page, a history button appears in its top bar. It puts the page back the way it was when you opened it, taking back each change made while the page was in front, and offers **Redo** the same way. Going to a page further in and coming back still counts as the same visit. Changes made somewhere else, such as on another page or while the app is in the background, are left alone.
+Every settings page has its own undo too. Once you change something on a page, a history button appears in its top bar. It puts the page back the way it was when you opened it, taking back each change made while the page was in front, and offers **Redo** the same way. Going to a page further in and coming back still counts as the same visit. Changes made somewhere else, such as on another page or while the app is in the background, are left alone. For an undo and redo that work from any page and take you to the setting they changed, turn them on under [About › Top bar buttons](/reference/settings/about/#top-bar-buttons).
 
 The history catches a change wherever it was made: on a settings screen, from the keyboard's own toggles, by an import, or by resetting all settings. Changes to the same setting within about 2 seconds count as one, so dragging a slider or typing a name is one step back. It keeps 30 days and at most 400 changes, on this phone only. It never goes into an export, a backup or a sync file.
 
@@ -199,7 +199,7 @@ Some things are not settings, and neither an undo nor a restore point touches th
 - the backup, sync and app lock settings
 - what the keyboard keeps for itself, such as recent emoji and layouts, which layout is active, and counters it uses to reload things
 
-Very long values are left out of the history but not out of restore points. These are mostly whole custom layouts and long lists, which the layout editor and the theme editor change many times a minute; both editors have their own undo. The history names a setting by the name it's stored under, such as "Key height landscape", because some settings have no title of their own on any screen.
+Very long values are left out of the history but not out of restore points. These are mostly whole custom layouts and long lists, which the layout editor and the theme editor change many times a minute; both editors have their own undo. The history names a change by the title of the setting you changed it from when it knows it. Otherwise, as for a change made from the keyboard, it uses the name the setting is stored under, such as "Key height landscape", because some settings have no title of their own on any screen.
 
 ### Export
 

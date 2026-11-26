@@ -1,9 +1,11 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.SettingsHistory
 import com.wasimaster.wmkeyboard.core.netlog.OfflineBuild
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BugReport
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
+import android.content.res.Resources
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
@@ -501,6 +503,7 @@ internal fun HighlightableRow(
     // [RowTouch]. A group's wrapper passes on whatever it sits in, so the rows
     // inside it each keep their own.
     val touch = if (coarse) LocalRowTouch.current else remember { RowTouch() }
+    val resources = LocalContext.current.resources
     CompositionLocalProvider(
         LocalRowLinkKey provides RowLinkKey(title, highlightKey),
         LocalRowTouch provides touch,
@@ -523,7 +526,7 @@ internal fun HighlightableRow(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
             modifier = Modifier
-                .then(if (coarse || touch == null) Modifier else Modifier.armRowTouch(touch))
+                .then(if (coarse || touch == null) Modifier else Modifier.armRowTouch(touch, highlightKey, resources))
                 .then(if (isNew) Modifier.clearsNewOnTap(highlightKey, title) else Modifier)
                 .settingLinkHold(hold, disabledReason, whatIsThis)
                 .then(if (isNew) Modifier.border(1.5.dp, NewSettingGold, newBorderShape) else Modifier),
@@ -561,13 +564,23 @@ private fun Modifier.clearsNewOnTap(titleRes: Int, title: String?): Modifier {
 /**
  * Marks [touch] on the row's first press, watched on the way down and never
  * consumed, so every control inside still gets the whole gesture.
+ *
+ * Every press also tells the change history which row it was (#1568), by the
+ * resource name of [highlightKey], so a change the press makes is filed
+ * under the row and the top bar's undo can go back to it. Looked up on the
+ * press, not while composing: a page draws dozens of rows and most are never
+ * touched.
  */
-private fun Modifier.armRowTouch(touch: RowTouch): Modifier = pointerInput(touch) {
-    awaitEachGesture {
-        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-        touch.touched = true
+private fun Modifier.armRowTouch(touch: RowTouch, @StringRes highlightKey: Int, resources: Resources): Modifier =
+    pointerInput(touch, highlightKey) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            touch.touched = true
+            SettingsHistory.markRow(
+                highlightKey.takeIf { it != 0 }?.let { runCatching { resources.getResourceEntryName(it) }.getOrNull() },
+            )
+        }
     }
-}
 
 /**
  * A row drawn only because the new settings walk pointed at it: the setting
@@ -949,6 +962,7 @@ internal object SettingsRouteIcons {
         "backup/history" to { Icons.Outlined.History },
         "backup/contents" to { Icons.Outlined.Checklist },
         "about" to { Icons.Outlined.Info },
+        "about/top_bar" to { Icons.Outlined.SmartButton },
         "supporters" to { Icons.Outlined.VolunteerActivism },
         "import_hub" to { Icons.Outlined.FileOpen },
         "storage" to { Icons.Outlined.PieChart },

@@ -957,6 +957,8 @@ private fun SettingsNavHost(
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,
             LocalSettingsDepth provides depthControl,
+            // The quick buttons every top bar carries (#1579).
+            LocalTopBarButtons provides settings.watch { it.appUi.topBarButtons },
             LocalHelpPictures provides helpPictures,
             LocalExtensions provides extensionsOn,
             LocalTwoPane provides twoPane,
@@ -3325,6 +3327,16 @@ private fun SettingsNavGraph(
                     onOpenEggGame = { navController.navigate("egg_game") },
                     onReplayOnboarding = { navController.navigate("onboarding") },
                 )
+            }
+        }
+        composable(TOP_BAR_ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.top_bar_screen_title),
+                { navController.popBackStack() },
+                route = TOP_BAR_ROUTE,
+                subtitle = stringResource(R.string.top_bar_screen_subtitle),
+            ) {
+                TopBarButtonsSettings(repository, settings)
             }
         }
         composable("egg_game") {

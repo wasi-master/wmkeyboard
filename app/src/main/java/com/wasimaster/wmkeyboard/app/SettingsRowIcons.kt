@@ -2793,6 +2793,17 @@ internal object SettingsRowIcons {
         put(R.string.feedback_telegram_route_title) { Icons.AutoMirrored.Outlined.Send }
         put(R.string.settings_switched_off_rows_title) { Icons.Outlined.ToggleOn }
         put(R.string.settings_also_under_title) { Icons.Outlined.AltRoute }
+        // Top bar buttons (#1579): each switch wears the button it puts in the bar.
+        put(R.string.top_bar_screen_title) { Icons.Outlined.SmartButton }
+        put(R.string.top_bar_undo_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.top_bar_redo_title) { Icons.AutoMirrored.Outlined.Redo }
+        put(R.string.top_bar_undo_ten_minutes_title) { Icons.Outlined.Replay }
+        put(R.string.top_bar_restore_point_title) { Icons.Outlined.Restore }
+        put(R.string.top_bar_history_title) { Icons.Outlined.FormatListBulleted }
+        put(R.string.top_bar_recent_pages_title) { Icons.Outlined.Schedule }
+        put(R.string.top_bar_whats_new_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.top_bar_home_title) { Icons.Outlined.Home }
+        put(R.string.top_bar_search_title) { Icons.Outlined.Search }
 
         // ---- Layout and keys ----
         put(R.string.layout_number_row_hints_title) { Icons.Outlined.Tag }

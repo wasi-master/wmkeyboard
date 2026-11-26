@@ -97,10 +97,31 @@ The **Settings app** group sits further down, under Feedback, because its rows a
 - **How many settings to show** is the settings depth: Simple, Standard or Everything. It starts from the setup wizard's answer above. See [Choosing how many settings you see](/reference/settings/#choosing-how-many-settings-you-see).
 - **Show where settings are hidden** (off by default) puts a **more settings** row at the end of every group the depth left something out of, and shows Home's left-out rows as a closed **More** group.
 - **Show switched-off settings** (off by default) keeps the settings that only appear once another one is on in view all the time. While the setting they depend on is off they are greyed out and do nothing when tapped, though a drag that starts on one still scrolls the page. The same switch covers a setting greyed out because another setting overrides it, such as a size the active theme's own layout pins: with the switch off that row is hidden too, and comes back once the other setting lets it go. A search result or link to such a row still shows it. Together with the depth at **Everything**, every setting is on screen. Rows that are not settings stay out of it: an **Allow** row for a permission you have already given, such as the three under <SettingsPath path="Tools / Clock" />, is gone for good once the permission is in hand, and a list's reorder view only shows while you are reordering.
+- **Top bar buttons** opens a page of switches, one for each quick button that can sit in the bar at the top of every settings page, left of search. See [Top bar buttons](#top-bar-buttons).
 - **Other paths under the path bar** (on by default) is the **Also under** line under a page's path, which names the other ways you have reached that page in this visit. Off gives its line back to the page. Pages opened by the New settings walk-through or a link never add to it.
 - **Help pictures** is how the pictures and clips in a setting's **?** reach the phone: **Ask** (the default) asks the next time you open an explanation that has one, **All at once** downloads the pack for the look you use, **One at a time** fetches each picture as you open it, and **Off** keeps explanations as words. Once any are on the phone, **Downloaded help pictures** under it shows their size and deletes them. See [Seeing what a setting does](/reference/settings/#seeing-what-a-setting-does).
 - **Short app name** is a switch, off by default. Turn it on and your app drawer and home screen call the app **WMK** instead of **WM Keyboard**, so a narrow launcher grid doesn't cut the name short. See [Changing the name under the icon](#changing-the-name-under-the-icon).
 - **Show in app drawer** is a switch, on by default. Turn it off and the icon leaves your app drawer and home screen, while the keyboard keeps working. See [Hiding the icon](#hiding-the-icon). Android TV doesn't show this row.
+
+### Top bar buttons
+
+<SettingsPath path="About / Top bar buttons" />
+
+Every settings page has search and the favourites star in its top bar. This page adds more buttons beside them, for the things you would otherwise walk back through the menus to reach. Each one is a switch, and only **Search** is on at first, so the bar looks the way it always has until you turn something on. The buttons sit left of search in the order the page lists them:
+
+- **Undo** takes back your last settings change and takes you to it. If you made the change on another page, that page opens with the setting flashed; on the same page the setting just flashes. Touch and hold it for **Undo the last 10 minutes**, **Restore a point** (your saved restore points) and **Change history**.
+- **Redo** puts back what the last undo took back, and goes to it the same way. Once you change something else after an undo, there is nothing left to redo.
+- **Undo the last 10 minutes** takes back every change from the last 10 minutes in one press.
+- **Restore a point** lists your restore points. Picking one asks first, as on the Backup screen.
+- **Change history** opens the list of every change you made, on the Undo and restore points page.
+- **Recent pages** lists the pages you opened lately.
+- **What's new** shows the bar that walks through the settings the latest update added, or puts it away.
+- **Settings home** goes back to the first page in one press. It is not shown on the home page itself.
+- **Search** is the search button the bar always had. Turn it off to give its room back.
+
+Undo, Redo and the 10-minute undo work from the change history, so they need **Keep a change history** on, under <SettingsPath path="Data / Backup & restore / Undo and restore points" />, which it is unless you turned it off. A greyed-out button has nothing to do right now, and pressing it says so. A change made from the keyboard or while the app was closed has no page to go to, so it is undone where you are.
+
+On a narrow screen a long page title has less room in the collapsed bar with several buttons on.
 
 ### Changing the name under the icon
 
@@ -326,7 +347,7 @@ A bug that only shows up in one app's field (Enter sends instead of making a new
 
 ## Options
 
-There are only five switches and two pickers in this whole tree. Everything else is either a display-only row (Version, Dictionaries) or a read-only browser (the licence and diagnostics screens).
+There are only five switches and two pickers in this whole tree, besides the Top bar buttons page. Everything else is either a display-only row (Version, Dictionaries) or a read-only browser (the licence and diagnostics screens).
 
 <SettingsPath path="About" />
 
@@ -335,6 +356,20 @@ There are only five switches and two pickers in this whole tree. Everything else
 | Short app name | Toggle | Off |
 | Show in app drawer | Toggle | On |
 | App language | Choice | System default |
+
+<SettingsPath path="About / Top bar buttons" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Undo | Toggle | Off |
+| Redo | Toggle | Off |
+| Undo the last 10 minutes | Toggle | Off |
+| Restore a point | Toggle | Off |
+| Change history | Toggle | Off |
+| Recent pages | Toggle | Off |
+| What's new | Toggle | Off |
+| Settings home | Toggle | Off |
+| Search | Toggle | On |
 
 <SettingsPath path="About / Documentation" />
 

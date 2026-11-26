@@ -8585,6 +8585,13 @@ data class AppUiSettings(
      */
     val alsoUnderLine: Boolean = true,
     /**
+     * The quick buttons beside the favourites star in every settings
+     * screen's top bar (#1579), in [TopBarButton] order. Search alone by
+     * default, which is the bar as it always was; the rest are for people
+     * who want undo, redo or the history one press away on every page.
+     */
+    val topBarButtons: Set<TopBarButton> = setOf(TopBarButton.SEARCH),
+    /**
      * The feature bundles switched on (SETTINGS_REDESIGN.md §3), or null for
      * an install that has never chosen, which keeps everything on. Read
      * through [KeyboardSettings.extensionsResolved]. Here with the other
@@ -8603,6 +8610,39 @@ data class AppUiSettings(
 
 /** See [AppUiSettings.settingLinks]. */
 enum class SettingLinkMode { OFF, HOLD, BUTTON }
+
+/**
+ * The buttons a settings top bar can carry (#1579); see
+ * [AppUiSettings.topBarButtons]. Drawn in this order, left to right.
+ */
+enum class TopBarButton {
+    /** Takes back the last settings change and goes to it; held, the undo menu (#1568). */
+    UNDO,
+
+    /** Puts back what the last undo took back, and goes to it (#1568). */
+    REDO,
+
+    /** Takes back every change of the last ten minutes. */
+    UNDO_TEN_MINUTES,
+
+    /** Lists the restore points, to go back to one. */
+    RESTORE_POINT,
+
+    /** Opens the change history. */
+    HISTORY,
+
+    /** Lists the pages visited lately. */
+    RECENT_PAGES,
+
+    /** Shows or hides what the latest update added (#970). */
+    WHATS_NEW,
+
+    /** Goes back to the settings home in one press. */
+    HOME,
+
+    /** Settings search (#1317): the one the bar has always had. */
+    SEARCH,
+}
 
 /**
  * See [AppUiSettings.helpPictures]. [ALL] downloads every picture of the look
@@ -13907,6 +13947,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_HIDDEN_ROWS = booleanPreferencesKey("settings_hidden_rows")
         private val SETTINGS_SWITCHED_OFF_ROWS = booleanPreferencesKey("settings_switched_off_rows")
         private val SETTINGS_ALSO_UNDER = booleanPreferencesKey("settings_also_under")
+        private val SETTINGS_TOP_BAR_BUTTONS = stringSetPreferencesKey("settings_top_bar_buttons")
         private val SETTINGS_HELP_PICTURES = stringPreferencesKey("settings_help_pictures")
         private val EXTENSIONS_ENABLED = stringSetPreferencesKey("extensions_enabled")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
@@ -16282,6 +16323,9 @@ class SettingsRepository(private val context: Context) {
             hiddenSettingsRows = p[SETTINGS_HIDDEN_ROWS] ?: defaults.appUi.hiddenSettingsRows,
             switchedOffRows = p[SETTINGS_SWITCHED_OFF_ROWS] ?: defaults.appUi.switchedOffRows,
             alsoUnderLine = p[SETTINGS_ALSO_UNDER] ?: defaults.appUi.alsoUnderLine,
+            topBarButtons = p[SETTINGS_TOP_BAR_BUTTONS]
+                ?.mapNotNullTo(LinkedHashSet()) { name -> TopBarButton.entries.firstOrNull { it.name == name } }
+                ?: defaults.appUi.topBarButtons,
             extensions = p[EXTENSIONS_ENABLED]?.let(Extension::decode),
             helpPictures = p[SETTINGS_HELP_PICTURES]
                 ?.let { runCatching { HelpPictures.valueOf(it) }.getOrNull() }
@@ -22518,6 +22562,18 @@ class SettingsRepository(private val context: Context) {
         return undoSettingsBatches(listOf(batch))
     }
 
+    /**
+     * Puts back what the newest undo took back (#1568), by taking that undo
+     * back; see [SettingsHistory.lastRedoable]. Applied, it hands back the
+     * changes it put back, so the caller can go to where they were made.
+     */
+    suspend fun redoLastSettingsChange(): Pair<HistoryResult, List<SettingsHistory.Batch>> {
+        history.load()
+        val undo = history.lastRedoable() ?: return HistoryResult.NothingToDo to emptyList()
+        val redone = history.undoneBy(undo)
+        return undoSettingsBatch(undo.id) to redone
+    }
+
     /** Takes back every change of the last [windowMs] that has not been undone. */
     suspend fun undoSettingsWithin(windowMs: Long): HistoryResult {
         history.load()
@@ -26820,6 +26876,13 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.alsoUnderLine]. */
     suspend fun setAlsoUnderLine(value: Boolean) =
         editPrefs { it[SETTINGS_ALSO_UNDER] = value }
+
+    /** See [AppUiSettings.topBarButtons]. Shows or hides one [button]. */
+    suspend fun setTopBarButton(button: TopBarButton, shown: Boolean) = editPrefs { prefs ->
+        val now = prefs[SETTINGS_TOP_BAR_BUTTONS]
+            ?: SettingsDefaults.appUi.topBarButtons.mapTo(HashSet()) { it.name }
+        prefs[SETTINGS_TOP_BAR_BUTTONS] = if (shown) now + button.name else now - button.name
+    }
 
     /**
      * Replaces the whole set of bundles that are on; see

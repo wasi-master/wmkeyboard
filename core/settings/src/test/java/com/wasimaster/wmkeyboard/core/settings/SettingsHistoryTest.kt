@@ -115,6 +115,44 @@ class SettingsHistoryTest {
     }
 
     @Test
+    fun `redo takes back the newest plain undo, and a new change ends it`() = runBlocking {
+        var now = 1_000L
+        val dir = Files.createTempDirectory("history").toFile()
+        val history = SettingsHistory(dir) { now }
+        fun sound(before: Boolean?, after: Boolean?) = listOf(
+            SettingsHistory.Change(
+                "key_sound",
+                before?.let { SettingsBackup.Entry("key_sound", "boolean", it) },
+                after?.let { SettingsBackup.Entry("key_sound", "boolean", it) },
+            ),
+        )
+        val edit = history.record(SettingsHistory.Kind.EDIT, sound(null, false), page = "keypress", row = "key_sound_title")!!
+        assertEquals("key_sound_title", edit.row)
+        assertNull(history.lastRedoable())
+        now += 10_000
+        val undo = history.record(SettingsHistory.Kind.UNDO, sound(false, null), undid = listOf(edit.id))!!
+        assertEquals(undo.id, history.lastRedoable()?.id)
+        assertEquals(listOf(edit.id), history.undoneBy(undo).map { it.id })
+        // The redo is an undo of the undo: nothing is left to redo after it.
+        now += 10_000
+        history.record(SettingsHistory.Kind.UNDO, sound(null, false), undid = listOf(undo.id))
+        history.restoreUndone(listOf(edit.id))
+        assertNull(history.lastRedoable())
+        assertEquals(edit.id, history.lastUndoable()?.id)
+        // Undo again, then change something else: the old redo is gone.
+        now += 10_000
+        history.record(SettingsHistory.Kind.UNDO, sound(false, null), undid = listOf(edit.id))
+        assertTrue(history.lastRedoable() != null)
+        now += 10_000
+        history.record(SettingsHistory.Kind.EDIT, listOf(SettingsHistory.Change("key_height", null, SettingsBackup.Entry("key_height", "int", 60))))
+        assertNull(history.lastRedoable())
+        val reread = SettingsHistory(dir) { now }
+        reread.load()
+        assertEquals("key_sound_title", reread.batches.value.first { it.id == edit.id }.row)
+        dir.deleteRecursively()
+    }
+
+    @Test
     fun `a restore point holds settings and not secrets`() = runBlocking {
         val dir = Files.createTempDirectory("history").toFile()
         val history = SettingsHistory(dir)

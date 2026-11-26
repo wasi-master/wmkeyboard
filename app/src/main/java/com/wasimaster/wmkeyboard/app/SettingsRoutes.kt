@@ -254,6 +254,7 @@ internal object SettingsRoutes {
         "modes",
         "mode_edit/{modeId}",
         "about",
+        "about/top_bar",
         "egg_game",
         "storage",
         "storage/{category}",

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- About / Settings app / Top bar buttons (#1579): quick buttons beside search on every settings page, and the undo and redo they carry (#1568). -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="top_bar_screen_title">Top bar buttons</string>
+    <string name="top_bar_screen_subtitle">Shortcuts beside search on every settings page</string>
+    <string name="top_bar_nav_subtitle">Undo, redo, history and more, one press away on every page</string>
+    <string name="search_kw_top_bar">global icons, quick buttons, toolbar, shortcuts, undo, redo, history, restore point, home, recent pages</string>
+    <string name="top_bar_group">Shown in the top bar</string>
+    <string name="top_bar_group_info">Each button you turn on sits in the bar at the top of every settings page, left of search, in the order of this list. Undo and redo go to the setting they changed and flash it, opening its page if you are on another one. Touch and hold Undo for the last 10 minutes, your restore points and the change history. Undo and redo need the change history, under Backup and restore, Undo and restore points. Only Search is on at first, which is the bar the app always had.</string>
+
+    <string name="top_bar_undo_title">Undo</string>
+    <string name="top_bar_undo_subtitle">Takes back the last change and goes to it. Touch and hold for more</string>
+    <string name="top_bar_redo_title">Redo</string>
+    <string name="top_bar_redo_subtitle">Puts back what Undo took back, and goes to it</string>
+    <string name="top_bar_undo_ten_minutes_title">Undo the last 10 minutes</string>
+    <string name="top_bar_undo_ten_minutes_subtitle">Takes back every change from the last 10 minutes</string>
+    <string name="top_bar_restore_point_title">Restore a point</string>
+    <string name="top_bar_restore_point_subtitle">Pick one of your saved restore points</string>
+    <string name="top_bar_history_title">Change history</string>
+    <string name="top_bar_history_subtitle">Every change you made, to look through or undo</string>
+    <string name="top_bar_recent_pages_title">Recent pages</string>
+    <string name="top_bar_recent_pages_subtitle">The settings pages you opened lately</string>
+    <string name="top_bar_whats_new_title">What\'s new</string>
+    <string name="top_bar_whats_new_subtitle">Shows or hides the settings the latest update added</string>
+    <string name="top_bar_home_title">Settings home</string>
+    <string name="top_bar_home_subtitle">Back to the first page in one press</string>
+    <string name="top_bar_search_title">Search</string>
+    <string name="top_bar_search_subtitle">Search every setting</string>
+
+    <!-- Screen reader label for the hold on the Undo button. -->
+    <string name="top_bar_undo_more_desc">More ways to undo</string>
+    <string name="top_bar_nothing_to_redo">There is nothing to redo.</string>
+    <string name="top_bar_recent_pages_empty">No pages visited yet</string>
+    <!-- Screen reader label of the What's new button while the new settings bar is up. -->
+    <string name="top_bar_whats_new_hide_desc">Hide what\'s new</string>
+    <!-- Screen reader label of the What's new button while the new settings bar is down. -->
+    <string name="top_bar_whats_new_show_desc">Show what\'s new</string>
+</resources>

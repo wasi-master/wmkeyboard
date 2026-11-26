@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.TopBarButton
 import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.content.res.Resources
 import androidx.annotation.ArrayRes
@@ -3856,6 +3857,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_about_title, "storage", R.string.search_kw_storage,
         ),
         under(
+            R.string.top_bar_screen_title, R.string.top_bar_nav_subtitle,
+            R.string.home_about_title, TOP_BAR_ROUTE, R.string.search_kw_top_bar,
+        ),
+        under(
             R.string.about_resources_title, R.string.about_resources_subtitle,
             R.string.home_about_title, "resources", R.string.search_kw_about_resources,
         ),
@@ -3975,6 +3980,12 @@ private fun SearchStrings.todoRows(): List<SettingsSearchEntry> {
     )
 }
 
+/** About › Settings app › Top bar buttons (#1579): one switch per button. */
+private fun SearchStrings.topBarRows(): List<SettingsSearchEntry> = TopBarButton.entries.map { button ->
+    val (title, subtitle) = topBarButtonText(button)
+    entry(title, subtitle, R.string.top_bar_screen_title, TOP_BAR_ROUTE, screenParent = R.string.home_about_title)
+}
+
 private fun SearchStrings.storageRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int) =
         entry(title, subtitle, R.string.about_storage_title, "storage", screenParent = R.string.home_about_title)
@@ -4057,7 +4068,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + shareSheetRows() + languageRows() + emojiRows() +
         emojiPanelRows() + emojiMixRows() + dynamicStickerRows() + kaomojiRows() +
-        voiceRows() + clipboardRows() + clipboardHistoryRows() + clipboardChipsRows() + clipboardRulesRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + clipboardHistoryRows() + clipboardChipsRows() + clipboardRulesRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + topBarRows() + otherRows()
     val offline = OfflineBuild.isThisBuild
     // A provider's screen goes with the tool page its list is on.
     all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }

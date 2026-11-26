@@ -303,7 +303,7 @@ internal fun RestorePointsSettings(repository: SettingsRepository, settings: Liv
 
 /** Asks before a restore, with how many settings it changes, worked out against the settings as they are now. */
 @Composable
-private fun RestoreDialog(
+internal fun RestoreDialog(
     repository: SettingsRepository,
     point: SettingsHistory.RestorePoint,
     onDismiss: () -> Unit,
@@ -423,7 +423,7 @@ private fun NameDialog(
 private fun dateTime(at: Long): String =
     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(at))
 
-private fun pointName(context: Context, point: SettingsHistory.RestorePoint): String = point.name ?: when (point.kind) {
+internal fun pointName(context: Context, point: SettingsHistory.RestorePoint): String = point.name ?: when (point.kind) {
     SettingsHistory.PointKind.BEFORE_RESTORE ->
         context.getString(R.string.restore_point_before_restore, point.label.orEmpty())
     SettingsHistory.PointKind.MANUAL -> dateTime(point.at)
@@ -438,10 +438,18 @@ private fun pointSubtitle(context: Context, point: SettingsHistory.RestorePoint)
  * A batch in a line: the one setting it changed, or how many, or the point it
  * restored. Names are the stored key made readable ("key_height" reads "Key
  * height"); the history is a record of the store, and the store has no titles.
+ * A change made from a row the history knows (#1568) is named by the row's
+ * own title instead, the name the user pressed.
  */
 private fun batchSummary(context: Context, batch: SettingsHistory.Batch): String {
     val count = batch.changes.size
+    val rowTitle = if (count == 1) rowTitle(context, batch.row) else null
     return when {
+        rowTitle != null && batch.kind == SettingsHistory.Kind.EDIT -> context.getString(
+            R.string.restore_batch_one,
+            rowTitle,
+            valueText(context, batch.changes[0].after),
+        )
         batch.kind == SettingsHistory.Kind.RESTORE ->
             context.getString(R.string.restore_batch_restored, batch.label.orEmpty())
         batch.kind == SettingsHistory.Kind.UNDO ->
@@ -460,6 +468,15 @@ private fun batchSummary(context: Context, batch: SettingsHistory.Batch): String
 private fun batchSubtitle(context: Context, batch: SettingsHistory.Batch): String {
     val time = relativeTime(batch.at)
     return if (batch.undone) context.getString(R.string.restore_batch_undone, time) else time
+}
+
+/** The title of the row [name] names ([SettingsHistory.Batch.row]), or null when this build has none. */
+internal fun rowTitle(context: Context, name: String?): String? {
+    name ?: return null
+    // A name the history wrote from a resource of this app.
+    @Suppress("DiscouragedApi")
+    val id = context.resources.getIdentifier(name, "string", context.packageName)
+    return if (id == 0) null else runCatching { context.getString(id) }.getOrNull()
 }
 
 /** "key_height_landscape" → "Key height landscape". */

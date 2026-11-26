@@ -2152,6 +2152,14 @@ internal fun AboutSettings(
                 info = stringResource(R.string.settings_switched_off_rows_info),
             ) { scope.launch { repository.setSwitchedOffRows(it) } }
         }
+        // The quick buttons beside search on every page (#1579).
+        item {
+            NavRow(
+                R.string.top_bar_screen_title,
+                stringResource(R.string.top_bar_nav_subtitle),
+                route = TOP_BAR_ROUTE,
+            ) { onOpenRoute(TOP_BAR_ROUTE) }
+        }
         item {
             ToggleSetting(
                 R.string.settings_also_under_title,

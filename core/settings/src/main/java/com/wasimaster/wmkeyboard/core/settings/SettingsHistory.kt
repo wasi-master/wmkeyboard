@@ -105,6 +105,16 @@ class SettingsHistory internal constructor(
          * "Undo the changes made here" picks out (#1242).
          */
         val page: String? = null,
+        /**
+         * The row on [page] the change was made from, as its title's resource
+         * name ("typing_auto_close_brackets_title"), or null when it is not
+         * known: a row with no resource of its own, a slider still being
+         * dragged when the user had last pressed another row, or a change from
+         * outside the settings app. What the top bar's undo and redo jump to
+         * and flash (#1568). The name, not the id: ids change from build to
+         * build, and the history outlives an update.
+         */
+        val row: String? = null,
     ) {
         val keys: Set<String> get() = changes.mapTo(LinkedHashSet()) { it.key }
     }
@@ -221,6 +231,7 @@ class SettingsHistory internal constructor(
         label: String? = null,
         undid: List<Long> = emptyList(),
         page: String? = currentPage,
+        row: String? = rowNow(),
     ): Batch? = mutex.withLock {
         ensureLoaded()
         val kept = changes.filter { tracked(it.key) && it.small() }
@@ -236,7 +247,7 @@ class SettingsHistory internal constructor(
         val (batch, rest) = if (joins && last != null) {
             coalesce(last, kept, now) to list.drop(1)
         } else {
-            Batch(nextId++, now, kind, kept, label, undid = undid, page = page) to list
+            Batch(nextId++, now, kind, kept, label, undid = undid, page = page, row = row) to list
         }
         // Undoing a batch marks it; undoing an undo hands its batches back.
         val marked = if (kind == Kind.UNDO && undid.isNotEmpty()) {
@@ -260,6 +271,34 @@ class SettingsHistory internal constructor(
 
     /** The newest batch an "Undo the last change" would take back, or null. */
     fun lastUndoable(): Batch? = _batches.value.firstOrNull { it.undoable }
+
+    /**
+     * The undo a "Redo" would take back (#1568), or null when there is none.
+     *
+     * Walks the history from the newest end over undos alone. An undo that
+     * is itself a redo (what it took back was an undo) is passed over, as is
+     * one already taken back; the first plain undo left is the one. Any
+     * ordinary change found first ends the walk: a change made after an undo
+     * is a new branch, and redoing the old one over it would throw it away.
+     */
+    fun lastRedoable(): Batch? {
+        val list = _batches.value
+        val byId = list.associateBy { it.id }
+        for (batch in list) {
+            if (batch.undone) continue
+            if (batch.kind != Kind.UNDO) return null
+            val targets = batch.undid.mapNotNull { byId[it] }
+            if (targets.isEmpty() || targets.any { it.kind == Kind.UNDO }) continue
+            return batch
+        }
+        return null
+    }
+
+    /** The batches [batch] took back, newest first; what an undo's redo puts back. */
+    fun undoneBy(batch: Batch): List<Batch> {
+        val ids = batch.undid.toHashSet()
+        return _batches.value.filter { it.id in ids }
+    }
 
     /** The batches an undo of the last [windowMs] would take back, newest first. */
     fun undoableWithin(windowMs: Long): List<Batch> {
@@ -398,6 +437,42 @@ class SettingsHistory internal constructor(
          */
         @Volatile
         var currentPage: String? = null
+            set(value) {
+                // A row pressed on the page being left is not the row of a
+                // change made on the next one.
+                if (field != value) currentRow = null
+                field = value
+            }
+
+        /**
+         * The resource name of the settings row last pressed on [currentPage]
+         * (#1568), and when; see [Batch.row]. Set by the settings app on every
+         * press of a row, before the change it makes is written.
+         */
+        @Volatile
+        private var currentRow: String? = null
+
+        @Volatile
+        private var currentRowAt = 0L
+
+        /** Notes that the row named [name] was just pressed. */
+        fun markRow(name: String?) {
+            currentRow = name
+            currentRowAt = System.currentTimeMillis()
+        }
+
+        /**
+         * The row a change being written now came from: the last one pressed,
+         * if that was within [ROW_WINDOW_MS]. A dialog the row opened can
+         * take a while to answer, and a setting changed without a press on any
+         * row (the keyboard's own toggles) a while later must not be filed
+         * under it.
+         */
+        fun rowNow(): String? =
+            currentRow?.takeIf { System.currentTimeMillis() - currentRowAt <= ROW_WINDOW_MS }
+
+        /** How long after a press on a row a change still counts as made from it. */
+        const val ROW_WINDOW_MS = 60_000L
 
         /** Whether the change history is kept. On by default; stored like any setting. */
         const val ENABLED_KEY = "settings_history_enabled"
@@ -571,6 +646,7 @@ class SettingsHistory internal constructor(
                                 put("kind", batch.kind.id)
                                 batch.label?.let { put("label", it) }
                                 batch.page?.let { put("page", it) }
+                                batch.row?.let { put("row", it) }
                                 if (batch.undone) put("undone", true)
                                 if (batch.undid.isNotEmpty()) {
                                     put("undid", buildJsonArray { batch.undid.forEach { add(JsonPrimitive(it)) } })
@@ -620,6 +696,7 @@ class SettingsHistory internal constructor(
                         undone = (obj["undone"] as? JsonPrimitive)?.booleanOrNull == true,
                         undid = (obj["undid"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.longOrNull },
                         page = (obj["page"] as? JsonPrimitive)?.contentOrNull,
+                        row = (obj["row"] as? JsonPrimitive)?.contentOrNull,
                     ).takeIf { it.changes.isNotEmpty() }
                 }.getOrNull()
             }
