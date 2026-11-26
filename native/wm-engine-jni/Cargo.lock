@@ -585,6 +585,7 @@ dependencies = [
  "icu_properties",
  "icu_segmenter",
  "miniz_oxide",
+ "serde",
  "serde_json",
 ]
 

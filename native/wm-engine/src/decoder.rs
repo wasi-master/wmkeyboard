@@ -1009,43 +1009,66 @@ fn node_of(walker: &dyn Walker, word: &[u16]) -> Option<u32> {
     Some(node)
 }
 
-/// The frequencies a trie holds, sorted, so a word's rank, and from it a
+/// The frequencies a trie holds, counted, so a word's rank, and from it a
 /// Zipf prior, can be read off its frequency: lists store frequencies on
 /// scales of their own (subtitle counts, AOSP's 0..255, a learned count), and
 /// a rank is the one thing they share.
+///
+/// Each distinct frequency once, with how many words stand at or below it:
+/// a `.wmdict` stores 16-bit frequencies, so a list has a few thousand of
+/// them at most. A frequency per word, kept for the keyboard's life, held
+/// the English AOSP list's 160,668 in 1,048,576 bytes (growth included) and
+/// the main list's 17,080 in 131,072; their ranks are now 1,568 and 33,704.
 #[derive(Clone, Debug, Default)]
 pub struct Ranks {
-    sorted: Vec<i32>,
+    /// Ascending, each once.
+    values: Vec<i32>,
+    /// `at_most[i]`: the words at `values[i]` or below.
+    at_most: Vec<u32>,
+    size: usize,
 }
 
 impl Ranks {
     pub fn of(walker: &dyn Walker) -> Ranks {
-        let mut sorted = Vec::new();
+        let mut all = Vec::new();
         let mut stack = vec![walker.root()];
         let mut kids = Vec::new();
         while let Some(node) = stack.pop() {
             if walker.is_word(node) {
-                sorted.push(walker.frequency(node));
+                all.push(walker.frequency(node));
             }
             walker.children_into(node, &mut kids);
             stack.extend(kids.iter().map(|&(_, c)| c));
         }
-        sorted.sort_unstable();
-        Ranks { sorted }
+        all.sort_unstable();
+        let mut ranks = Ranks { values: Vec::new(), at_most: Vec::new(), size: all.len() };
+        for (i, &f) in all.iter().enumerate() {
+            if ranks.values.last() == Some(&f) {
+                *ranks.at_most.last_mut().expect("a count per value") = i as u32 + 1;
+            } else {
+                ranks.values.push(f);
+                ranks.at_most.push(i as u32 + 1);
+            }
+        }
+        ranks.values.shrink_to_fit();
+        ranks.at_most.shrink_to_fit();
+        ranks
     }
 
     pub fn size(&self) -> usize {
-        self.sorted.len()
+        self.size
     }
 
     /// 1 + how many words stand above `frequency`.
     pub fn rank(&self, frequency: i32) -> usize {
-        self.sorted.len() - self.sorted.partition_point(|&f| f <= frequency) + 1
+        let distinct = self.values.partition_point(|&f| f <= frequency);
+        let at_or_below = if distinct == 0 { 0 } else { self.at_most[distinct - 1] as usize };
+        self.size - at_or_below + 1
     }
 
     /// ln P of a word stored at `frequency`.
     pub fn prior(&self, frequency: i32) -> f64 {
-        zipf(self.rank(frequency), self.sorted.len())
+        zipf(self.rank(frequency), self.size)
     }
 }
 
@@ -1918,6 +1941,33 @@ mod tests {
             }
         }
         Geometry { keys, space: Some((4.5, 4.5, 2.5, 0.75)) }
+    }
+
+    #[test]
+    fn ranks_count_as_the_sorted_frequencies_did() {
+        let mut trie = crate::user_lexicon::UserTrie::new();
+        let mut seed = 3u64;
+        let mut all = Vec::new();
+        for i in 0..3000 {
+            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            let f = [((seed >> 33) % 40) as i32, ((seed >> 33) % 100_000) as i32, -3, 0, i32::MAX][i % 5];
+            let word: String = format!("w{i}");
+            trie.insert(&word, f);
+            // A trie holds the larger of 0 and what it was given.
+            all.push(f.max(0));
+        }
+        all.sort_unstable();
+        let ranks = Ranks::of(&trie);
+        assert_eq!(all.len(), ranks.size());
+        let mut probes: Vec<i32> = all.iter().flat_map(|&f| [f.saturating_sub(1), f, f.saturating_add(1)]).collect();
+        probes.extend([i32::MIN, i32::MAX, 0, -1]);
+        for f in probes {
+            let old = all.len() - all.partition_point(|&x| x <= f) + 1;
+            assert_eq!(old, ranks.rank(f), "{f}");
+            assert_eq!(zipf(old, all.len()), ranks.prior(f));
+        }
+        let empty = Ranks::default();
+        assert_eq!((0, 1), (empty.size(), empty.rank(5)));
     }
 
     fn tap(g: &Geometry, ch: char, dx: f32, dy: f32) -> Tap {
