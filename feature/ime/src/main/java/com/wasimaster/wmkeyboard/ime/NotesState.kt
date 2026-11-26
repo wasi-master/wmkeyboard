@@ -456,9 +456,20 @@ object NotesLogic {
      * note has changed since the search and the passage is no longer there.
      */
     fun passageOffset(body: String, text: String, matchStart: Int): Int {
-        val at = body.indexOf(text)
+        // The passage was found in the tag-free text (#1586): find it there,
+        // then carry the offset back to the body's own, before any tag that
+        // opens right at it.
+        val (plain, map) = com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.stripMapped(body)
+        val at = plain.indexOf(text)
         if (at < 0) return body.length
-        return (at + matchStart).coerceIn(0, body.length)
+        val target = (at + matchStart).coerceIn(0, plain.length)
+        var lo = 0
+        var hi = body.length
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (map[mid] < target) lo = mid + 1 else hi = mid
+        }
+        return lo
     }
 
     /**

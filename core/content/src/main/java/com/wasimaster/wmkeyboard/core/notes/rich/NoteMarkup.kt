@@ -799,6 +799,9 @@ object NoteMarkup {
                     val alt = m.groups[1]!!
                     for (j in k..cut.last) map[j] = out.length + (j - alt.range.first).coerceIn(0, alt.value.length)
                     out.append(alt.value)
+                } else {
+                    // A tag: every offset inside it maps to where it stood, so the map only grows.
+                    for (j in k..cut.last) map[j] = out.length
                 }
                 k = cut.last + 1
                 c++

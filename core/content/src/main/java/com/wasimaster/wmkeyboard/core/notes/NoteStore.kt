@@ -120,7 +120,8 @@ class NoteStore(private val storageFile: File?) {
             literal = { note ->
                 note.displayTitle().contains(needle, ignoreCase = true) ||
                     note.tags.any { it.contains(needle, ignoreCase = true) } ||
-                    ((!note.locked || searchLockedBodies) && note.body.contains(needle, ignoreCase = true))
+                    // The words, not the rich editor's tags (#1586): "span" or "color" finds no note.
+                    ((!note.locked || searchLockedBodies) && com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body).contains(needle, ignoreCase = true))
             },
             stemmed = SearchStems.matcher(languageTag, needle) { note -> note.searchedText(searchLockedBodies) },
         )
@@ -505,10 +506,11 @@ class NoteStore(private val storageFile: File?) {
 
 /**
  * What a search looks for another form of its words in: the title, the tags,
- * and the body unless the note is locked and [lockedBodies] is off.
+ * and the body unless the note is locked and [lockedBodies] is off, without
+ * the rich editor's tags (#1586).
  */
 fun Note.searchedText(lockedBodies: Boolean): String = buildString {
     append(displayTitle())
     for (tag in tags) append(' ').append(tag)
-    if (!locked || lockedBodies) append(' ').append(body)
+    if (!locked || lockedBodies) append(' ').append(com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(body))
 }

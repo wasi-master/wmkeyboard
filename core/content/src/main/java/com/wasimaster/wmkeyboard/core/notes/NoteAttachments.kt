@@ -29,8 +29,20 @@ object NoteAttachments {
     /** How long an unreferenced file is kept before [sweep] takes it: an editor open elsewhere may be about to save it. */
     const val SWEEP_GRACE_MILLIS = 2L * 24 * 60 * 60 * 1000
 
+    /** The picture types kept, by extension. */
+    val IMAGE_EXTENSIONS: Set<String> = setOf("jpg", "jpeg", "png", "webp")
+
     private val NAME by lazy { Regex("""^[a-z0-9]{8,40}\.(jpg|jpeg|png|webp)$""") }
     private val REFERENCE by lazy { Regex("""\]\(\s*<?attachments/([A-Za-z0-9._-]+)>?""") }
+
+    /**
+     * A picture's address in an image link: `![..](attachments/a.jpg)`, or
+     * in angle brackets when it holds spaces. Group 1 is everything before
+     * the address, group 2 a bracketed address, group 3 a bare one.
+     */
+    private val IMAGE_ADDRESS by lazy {
+        Regex("""(!\[[^\]\n]*\]\(\s*)(?:<((?:\./)?attachments/[^>\n]+)>|((?:\./)?attachments/[^)\s]+))""")
+    }
     private val random = SecureRandom()
 
     fun isName(name: String): Boolean = NAME.matches(name)
@@ -53,6 +65,35 @@ object NoteAttachments {
     fun referenced(body: String): Set<String> {
         if (URL_PREFIX !in body) return emptySet()
         return REFERENCE.findAll(body).mapNotNull { nameOf(it.groupValues[1]) }.toSet()
+    }
+
+    /**
+     * [body] with each picture address under `attachments/` replaced by what
+     * [target] gives for its file name (`%20` read as a space), written in
+     * angle brackets when it holds a space. An address [target] gives null
+     * for stays as it is.
+     */
+    fun relink(body: String, target: (String) -> String?): String {
+        if (URL_PREFIX !in body) return body
+        return IMAGE_ADDRESS.replace(body) { m ->
+            val address = m.groups[2]?.value ?: m.groups[3]?.value ?: return@replace m.value
+            val name = address.removePrefix("./").removePrefix(URL_PREFIX).replace("%20", " ")
+            val to = target(name) ?: return@replace m.value
+            m.groupValues[1] + if (' ' in to) "<$to>" else to
+        }
+    }
+
+    /**
+     * A picture from outside the app (a zip's `attachments/` folder): kept
+     * under its own name when it is one of ours, so the notes that show it
+     * need no change, else stored under a new one. The name it is kept
+     * under, or null when it is not a picture this keeps.
+     */
+    fun adopt(filesDir: File, name: String, bytes: ByteArray): String? {
+        if (isName(name)) return name.takeIf { restore(filesDir, it, bytes) }
+        val extension = name.substringAfterLast('.', "").lowercase()
+        if (extension !in IMAGE_EXTENSIONS) return null
+        return save(filesDir, bytes, extension)
     }
 
     /** A fresh name with [extension] (`jpg`, `png`, `webp`). */

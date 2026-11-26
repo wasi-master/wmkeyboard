@@ -31383,7 +31383,8 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.NOTES -> meaningSearch.index(
                 MeaningSpace.NOTES,
                 noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).map { note ->
-                    val text = listOf(note.title, note.tags.joinToString(" "), note.body)
+                    // The words, without the rich editor's tags (#1586).
+                    val text = listOf(note.title, note.tags.joinToString(" "), com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body))
                         .filter { it.isNotBlank() }
                         .joinToString("\n")
                     MeaningSync.Item(note.id.toString(), MeaningSearch.stampOf(text), text)
@@ -55059,7 +55060,11 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             val built = withContext(Dispatchers.Default) {
                 com.wasimaster.wmkeyboard.core.prediction.PassageWords.of(
-                    clipTexts + noteTexts.map { if (it.title.isBlank()) it.body else it.title + "\n" + it.body },
+                    // A rich note's tags (#1586) would teach "span" and "mark" as words.
+                    clipTexts + noteTexts.map {
+                        val body = com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(it.body)
+                        if (it.title.isBlank()) body else it.title + "\n" + body
+                    },
                 )
             }
             if (passageKey != key) return@launch

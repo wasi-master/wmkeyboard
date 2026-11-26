@@ -95,6 +95,7 @@ import com.wasimaster.wmkeyboard.core.settings.NotesSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.util.readBytesCapped
+import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import java.io.File
@@ -545,7 +546,7 @@ internal fun NotesListScreen(
                 subtitle = stringResource(R.string.notes_import_subtitle),
                 action = stringResource(R.string.notes_import_button),
             ) {
-                importLauncher.launch(arrayOf("text/plain", "text/markdown", "text/x-markdown", "application/octet-stream"))
+                importLauncher.launch(arrayOf("text/plain", "text/markdown", "text/x-markdown", NoteFiles.ZIP_MIME, "application/octet-stream"))
             }
         }
     }
@@ -622,13 +623,64 @@ private fun writeNotesToVault(context: android.content.Context, tree: Uri, notes
         ?: requireNotNull(DocumentsContract.createDocument(resolver, root, DocumentsContract.Document.MIME_TYPE_DIR, VAULT_FOLDER))
     val existing = childDocuments(context, tree, DocumentsContract.getDocumentId(folder))
     val taken = HashSet<String>()
+    val pictures = copyPicturesToVault(context, tree, root, folder, notes)
     for (note in notes) {
         val name = NoteFiles.fileName(note, NoteFiles.Format.MARKDOWN, taken)
         val file = existing[name]
             ?: requireNotNull(DocumentsContract.createDocument(resolver, folder, NoteFiles.Format.MARKDOWN.mimeType, name))
-        resolver.requireOutputStream(file, "wt").use { it.write(NoteFiles.toObsidian(note).toByteArray()) }
+        val text = NoteFiles.toObsidian(note) { picture -> pictures[picture] }
+        resolver.requireOutputStream(file, "wt").use { it.write(text.toByteArray()) }
     }
     return notes.size
+}
+
+/**
+ * Copies the pictures [notes] show (#1586) into the vault's own attachment
+ * folder, the one Obsidian's Files and links setting names in
+ * `.obsidian/app.json` (the vault's top when it names none), and returns
+ * each picture's address for the notes' links: relative to the notes'
+ * folder for a `./` setting, from the vault's top otherwise, which
+ * Obsidian resolves either way. A picture already there is left alone:
+ * the names are random, so the same name is the same picture.
+ */
+private fun copyPicturesToVault(context: android.content.Context, tree: Uri, root: Uri, folder: Uri, notes: List<Note>): Map<String, String> {
+    val names = notes.flatMapTo(sortedSetOf()) { com.wasimaster.wmkeyboard.core.notes.NoteAttachments.referenced(it.body) }
+    if (names.isEmpty()) return emptyMap()
+    val resolver = context.contentResolver
+    val setting = vaultAttachmentSetting(context, tree, root)
+    // Where the files go, as folders under the vault's top or the notes' folder, and the links' prefix.
+    val fromNotes = setting.startsWith("./")
+    val segments = setting.removePrefix("./").trim('/').split('/').filter { it.isNotBlank() && it != "." && it != ".." }
+    var target = if (fromNotes) folder else root
+    for (segment in segments) {
+        target = childDocuments(context, tree, DocumentsContract.getDocumentId(target))[segment]
+            ?: requireNotNull(DocumentsContract.createDocument(resolver, target, DocumentsContract.Document.MIME_TYPE_DIR, segment))
+    }
+    val prefix = segments.joinToString("") { "$it/" }
+    val there = childDocuments(context, tree, DocumentsContract.getDocumentId(target))
+    val out = HashMap<String, String>()
+    for (name in names) {
+        val file = com.wasimaster.wmkeyboard.core.notes.NoteAttachments.file(context.filesDir, name)?.takeIf { it.isFile } ?: continue
+        if (name !in there) {
+            val mime = when (name.substringAfterLast('.')) {
+                "png" -> "image/png"
+                "webp" -> "image/webp"
+                else -> "image/jpeg"
+            }
+            val doc = DocumentsContract.createDocument(resolver, target, mime, name) ?: continue
+            runCatching { resolver.requireOutputStream(doc, "w").use { sink -> file.inputStream().use { it.copyTo(sink) } } }.getOrNull() ?: continue
+        }
+        out[name] = (prefix + name).replace(" ", "%20")
+    }
+    return out
+}
+
+/** The vault's attachment folder setting from `.obsidian/app.json`, `/` (the vault's top) when there is none. */
+private fun vaultAttachmentSetting(context: android.content.Context, tree: Uri, root: Uri): String {
+    val config = childDocuments(context, tree, DocumentsContract.getDocumentId(root))[".obsidian"] ?: return "/"
+    val app = childDocuments(context, tree, DocumentsContract.getDocumentId(config))["app.json"] ?: return "/"
+    val text = runCatching { context.contentResolver.readBytesCapped(app)?.let { String(it) } }.getOrNull() ?: return "/"
+    return runCatching { org.json.JSONObject(text).optString("attachmentFolderPath", "/") }.getOrNull()?.ifBlank { "/" } ?: "/"
 }
 
 /** The documents directly under [parentId], by display name. */
@@ -654,6 +706,20 @@ private suspend fun importNotes(context: android.content.Context, state: NotesSc
     val notes = withContext(Dispatchers.IO) {
         uris.flatMap { uri ->
             val name = WMFileTypes.displayName(context, uri)
+            // A zip, such as this screen's own export: its notes, and the
+            // pictures in its attachments folder kept beside them (#1586).
+            if (name.endsWith(".zip", ignoreCase = true) || context.contentResolver.getType(uri) == NoteFiles.ZIP_MIME) {
+                val files = context.filesDir
+                val read = runCatching {
+                    context.contentResolver.requireInputStream(uri).use { input ->
+                        NoteFiles.readZip(input.buffered()) { picture, bytes ->
+                            com.wasimaster.wmkeyboard.core.notes.NoteAttachments.adopt(files, picture, bytes)
+                        }
+                    }
+                }.getOrNull()
+                if (read == null) skipped++
+                return@flatMap read.orEmpty()
+            }
             if (!NoteFiles.isNoteFile(name)) {
                 skipped++
                 return@flatMap emptyList()

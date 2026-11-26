@@ -288,17 +288,24 @@ private fun BlockText(
     val inline = text.inlineContent(math, color)
     val lines = text.lineHeight(math, fontSize, lineHeight)
     if (selectable) {
-        // No layout to draw a wave under here: a styled underline is a plain one.
-        val shown = if (text.underlines.isEmpty()) {
-            text.text
-        } else {
-            remember(text) {
-                AnnotatedString.Builder(text.text).apply {
-                    for (u in text.underlines) addStyle(SpanStyle(textDecoration = TextDecoration.Underline), u.start, u.end)
-                }.toAnnotatedString()
+        // The styled underlines (#1586) drawn from the selectable text's own layout.
+        val underline: (androidx.compose.ui.graphics.drawscope.DrawScope.(androidx.compose.ui.text.TextLayoutResult) -> Unit)? =
+            if (text.underlines.isEmpty()) {
+                null
+            } else {
+                { l -> with(NoteRichStyle) { for (u in text.underlines) drawStyledUnderline(l, u.start, u.end, u.style, u.color ?: color) } }
             }
-        }
-        SelectableText(shown, color, fontSize, lineHeight = lines, fontWeight = fontWeight, ask = ask, onTap = onTap, inlineContent = inline)
+        SelectableText(
+            text.text,
+            color,
+            fontSize,
+            lineHeight = lines,
+            fontWeight = fontWeight,
+            ask = ask,
+            onTap = onTap,
+            inlineContent = inline,
+            decorations = underline,
+        )
     } else if (text.underlines.isEmpty()) {
         Text(text.text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lines, inlineContent = inline)
     } else {

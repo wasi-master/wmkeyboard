@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -710,6 +711,11 @@ internal fun SelectableText(
     /** Inline formulas (#811) drawn in the text's placeholders; a selection takes their plain text. */
     inlineContent: Map<String, InlineTextContent> = emptyMap(),
     onWordTap: ((String) -> Unit)? = null,
+    /**
+     * Drawn behind the text from its layout: a note's wavy, dotted, dashed or
+     * double underlines (#1586), which no span style can draw.
+     */
+    decorations: (androidx.compose.ui.graphics.drawscope.DrawScope.(TextLayoutResult) -> Unit)? = null,
 ) {
     val text = styled.text
     val kb = LocalKbTheme.current
@@ -746,6 +752,13 @@ internal fun SelectableText(
                 overlay?.moved(owner)
             }
             .selectionHighlight(text, start, end, kb.accent.copy(alpha = HighlightAlpha)) { layoutState.value }
+            .then(
+                if (decorations == null) {
+                    Modifier
+                } else {
+                    Modifier.drawBehind { layoutOf()?.let { decorations(this, it) } }
+                },
+            )
             .pointerInput(text) {
                 detectTapGestures(
                     onLongPress = { position ->

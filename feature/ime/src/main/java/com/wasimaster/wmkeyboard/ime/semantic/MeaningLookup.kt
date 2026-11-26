@@ -62,7 +62,7 @@ internal class MeaningLookup(
         }
         for (hit in found(MeaningSpace.NOTES, vector, notes.keys)) {
             val note = notes.getValue(hit.key)
-            val body = note.body.ifBlank { note.tags.joinToString(", ") }
+            val body = com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup.strip(note.body).ifBlank { note.tags.joinToString(", ") }
             hits += AiMeaningHit(AiMeaningSource.NOTE, note.title.ifBlank { null }, AiMeaningFormat.excerpt(body), hit.score, hit.key)
         }
         // A snippet's text is a template; it is read as written, never expanded.

@@ -96,7 +96,19 @@ object NoteFiles {
      * it is. Obsidian takes letters, digits, `_`, `-` and `/` in a tag, so a space
      * in one becomes a dash; the app's own tag is unchanged.
      */
-    fun toObsidian(note: Note): String {
+    fun toObsidian(note: Note): String = toObsidian(note, picture = null)
+
+    /**
+     * [toObsidian] with the note's pictures (#1586) pointed where [picture]
+     * says the vault keeps each one, by file name; an address it gives null
+     * for stays as the note has it.
+     */
+    fun toObsidian(note: Note, picture: ((String) -> String?)?): String {
+        if (picture != null) return toObsidianText(note.copy(body = NoteAttachments.relink(note.body, picture)))
+        return toObsidianText(note)
+    }
+
+    private fun toObsidianText(note: Note): String {
         val out = StringBuilder("---\n")
         val tags = note.tags.map { it.replace(OBSIDIAN_TAG_DROP, "-").trim('-') }.filter { it.isNotEmpty() }
         if (tags.isNotEmpty()) {
@@ -287,19 +299,28 @@ object NoteFiles {
     /**
      * The notes in a zip: every `.md`/`.txt` entry at any depth, folders and
      * other files skipped, capped by [MAX_IMPORT_FILES] and [MAX_IMPORT_BYTES].
+     *
+     * With [onAttachment], the pictures in an `attachments/` folder at any
+     * depth (#1586) go to it, which keeps each one and says the name it went
+     * under; a note's address of a picture kept under another name is
+     * rewritten to it, so the note still shows it. A zip this app wrote
+     * carries its own names and comes back unchanged.
      */
-    fun readZip(input: InputStream, onAttachment: ((name: String, bytes: ByteArray) -> Unit)? = null): List<Note> {
+    fun readZip(input: InputStream, onAttachment: ((name: String, bytes: ByteArray) -> String?)? = null): List<Note> {
         val out = ArrayList<Note>()
+        val renamed = HashMap<String, String>()
         ZipInputStream(input).use { zip ->
+            var pictures = 0
             while (true) {
                 val entry = zip.nextEntry ?: break
                 if (entry.isDirectory) continue
                 val name = entry.name.substringAfterLast('/')
-                // A picture a note shows (#1586), from an `attachments/` folder at any depth.
                 if (onAttachment != null && entry.name.substringBeforeLast('/', "").substringAfterLast('/') == "attachments" &&
-                    NoteAttachments.isName(name)
+                    name.substringAfterLast('.', "").lowercase(Locale.ROOT) in NoteAttachments.IMAGE_EXTENSIONS
                 ) {
-                    readCapped(zip, NoteAttachments.MAX_BYTES)?.let { onAttachment(name, it) }
+                    if (pictures++ >= MAX_IMPORT_FILES) continue
+                    val bytes = readCapped(zip, NoteAttachments.MAX_BYTES) ?: continue
+                    onAttachment(name, bytes)?.let { kept -> if (kept != name) renamed[name] = kept }
                     continue
                 }
                 if (!isNoteFile(name)) continue
@@ -309,7 +330,11 @@ object NoteFiles {
                 out += fromTextParts(name, String(bytes), time)
             }
         }
-        return out
+        if (renamed.isEmpty()) return out
+        return out.map { note ->
+            val body = NoteAttachments.relink(note.body) { name -> renamed[name]?.let { NoteAttachments.URL_PREFIX + it } }
+            if (body == note.body) note else note.copy(body = body)
+        }
     }
 
     /** Whether [fileName] is one this reads as a note. */

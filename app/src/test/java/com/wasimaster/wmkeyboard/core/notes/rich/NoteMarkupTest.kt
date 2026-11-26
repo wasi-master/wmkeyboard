@@ -117,4 +117,11 @@ class NoteMarkupTest {
         assertEquals(plain.indexOf("red"), map[src.indexOf("red")])
         assertEquals(plain.indexOf("b", 6), map[src.lastIndexOf("b")])
     }
+
+    @Test
+    fun `the strip map only grows, through tags and pictures`() {
+        val src = "a <mark>b</mark> ![x](attachments/0123456789abcdef.jpg) <span style=\"color:#e53935\">c</span> d"
+        val (_, map) = NoteMarkup.stripMapped(src)
+        for (i in 1 until map.size) assertTrue("offset $i", map[i] >= map[i - 1])
+    }
 }
