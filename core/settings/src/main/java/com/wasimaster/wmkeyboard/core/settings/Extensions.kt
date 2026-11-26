@@ -52,7 +52,7 @@ enum class Extension(
     /** The notebook in the keyboard and the quick note action. */
     NOTES(
         tools = setOf(ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE),
-        routes = setOf("notes", "notes/edit/{noteId}", "notes/tags", "notes/trash"),
+        routes = setOf("notes", "notes/edit/{noteId}", "notes/edit/{noteId}/add/{kind}", "notes/tags", "notes/trash"),
     ),
 
     /** Vocabulary packs, the word of the day and the nudges. */

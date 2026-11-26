@@ -2390,6 +2390,7 @@ internal object SettingsRowIcons {
         put(R.string.notes_empty_trash_action) { Icons.Outlined.DeleteForever }
         put(R.string.tooldetail_notes_sort_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.tooldetail_notes_markdown_title) { Icons.Outlined.FormatBold }
+        put(R.string.tooldetail_notes_editor_title) { Icons.Outlined.TextFormat }
         put(R.string.tooldetail_notes_keep_toolbar_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.tooldetail_notes_tap_inserts_title) { Icons.Outlined.TouchApp }
         put(R.string.tooldetail_notes_panel_start_title) { Icons.Outlined.FirstPage }

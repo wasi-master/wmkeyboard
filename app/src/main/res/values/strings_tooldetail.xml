@@ -1395,6 +1395,11 @@
     <string name="tooldetail_notes_panel_start_info">What the notes panel shows when you tap the tool on the keyboard: the list of your notes, or the note you edited last, ready to continue. The default is the list.</string>
     <string name="tooldetail_notes_panel_start_list_label">The list of notes</string>
     <string name="tooldetail_notes_panel_start_last_label">The note you edited last</string>
+    <string name="tooldetail_notes_editor_title">Note editor</string>
+    <string name="tooldetail_notes_editor_subtitle">How a note looks while you write it, here and in the keyboard</string>
+    <string name="tooldetail_notes_editor_info">Rich text shows a note the way it reads while you write it: bold is bold, lists have bullets and boxes, and pictures, drawings and tables show in place. It adds text colour, highlight, underline styles, fonts and sizes. Markdown shows the note as plain text with its Markdown signs, with buttons that type them for you. Both edit the same note, so you can switch at any time, and the menu in the editor switches one note for that visit. The default is Rich text.</string>
+    <string name="tooldetail_notes_editor_rich_label">Rich text</string>
+    <string name="tooldetail_notes_editor_markdown_label">Markdown</string>
     <string name="tooldetail_notes_panel_layout_title">Keyboard panel layout</string>
     <string name="tooldetail_notes_panel_layout_subtitle">How the list of notes is laid out in the keyboard</string>
     <string name="tooldetail_notes_panel_layout_info">How the list of notes is drawn in the keyboard. Shelf shows pinned notes as wide cards and the rest in a grid. Timeline shows one row for each note, grouped by day. The default is Shelf.</string>

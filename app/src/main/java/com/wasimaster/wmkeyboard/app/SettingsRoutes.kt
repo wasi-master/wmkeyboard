@@ -172,6 +172,7 @@ internal object SettingsRoutes {
         "homeassistant/entities",
         "notes",
         "notes/edit/{noteId}",
+        "notes/edit/{noteId}/add/{kind}",
         "notes/tags",
         "notes/trash",
         "todo",

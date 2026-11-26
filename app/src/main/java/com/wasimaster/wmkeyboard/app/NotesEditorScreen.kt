@@ -64,7 +64,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Fingerprint
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.notes.Note
+import com.wasimaster.wmkeyboard.core.notes.NoteAttachments
 import com.wasimaster.wmkeyboard.core.notes.NoteChecklist
+import com.wasimaster.wmkeyboard.core.notes.rich.NoteMarkup
+import com.wasimaster.wmkeyboard.core.settings.NoteEditorKind
 import com.wasimaster.wmkeyboard.core.notes.NoteFiles
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.notes.NoteTag
@@ -95,6 +98,8 @@ internal fun NoteEditorScreen(
     noteId: Long,
     onOpenNote: (Long) -> Unit = {},
     onNavigate: (String) -> Unit = {},
+    /** What the keyboard's editor sent the note here to add (#1586): a photo, the camera, a drawing or a scan. */
+    startAdd: String? = null,
     onDone: () -> Unit,
 ) {
     RegisterHidingHeader()
@@ -114,7 +119,7 @@ internal fun NoteEditorScreen(
         LockedNoteGate(onUnlocked = { unlocked = true }, onCancel = onDone)
         return
     }
-    NoteEditorForm(settings, state, initial, onOpenNote, onNavigate, onDone)
+    NoteEditorForm(settings, state, initial, onOpenNote, onNavigate, startAdd, onDone)
 }
 
 /** The fingerprint ask in front of a locked note opened by its route. */
@@ -165,6 +170,7 @@ private fun NoteEditorForm(
     initial: Note?,
     onOpenNote: (Long) -> Unit,
     onNavigate: (String) -> Unit,
+    startAdd: String?,
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -184,6 +190,12 @@ private fun NoteEditorForm(
     var lockInfo by remember { mutableStateOf(false) }
     var savedAt by remember { mutableLongStateOf(0L) }
     var message by remember { mutableStateOf<String?>(null) }
+    // Rich text or Markdown (#1586): the setting, or the other one for this visit from the menu.
+    // Sent here from the keyboard to add a picture, the note opens rich whatever the setting.
+    val editorKind = settings.watch { it.notes.editor }
+    var flipped by rememberSaveable { mutableStateOf(startAdd != null && editorKind == NoteEditorKind.MARKDOWN) }
+    val rich = (editorKind == NoteEditorKind.RICH) != flipped
+    val richController = remember { NoteRichController() }
     val stored = remember(state.active, state.archived, state.trash, id) {
         (state.active + state.archived + state.trash).firstOrNull { it.id == id }
     }
@@ -226,10 +238,15 @@ private fun NoteEditorForm(
         }
     }
 
+    val richTools = if (rich) {
+        rememberNoteRichTools(body, { body = it.take(NoteStore.MAX_BODY_CHARS) }, richController, settings, startAdd)
+    } else {
+        null
+    }
     ResizeForKeyboard()
     Column(modifier = Modifier.imePadding().padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (renderMarkdown) {
+            if (renderMarkdown && !rich) {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(1f)) {
                     SegmentedButton(
                         selected = mode == NoteEditorMode.EDIT,
@@ -276,6 +293,21 @@ private fun NoteEditorForm(
                             }
                         },
                     )
+                    // The other editor for this note, this visit (#1586); the setting decides the next one.
+                    DropdownMenuItem(
+                        text = { Text(stringResource(if (rich) R.string.notes_rich_edit_markdown else R.string.notes_rich_edit_rich)) },
+                        onClick = {
+                            menu = false
+                            richController.values.clear()
+                            flipped = !flipped
+                        },
+                    )
+                    if (rich) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.notes_rich_rearrange)) },
+                            onClick = { menu = false; richTools?.panel = RichPanel.REARRANGE },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.notes_share_md_action)) },
                         onClick = { menu = false; scope.launch { save(); shareNote(context, title, body, tags, NoteFiles.Format.MARKDOWN)?.let { message = it } } },
@@ -327,7 +359,10 @@ private fun NoteEditorForm(
             tags = tags,
             onAddTag = { name -> if (tags.none { it.equals(name, ignoreCase = true) }) tags = tags + name },
         )
-        if (mode == NoteEditorMode.PREVIEW && renderMarkdown) {
+        if (rich) {
+            // The note as it reads, edited in place (#1586).
+            NoteRichBody(body, richController, onBody = { body = it.take(NoteStore.MAX_BODY_CHARS) }, modifier = Modifier.padding(vertical = 4.dp))
+        } else if (mode == NoteEditorMode.PREVIEW && renderMarkdown) {
             Surface(tonalElevation = 1.dp, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                 Box(Modifier.padding(12.dp)) {
                     if (body.isBlank()) {
@@ -341,6 +376,7 @@ private fun NoteEditorForm(
                                 ChatMarkdownColors(text = ink, dim = ink.copy(alpha = 0.65f), codeBackground = ink.copy(alpha = 0.10f), link = MaterialTheme.colorScheme.primary),
                                 fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                                 onTaskToggle = { task -> NoteChecklist.toggleTask(body, task.line)?.let { body = it } },
+                                localImage = { url -> NoteAttachments.file(context.filesDir, url)?.takeIf { it.isFile } },
                             )
                         }
                     }
@@ -397,8 +433,11 @@ private fun NoteEditorForm(
 
     RegisterDock {
         Surface(tonalElevation = 2.dp) {
+          Column {
+            if (richTools != null) NoteRichToolbar(richTools, body)
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                val words = remember(body) { body.split(Regex("""\s+""")).count { it.isNotEmpty() } }
+                // Words, not markup: a coloured word's tags are not words (#1586).
+                val words = remember(body) { NoteMarkup.strip(body).split(Regex("""\s+""")).count { it.isNotEmpty() } }
                 Text(
                     stringResource(
                         R.string.notes_counter,
@@ -415,6 +454,7 @@ private fun NoteEditorForm(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+          }
         }
     }
 
@@ -486,7 +526,8 @@ private fun shareNote(context: Context, title: String, body: String, tags: List<
     val uri = runCatching {
         val dir = File(context.cacheDir, "notes").apply { mkdirs() }
         val file = File(dir, NoteFiles.fileName(note, format, HashSet()))
-        file.writeText(if (format == NoteFiles.Format.MARKDOWN) NoteFiles.toText(note) else body)
+        // As plain text, the words without the rich editor's tags (#1586).
+        file.writeText(if (format == NoteFiles.Format.MARKDOWN) NoteFiles.toText(note) else NoteMarkup.strip(body))
         FileProvider.getUriForFile(context, "${context.packageName}.clipboard", file)
     }.getOrNull() ?: return context.getString(R.string.notes_share_error)
     val intent = Intent(Intent.ACTION_SEND).apply {

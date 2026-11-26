@@ -2211,6 +2211,24 @@ private fun SettingsNavGraph(
                 ) { navController.popBackStack() }
             }
         }
+        // The keyboard's rich editor sends a note here to add a picture (#1586).
+        composable("notes/edit/{noteId}/add/{kind}") { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString("noteId")?.toLongOrNull() ?: 0L
+            val kind = backStackEntry.arguments?.getString("kind")
+            SettingsScreen(
+                stringResource(if (noteId == 0L) R.string.notes_new_title else R.string.notes_edit_title),
+                { navController.popBackStack() },
+                route = noteEditRoute(noteId),
+            ) {
+                NoteEditorScreen(
+                    settings,
+                    noteId,
+                    onOpenNote = { other -> navController.navigate(noteEditRoute(other)) },
+                    onNavigate = { route -> navController.navigate(route) },
+                    startAdd = kind,
+                ) { navController.popBackStack() }
+            }
+        }
         composable("notes/tags") {
             SettingsScreen(stringResource(R.string.notes_tags_title), { navController.popBackStack() }, route = "notes/tags") {
                 NoteTagsScreen(settings)

@@ -88,6 +88,7 @@ import com.wasimaster.wmkeyboard.core.notes.NoteSort
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.notes.NoteTag
 import com.wasimaster.wmkeyboard.core.notes.NoteTagPalette
+import com.wasimaster.wmkeyboard.core.settings.NoteEditorKind
 import com.wasimaster.wmkeyboard.core.settings.NotesPanelLayout
 import com.wasimaster.wmkeyboard.core.settings.NotesPanelStart
 import com.wasimaster.wmkeyboard.core.settings.NotesSettings
@@ -160,7 +161,13 @@ internal fun rememberNotesState(settings: LiveSettings): NotesScreenState? {
     var state by remember { mutableStateOf<NotesScreenState?>(null) }
     val trashDays = settings.watch { it.notes.trashDays }
     LaunchedEffect(Unit) {
-        val store = withContext(Dispatchers.IO) { NoteStore(File(context.filesDir, NoteStore.FILE_PATH)) }
+        val store = withContext(Dispatchers.IO) {
+            NoteStore(File(context.filesDir, NoteStore.FILE_PATH)).also { s ->
+                // Pictures no note shows any more (#1586), once they are a couple of days old.
+                val all = s.items(NoteFilter(NoteShelf.ACTIVE)) + s.items(NoteFilter(NoteShelf.ARCHIVED)) + s.items(NoteFilter(NoteShelf.TRASH))
+                com.wasimaster.wmkeyboard.core.notes.NoteAttachments.sweep(context.filesDir, all.asSequence().map { it.body })
+            }
+        }
         state = NotesScreenState(store).also { it.refresh() }
     }
     LaunchedEffect(state, trashDays) {
@@ -311,7 +318,11 @@ internal fun NotesListScreen(
         scope.launch {
             val count = withContext(Dispatchers.IO) {
                 runCancellable {
-                    context.contentResolver.requireOutputStream(uri).use { NoteFiles.writeZip(notes, NoteFiles.Format.MARKDOWN, it) }
+                    // The notes' pictures go in an attachments/ folder beside them (#1586).
+                    val files = context.filesDir
+                    context.contentResolver.requireOutputStream(uri).use {
+                        NoteFiles.writeZip(notes, NoteFiles.Format.MARKDOWN, it) { ref -> com.wasimaster.wmkeyboard.core.notes.NoteAttachments.file(files, ref) }
+                    }
                     notes.size
                 }.getOrNull()
             }
@@ -1213,6 +1224,20 @@ internal fun NotesToolSettings(
         }
     }
     SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.STANDARD) {
+        // Rich text or Markdown (#1586); the stored note is the same Markdown either way.
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_notes_editor_title,
+                subtitle = stringResource(R.string.tooldetail_notes_editor_subtitle),
+                options = listOf(
+                    NoteEditorKind.RICH to stringResource(R.string.tooldetail_notes_editor_rich_label),
+                    NoteEditorKind.MARKDOWN to stringResource(R.string.tooldetail_notes_editor_markdown_label),
+                ),
+                selected = settings.watch { it.notes.editor },
+                default = d.editor,
+                info = stringResource(R.string.tooldetail_notes_editor_info),
+            ) { scope.launch { repository.setNotesEditor(it) } }
+        }
         item {
             ChoiceSetting(
                 R.string.tooldetail_notes_sort_title,

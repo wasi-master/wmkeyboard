@@ -21,6 +21,8 @@
     <!-- The Send files tool: field text saved as a file to upload, and copies made for sending. -->
     <cache-path name="send" path="send/" />
     <cache-path name="notes_share" path="notes/" />
+    <!-- A note's Camera button (#1586): where the camera app writes the shot before it is scaled into the note. -->
+    <cache-path name="notes_camera" path="notes_camera/" />
     <!-- The AI chat's Photo button (#882): where the camera app writes the shot. -->
     <cache-path name="ai_chat_camera" path="ai_chat_camera/" />
     <!-- An AI chat answer shared as a Markdown file or a PDF. -->
