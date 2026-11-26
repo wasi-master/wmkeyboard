@@ -5746,10 +5746,33 @@ class SuggestionEngine(
             .let { words ->
                 if (exact && phoneticPick(language, composing) == null) words.sortedByDescending { it == phonetic } else words
             }
-        val plain = (listed.asSequence() + rest.asSequence()).filterNot(::suppressed).toList()
+        val ruled = (listed.asSequence() + rest.asSequence()).filterNot(::suppressed).toList()
+        // #1567: the user's own words the spelling folds to. A word they
+        // taught in a spelling the rules do not write (রহমাতুল্লাহি where
+        // "rohmatullahi" reads রহ্মাতুল্লাহি) is in no list, so the fold above
+        // never met it, and only a prefix of the reading found the user's
+        // words: the word came back once the commit was reopened in Bangla,
+        // never while it was being typed. Offered after the head; it is the
+        // head itself when the head is no word of the list and the user has
+        // used theirs more (or moved it up).
+        val own = if (exact || listed.isNotEmpty()) emptyList() else ownPhoneticSiblings(backend, composing, rebuild = limit > 1)
+        val ownLeads = own.isNotEmpty() && phoneticPick(language, composing) == null &&
+            ruled.firstOrNull().let { head ->
+                head == null || (
+                    index.frequencyOf(head) == 0 &&
+                        userLexicon.isEstablished(own[0], PHONETIC_OWN_WORD_MIN_COUNT) &&
+                        ownWordScore(own[0]) > ownWordScore(head)
+                    )
+            }
+        val plain = when {
+            own.isEmpty() -> ruled
+            ownLeads -> (own + ruled).distinct()
+            else -> (ruled.take(1) + own + ruled.drop(1)).distinct()
+        }
         // Whatever the map or an earlier pick says about the buffer is an
-        // answer, and so is a recognised ending. Nothing there to correct.
-        val settled = exact || listed.isNotEmpty() || hasEnding || phoneticPick(language, composing) != null
+        // answer, and so is a recognised ending or the user's own word.
+        // Nothing there to correct.
+        val settled = exact || listed.isNotEmpty() || hasEnding || ownLeads || phoneticPick(language, composing) != null
         val fix = if (settled) {
             null
         } else {
@@ -5819,6 +5842,60 @@ class SuggestionEngine(
             i++
         }
         return out.toString()
+    }
+
+    /** The user's native-script words of one phonetic language, filed by the index's key. */
+    private class OwnPhoneticWords(
+        val language: String,
+        val index: PhoneticIndex,
+        val mutations: Long,
+        val byKey: Map<String, List<String>>,
+    )
+
+    @Volatile
+    private var ownPhoneticWords: OwnPhoneticWords? = null
+
+    /**
+     * The user's own words in [backend]'s script that [composing] folds to the
+     * same key as ([PhoneticIndex.wordKey]), most used first: the siblings a
+     * word list would have given, had it held them (#1567). Empty for an index
+     * with no such key.
+     *
+     * Filed once per change to the lexicon, not per keystroke. [rebuild] false
+     * (the main thread's commit preview) takes the filing as it stands, since
+     * the strip's own pass on the worker refiles it first.
+     */
+    private fun ownPhoneticSiblings(backend: PhoneticBackend, composing: String, rebuild: Boolean): List<String> {
+        val index = backend.index
+        val key = index.inputKey(composing)?.takeIf { it.isNotEmpty() } ?: return emptyList()
+        val language = backend.scheme.languageId
+        val mutations = userLexicon.mutationCount()
+        var filed = ownPhoneticWords?.takeIf { it.language == language && it.index === index }
+        if (filed == null || (rebuild && filed.mutations != mutations)) {
+            if (!rebuild && filed == null) return emptyList()
+            filed = fileOwnPhoneticWords(backend, mutations).also { ownPhoneticWords = it }
+        }
+        val words = filed.byKey[key] ?: return emptyList()
+        return words.filterNot(::suppressed)
+            .sortedWith(compareByDescending<String> { ownWordScore(it) }.thenBy { it })
+    }
+
+    private fun fileOwnPhoneticWords(backend: PhoneticBackend, mutations: Long): OwnPhoneticWords {
+        val index = backend.index
+        val isNative = backend.scheme.isNative
+        val byKey = HashMap<String, MutableList<String>>()
+        for ((word, _) in userLexicon.allWords()) {
+            if (word.isEmpty() || !word.all { isNative(it) || it == '‌' || it == '‍' }) continue
+            val key = index.wordKey(word)?.takeIf { it.isNotEmpty() } ?: continue
+            byKey.getOrPut(key) { ArrayList(1) }.add(word)
+        }
+        return OwnPhoneticWords(backend.scheme.languageId, index, mutations, byKey)
+    }
+
+    /** How strongly the user holds [word] as their own: its uses, moved by its rank adjustment. */
+    private fun ownWordScore(word: String): Double {
+        val count = userLexicon.frequencyOf(word)
+        return if (count <= 0) Double.NEGATIVE_INFINITY else ln(1.0 + count) + rankOffset(word)
     }
 
     /** Tuning hook for [nearestLiteral]'s weight per edit. */

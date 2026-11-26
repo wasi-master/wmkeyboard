@@ -38,6 +38,16 @@ interface PhoneticIndex {
      */
     fun lookupSpelledOtherwise(input: String): List<String> = emptyList()
 
+    /**
+     * The key [lookup] files a native-script [word] under, so a word no list
+     * holds (one the user taught) can be met by the same typing a listed
+     * sibling is. Null where the index cannot say; [inputKey] is then null too.
+     */
+    fun wordKey(word: String): String? = null
+
+    /** The key [lookup] reads the romanized [input] under; see [wordKey]. */
+    fun inputKey(input: String): String? = null
+
     /** Dictionary frequency of a native-script [word], 0 when unknown. */
     fun frequencyOf(word: String): Int
 

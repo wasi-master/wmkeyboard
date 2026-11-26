@@ -72,6 +72,43 @@ class PhoneticStripCompletionsTest {
         assertTrue("বাংলাদেশ" in engine.strip("bangl"))
     }
 
+    /** #1567: a word the user taught in a spelling the rules do not write is found while it is typed. */
+    @Test
+    fun `the user's own word the spelling folds to is offered while typing`() {
+        val lexicon = UserLexicon(null).apply { learnWord("রহমাতুল্লাহি", count = 1, langId = "bn") }
+        val engine = SuggestionEngine(Trie(), bangla, lexicon).apply {
+            primaryLanguageId = "bn"
+            englishSources = false
+        }
+        val strip = engine.strip("rohmatullahi")
+        assertTrue(strip.toString(), "রহমাতুল্লাহি" in strip)
+        // Typed once is not yet the user's spelling: the reading still commits.
+        assertEquals("রহ্মাতুল্লাহি", strip.first())
+    }
+
+    @Test
+    fun `an established own word leads a reading no list holds`() {
+        val lexicon = UserLexicon(null).apply { learnWord("রহমাতুল্লাহি", count = 3, langId = "bn") }
+        val engine = SuggestionEngine(Trie(), bangla, lexicon).apply {
+            primaryLanguageId = "bn"
+            englishSources = false
+        }
+        assertEquals("রহমাতুল্লাহি", engine.strip("rohmatullahi").first())
+        assertEquals("রহমাতুল্লাহি", engine.phoneticCommit("bn", "rohmatullahi")!!.output)
+    }
+
+    @Test
+    fun `an own word never takes the head from a listed reading`() {
+        val lexicon = UserLexicon(null).apply { learnWord("আমী", count = 5, langId = "bn") }
+        val engine = SuggestionEngine(Trie(), bangla, lexicon).apply {
+            primaryLanguageId = "bn"
+            englishSources = false
+        }
+        val strip = engine.strip("ami")
+        assertEquals("আমি", strip.first())
+        assertTrue(strip.toString(), "আমী" in strip)
+    }
+
     @Test
     fun `off when asked for none`() {
         val engine = engine(bangla).apply { phoneticCompletionCount = 0 }

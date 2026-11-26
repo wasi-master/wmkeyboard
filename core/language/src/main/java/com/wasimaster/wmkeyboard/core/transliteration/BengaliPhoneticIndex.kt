@@ -216,6 +216,10 @@ class BengaliPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
      * twice (the bundled list and an imported one) answers with its higher
      * frequency.
      */
+    override fun wordKey(word: String): String = foldBengali(word)
+
+    override fun inputKey(input: String): String = foldRoman(input)
+
     override fun frequencyOf(word: String): Int = table.frequencyOf(word)
 
     override fun weightOf(input: String, word: String): Double {
