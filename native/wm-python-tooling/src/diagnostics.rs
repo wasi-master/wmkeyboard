@@ -178,9 +178,21 @@ pub enum Fix {
     Setting(String),
 }
 
+/// A path as the person who wrote it reads it. The API model keeps the API 5
+/// package under `wm5`, so a message would say `wm5.ui.lable`; people write
+/// `wm.ui.lable`. Every argument goes through here, so the app, the web editor
+/// and wmpy all show `wm`.
+fn shown(arg: &str) -> String {
+    match arg.strip_prefix(crate::package::ROOT) {
+        Some("") => "wm".to_string(),
+        Some(rest) if rest.starts_with('.') => format!("wm{rest}"),
+        _ => arg.to_string(),
+    }
+}
+
 impl Diagnostic {
     pub fn new(code: Code, span: Span, args: &[&str]) -> Diagnostic {
-        Diagnostic { code, span, args: args.iter().map(|s| s.to_string()).collect(), fix: None }
+        Diagnostic { code, span, args: args.iter().map(|s| shown(s)).collect(), fix: None }
     }
 
     pub fn severity(&self) -> Severity {
