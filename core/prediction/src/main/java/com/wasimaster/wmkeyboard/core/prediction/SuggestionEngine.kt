@@ -2308,10 +2308,16 @@ class SuggestionEngine(
             openHead = openHead,
             openTail = openTail,
         )
-        val first = decodeTo(if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL)
+        val freqWeight = (tuning ?: languageTuning).freqWeight
+        // Learned words held to a bounded lift over their listed frequency
+        // whenever the lists compete at all (#1584); a sandboxed decode is
+        // the user's words alone and has nothing to lift them over.
+        fun capped(list: List<GlideBeam.Candidate>) =
+            if (tiers == null && romanization.isEmpty) capLearnedLift(list, sources, freqWeight) else list
+        val first = capped(decodeTo(if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL))
         // A close call is where the context model can still change the answer,
         // so only those pay for the wider pool (#1016).
-        val decoded = if (!deep && contextModel != null && glideIsClose(first)) decodeTo(GLIDE_DEEP_POOL) else first
+        val decoded = if (!deep && contextModel != null && glideIsClose(first)) capped(decodeTo(GLIDE_DEEP_POOL)) else first
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,
             previousWord, previousWord2, previousWord3, recentWords, slips, phrase,
@@ -2485,8 +2491,9 @@ class SuggestionEngine(
             partial = partial,
         )
         if (partial) return decoded.filterNot(::unprovenJoin).take(limit)
+        val capped = if (romanization.isEmpty) capLearnedLift(decoded, sources, languageTuning.freqWeight) else decoded
         return finishGlide(
-            withApostrophes(decoded, romanization), romanization, limit,
+            withApostrophes(capped, romanization), romanization, limit,
             previousWord, previousWord2, previousWord3, recentWords, slips = true,
         )
     }
@@ -2505,6 +2512,66 @@ class SuggestionEngine(
         if (word.length < MIN_JOINED_LENGTH || !word.all(Char::isLetter)) return false
         val lower = word.lowered()
         return !lexicon.contains(lower) && !glideTriggers.contains(lower) && !isKnownWord(word)
+    }
+
+    /**
+     * [decoded] with each learned word held to [GLIDE_LEARNED_LIFT] nats over
+     * the score the word lists give it (#1584).
+     *
+     * Glide shares [walkSources] with typing, and there the personal lexicon
+     * rides at [USER_WORD_WEIGHT], ln 500 ≈ 6.2 nats over a list's own count,
+     * so that a typed prefix completes to the user's word at once. A stroke
+     * is far weaker evidence than a prefix, and on the decoder's scale (the
+     * real-swipe fit put shape at 0.5 nats per unit) that lift outvoted a
+     * clearly better fit: with "very" written often, a clean "cry" stroke
+     * came back "very", and "resulted" came back as the learned "results".
+     * Every word then read like Prefer my words, whose whole difference is
+     * putting the user's words first. A word the lists also hold now keeps
+     * its listed score plus a nudge that settles a near tie its way; a word
+     * only the user has (a name, a snippet trigger) keeps its weight, or it
+     * could not be glided at all. Look-ahead guesses are held the same way.
+     */
+    private fun capLearnedLift(
+        decoded: List<GlideBeam.Candidate>,
+        sources: List<FuzzyBeamSearch.WalkSource>,
+        freqWeight: Double,
+    ): List<GlideBeam.Candidate> {
+        if (decoded.none { it.tier == FuzzyBeamSearch.Tier.USER }) return decoded
+        var moved = false
+        val held = decoded.map { c ->
+            if (c.tier != FuzzyBeamSearch.Tier.USER || c.score.isInfinite()) return@map c
+            var learned = Double.NEGATIVE_INFINITY
+            var listed = Double.NEGATIVE_INFINITY
+            for (src in sources) {
+                val frequency = wordFrequencyIn(src.walker, c.word)
+                if (frequency <= 0) continue
+                // The decoder's own frequency term for this source.
+                val term = src.rankWeight + freqWeight * src.scale.ln1p(frequency)
+                if (src.tier == FuzzyBeamSearch.Tier.USER) {
+                    learned = maxOf(learned, term)
+                } else {
+                    listed = maxOf(listed, term)
+                }
+            }
+            val excess = learned - (listed + GLIDE_LEARNED_LIFT)
+            if (listed.isInfinite() || learned.isInfinite() || excess <= 0.0) {
+                c
+            } else {
+                moved = true
+                GlideBeam.Candidate(c.word, c.score - excess, c.shapeCost, c.tier, c.ahead)
+            }
+        }
+        return if (moved) held.sortedByDescending { it.score } else decoded
+    }
+
+    /** [word]'s stored frequency in [walker], 0 when it is not a word there. */
+    private fun wordFrequencyIn(walker: TrieWalker, word: String): Int {
+        var node = walker.root
+        for (ch in word) {
+            node = walker.child(node, ch)
+            if (node < 0) return 0
+        }
+        return if (walker.isWord(node)) walker.frequency(node) else 0
     }
 
     /** Whether the decoder's top two readings of a stroke sit within [GLIDE_CLOSE_GAP]. */
@@ -3538,6 +3605,15 @@ class SuggestionEngine(
 
         /** Learned words get a large boost so personalization wins quickly. */
         private const val USER_WORD_WEIGHT = 500
+
+        /**
+         * The most a learned word's glide score may stand over the word
+         * lists' score for the same word, in nats (#1584): about e times its
+         * listed frequency, two units of alignment cost at the fitted shape
+         * weight. Enough to settle a near tie for the user's word, never a
+         * stroke that fits another word clearly better.
+         */
+        private const val GLIDE_LEARNED_LIFT = 1.0
 
         /**
          * Imported word lists usually carry no frequency column, so every
