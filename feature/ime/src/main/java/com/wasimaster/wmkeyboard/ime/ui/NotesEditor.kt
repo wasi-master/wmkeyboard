@@ -51,6 +51,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Title
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatStrikethrough
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HorizontalRule
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.core.notes.SuggestedNoteTag
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
@@ -58,6 +62,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.NoteEdit
 import com.wasimaster.wmkeyboard.ime.NoteEditField
 import com.wasimaster.wmkeyboard.ime.NoteMarkdownAction
+import com.wasimaster.wmkeyboard.ime.NotesLogic
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 
@@ -151,7 +156,7 @@ internal fun NotesEditor(
         }
         if (extrasShown || !short) {
             Spacer(Modifier.height(4.dp))
-            MarkdownHelperRow(edit, callbacks)
+            MarkdownHelperRow(state, edit, callbacks)
             if (state.notes.quick) {
                 Spacer(Modifier.height(4.dp))
                 QuickNoteRow(state, edit, callbacks)
@@ -250,27 +255,50 @@ private fun NoteTagRow(state: KeyboardUiState, edit: NoteEdit, callbacks: NotesC
  * long-press menu to paste from, and a paste key may not be on the layout.
  */
 @Composable
-private fun MarkdownHelperRow(edit: NoteEdit, callbacks: NotesCallbacks) {
+private fun MarkdownHelperRow(state: KeyboardUiState, edit: NoteEdit, callbacks: NotesCallbacks) {
     val kb = LocalKbTheme.current
     val actions = listOf(
         Triple(NoteMarkdownAction.BOLD, Icons.Outlined.FormatBold, R.string.ime_notes_md_bold_desc),
         Triple(NoteMarkdownAction.ITALIC, Icons.Outlined.FormatItalic, R.string.ime_notes_md_italic_desc),
+        Triple(NoteMarkdownAction.STRIKE, Icons.Outlined.FormatStrikethrough, R.string.ime_notes_md_strike_desc),
         Triple(NoteMarkdownAction.BULLET, Icons.Outlined.FormatListBulleted, R.string.ime_notes_md_bullet_desc),
         Triple(NoteMarkdownAction.NUMBERED, Icons.Outlined.FormatListNumbered, R.string.ime_notes_md_numbered_desc),
         Triple(NoteMarkdownAction.TASK, Icons.Outlined.CheckBoxOutlineBlank, R.string.ime_notes_md_task_desc),
         Triple(NoteMarkdownAction.HEADING, Icons.Outlined.Title, R.string.ime_notes_md_heading_desc),
+        Triple(NoteMarkdownAction.SUBHEADING, Icons.Outlined.TextFields, R.string.ime_notes_md_subheading_desc),
         Triple(NoteMarkdownAction.QUOTE, Icons.Outlined.FormatQuote, R.string.ime_notes_md_quote_desc),
         Triple(NoteMarkdownAction.CODE, Icons.Outlined.Code, R.string.ime_notes_md_code_desc),
+        Triple(NoteMarkdownAction.DIVIDER, Icons.Outlined.HorizontalRule, R.string.ime_notes_md_divider_desc),
+        Triple(NoteMarkdownAction.TABLE, Icons.Outlined.GridOn, R.string.ime_notes_md_table_desc),
     )
     val words = remember(edit.bodyDraft) { edit.bodyDraft.split(Regex("""\s+""")).count { it.isNotEmpty() } }
+    // A line that is only `/name` (#1586): the row lists the block styles
+    // whose names start with what follows the slash, and a pick takes the
+    // `/name` away. Nothing matching, the row stays as it is.
+    val slash = state.captureCaretText()?.takeIf { edit.focused == NoteEditField.BODY }?.let(NotesLogic::slashQuery)
+    val labelled = actions.map { (action, icon, descRes) -> Triple(action, icon, stringResource(descRes)) }
+    val slashMatches = slash?.let { query ->
+        labelled.filter { (action, _, label) ->
+            action != NoteMarkdownAction.BOLD && action != NoteMarkdownAction.ITALIC &&
+                action != NoteMarkdownAction.STRIKE && action != NoteMarkdownAction.CODE &&
+                label.split(' ').any { it.startsWith(query, ignoreCase = true) }
+        }
+    }.orEmpty()
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Row(
             modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            ToolPanelChip(stringResource(R.string.ime_notes_paste_desc), icon = Icons.Outlined.ContentPaste) { callbacks.onPaste() }
-            for ((action, icon, descRes) in actions) {
-                ToolPanelChip(stringResource(descRes), icon = icon) { callbacks.onMarkdown(action) }
+            if (slashMatches.isNotEmpty()) {
+                for ((action, icon, label) in slashMatches) {
+                    // Words as well as the icon: a menu read by name.
+                    ToolPanelChip(label, selected = true, mark = icon, markLabel = label) { callbacks.onSlash(action) }
+                }
+            } else {
+                ToolPanelChip(stringResource(R.string.ime_notes_paste_desc), icon = Icons.Outlined.ContentPaste) { callbacks.onPaste() }
+                for ((action, icon, label) in labelled) {
+                    ToolPanelChip(label, icon = icon) { callbacks.onMarkdown(action) }
+                }
             }
         }
         Spacer(Modifier.width(8.dp))

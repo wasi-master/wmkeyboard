@@ -181,7 +181,7 @@ data class NotesPanelUi(
 }
 
 /** The Markdown the editor's helper row inserts around the caret. */
-enum class NoteMarkdownAction { BOLD, ITALIC, BULLET, NUMBERED, TASK, HEADING, QUOTE, CODE }
+enum class NoteMarkdownAction { BOLD, ITALIC, STRIKE, BULLET, NUMBERED, TASK, HEADING, SUBHEADING, QUOTE, CODE, DIVIDER, TABLE }
 
 object NotesLogic {
 
@@ -356,6 +356,10 @@ object NotesLogic {
         NoteMarkdownAction.BOLD -> wrap(text, "**")
         NoteMarkdownAction.ITALIC -> wrap(text, "_")
         NoteMarkdownAction.CODE -> wrap(text, "`")
+        NoteMarkdownAction.STRIKE -> wrap(text, "~~")
+        NoteMarkdownAction.SUBHEADING -> prefixLines(text) { if (it.startsWith("## ")) it.substring(3) else "## $it" }
+        NoteMarkdownAction.DIVIDER -> block(text, "---")
+        NoteMarkdownAction.TABLE -> block(text, TABLE_TEMPLATE)
         NoteMarkdownAction.BULLET -> prefixLines(text) { if (it.startsWith("- ")) it.substring(2) else "- $it" }
         NoteMarkdownAction.TASK -> prefixLines(text) {
             when {
@@ -368,6 +372,52 @@ object NotesLogic {
         NoteMarkdownAction.HEADING -> prefixLines(text) { if (it.startsWith("# ")) it.substring(2) else "# $it" }
         NoteMarkdownAction.QUOTE -> prefixLines(text) { if (it.startsWith("> ")) it.substring(2) else "> $it" }
         NoteMarkdownAction.NUMBERED -> numberLines(text)
+    }
+
+    /**
+     * What follows a `/` the caret's line starts with (#1586), when the line
+     * is nothing else: "" for a lone `/`, "head" for `/head`. The editor's chip
+     * row then lists the block styles that name matches, the way a slash opens
+     * a menu in other notes apps. Null otherwise, so a path like `/home/me`,
+     * or a slash inside a sentence, types as it always has.
+     */
+    fun slashQuery(text: CaretText): String? {
+        if (text.hasSelection) return null
+        val start = text.text.lastIndexOf('
+', text.at - 1) + 1
+        val typed = text.text.substring(start, text.at)
+        if (!typed.startsWith("/") || typed.length > SLASH_QUERY_MAX + 1) return null
+        val query = typed.substring(1)
+        return query.takeIf { q -> q.all { it.isLetter() } }
+    }
+
+    /** [action] picked from the slash list: the `/` and what was typed after it go, then the style goes on the line. */
+    fun applySlash(text: CaretText, action: NoteMarkdownAction): CaretText {
+        val query = slashQuery(text) ?: return applyMarkdown(text, action)
+        val slashAt = text.at - query.length - 1
+        val cleared = CaretText(text.text.substring(0, slashAt) + text.text.substring(text.at), slashAt)
+        return applyMarkdown(cleared, action)
+    }
+
+    /** Longest name typed after a slash that still counts as asking for the list. */
+    private const val SLASH_QUERY_MAX = 16
+
+    /** A two-column table to fill in, the shape the read view draws as a table. */
+    private const val TABLE_TEMPLATE = "|  |  |\n| --- | --- |\n|  |  |"
+
+    /**
+     * [lines] on lines of their own at the caret: a line break before them
+     * unless the caret starts a line, and after them unless it ends one. The
+     * caret lands in the first cell of a table, else after the block.
+     */
+    private fun block(text: CaretText, lines: String): CaretText {
+        val base = text.withoutSelection()
+        val at = base.at
+        val before = if (at > 0 && base.text[at - 1] != '\n') "\n" else ""
+        val after = if (at < base.text.length && base.text[at] != '\n') "\n" else ""
+        val out = base.text.substring(0, at) + before + lines + after + base.text.substring(at)
+        val caret = if (lines.startsWith("| ")) at + before.length + 2 else at + before.length + lines.length
+        return CaretText(out, caret)
     }
 
     /**

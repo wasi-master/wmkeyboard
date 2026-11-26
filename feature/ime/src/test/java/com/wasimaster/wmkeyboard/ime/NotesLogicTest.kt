@@ -52,6 +52,21 @@ class NotesLogicTest {
     }
 
     @Test
+    fun `a slash alone on its line asks for the block list, and a pick replaces it`() {
+        assertEquals("", NotesLogic.slashQuery(caret("intro\n/")))
+        assertEquals("head", NotesLogic.slashQuery(caret("/head")))
+        assertEquals(null, NotesLogic.slashQuery(caret("/home/me")))
+        assertEquals(null, NotesLogic.slashQuery(caret("a /b")))
+        val heading = NotesLogic.applySlash(caret("intro\n/head"), NoteMarkdownAction.HEADING)
+        assertEquals("intro\n# ", heading.text)
+        val table = NotesLogic.applySlash(caret("x\n/tab"), NoteMarkdownAction.TABLE)
+        assertEquals("x\n|  |  |\n| --- | --- |\n|  |  |", table.text)
+        assertEquals(4, table.at)
+        val divider = NotesLogic.applyMarkdown(caret("ab", at = 1), NoteMarkdownAction.DIVIDER)
+        assertEquals("a\n---\nb", divider.text)
+    }
+
+    @Test
     fun `inline markdown wraps a selection, unwraps one already wrapped, and opens a pair at the caret`() {
         val wrapped = NotesLogic.applyMarkdown(caret("say hello now", at = 9, anchor = 4), NoteMarkdownAction.BOLD)
         assertEquals("say **hello** now", wrapped.text)

@@ -55930,6 +55930,7 @@ open class WMKeyboardService : InputMethodService() {
         onEditDone = ::onNoteEditDone,
         onEditCancel = ::onNoteEditCancel,
         onMarkdown = ::onNoteMarkdown,
+        onSlash = ::onNoteSlash,
         onPaste = ::onNotePaste,
         onTagToggle = ::onNoteTagToggle,
         onTagPickerToggle = ::onNoteTagPickerToggle,
@@ -56373,6 +56374,14 @@ open class WMKeyboardService : InputMethodService() {
         val before = _uiState.value.captureCaretText() ?: return
         vibrate()
         captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.applyMarkdown(before, action))
+    }
+
+    /** A block style from the slash list (#1586): `/name` off the line, then the style on it. */
+    fun onNoteSlash(action: NoteMarkdownAction) {
+        if (_uiState.value.captureTarget() != CaptureTarget.NOTE_BODY) return
+        val before = _uiState.value.captureCaretText() ?: return
+        vibrate()
+        captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.applySlash(before, action))
     }
 
     /**

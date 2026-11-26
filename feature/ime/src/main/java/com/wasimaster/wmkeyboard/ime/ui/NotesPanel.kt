@@ -163,6 +163,8 @@ data class NotesCallbacks(
     val onEditDone: () -> Unit = {},
     val onEditCancel: () -> Unit = {},
     val onMarkdown: (NoteMarkdownAction) -> Unit = {},
+    /** A block style picked from the slash list (#1586): the typed `/name` goes first. */
+    val onSlash: (NoteMarkdownAction) -> Unit = {},
     /** The editor's Paste chip: the clipboard's text into the body at the caret. */
     val onPaste: () -> Unit = {},
     /** A tag on or off a note; the palette index is what a suggested tag is born with. */

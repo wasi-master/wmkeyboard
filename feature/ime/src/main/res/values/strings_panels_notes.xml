@@ -97,6 +97,10 @@
     <string name="ime_notes_md_heading_desc">Heading</string>
     <string name="ime_notes_md_quote_desc">Quote</string>
     <string name="ime_notes_md_code_desc">Code</string>
+    <string name="ime_notes_md_strike_desc">Strikethrough</string>
+    <string name="ime_notes_md_subheading_desc">Subheading</string>
+    <string name="ime_notes_md_divider_desc">Divider</string>
+    <string name="ime_notes_md_table_desc">Table</string>
     <string name="ime_notes_tag_row_desc">Tags</string>
     <string name="ime_notes_saved_toast">Saved to Notes</string>
     <string name="ime_notes_appended_toast">Added to your last note</string>
