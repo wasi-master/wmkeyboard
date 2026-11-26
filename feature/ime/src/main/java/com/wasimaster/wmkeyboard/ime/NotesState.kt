@@ -383,8 +383,7 @@ object NotesLogic {
      */
     fun slashQuery(text: CaretText): String? {
         if (text.hasSelection) return null
-        val start = text.text.lastIndexOf('
-', text.at - 1) + 1
+        val start = text.text.lastIndexOf('\n', text.at - 1) + 1
         val typed = text.text.substring(start, text.at)
         if (!typed.startsWith("/") || typed.length > SLASH_QUERY_MAX + 1) return null
         val query = typed.substring(1)
