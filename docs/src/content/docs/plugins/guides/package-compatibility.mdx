@@ -1,0 +1,77 @@
+---
+title: "Which PyPI packages work"
+description: "Every week wmpy checks the most downloaded PyPI packages, and the ones plugin authors ask for, against the keyboard's Python. See which load, what stops the rest, and which missing features block the most."
+sidebar:
+  label: "Which packages work"
+  order: 5.115
+---
+
+import PypiCompat from '@components/PypiCompat.astro';
+
+Before you try to [vendor a package](/plugins/guides/python-packages/), you
+can look it up here. Once a week a job runs `wmpy pip check` on the 500 most
+downloaded projects on PyPI and on a list of packages plugin authors reach
+for: text, dates, numbers, file formats and small utilities. It records the
+verdict for each one and what stopped it.
+
+<PypiCompat part="totals" />
+
+The verdicts are the ones `wmpy pip check` gives, explained on
+[Python packages](/plugins/guides/python-packages/#the-verdicts). A package
+counts as working only when the packages it needs work too. **Compiled
+code** means it ships only compiled wheels, so it can never be vendored:
+numpy, pandas, Pillow and lxml are like this. **Not checked** means wmpy
+could not resolve or download it.
+
+The keyboard's Python grows between releases, and these results follow the
+interpreter wmpy was built from. To check a package against your own copy,
+run:
+
+```bash
+wmpy pip check humanize
+```
+
+## Packages that work
+
+<PypiCompat part="working" />
+
+## What stops the most packages
+
+The Python features and standard library parts the keyboard lacks, ranked by
+how many packages each one stops. **Alone** counts the packages for which it
+is the only problem, so adding it would let them load. These lists decide
+what the keyboard's Python gets next.
+
+<PypiCompat part="blockers" kinds={['language', 'stdlib', 'builtin']} limit={40} />
+
+A message such as `expected ')'` is the keyboard's parser stopping on a line
+it cannot read yet. `wmpy pip check NAME` shows that line for any package.
+
+Some packages fail on purpose: they reach for the file system, sockets,
+threads, other processes or the interpreter's own internals (`inspect`,
+`importlib`), which plugins go without. Some have a replacement in the
+[`wm` package](/plugins/wm-package/), such as `wm.http` for sockets, and
+the keyboard ships its own [`requests`, `httpx` and
+`urllib.request`](/plugins/guides/requests/) that go through `wm.http`.
+
+<PypiCompat part="blockers" kinds={['sandbox']} limit={15} />
+
+## Every package
+
+Type to filter by name, verdict or description. Click a column to sort.
+
+<PypiCompat part="packages" />
+
+## How the list is made
+
+The job is `scripts/pypi_compat_survey.py` in the WM Keyboard repository. It
+reads the download ranking from
+[top-pypi-packages](https://hugovk.github.io/top-pypi-packages/), asks PyPI
+what each package's latest release ships, and runs `wmpy pip check NAME
+--json` on everything that has a pure-Python wheel or a small source
+archive. A package with only compiled wheels and a source archive over 2 MB
+is counted as compiled without downloading it. You can run it yourself:
+
+```bash
+python3 scripts/pypi_compat_survey.py --wmpy "$(command -v wmpy)" --top 100
+```

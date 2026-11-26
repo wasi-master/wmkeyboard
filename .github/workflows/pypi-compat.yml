@@ -1,0 +1,79 @@
+name: PyPI compatibility
+
+# Once a week, checks which PyPI packages can run in plugins: wmpy, built from
+# main, runs `wmpy pip check` on the 500 most downloaded projects and on the
+# packages plugin authors ask for (scripts/pypi_compat_survey.py). The result,
+# docs/src/data/pypi-compat.json, feeds the "Which packages work" docs page
+# and ranks what the keyboard's Python should get next. Opens (or updates) a
+# pull request when anything moved.
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      top:
+        description: How many of the most downloaded projects
+        default: '500'
+
+concurrency:
+  group: pypi-compat
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  survey:
+    name: Check PyPI packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Cache the wmpy build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: native/wmpy
+
+      # Release without LTO: the survey parses big packages, and LTO would
+      # double the build for a few percent.
+      - name: Build wmpy
+        env:
+          CARGO_PROFILE_RELEASE_LTO: 'false'
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: '16'
+        run: cargo build --release --manifest-path native/wmpy/Cargo.toml --bin wmpy
+
+      - name: Check the packages
+        run: |
+          python3 scripts/pypi_compat_survey.py \
+            --wmpy native/wmpy/target/release/wmpy \
+            --top "${{ inputs.top || '500' }}" \
+            --jobs 4 \
+            --interpreter "main@${GITHUB_SHA::9}"
+
+      # Only the date and the interpreter commit changing is not worth a pull
+      # request.
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          f=docs/src/data/pypi-compat.json
+          if git diff --quiet -I '"generated"' -I '"interpreter"' -I '"wmpy"' -- "$f"; then
+            echo "Nothing moved."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c pypi-compat
+          git add "$f"
+          git commit -m "chore(docs): refresh which PyPI packages run in plugins"
+          git push --force origin pypi-compat
+          if [ -z "$(gh pr list --head pypi-compat --state open --json number --jq '.[].number')" ]; then
+            gh pr create --head pypi-compat --base main \
+              --title "Refresh which PyPI packages run in plugins" \
+              --body "The weekly \`wmpy pip check\` run over PyPI's most downloaded packages (scripts/pypi_compat_survey.py), built from main at ${GITHUB_SHA::9}."
+          fi

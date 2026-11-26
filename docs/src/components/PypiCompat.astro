@@ -1,0 +1,197 @@
+---
+/**
+ * The PyPI survey (docs/src/data/pypi-compat.json, written weekly by
+ * scripts/pypi_compat_survey.py) as tables.
+ *
+ *   <PypiCompat part="totals" />
+ *   <PypiCompat part="blockers" kinds={['language', 'stdlib', 'builtin']} limit={40} />
+ *   <PypiCompat part="working" />
+ *   <PypiCompat part="packages" />
+ */
+import FilterTable from './FilterTable.astro';
+import data from '@data/pypi-compat.json';
+
+interface Blocker {
+	kind: string;
+	code: string;
+	subject: string;
+	packages?: number;
+	sole?: number;
+	examples?: string[];
+	help?: string;
+	count?: number;
+}
+interface Row {
+	name: string;
+	rank?: number | null;
+	version?: string;
+	summary?: string;
+	verdict: string;
+	own?: string;
+	reason?: string;
+	picked?: boolean;
+	blockers?: Blocker[];
+	/** Blockers past the ones the file keeps. */
+	moreBlockers?: number;
+	deps?: { name: string; verdict: string }[];
+}
+interface Props {
+	part: 'totals' | 'blockers' | 'working' | 'packages';
+	kinds?: string[];
+	limit?: number;
+}
+const { part, kinds, limit = 40 } = Astro.props;
+const rows = data.packages as Row[];
+const blockers = data.blockers as Blocker[];
+
+const VERDICT: Record<string, string> = {
+	ok: 'Works',
+	warnings: 'Works, with warnings',
+	incompatible: "Won't load",
+	compiled: 'Compiled code',
+	failed: 'Not checked',
+};
+const KIND: Record<string, string> = {
+	language: 'Python feature',
+	stdlib: 'Standard library',
+	builtin: 'Builtin',
+	sandbox: 'Kept from plugins',
+	compiled: 'Compiled code',
+	dependency: 'Undeclared package',
+	package: "Package's own files",
+	limits: 'Size limits',
+	other: 'Other',
+};
+const FIXED: Record<string, string> = {
+	metaclass: 'metaclasses',
+	'multiple-inheritance': 'multiple inheritance',
+	'big-int': 'integers over 64 bits',
+	'c-source': 'C source files',
+	'needs-build': 'a source archive that needs building',
+	'file-too-big': 'a file over 256 KB',
+	'too-deep': 'modules more than four folders deep',
+	'module-name': 'a file whose path is not a module name',
+	'own module': 'a module missing from its own files',
+	'compiled wheels only': 'compiled wheels only',
+};
+
+/** What a blocker is, in words: `warnings` module, `sys.version_info`. */
+function said(b: Blocker): string {
+	if (FIXED[b.subject]) return FIXED[b.subject];
+	switch (b.kind) {
+		case 'stdlib':
+			return b.code === 'missing-import' ? `module ${b.subject}` : b.subject;
+		case 'builtin':
+			return `${b.subject}()`;
+		case 'sandbox':
+			return b.code === 'sandbox-builtin' ? `${b.subject}()` : `module ${b.subject}`;
+		case 'compiled':
+			return b.code === 'c-extension' ? `compiled module ${b.subject}` : b.subject;
+		case 'dependency':
+			return `${b.subject}, not declared as a dependency`;
+		default:
+			return b.subject;
+	}
+}
+
+/** Why a package won't load, in one cell. */
+function why(r: Row): string {
+	if (r.verdict === 'ok') return '';
+	if (r.verdict === 'failed') return r.reason ?? '';
+	if (r.verdict === 'compiled') return r.reason ?? 'compiled code';
+	const own = r.blockers ?? [];
+	if (own.length === 0) {
+		const bad = (r.deps ?? []).filter((d) => d.verdict === 'incompatible').map((d) => d.name);
+		return bad.length ? `needs ${bad.slice(0, 3).join(', ')}, which won't load` : r.verdict === 'warnings' ? 'see wmpy pip check' : '';
+	}
+	const shown = own.slice(0, 3).map(said).join('; ');
+	const more = Math.max(own.length - 3, 0) + (r.moreBlockers ?? 0);
+	return more > 0 ? `${shown}; ${more} more` : shown;
+}
+
+const totals = data.totals as Record<string, number>;
+const total = rows.length;
+const pct = (n: number) => {
+	const p = (n / Math.max(total, 1)) * 100;
+	return p > 0 && p < 1 ? 'under 1%' : `${Math.round(p)}%`;
+};
+const shownBlockers = blockers.filter((b) => !kinds || kinds.includes(b.kind)).slice(0, limit);
+const working = rows.filter((r) => r.verdict === 'ok' || r.verdict === 'warnings');
+---
+
+{part === 'totals' && (
+	<p>
+		Checked on {data.generated} with <code>{data.wmpy}</code>
+		{data.interpreter && <>, interpreter {data.interpreter}</>}: {total} packages.{' '}
+		{Object.keys(VERDICT)
+			.filter((v) => totals[v])
+			.map((v, i, all) => (
+				<>
+					<strong>{VERDICT[v]}</strong>: {totals[v]} ({pct(totals[v])}){i < all.length - 1 ? ', ' : '.'}
+				</>
+			))}
+	</p>
+)}
+
+{part === 'blockers' && (
+	<table>
+		<thead>
+			<tr>
+				<th>What is missing</th>
+				<th>Kind</th>
+				<th>Packages</th>
+				<th>Alone</th>
+				<th>For example</th>
+			</tr>
+		</thead>
+		<tbody>
+			{shownBlockers.map((b) => (
+				<tr>
+					<td><code>{said(b)}</code></td>
+					<td>{KIND[b.kind] ?? b.kind}</td>
+					<td>{b.packages}</td>
+					<td>{b.sole}</td>
+					<td>{(b.examples ?? []).slice(0, 4).join(', ')}</td>
+				</tr>
+			))}
+		</tbody>
+	</table>
+)}
+
+{part === 'working' && (
+	working.length === 0 ? (
+		<p>None yet.</p>
+	) : (
+		<ul>
+			{working.map((r) => (
+				<li>
+					<a href={`https://pypi.org/project/${r.name}/`} rel="nofollow"><code>{r.name}</code></a>
+					{r.verdict === 'warnings' ? ' (with warnings)' : ''}
+					{r.summary ? `: ${r.summary}` : ''}
+				</li>
+			))}
+		</ul>
+	)
+)}
+
+{part === 'packages' && (
+	<FilterTable
+		columns={[
+			{ label: 'Package' },
+			{ label: 'Rank', numeric: true },
+			{ label: 'Version' },
+			{ label: 'Verdict' },
+			{ label: 'What stops it' },
+		]}
+		rows={rows.map((r) => [
+			{ text: r.name, href: `https://pypi.org/project/${r.name}/` },
+			r.rank ? String(r.rank) : '',
+			r.version ?? '',
+			VERDICT[r.verdict] ?? r.verdict,
+			why(r),
+		])}
+		extras={rows.map((r) => `${r.summary ?? ''} ${r.picked ? 'picked' : ''}`)}
+		placeholder="Filter packages…"
+		caption="Rank is the package's place among PyPI's most downloaded projects over 30 days; packages without one were added because plugin authors ask for them."
+	/>
+)}
