@@ -741,7 +741,6 @@ import com.wasimaster.wmkeyboard.core.layout.sidePadFor
 import com.wasimaster.wmkeyboard.core.layout.spanBands
 import com.wasimaster.wmkeyboard.core.layout.spanSlots
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
-import com.wasimaster.wmkeyboard.core.layout.leadsWithDigitRow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24175,16 +24174,12 @@ private fun KeyRows(
                         }
                     }
                 val fillRow = state.layouts.symbolsFillRow ?: BuiltInLayouts.SYMBOLS_FILL_ROW
-                val bodyRows = remember(layout, mode, symbolsGiveUpDigits, fillRow) {
-                    // Only when that first row really is the digits. A custom
-                    // symbols layer that leads with something else would otherwise
-                    // lose its top row outright, with nothing on screen to explain
-                    // where it went.
-                    if (symbolsGiveUpDigits && mode == LayoutMode.SYMBOLS && leadsWithDigitRow(layout.rows)) {
-                        listOf(fillRow) + layout.rows.drop(1)
-                    } else {
-                        layout.rows
-                    }
+                // The row the number row puts over `=\<`, which its top row
+                // holds instead when the number row is not there (#1560).
+                val symbols2Row = state.authoredNumberRow(LayoutMode.SYMBOLS_SHIFTED)
+                    ?: BuiltInLayouts.defaultNumberRow(LayoutLayer.SYMBOLS_SHIFTED)
+                val bodyRows = remember(layout, mode, symbolsGiveUpDigits, fillRow, numberRow, symbols2Row) {
+                    symbolBodyRows(layout.rows, mode, symbolsGiveUpDigits, numberRow, fillRow, symbols2Row)
                 }
                 // Hoisted out of the render loop so the digit row resolves in the
                 // same pass as the body rows below; null when it is not shown.
