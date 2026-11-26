@@ -565,9 +565,7 @@ impl DevHost {
 
     fn diag_of(&self, e: &Json, result: &Json) -> Diag {
         let entry = crate::project::manifest(&self.opts.dir).map(|m| m.entry).unwrap_or_else(|_| "main.py".into());
-        let mut d = self.diag_of_kind(e, result, &entry);
-        d.name_entry(&entry, &self.opts.dir);
-        d
+        self.diag_of_kind(e, result, &entry)
     }
 
     fn diag_of_kind(&self, e: &Json, result: &Json, entry: &str) -> Diag {

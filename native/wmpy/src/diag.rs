@@ -140,23 +140,6 @@ impl Diag {
         d
     }
 
-    /// A session runs the entry as `main.py` whatever plugin.json calls it:
-    /// give its frames the entry's name, unless the plugin has a real
-    /// main.py of its own beside another entry.
-    pub fn name_entry(&mut self, entry: &str, dir: &std::path::Path) {
-        const SESSION_ENTRY: &str = "main.py";
-        if entry == SESSION_ENTRY || dir.join(SESSION_ENTRY).exists() {
-            return;
-        }
-        let rename = |f: &mut Option<String>| {
-            if f.as_deref() == Some(SESSION_ENTRY) {
-                *f = Some(entry.to_string());
-            }
-        };
-        rename(&mut self.file);
-        self.traceback.iter_mut().for_each(|f| rename(&mut f.file));
-    }
-
     /// A native function (json.loads) raising leaves the error without a
     /// line; the innermost frame, the call to it, has one.
     fn line_from_frame(&mut self) {

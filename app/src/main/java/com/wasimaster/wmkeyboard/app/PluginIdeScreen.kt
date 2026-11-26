@@ -531,8 +531,8 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         }
     }
     val diagnostics = inspection.diagnostics
-    // The file an error names: the entry as SCRIPT_CHUNK, a module by its path.
-    val openChunk = if (ide.onEntry) PluginRuntime.SCRIPT_CHUNK else ide.file
+    // The file an error names: the entry by its plugin.json name, a module by its path.
+    val openChunk = if (ide.onEntry) ide.entryName else ide.file
     val failureLine = previewState.failure?.takeIf { it.chunk == openChunk }?.line?.minus(1)
     val matches by produceState(emptyList<TextRange>(), text, find.query, find.options, findOpen) {
         if (!findOpen || find.query.isEmpty()) {

@@ -113,6 +113,7 @@ class PluginPreviewSession(
                 tool = manifest.tool,
                 settings = manifest.settings,
                 language = PluginManifestCodec.LANGUAGE_PYTHON,
+                entry = manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY },
             )
         }
 

@@ -124,7 +124,7 @@ pub fn test_files(dir: &Path) -> Vec<String> {
 pub fn session_config(dir: &Path, m: &Manifest, settings: serde_json::Value) -> serde_json::Value {
     serde_json::json!({
         "id": m.id, "version": m.version, "permissions": m.permissions, "mode": if m.panel { "panel" } else { "action" },
-        "apiVersion": m.api, "files": modules(dir, &m.entry), "settings": settings,
+        "apiVersion": m.api, "entry": m.entry, "files": modules(dir, &m.entry), "settings": settings,
         "context": {"locale": "en", "theme": "light", "surface": "panel"},
     })
 }

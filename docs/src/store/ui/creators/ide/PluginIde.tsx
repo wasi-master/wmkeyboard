@@ -428,8 +428,6 @@ function IdeScreen({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: 
 }
 
 const isPythonPath = (path: string) => path === ENTRY || path.endsWith('.py');
-/** What a session calls the entry in errors and tracebacks, whatever plugin.json names it. */
-const SESSION_ENTRY = 'main.py';
 
 type FileDialogState = { kind: 'new' } | { kind: 'rename'; path: string };
 
@@ -590,8 +588,8 @@ function IdeBody({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: ()
 		}
 		switchTo(path, true);
 	}, [switchTo, showToast]);
-	/** The editor's path for a file an error names. A session calls the entry main.py whatever plugin.json names it. */
-	const errorPath = useCallback((file: string | null | undefined) => (!file || file === entryRef.current || (file === SESSION_ENTRY && !(SESSION_ENTRY in filesRef.current)) ? ENTRY : file), []);
+	/** The editor's path for a file an error names: the entry by its plugin.json name, a module by its path. */
+	const errorPath = useCallback((file: string | null | undefined) => (!file || file === entryRef.current ? ENTRY : file), []);
 	const pendingJump = useRef<{ path: string; line: number } | null>(null);
 	/** Shows [line] of the file an error or one of its calls names, opening that file first. */
 	const jumpTo = useCallback((file: string | null | undefined, line: number) => {
@@ -785,6 +783,7 @@ function IdeBody({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: ()
 			id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders,
 			apiVersion: manifest.apiVersion, permissions: manifest.permissions, hosts: manifest.hosts ?? [], settings: settingDefaults(manifest),
 			settingSpecs: (manifest.settings ?? []).map((s) => ({ key: s.key, type: s.type?.trim() ?? 'text', default: s.default, options: s.options })),
+			entry: entryRef.current,
 			files: inputs.files,
 			strings: inputs.strings,
 		};

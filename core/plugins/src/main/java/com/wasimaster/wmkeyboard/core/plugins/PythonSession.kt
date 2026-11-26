@@ -69,6 +69,8 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
             put("permissions", buildJsonArray { plugin.permissions.forEach { add(JsonPrimitive(it)) } })
             put("mode", mode)
             put("apiVersion", plugin.apiVersion)
+            // Errors and tracebacks name the entry as plugin.json does.
+            put("entry", plugin.entry)
             if (plugin.isPackage) {
                 put("files", buildJsonObject { for ((name, source) in modules) put(name, source) })
                 put("settings", plugin.settingsJson())

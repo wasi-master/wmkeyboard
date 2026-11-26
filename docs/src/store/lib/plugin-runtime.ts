@@ -307,6 +307,8 @@ export interface PluginIdentity {
 	id: string;
 	name: string;
 	version: string;
+	/** The manifest's entry file, as errors and tracebacks name it; the session says main.py without it. */
+	entry?: string;
 	storage: boolean;
 	reminders?: boolean;
 	/** The manifest's apiVersion: 5 loads the wm package, anything lower the API 4 globals. */
@@ -396,6 +398,7 @@ function configOf(plugin: PluginIdentity, storage: Record<string, string> | null
 	return JSON.stringify({
 		id: plugin.id, version: plugin.version, permissions, mode, storage: storage ?? {},
 		...(plugin.apiVersion ? { apiVersion: plugin.apiVersion } : {}),
+		...(plugin.entry ? { entry: plugin.entry } : {}),
 		...(isV5(plugin) ? {
 			files: plugin.files ?? {},
 			settings: plugin.settings ?? {},

@@ -72,6 +72,21 @@ fn run_prints_the_first_render() {
 }
 
 #[test]
+fn errors_name_the_entry_as_plugin_json_does() {
+    let manifest = r#"{"id": "com.example.entry", "version": "1.0.0", "apiVersion": 5, "entry": "plugin.py"}"#;
+    let render = |name: &str, source: &str| {
+        let dir = plugin(name, &[("plugin.json", manifest), ("plugin.py", source)]);
+        let (_, out, _) = cli(&["render", dir.to_str().unwrap()]);
+        let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
+        (v["error"]["file"].as_str().map(String::from), v["error"]["line"].as_u64(), v)
+    };
+    let (file, line, v) = render("entry-raise", "from wm import ui\n\n\ndef render():\n    raise ValueError('boom')\n");
+    assert_eq!((file.as_deref(), line), (Some("plugin.py"), Some(5)), "{v:#}");
+    let (file, line, v) = render("entry-syntax", "from wm import ui\n\ndef render(:\n    pass\n");
+    assert_eq!((file.as_deref(), line), (Some("plugin.py"), Some(3)), "{v:#}");
+}
+
+#[test]
 fn bad_usage_exits_two() {
     assert_eq!(2, cli(&["nope"]).0);
     assert_eq!(2, cli(&["frobnicate", "."]).0);

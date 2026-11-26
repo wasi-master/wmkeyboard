@@ -70,6 +70,12 @@ data class InstalledPlugin(
     val previews: List<PluginPreviewSpec> = emptyList(),
     /** Its grammars, each read in from its asset at install, so colouring never opens the plugin's folder. */
     val syntax: List<PluginSyntaxSpec> = emptyList(),
+    /**
+     * The entry file plugin.json names, as errors and tracebacks name it. The
+     * script is kept as [PluginStore.SCRIPT_FILE] whatever this says; an index
+     * from before this field says main.py until the plugin is updated.
+     */
+    val entry: String = PluginManifestCodec.DEFAULT_ENTRY,
 ) {
     val isPython: Boolean
         get() = language == PluginManifestCodec.LANGUAGE_PYTHON
@@ -801,6 +807,7 @@ class PluginStore(
             providers = manifest.providers,
             previews = manifest.previews,
             syntax = manifest.syntax.map { spec -> inlineGrammar(spec, assets) },
+            entry = manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY },
             labels = locales.mapNotNull { (tag, text) ->
                 PluginLocales.parse(text)?.let { tag to PluginLocales.labels(it) }?.takeIf { it.second.isNotEmpty() }
             }.toMap(),

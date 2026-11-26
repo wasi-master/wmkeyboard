@@ -233,7 +233,8 @@ internal class PluginIdeState(val draftId: String, private val ports: PluginIdeP
         return DraftArchive(ports.script().orEmpty(), ports.modules(), ports.assets(), ports.locales())
     }
 
-    private val entryName: String
+    /** The entry's file name, as plugin.json says and as errors name it. */
+    val entryName: String
         get() = manifest.entry.ifBlank { PluginManifestCodec.DEFAULT_ENTRY }
 
     /** [name] as a plugin file path: trimmed, with `.py` added to a bare name. */
