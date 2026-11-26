@@ -76,10 +76,23 @@ object TesseractOcr {
 
     /**
      * Whether this build has Tesseract, counting a Play split not fetched yet:
-     * what decides that a language reads with it. Loads nothing on Play
-     * before the split is here.
+     * what decides that a language reads with it. Loads nothing.
+     *
+     * Read at every process start (the provider lists in `WMApplication`) and
+     * by the scanner panel's composition. [GatedLibrary.shipped] answers by
+     * loading the library wherever it is already on the phone, so that read
+     * mapped libwmtess.so into every keyboard process, scanner used or not:
+     * 50 KB of writable segments (measured from the ELF), 28 static
+     * constructors (Tesseract's global parameters among them) and the text
+     * pages they run, about 100-250 KB in all (estimate). Until a read has
+     * tried the library, the gate answers; after that, whether it loaded.
      */
-    val available: Boolean get() = TesseractNative.library.shipped
+    val available: Boolean
+        get() = if (loadTried) TesseractNative.library.shipped else FeatureModules.ocr.let { it.installed || it.onDemand }
+
+    /** Set by the first [recognize], the one place that loads the library. */
+    @Volatile
+    private var loadTried = false
 
     /** Where the library's Play module stands. Always installed outside Play. */
     val moduleState: StateFlow<ModuleState> get() = FeatureModules.ocr.state
@@ -98,7 +111,9 @@ object TesseractOcr {
      * or fails, so a broken engine never looks like a photo without text.
      */
     suspend fun recognize(filesDir: File, pack: String, bitmap: Bitmap): String {
-        if (!TesseractNative.library.available) {
+        val loaded = TesseractNative.library.available
+        loadTried = true
+        if (!loaded) {
             throw TesseractException(TesseractException.Reason.UNAVAILABLE, "libwmtess is not loaded")
         }
         if (!OcrPacks.isDownloaded(filesDir, pack)) {
@@ -142,6 +157,11 @@ object TesseractOcr {
     fun loadedPack(): String? = loadedPack?.takeIf { handle != 0L }
 
     fun release() {
+        // Nothing can be loaded before the first read, and the keyboard's idle
+        // release calls this after every hide: posting anyway started
+        // [thread], a non-daemon thread that then waited for good in a process
+        // that never scanned anything.
+        if (!loadTried) return
         thread.execute { close() }
     }
 

@@ -6,6 +6,7 @@ import android.media.AudioFormat
 import android.media.AudioTrack
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,6 +16,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Speech out: reads text aloud offline, with Kokoro where it is downloaded and
@@ -67,7 +69,8 @@ class SpeechOut(context: Context) {
             { piece -> MmsSpeech.synthesize(filesDir, voice, piece, locale, rate) }
         }
         val sampleRate: () -> Int = if (voice == null) ({ KokoroSpeech.sampleRate }) else ({ MmsSpeech.sampleRate })
-        job = scope.launch {
+        readingStarted()
+        val started = scope.launch {
             try {
                 play(pieces, make, sampleRate)
             } finally {
@@ -75,6 +78,11 @@ class SpeechOut(context: Context) {
                 onDone?.invoke()
             }
         }
+        // A completion handler rather than the finally: it runs for a reading
+        // cancelled before it started too (a second tap at once), which would
+        // otherwise leave the count up and the voice held for good.
+        started.invokeOnCompletion { readingEnded() }
+        job = started
         return true
     }
 
@@ -162,7 +170,10 @@ class SpeechOut(context: Context) {
         track?.let { runCatching { it.pause() } }
     }
 
-    /** Stops and frees this instance's player. The open voice stays for the next owner. */
+    /**
+     * Stops and frees this instance's player. The open voice stays for the
+     * next owner, until [VOICE_IDLE_MS] after the last reading of any owner.
+     */
     fun release() {
         stop()
         closeTrack()
@@ -171,5 +182,49 @@ class SpeechOut(context: Context) {
     private companion object {
         const val GAP_MS = 180
         const val POLL_MS = 40L
+
+        /**
+         * How long the open voice outlives the last reading. An MMS voice is
+         * a 114 MB ONNX model and Kokoro's is 114 MB as well, and "the open
+         * voice stays for the next owner" used to mean for the life of the
+         * process: one word read aloud in the vocabulary or dictionary panel,
+         * or one spoken AI answer, kept it resident until Android killed the
+         * keyboard. The keyboard's idle release freed Kokoro only, and nothing
+         * freed a voice the settings app's screens opened. Two minutes, the
+         * keyboard's own idle wait: a reading soon after the last opens
+         * nothing, a later one opens the voice again in about a second.
+         */
+        const val VOICE_IDLE_MS = 120_000L
+
+        /** Readings under way across every instance; the voice is let go only at none. */
+        private val reading = AtomicInteger(0)
+
+        private val idleScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+        @Volatile
+        private var idleRelease: Job? = null
+
+        fun readingStarted() {
+            reading.incrementAndGet()
+            idleRelease?.cancel()
+            idleRelease = null
+        }
+
+        fun readingEnded() {
+            if (reading.decrementAndGet() > 0) return
+            idleRelease?.cancel()
+            idleRelease = idleScope.launch {
+                delay(VOICE_IDLE_MS)
+                if (reading.get() > 0) return@launch
+                // On the speech-out thread, the only one either voice is used
+                // from, so this waits out a sentence still being made.
+                withContext(MmsSpeech.dispatcher) {
+                    if (reading.get() == 0) {
+                        MmsSpeech.release()
+                        KokoroSpeech.release()
+                    }
+                }
+            }
+        }
     }
 }

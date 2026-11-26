@@ -268,6 +268,31 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
         }
     }
 
+    /**
+     * Lets go of the indexes read into memory; the next query, pass or
+     * neighbour look-up reads its space back from the file. Main thread.
+     *
+     * Every space read stayed for the life of the process: each vector is 768
+     * floats, 3 KB, so the emoji space alone is 5.3 MB (the 2.6 MB float16
+     * file, widened), and the photos space 3 KB a photo, 15 MB for a gallery
+     * of 5,000 (estimate), held by a keyboard that had long gone back to
+     * typing. Skipped while a pass is running: a pass suspends on the model
+     * with its space in hand and saves it when it is done, and a copy read
+     * from the file in between would be older than the one it saves. Posts
+     * nothing when nothing was read, so a process that never searched by
+     * meaning starts no [worker] thread for it.
+     */
+    fun release() {
+        if (!spacesRead || syncJobs.values.any { it.isActive }) return
+        spacesRead = false
+        synchronized(queryCache) { queryCache.clear() }
+        scope.launch(worker) { indexes.clear() }
+    }
+
+    /** Whether [indexes] may hold a space; set on [worker], read by [release]. */
+    @Volatile
+    private var spacesRead = false
+
     /** Main thread or not; the cache is locked. */
     private suspend fun vectorOf(query: String): FloatArray? {
         synchronized(queryCache) { queryCache[query] }?.let { return it }
@@ -278,11 +303,15 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
 
     /** On [worker]. */
     private fun indexOf(space: MeaningSpace): VectorIndex =
-        indexes.getOrPut(space) { VectorIndex.read(indexFile(context, space)) }
+        indexes.getOrPut(space) {
+            spacesRead = true
+            VectorIndex.read(indexFile(context, space))
+        }
 
     /** On [worker]: the emoji vectors come downloaded, not indexed here. */
     private fun loadEmoji() {
         if ((indexes[MeaningSpace.EMOJI]?.size ?: 0) > 0) return
+        spacesRead = true
         indexes[MeaningSpace.EMOJI] = EmojiVectors.read(
             SemanticModels.file(context.noBackupFilesDir, SemanticModels.Part.EMOJI_VECTORS),
         )

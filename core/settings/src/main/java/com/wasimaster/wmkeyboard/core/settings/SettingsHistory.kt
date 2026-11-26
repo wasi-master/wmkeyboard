@@ -3,10 +3,14 @@ package com.wasimaster.wmkeyboard.core.settings
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import com.wasimaster.wmkeyboard.core.util.SnapshotFile
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -147,6 +151,14 @@ class SettingsHistory internal constructor(
     private var loaded = false
     private var nextId = 1L
 
+    /** When the lists were last loaded or asked to be, from [clock]; see [release]. */
+    @Volatile
+    private var lastUse = 0L
+
+    /** Whether the last write of each file went through, so [release] loses nothing that is only here. */
+    private var batchesSaved = true
+    private var pointsSaved = true
+
     /** The history, newest first. Empty until [load] has run. */
     val batches: StateFlow<List<Batch>> = _batches.asStateFlow()
 
@@ -157,6 +169,7 @@ class SettingsHistory internal constructor(
     suspend fun load() = mutex.withLock { ensureLoaded() }
 
     private suspend fun ensureLoaded() {
+        lastUse = clock()
         if (loaded) return
         withContext(Dispatchers.IO) {
             _batches.value = runCatching { decodeBatches(historyFile.readText()) }.getOrDefault(emptyList())
@@ -164,6 +177,33 @@ class SettingsHistory internal constructor(
         }
         nextId = (_batches.value.maxOfOrNull { it.id } ?: 0L) + 1
         loaded = true
+    }
+
+    /**
+     * Lets go of both lists while no screen of the app is open; the next
+     * [load], or any call that reads them, loads them from disk again.
+     *
+     * They used to stay for the life of the process once loaded, and the
+     * process is the keyboard's: every settings page loads them (its undo
+     * button), and so does every tracked write, the keyboard's own toggles
+     * included. A month of history is up to [MAX_BATCHES] steps, each value
+     * up to [MAX_VALUE_CHARS] before and after, so anywhere from tens of KB
+     * to megabytes (estimate: 400 small steps at about 250 bytes is 100 KB;
+     * the ceiling is 400 × 2 × 20,000 chars).
+     *
+     * Not while any activity of the app exists ([StartedActivities.alive]):
+     * a page left with Home and shown again reads the lists it loaded without
+     * loading them again. Not within [RELEASE_IDLE_MS] of a call that loaded
+     * them, so a caller that loads and then reads on (an undo's
+     * [lastUndoable] after [load]) always finds them. And not while a write
+     * of either file failed, which would leave the only copy here.
+     */
+    suspend fun release() = mutex.withLock {
+        if (!loaded || !batchesSaved || !pointsSaved) return@withLock
+        if (StartedActivities.alive > 0 || clock() - lastUse < RELEASE_IDLE_MS) return@withLock
+        _batches.value = emptyList()
+        _points.value = emptyList()
+        loaded = false
     }
 
     // ---- the change history ----
@@ -304,12 +344,12 @@ class SettingsHistory internal constructor(
 
     private suspend fun save() {
         val text = encodeBatches(_batches.value)
-        withContext(Dispatchers.IO) { runCatching { SnapshotFile.writeAtomically(historyFile, text) } }
+        batchesSaved = withContext(Dispatchers.IO) { runCatching { SnapshotFile.writeAtomically(historyFile, text) } }.isSuccess
     }
 
     private suspend fun savePoints() {
         val text = encodePoints(_points.value)
-        withContext(Dispatchers.IO) { runCatching { SnapshotFile.writeAtomically(pointsFile, text) } }
+        pointsSaved = withContext(Dispatchers.IO) { runCatching { SnapshotFile.writeAtomically(pointsFile, text) } }.isSuccess
     }
 
     private fun prune(list: List<Batch>, now: Long): List<Batch> =
@@ -329,6 +369,14 @@ class SettingsHistory internal constructor(
 
         /** "Before restoring" points kept; the oldest goes first. */
         const val MAX_AUTOMATIC_POINTS = 5
+
+        /**
+         * How recently the lists must not have been loaded for [release] to
+         * drop them: ten seconds, far more than any caller takes between a
+         * [load] and the read after it, and well under the thirty seconds
+         * after the last screen stopped that [StartedActivities] waits.
+         */
+        const val RELEASE_IDLE_MS = 10_000L
 
         /**
          * A value longer than this is left out of the history. The settings
@@ -409,8 +457,16 @@ class SettingsHistory internal constructor(
         /** The one history of this install; the settings app and the keyboard share a process. */
         fun get(context: Context): SettingsHistory = instance ?: synchronized(this) {
             instance ?: SettingsHistory(File(context.applicationContext.filesDir, "settings_history"))
-                .also { instance = it }
+                .also { history ->
+                    instance = history
+                    StartedActivities.onAllStopped(RELEASE_KEY) { releaseScope.launch { history.release() } }
+                }
         }
+
+        private const val RELEASE_KEY = "settings.history"
+
+        /** Where [release] waits for the lock, off the main thread [StartedActivities] calls on. */
+        private val releaseScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
 
         private val parser = Json { ignoreUnknownKeys = true }
 

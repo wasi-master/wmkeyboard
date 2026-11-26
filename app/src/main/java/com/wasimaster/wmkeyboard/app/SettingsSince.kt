@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import com.wasimaster.wmkeyboard.app.updates.AppVersion
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -67,7 +68,17 @@ internal class SettingsSinceTable(
     }
 }
 
-/** The bundled [SettingsSinceTable], read once, the first time a link is copied. */
+/**
+ * The bundled [SettingsSinceTable], read the first time a link is copied and
+ * kept while the settings app is in use.
+ *
+ * Not for the process, which is the keyboard's and outlives the settings app
+ * by days: the table dates 176 screens and 1,951 rows, about 230 KB of map
+ * nodes and strings (estimate: 2,127 entries at about 108 bytes). Once no
+ * screen of the app has been started for half a minute
+ * ([StartedActivities.onAllStopped]) it goes, and the next link copied reads
+ * the 90 KB asset again, as the first copy did.
+ */
 internal object SettingsSince {
     private const val ASSET = "settings-since.json"
 
@@ -83,9 +94,15 @@ internal object SettingsSince {
                     context.applicationContext.assets.open(ASSET).bufferedReader().use { it.readText() }
                 }.getOrNull()?.let(SettingsSinceTable::parse)
                 tried = true
+                StartedActivities.onAllStopped("settings.since") { forget() }
             }
         }
         return table
+    }
+
+    private fun forget() = synchronized(this) {
+        table = null
+        tried = false
     }
 
     /**

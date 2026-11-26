@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -193,19 +192,31 @@ object BackgroundBitmapCache {
     fun evictAll() = cache.evictAll()
 
     private fun decode(path: String, key: Key): Bitmap? {
-        val bitmap = decodeSharp(path, key) ?: return null
         // Below API 31 the blur is baked in, so it belongs to the cache key.
         // From 31 the draw applies it on the GPU and the sharp bitmap is cached
-        // once for every radius.
+        // once for every radius — and, since nothing reads its pixels on the
+        // CPU after that, decoded where the GPU draws it from.
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            bitmap
+            decodeSharp(path, key, hardware = true)
         } else {
-            bitmap.blurredBy(key.blurStep.toFloat())
+            decodeSharp(path, key)?.blurredBy(key.blurStep.toFloat())
         }
     }
 
-    /** The image at [path], sampled to the key's target and nothing else done to it. */
-    private fun decodeSharp(path: String, key: Key): Bitmap? {
+    /**
+     * The image at [path], sampled to the key's target and nothing else done to it.
+     *
+     * [hardware] lets the decoder put the pixels straight into graphics memory
+     * (`ALLOCATOR_DEFAULT`, a HARDWARE bitmap wherever the format allows it),
+     * for a bitmap that is only ever drawn. A software bitmap is held twice
+     * while the keyboard shows it: once in the heap, where this cache keeps it,
+     * and once as the texture the renderer uploads it to. A board photo is
+     * commonly 2016x1512 after sampling, 12.2 MB a copy. Nothing that takes
+     * [hardware] may read the pixels back or draw them on a software canvas:
+     * [FrostBake] and [blurredBy] do both, so the glass bake and the pre-31
+     * blur keep software decodes.
+     */
+    private fun decodeSharp(path: String, key: Key, hardware: Boolean = false): Bitmap? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // ImageDecoder samples in one pass and applies the EXIF rotation,
             // which BitmapFactory.decodeFile does not — so a portrait photo
@@ -216,7 +227,7 @@ object BackgroundBitmapCache {
                     max(1, info.size.width / sample),
                     max(1, info.size.height / sample),
                 )
-                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                decoder.allocator = if (hardware) ImageDecoder.ALLOCATOR_DEFAULT else ImageDecoder.ALLOCATOR_SOFTWARE
                 decoder.isMutableRequired = false
             }
         } else {
@@ -281,9 +292,14 @@ fun BoxScope.ThemeBackgroundImage(
     Image(
         bitmap = image,
         contentDescription = null,
+        // The opacity is the paint's, not a layer's: a graphics layer below
+        // full alpha is promoted by the renderer to an offscreen texture of
+        // its own size, kept for as long as it is drawn. Here that was the
+        // whole board, 1080x900 or more, 3.9 MB of GPU memory under every
+        // picture set below full opacity (and one per theme card in the
+        // gallery). One picture drawn once looks the same either way.
         modifier = Modifier
             .matchParentSize()
-            .alpha(opacity)
             .then(
                 // From API 31 the blur is a draw-time GPU effect, so the cache
                 // holds one sharp bitmap however many radii are in play and the
@@ -296,6 +312,7 @@ fun BoxScope.ThemeBackgroundImage(
                 }
             ),
         contentScale = ContentScale.Crop,
+        alpha = opacity,
         colorFilter = imageBrightnessFilter(brightness),
     )
 }

@@ -4,6 +4,7 @@ import android.content.res.Resources
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.engine.SearchStems
 import com.wasimaster.wmkeyboard.core.text.StemMatch
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 import java.text.Normalizer
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -161,8 +162,6 @@ private const val FUZZY_MIN_LENGTH = 5
 /** Two edits are allowed only once a word is long enough for two to be a slip. */
 private const val FUZZY_TWO_EDITS_LENGTH = 8
 
-private val COMBINING_MARKS = Regex("\\p{Mn}+")
-
 /**
  * Lower case, no accents, and one space between runs of letters and digits.
  *
@@ -171,8 +170,7 @@ private val COMBINING_MARKS = Regex("\\p{Mn}+")
  * punctuation to match a name that has some.
  */
 internal fun normalizeForSearch(raw: String): String {
-    val folded = Normalizer.normalize(raw.lowercase(), Normalizer.Form.NFD)
-        .replace(COMBINING_MARKS, "")
+    val folded = withoutNonspacingMarks(Normalizer.normalize(raw.lowercase(), Normalizer.Form.NFD))
     val out = StringBuilder(folded.length)
     var pendingSpace = false
     for (ch in folded) {
@@ -183,6 +181,24 @@ internal fun normalizeForSearch(raw: String): String {
         } else {
             pendingSpace = true
         }
+    }
+    return out.toString()
+}
+
+/**
+ * [text] without its nonspacing marks (General_Category Mn), the accents NFD
+ * splits off: what `replace(Regex("\\p{Mn}+"), "")` did, code point by code
+ * point. Not the regex, because a compiled `\p{Mn}` keeps a native set of
+ * every such mark in Unicode, 22 KB measured with ICU, for the rest of the
+ * process once settings were searched, and the process is the keyboard's.
+ */
+private fun withoutNonspacingMarks(text: String): String {
+    val out = StringBuilder(text.length)
+    var i = 0
+    while (i < text.length) {
+        val point = text.codePointAt(i)
+        if (Character.getType(point) != Character.NON_SPACING_MARK.toInt()) out.appendCodePoint(point)
+        i += Character.charCount(point)
     }
     return out.toString()
 }
@@ -255,8 +271,14 @@ internal fun resolveStems(index: List<SettingsSearchEntry>) {
 
 private fun stemLanguage(): String = Locale.getDefault().toLanguageTag()
 
-/** Query words' engine stems, for the length of a screen's searching. */
-private val tokenStems = ConcurrentHashMap<String, String>()
+/**
+ * Query words' engine stems, for the length of a screen's searching, and
+ * emptied once the settings app has gone ([StartedActivities.onAllStopped]):
+ * up to [TOKEN_STEMS_MAX] pairs that the next search stems again.
+ */
+private val tokenStems = ConcurrentHashMap<String, String>().also { stems ->
+    StartedActivities.onAllStopped("settings.searchTokenStems") { stems.clear() }
+}
 
 /** [token]'s stem the way the engine stems a field's words, or the plural rule without it. */
 private fun engineStem(token: String): String {

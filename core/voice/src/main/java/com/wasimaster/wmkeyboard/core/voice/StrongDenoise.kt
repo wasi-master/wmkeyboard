@@ -127,6 +127,10 @@ object StrongDenoise {
     val isLoaded: Boolean get() = idle.get() != 0L
 
     fun release() {
+        // Nothing held, nothing posted: the keyboard's idle release calls this
+        // after every hide, and the first post would start [loader]'s thread
+        // in a process that never denoised a clip, to wait there for good.
+        if (idle.get() == 0L) return
         loader.execute {
             val h = idle.getAndSet(0L)
             if (h != 0L) SherpaNative.nativeDenoiserFree(h)

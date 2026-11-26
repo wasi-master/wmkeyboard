@@ -125,6 +125,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SuggestionTextScaleRange
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -214,6 +215,12 @@ internal class LanguageSearchKey(language: LanguageDef) {
  * off the main thread — so the index is memoised on [AssetLayouts.generation]
  * rather than built once: an index built before the load would file every
  * asset layout under no name at all, forever.
+ *
+ * Kept while the settings app is in use and dropped once no screen of it has
+ * been started for half a minute ([StartedActivities.onAllStopped]): 843 keys
+ * of lowercased names and layout names, some 280 KB (estimate: about 330
+ * bytes a language), held until then by the keyboard's process for days after
+ * one search. The next search builds it again.
  */
 private object LanguageSearchIndex {
     class Entry(val generation: Int, val index: List<Pair<LanguageDef, LanguageSearchKey>>)
@@ -226,6 +233,7 @@ private object LanguageSearchIndex {
         cache?.let { if (it.generation == generation) return it.index }
         val built = LanguageRegistry.all.map { it to LanguageSearchKey(it) }
         cache = Entry(generation, built)
+        StartedActivities.onAllStopped("settings.languageSearchIndex") { cache = null }
         return built
     }
 }

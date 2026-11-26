@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.res.Resources
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 
 /*
  * The pages beside a step of the path strip (#1317): a long press on a step
@@ -51,7 +52,14 @@ internal fun crumbSiblings(
 
 /**
  * The index the strip reads siblings from, built once per language on the
- * first long press and kept for the process, like the search screen's.
+ * first long press and kept while the settings app is in use, like the search
+ * screen's.
+ *
+ * Not for the life of the process: that is the keyboard's, and outlasts the
+ * settings app by days. The index is one entry per searchable row, about a
+ * thousand of them at some 170 bytes each (estimate), so once no screen of
+ * the app has been started for half a minute ([StartedActivities.onAllStopped])
+ * it goes, and the next long press builds it again.
  */
 internal object CrumbSiblingIndex {
     @Volatile
@@ -61,6 +69,11 @@ internal object CrumbSiblingIndex {
     fun of(res: Resources): List<SettingsSearchEntry> {
         val locales = res.configuration.locales.toLanguageTags()
         held?.takeIf { it.first == locales }?.let { return it.second }
-        return settingsSearchIndex(res).also { held = locales to it }
+        return settingsSearchIndex(res).also {
+            held = locales to it
+            StartedActivities.onAllStopped(RELEASE_KEY) { held = null }
+        }
     }
+
+    private const val RELEASE_KEY = "settings.crumbSiblingIndex"
 }

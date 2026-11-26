@@ -1,9 +1,15 @@
 package com.wasimaster.wmkeyboard.core.translate
 
 import android.content.Context
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -76,10 +82,54 @@ object OfflineTranslation {
                 else -> withContext(Dispatchers.Default) { LanguageId.identify(text) }
             }
         }
-        return when (engine) {
-            Engine.ML_KIT -> OnDeviceTranslator.translate(context, text, target, sourceOverride, hints)
-            Engine.BERGAMOT -> BergamotTranslator.translate(context, text, target, sourceOverride, hints, identified())
-            Engine.NLLB -> NllbTranslator.translate(context, text, target, sourceOverride, hints, identified())
+        translationStarted()
+        try {
+            return when (engine) {
+                Engine.ML_KIT -> OnDeviceTranslator.translate(context, text, target, sourceOverride, hints)
+                Engine.BERGAMOT -> BergamotTranslator.translate(context, text, target, sourceOverride, hints, identified())
+                Engine.NLLB -> NllbTranslator.translate(context, text, target, sourceOverride, hints, identified())
+            }
+        } finally {
+            translationEnded()
+        }
+    }
+
+    /**
+     * How long the loaded models outlive the last translation, whoever asked
+     * for it. The keyboard lets them go two minutes after it hides, but only
+     * for a translation its own panel made: the AI's translate tool, "WM
+     * Translate" in other apps' selection menus and the sticker prompt load
+     * the same engines in the same process, and nothing let those go. NLLB
+     * alone holds 620 MB of weights and about 1.25 GB while it decodes
+     * ([Ct2Native.MIN_TOTAL_RAM]); a Bergamot direction is tens of MB, two
+     * kept at once; an ML Kit pair about 30 MB. Five minutes, longer than the
+     * keyboard's wait, so this only catches what that misses; the next
+     * translation loads its model again, as after the keyboard's release.
+     */
+    private const val IDLE_RELEASE_MS = 5 * 60_000L
+
+    /** Translations under way; the models are let go only at none. */
+    private val translating = AtomicInteger(0)
+
+    private val idleScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    @Volatile
+    private var idleRelease: Job? = null
+
+    private fun translationStarted() {
+        translating.incrementAndGet()
+        idleRelease?.cancel()
+        idleRelease = null
+    }
+
+    private fun translationEnded() {
+        if (translating.decrementAndGet() > 0) return
+        idleRelease?.cancel()
+        idleRelease = idleScope.launch {
+            delay(IDLE_RELEASE_MS)
+            // Each engine's release also waits for its own lock, so even a
+            // translation that started after this check is never cut short.
+            if (translating.get() == 0) release()
         }
     }
 

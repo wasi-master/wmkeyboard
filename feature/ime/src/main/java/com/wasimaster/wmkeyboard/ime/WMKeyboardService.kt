@@ -12664,11 +12664,21 @@ open class WMKeyboardService : InputMethodService() {
         // Smart Turn's model; the next pause opens it again.
         SmartTurn.release()
         // Reloads on the next translation; the panel's state is untouched.
-        if (translateEngineLoaded) OfflineTranslation.release()
+        // Whoever translated, not only the panel ([translateEngineLoaded]):
+        // the AI's translate tool, WM Translate in other apps' selection
+        // menus and the sticker prompt load the same engines in this process,
+        // NLLB alone 620 MB. A no-op for an engine with nothing loaded.
+        OfflineTranslation.release()
         // Vocabulary cards: read back from the pack files on demand.
         if (panel != PanelMode.VOCABULARY) vocabIndex?.releaseRecords()
         // Decoded app icons: megabytes of ARGB the package manager can hand back.
-        if (panel != PanelMode.APP_LAUNCHER) launcherIconCache.evictAll()
+        // And the icon packs' (#1275): each pack's parsed appfilter (Arcticons,
+        // about 3 MB) and up to 6 MB of drawables, which kept the grid's icons
+        // alive after the cache above let go of them.
+        if (panel != PanelMode.APP_LAUNCHER) {
+            launcherIconCache.evictAll()
+            com.wasimaster.wmkeyboard.core.icons.SystemIconPacks.trimMemory()
+        }
         // The ink recognizer pins its ML Kit model — tens of megabytes for one
         // script. Rebuilt by the next stroke; `recognize` prepares the runtime.
         if (panel != PanelMode.HANDWRITING) hwRecognizer.close()
@@ -12709,6 +12719,25 @@ open class WMKeyboardService : InputMethodService() {
         // backstop for the panel never getting the chance — and a no-op where
         // the library never loaded.
         if (panel != PanelMode.OCR) TesseractOcr.release()
+        // PaddleOCR's two graphs, 10.8 MB of float16 LiteRT weights (21 MB on
+        // MNN): the scanner panel frees them as it closes, but the theme
+        // copier in the settings app reads letters with them and never did.
+        // Asked first, so a process that never read with it starts no thread.
+        if (panel != PanelMode.OCR && com.wasimaster.wmkeyboard.core.ocr.PaddleOcr.isLoaded) {
+            com.wasimaster.wmkeyboard.core.ocr.PaddleOcr.release()
+        }
+        // IndicXlit's encoder and decoder, 13 MB of int8 ONNX weights a
+        // direction plus ONNX Runtime's sessions, opened by the first word of
+        // a phonetic language with neural suggestions on, or by a romanized
+        // dictation, and until now kept until the service went. The next
+        // word opens it again on its own thread.
+        indicXlit?.release()
+        if (latinXlitDelegate.isInitialized() && !voiceActive()) latinXlit.release()
+        // The search boxes' vectors by meaning, 3 KB an item: the emoji alone
+        // are 5.3 MB. Read back from their files by the next search.
+        if ((panel == null || panel == PanelMode.NONE) && meaningSearchDelegate.isInitialized()) {
+            meaningSearch.release()
+        }
         // Harper's rule sets, one per dialect, built on the first lint and
         // until now never freed — and the spell-checker service lints in this
         // process too, so a user who never opened the grammar tool could still
@@ -12725,6 +12754,12 @@ open class WMKeyboardService : InputMethodService() {
                 com.wasimaster.wmkeyboard.core.voice.speech.KokoroSpeech.release()
             }
         }
+        // An MMS voice, 114 MB of ONNX like Kokoro's, the same way.
+        if (com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech.loadedVoice() != null) {
+            serviceScope.launch(com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech.dispatcher) {
+                com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech.release()
+            }
+        }
         if (!onScreen) BackgroundBitmapCache.evictAll()
         // Theme card pictures, kept on disk too. Not while a settings screen
         // is up: the theme gallery there may be what is showing them.
@@ -12735,6 +12770,9 @@ open class WMKeyboardService : InputMethodService() {
         if (StartedActivities.count == 0) {
             AssetLayouts.releaseParsed(_uiState.value.settings.enabledLayoutIds + _uiState.value.layoutId)
         }
+        // What only settings screens use (search index, settings history), once
+        // none is started; the keyboard's own writes load the history too.
+        StartedActivities.releaseIfNoneStarted()
     }
 
     /** Pending [schedulePanelTrim]'s trim. */
@@ -12768,6 +12806,8 @@ open class WMKeyboardService : InputMethodService() {
             UnicodeNames.releaseSearch()
             com.wasimaster.wmkeyboard.core.emoji.EmojiNames.release()
             com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.releaseDatabases()
+            // The search boxes' vectors by meaning, read back by the next search.
+            if (meaningSearchDelegate.isInitialized()) meaningSearch.release()
         }
     }
 
@@ -30978,7 +31018,8 @@ open class WMKeyboardService : InputMethodService() {
      * answer is listed after the keyword matches, and with the feature off or
      * its model absent nothing here does anything.
      */
-    private val meaningSearch by lazy { MeaningSearch(applicationContext, serviceScope) }
+    private val meaningSearchDelegate = lazy { MeaningSearch(applicationContext, serviceScope) }
+    private val meaningSearch by meaningSearchDelegate
 
     /**
      * IndicXlit, for the phonetic languages whose strip offers its readings

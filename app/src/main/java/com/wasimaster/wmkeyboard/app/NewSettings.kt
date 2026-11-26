@@ -134,8 +134,16 @@ internal object NewSettings {
     var hiddenHere: Int by mutableIntStateOf(0)
 
     /**
-     * The whole settings index, kept from [load] so a step can seed the path
-     * the page it opens really lives at, the way a search result does (#1111).
+     * The settings index's destinations, its screens and tool pages, kept from
+     * [load] so a step can seed the path the page it opens really lives at,
+     * the way a search result does (#1111).
+     *
+     * Only those, because [settingsCrumbSeed] looks a step's route up among
+     * them and reads nothing else of the index. The whole index is about a
+     * thousand rows, a few hundred of them destinations, and this object lives
+     * as long as the process, which is the keyboard's: the other rows were
+     * about 130 KB (estimate: 750 rows at 170 bytes) held for days by a
+     * settings app opened once.
      */
     var wholeIndex: List<SettingsSearchEntry> = emptyList()
         private set
@@ -171,7 +179,7 @@ internal object NewSettings {
         }.getOrDefault(0L)
         val res = context.resources
         val whole = settingsSearchIndex(res)
-        wholeIndex = whole
+        wholeIndex = whole.filter { it.weight == EntryWeight.SECTION || it.weight == EntryWeight.TOOL }
         val index = whole.filter { it.titleRes != 0 }
         val keyed = index.associateBy { entry ->
             "${entry.route}#${runCatching { res.getResourceEntryName(entry.titleRes) }.getOrDefault(entry.title)}"
@@ -204,7 +212,14 @@ internal object NewSettings {
         notesDue = prefs.getLong(KEY_NOTES_DUE, -1L) == version && prefs.getBoolean(KEY_SHOW_NOTES, true)
         lastKeys = last
         lastAdded = keyed.filterKeys { it in last }.values.distinctBy { it.titleRes }
+        // Only the rows this update or the last one brought: [sighted] and
+        // [touched] look up nothing else, since a row wears the border only
+        // when its key is fresh or, after [replay], last. Every row's key was
+        // about 115 KB (estimate: a thousand map nodes, boxed ids and
+        // "route#name" strings) kept for the life of the process. Filtered
+        // after the association, so a title two rows share keeps the key it had.
         keyOf = keyed.entries.associate { (key, entry) -> entry.titleRes to key }
+            .filterValues { it in fresh || it in last }
         seenAt.clear()
         prefs.getStringSet(KEY_SEEN, null).orEmpty().forEach { line ->
             val tab = line.lastIndexOf('\t')

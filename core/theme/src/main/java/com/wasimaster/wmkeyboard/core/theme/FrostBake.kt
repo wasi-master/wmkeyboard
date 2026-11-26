@@ -31,11 +31,33 @@ object FrostBake {
     private const val PASSES = 3
 
     /**
+     * The short side, in pixels, a blurred bake's quarter-size copy needs for
+     * the bake to be handed out at that size; see [bake]. A board's decode is
+     * at least 1080 px across, so its copy is 270 or more; the wallpaper's
+     * colour fields ([WallpaperBackdrop.colourFields]) are drawn at a quarter
+     * of the board already, and their copy is a sixteenth, 72 px.
+     */
+    private const val MIN_KEPT_SMALL_PX = 160
+
+    /**
      * [source] blurred by [blur] (the editor's 0..25 scale), then saturated by
      * [saturation], scaled by [scale] (the theme's image brightness, 1 to
      * leave it) and shifted by [brightness] (a fraction of white, negative
-     * to darken), at [source]'s own size. Never recycles [source]: the cache
-     * may still be handing it out as the sharp board.
+     * to darken). Never recycles [source]: the cache may still be handing it
+     * out as the sharp board.
+     *
+     * Unblurred, at [source]'s own size. Blurred, at the quarter size the blur
+     * ran at, whenever that is at least [MIN_KEPT_SMALL_PX] on its short side:
+     * every surface maps the backdrop by its own width and height (a centre
+     * crop, see `GlassPaint.of`) and samples it filtered, so the GPU's
+     * bilinear upscale at draw time stands in for the one this used to do on
+     * the CPU before handing back a full-size copy of a blurred picture, which
+     * holds nothing the quarter-size one does not. A 2016x1512 board decode
+     * baked to 12.2 MB of ARGB, kept in [BackgroundBitmapCache] and uploaded
+     * again as a texture while the keyboard showed; at a quarter it is
+     * 0.76 MB. A copy smaller than that bound is a low-resolution stand-in
+     * already and keeps [source]'s size, as before, so it is never magnified
+     * more than it was.
      */
     fun bake(source: Bitmap, blur: Float, saturation: Float, brightness: Float, scale: Float = 1f): Bitmap {
         val width = source.width
@@ -56,7 +78,12 @@ object FrostBake {
         }
         val blurred = Bitmap.createBitmap(smallW, smallH, Bitmap.Config.ARGB_8888)
         blurred.setPixels(pixels, 0, smallW, 0, 0, smallW, smallH)
-        val out = recoloured(blurred, width, height, saturation, brightness, scale)
+        val keepSmall = minOf(smallW, smallH) >= MIN_KEPT_SMALL_PX
+        val out = if (keepSmall) {
+            recoloured(blurred, smallW, smallH, saturation, brightness, scale)
+        } else {
+            recoloured(blurred, width, height, saturation, brightness, scale)
+        }
         blurred.recycle()
         return out
     }

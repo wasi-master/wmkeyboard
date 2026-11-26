@@ -3,7 +3,6 @@ package com.wasimaster.wmkeyboard.core.keyman
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Where a converted layout's rules live on disk, and the only place a
@@ -21,7 +20,20 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class KeymanRuleStore(private val context: Context) {
 
-    private val parsed = ConcurrentHashMap<String, KeymanKeyboard>()
+    /**
+     * The keyboards parsed most recently, at most [PARSED_KEPT], least recently
+     * used first. Every keyboard switched through used to stay for as long as
+     * the store, which is the keyboard service's lifetime, and a parsed rule
+     * set is objects for every group, rule and string of a `.kmx` that may be
+     * up to [KeymanLimits.MAX_KMX_BYTES]. The one in use is also held by its
+     * [KeyProcessor], so this only decides how many others wait for a switch
+     * back; going further back costs a file read and a parse, as the first
+     * time did.
+     */
+    private val parsed = object : LinkedHashMap<String, KeymanKeyboard>(PARSED_KEPT * 2, LOAD_FACTOR, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, KeymanKeyboard>?): Boolean =
+            size > PARSED_KEPT
+    }
 
     /** `filesDir/keyman/rules`, or null while the device is locked. */
     fun rulesDir(): File? {
@@ -53,7 +65,7 @@ class KeymanRuleStore(private val context: Context) {
 
     /** The parsed keyboard, cached. Null when absent, too large or malformed. */
     fun keyboard(keyboardId: String): KeymanKeyboard? {
-        parsed[keyboardId]?.let { return it }
+        synchronized(parsed) { parsed[keyboardId] }?.let { return it }
         val file = ruleFile(keyboardId)?.takeIf { it.isFile } ?: return null
         if (file.length() > KeymanLimits.MAX_KMX_BYTES) return null
         val bytes = runCatching { file.readBytes() }.getOrNull() ?: return null
@@ -61,7 +73,7 @@ class KeymanRuleStore(private val context: Context) {
             is KeymanResult.Success -> result.value
             is KeymanResult.Failure -> return null
         }
-        parsed[keyboardId] = keyboard
+        synchronized(parsed) { parsed[keyboardId] = keyboard }
         return keyboard
     }
 
@@ -77,7 +89,7 @@ class KeymanRuleStore(private val context: Context) {
 
     /** Drops the parse cache, for when a download replaces a keyboard's rules. */
     fun invalidate(keyboardId: String) {
-        parsed.remove(keyboardId)
+        synchronized(parsed) { parsed.remove(keyboardId) }
     }
 
     /**
@@ -124,5 +136,10 @@ class KeymanRuleStore(private val context: Context) {
 
         /** A version string is a few characters; anything longer is not one. */
         private const val MAX_VERSION_BYTES = 64L
+
+        /** The keyboard typing now and the one before it, for a switch back and forth. */
+        private const val PARSED_KEPT = 2
+
+        private const val LOAD_FACTOR = 0.75f
     }
 }

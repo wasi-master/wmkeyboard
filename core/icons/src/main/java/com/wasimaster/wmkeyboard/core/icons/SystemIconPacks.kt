@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.util.LruCache
 import android.util.Xml
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 import org.xmlpull.v1.XmlPullParser
 
 /** A launcher icon pack installed on the phone (#1275), such as Arcticons. */
@@ -113,12 +114,16 @@ object SystemIconPacks {
      * wait for the first and share its result.
      */
     fun index(context: Context, packageName: String): SystemPackIndex {
+        lastUseNanos = System.nanoTime()
         synchronized(indexes) { indexes[packageName]?.let { return it } }
         val gate = synchronized(reading) { reading.getOrPut(packageName) { Any() } }
         synchronized(gate) {
             synchronized(indexes) { indexes[packageName]?.let { return it } }
             val read = runCatching { readIndex(context, packageName) }.getOrNull() ?: SystemPackIndex.EMPTY
             synchronized(indexes) { indexes[packageName] = read }
+            // The App icons page reads packs too, in the keyboard's own
+            // process, which outlives the settings app by days.
+            StartedActivities.onAllStopped(RELEASE_KEY) { if (idle()) trimMemory() }
             return read
         }
     }
@@ -132,6 +137,7 @@ object SystemIconPacks {
      */
     fun drawable(context: Context, packageName: String, name: String, sizePx: Int): Bitmap? {
         if (!isPackageName(packageName) || !isDrawableName(name) || sizePx <= 0) return null
+        lastUseNanos = System.nanoTime()
         val key = "$packageName/$name@$sizePx"
         bitmaps.get(key)?.let { return it }
         val bitmap = runCatching {
@@ -154,6 +160,33 @@ object SystemIconPacks {
         synchronized(indexes) { indexes.clear() }
         bitmaps.evictAll()
     }
+
+    /**
+     * Lets go of every pack's index and of the decoded drawables, for when the
+     * keyboard has gone idle or memory is short; the next lookup reads the
+     * pack again, off the main thread like the first.
+     *
+     * Kept until now for the life of the process, which is the keyboard's. An
+     * index is the whole of a pack's `appfilter.xml`, and Arcticons lists about
+     * twelve thousand entries: some 3 MB of map nodes and strings (estimate,
+     * 12,000 entries at about 250 bytes). The drawables are up to
+     * [BITMAP_BUDGET] more, and the launcher grid holds its own copies of the
+     * ones it shows, so the keyboard's idle release, which empties that grid's
+     * cache, freed none of them while this one kept them. Every caller keeps
+     * its own copy of a picture it draws, so nothing on screen goes blank.
+     */
+    fun trimMemory() = clear()
+
+    /** When [index] or [drawable] was last called, from [System.nanoTime]. */
+    @Volatile
+    private var lastUseNanos = 0L
+
+    /**
+     * No lookup for [IDLE_NANOS]: a launcher grid being scrolled right now
+     * would read its pack again on the next miss, which for a large pack is a
+     * parse of a few hundred milliseconds.
+     */
+    private fun idle(): Boolean = System.nanoTime() - lastUseNanos > IDLE_NANOS
 
     // ---- sources ---------------------------------------------------------
 
@@ -189,13 +222,23 @@ object SystemIconPacks {
         return if (isPackageName(pkg) && activity.isNotEmpty()) "$pkg/$activity" else null
     }
 
-    private val PACKAGE = Regex("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+")
-    private val DRAWABLE = Regex("[A-Za-z0-9_]{1,200}")
-
-    fun isPackageName(value: String): Boolean = value.length <= 255 && PACKAGE.matches(value)
+    /**
+     * Two or more dot-separated runs of ASCII letters, digits and `_`: what
+     * `[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)+` matched, without the regex. Both
+     * checks here run on every keyboard icon drawn from a pack, so this object
+     * is loaded in the keyboard's process, and the two compiled patterns were
+     * 7.5 KB of native memory (measured with ICU) held for the rest of it.
+     */
+    fun isPackageName(value: String): Boolean {
+        if (value.length > 255) return false
+        val parts = value.split('.')
+        return parts.size >= 2 && parts.all { part -> part.isNotEmpty() && part.all { isNameChar(it) } }
+    }
 
     /** A resource name: what a drawable is called, and safe inside an override's CSV. */
-    fun isDrawableName(value: String): Boolean = DRAWABLE.matches(value)
+    fun isDrawableName(value: String): Boolean = value.length in 1..200 && value.all { isNameChar(it) }
+
+    private fun isNameChar(c: Char): Boolean = c in 'a'..'z' || c in 'A'..'Z' || c in '0'..'9' || c == '_'
 
     // ---- reading a pack --------------------------------------------------
 
@@ -282,4 +325,9 @@ object SystemIconPacks {
 
     /** Decoded icons kept in memory, in bytes. */
     private const val BITMAP_BUDGET = 6 * 1024 * 1024
+
+    /** How long without a lookup counts as [idle]: thirty seconds. */
+    private const val IDLE_NANOS = 30_000_000_000L
+
+    private const val RELEASE_KEY = "icons.systemPacks"
 }

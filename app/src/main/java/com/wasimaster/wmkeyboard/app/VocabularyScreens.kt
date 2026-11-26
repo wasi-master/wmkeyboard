@@ -135,6 +135,7 @@ import com.wasimaster.wmkeyboard.core.vocab.VocabSense
 import com.wasimaster.wmkeyboard.core.vocab.VocabSpeaker
 import com.wasimaster.wmkeyboard.core.vocab.VocabTranslation
 import com.wasimaster.wmkeyboard.core.vocab.VocabWord
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import java.io.File
 import java.util.TimeZone
@@ -745,12 +746,32 @@ private data class InstalledVocabPack(val file: File, val pack: VocabPack, val l
 /**
  * What the packs screen showed last time, so coming back paints it on the
  * first frame instead of listing every pack as "not downloaded" until the
- * disk has been read. Process-held and keyed on the pack files and the
- * learning record, like the daily card's draw.
+ * disk has been read. Keyed on the pack files and the learning record, like
+ * the daily card's draw.
+ *
+ * Held while the settings app is in use, not for the process: each entry is
+ * a whole pack, every word with its senses, examples and etymology, up to
+ * 5,000 words (VocabPackFile.MAX_WORDS), so up to about 5 MB a pack
+ * (estimate: about 1 KB a word), and the process is the keyboard's, alive for
+ * days after the screen was last opened. Once no screen of the app has been
+ * started for half a minute ([StartedActivities.onAllStopped]) it goes, and
+ * the next visit reads the disk as the first one did.
  */
 private object InstalledPacksCache {
+    @Volatile
     var key: Long = Long.MIN_VALUE
+
+    @Volatile
     var packs: List<InstalledVocabPack>? = null
+
+    fun put(key: Long, packs: List<InstalledVocabPack>) {
+        this.key = key
+        this.packs = packs
+        StartedActivities.onAllStopped("settings.vocabPacks") {
+            this.packs = null
+            this.key = Long.MIN_VALUE
+        }
+    }
 }
 
 private suspend fun readInstalledPacks(context: Context): List<InstalledVocabPack> = withContext(Dispatchers.IO) {
@@ -768,8 +789,7 @@ private suspend fun readInstalledPacks(context: Context): List<InstalledVocabPac
             InstalledVocabPack(file, pack, stats.learnt, stats.seen)
         }
     }
-    InstalledPacksCache.key = key
-    InstalledPacksCache.packs = packs
+    InstalledPacksCache.put(key, packs)
     packs
 }
 

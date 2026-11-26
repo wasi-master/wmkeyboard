@@ -19,7 +19,7 @@ Once it is here, the group shows a row of voices for each language. Tap a name t
 
 The download is sherpa-onnx's packaging of Kokoro v1.0, checked against its SHA-256 and resumed if it stops. It runs on the same ONNX Runtime as the MMS voices, so the GitHub and Play builds fetch that first if it is not on the phone yet. Swipe or tap the bin to delete it; it also shows under <SettingsPath path="Storage / Voice models" />.
 
-Kokoro reads from pronunciation dictionaries, and a word missing from them, such as an unusual name, is skipped. Before it reads English, the keyboard spells out numbers ("$12.50" becomes "twelve dollars fifty cents", "3rd" becomes "third") and splits words run together in camel case. Making a sentence takes about as long as saying it on a recent phone, and longer on an older one. The model holds a few hundred megabytes of memory while it reads, and the keyboard unloads it with its other models when it has been hidden for 2 minutes.
+Kokoro reads from pronunciation dictionaries, and a word missing from them, such as an unusual name, is skipped. Before it reads English, the keyboard spells out numbers ("$12.50" becomes "twelve dollars fifty cents", "3rd" becomes "third") and splits words run together in camel case. Making a sentence takes about as long as saying it on a recent phone, and longer on an older one. The model holds a few hundred megabytes of memory while it reads. It is unloaded 2 minutes after the last reading, wherever that reading was, and with the keyboard's other models when the keyboard has been hidden for 2 minutes; the next reading loads it again in about a second.
 
 ## Offline voices
 
@@ -46,7 +46,7 @@ A recording, when a card has one, still plays first. The speech rate is the one 
 
 ### What to expect
 
-MMS voices read letters, not phonemes, and they were trained on Bible readings, so they sound clear but plain, a little like someone reading a passage aloud. They read words as written: digits and symbols the voice has no letter for are skipped, so in most languages "3 kg" comes out as "kg". Each sentence is made while the one before it plays, so a long text starts once the first sentence is ready. Making speech is heavy work: a second of speech takes about a second of one fast processor core, so on a phone expect a pause of a second or so before the first sentence, and on a slower phone short gaps between sentences.
+MMS voices read letters, not phonemes, and they were trained on Bible readings, so they sound clear but plain, a little like someone reading a passage aloud. They read words as written: digits and symbols the voice has no letter for are skipped, so in most languages "3 kg" comes out as "kg". Each sentence is made while the one before it plays, so a long text starts once the first sentence is ready. Making speech is heavy work: a second of speech takes about a second of one fast processor core, so on a phone expect a pause of a second or so before the first sentence, and on a slower phone short gaps between sentences. The voice stays loaded for the next reading and is unloaded 2 minutes after the last one, like Kokoro; the first reading after that waits about a second more while it loads.
 
 Voices that need Meta's romaniser, which spells a language in Latin letters before it is read, are not offered; for those languages the phone's voice reads.
 

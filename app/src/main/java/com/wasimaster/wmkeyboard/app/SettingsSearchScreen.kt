@@ -986,7 +986,7 @@ private class SettingsSearchCorpus(
 )
 
 /**
- * The last corpus built, kept for the life of the process and keyed by the
+ * The last corpus built, kept while the settings app is in use and keyed by the
  * locales its strings were read in.
  *
  * Coming back from a result used to rebuild it, which left the screen without
@@ -1003,6 +1003,11 @@ private object SearchCorpusCache {
 
     fun put(locales: String, corpus: SettingsSearchCorpus) {
         held = locales to corpus
+        // Not for the life of the process, which is the keyboard's: once
+        // searched, every row carries its match forms and stems, about 2 MB
+        // with the vocabulary (estimate). Gone once no screen of the app has
+        // been started for half a minute; an open search screen keeps its own.
+        com.wasimaster.wmkeyboard.core.util.StartedActivities.onAllStopped("settings.searchCorpus") { held = null }
     }
 }
 
