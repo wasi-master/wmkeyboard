@@ -1,8 +1,8 @@
-//! `wm-python-cli`: WM Keyboard's Python plugins, headless.
+//! `wmpy test` and `wmpy render`: WM Keyboard's Python plugins, headless.
 //!
 //! ```text
-//! wm-python-cli test <plugin-dir>                  run <plugin-dir>/test.py; exit 1 on an uncaught exception
-//! wm-python-cli run <plugin-dir> [--mock <file>]   load the plugin as a panel and print the first render's JSON
+//! wmpy test <plugin-dir>                  run <plugin-dir>/test.py; exit 1 on an uncaught exception
+//! wmpy render <plugin-dir> [--mock <file>] load the plugin as a panel and print the first render's JSON
 //! ```
 //!
 //! An API 5 plugin (`"apiVersion": 5` in plugin.json) loads with every other
@@ -46,8 +46,7 @@
 //! because one run drives a whole corpus of cases.
 
 use std::cell::RefCell;
-use std::path::{Component, Path, PathBuf};
-use std::process::ExitCode;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use wm_python::host::api::{self, PluginInfo};
@@ -55,235 +54,37 @@ use wm_python::host::files::{Reminders, Storage};
 use wm_python::host::Session;
 use wm_python::interp::{Limits, PyError, Runtime, SystemClock, Value, STANDARD_MODULES};
 
-const USAGE: &str = "usage: wm-python-cli test <plugin-dir>\n       wm-python-cli run <plugin-dir> [--mock <file>]";
+use crate::mock::Mock;
+use crate::project::{inside, manifest, modules, read_inside, session_config, Manifest, DEFAULT_PREVIEW_BYTES};
 
-fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().collect();
-    let mock = match (args.len(), args.get(3).map(String::as_str)) {
-        (3, _) => None,
-        (5, Some("--mock")) => Some(PathBuf::from(&args[4])),
-        _ => {
-            eprintln!("{USAGE}");
-            return ExitCode::from(2);
-        }
-    };
-    let (command, dir) = (args[1].clone(), PathBuf::from(&args[2]));
-    // Scripts recurse on the native stack; give them room.
-    let worker = std::thread::Builder::new().stack_size(256 << 20).spawn(move || match command.as_str() {
-        "test" => test(&dir),
-        "run" => run(&dir, mock.as_deref()),
-        _ => {
-            eprintln!("{USAGE}");
-            2
-        }
-    });
-    ExitCode::from(worker.expect("spawn").join().unwrap_or(1))
+/// `wmpy test`: run the plugin's test.py.
+#[derive(clap::Args, Debug)]
+pub struct TestArgs {
+    /// The plugin folder
+    #[arg(default_value = ".")]
+    pub dir: PathBuf,
 }
 
-struct Manifest {
-    id: String,
-    version: String,
-    entry: String,
-    permissions: Vec<String>,
-    api: i64,
-    /// False for a plugin made of selection actions alone (`"panel": false`).
-    panel: bool,
-    /// Each `previews` entry's id and `maxBytes`.
-    previews: Vec<(String, usize)>,
+/// `wmpy render`: load the plugin as a panel and print the first draw's JSON.
+#[derive(clap::Args, Debug)]
+pub struct RenderArgs {
+    /// The plugin folder
+    #[arg(default_value = ".")]
+    pub dir: PathBuf,
+    /// A JSON file answering host calls by op name
+    #[arg(long)]
+    pub mock: Option<PathBuf>,
 }
 
-/// A preview's `maxBytes` when the manifest gives none.
-const DEFAULT_PREVIEW_BYTES: usize = 4 << 20;
-
-fn manifest(dir: &Path) -> Result<Manifest, String> {
-    let path = dir.join("plugin.json");
-    let text = std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let v: serde_json::Value = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))?;
-    let s = |k: &str| v.get(k).and_then(|x| x.as_str()).unwrap_or("").trim().to_string();
-    let entry = s("entry");
-    Ok(Manifest {
-        id: s("id"),
-        version: s("version"),
-        entry: if entry.is_empty() { "main.py".into() } else { entry },
-        permissions: v
-            .get("permissions")
-            .and_then(|p| p.as_array())
-            .map(|a| a.iter().filter_map(|x| x.as_str()).map(String::from).collect())
-            .unwrap_or_default(),
-        api: v.get("apiVersion").and_then(|x| x.as_i64()).unwrap_or(4),
-        panel: v.get("panel").and_then(|x| x.as_bool()).unwrap_or(true),
-        previews: v
-            .get("previews")
-            .and_then(|p| p.as_array())
-            .map(|a| {
-                a.iter()
-                    .filter_map(|p| {
-                        let id = p.get("id")?.as_str()?.to_string();
-                        let max = p.get("maxBytes").and_then(|m| m.as_u64()).map_or(DEFAULT_PREVIEW_BYTES, |m| m as usize);
-                        Some((id, max))
-                    })
-                    .collect()
-            })
-            .unwrap_or_default(),
-    })
+pub fn run_test(args: TestArgs) -> u8 {
+    test(&args.dir)
 }
 
-/// Every `.py` file under [dir] but the entry and the test, as
-/// `{"name.py": source, "pkg/mod.py": source}`.
-fn modules(dir: &Path, entry: &str) -> serde_json::Map<String, serde_json::Value> {
-    let mut out = serde_json::Map::new();
-    let mut stack = vec![dir.to_path_buf()];
-    while let Some(d) = stack.pop() {
-        let Ok(read) = std::fs::read_dir(&d) else { continue };
-        for item in read.flatten() {
-            let path = item.path();
-            let Ok(rel) = path.strip_prefix(dir) else { continue };
-            let name = rel.to_string_lossy().replace('\\', "/");
-            if name.starts_with('.') || name.starts_with("tests") {
-                continue;
-            }
-            if path.is_dir() {
-                stack.push(path);
-            } else if name.ends_with(".py") && name != entry && name != "test.py" {
-                if let Ok(text) = std::fs::read_to_string(&path) {
-                    out.insert(name, serde_json::Value::String(text));
-                }
-            }
-        }
-    }
-    out
+pub fn run_render(args: RenderArgs) -> u8 {
+    render(&args.dir, args.mock.as_deref())
 }
 
-/// The session config the keyboard would build for the plugin in [dir].
-fn session_config(dir: &Path, m: &Manifest, settings: serde_json::Value) -> serde_json::Value {
-    serde_json::json!({
-        "id": m.id, "version": m.version, "permissions": m.permissions, "mode": if m.panel { "panel" } else { "action" },
-        "apiVersion": m.api, "files": modules(dir, &m.entry), "settings": settings,
-        "context": {"locale": "en", "theme": "light", "surface": "panel"},
-    })
-}
-
-/// The mock behind a session: its answers, every call the plugin made, and
-/// the `then=` calls still waiting for [settle](session_value).
-struct Mock {
-    answers: serde_json::Value,
-    calls: RefCell<Vec<serde_json::Value>>,
-    /// `(token, op, args)` of each async call not yet answered.
-    waiting: RefCell<Vec<(String, String, serde_json::Value)>>,
-}
-
-impl Mock {
-    fn new(answers: serde_json::Value) -> Rc<Mock> {
-        Rc::new(Mock { answers, calls: RefCell::new(Vec::new()), waiting: RefCell::new(Vec::new()) })
-    }
-
-    /// The reply JSON for one call: `{"value": v}` or `{"error": {...}}`.
-    ///
-    /// An op's answer is the reply itself, or a list of routes
-    /// `{"when": {arg: pattern}, "reply": v}` picked by the call's args (the
-    /// first whose `when` matches; no `when` matches anything). A reply that
-    /// is only `{"error": {"kind", "message"}}` raises that error instead.
-    fn reply(&self, op: &str, args: &serde_json::Value) -> serde_json::Value {
-        let missing = |what: String| serde_json::json!({"error": {"kind": "NotImplementedError", "message": what}});
-        let answer = match self.answers.get(op) {
-            // The keyboard answers a plugin's own setting write with the value it saved.
-            None if op == "settings.set" => return serde_json::json!({"value": args.get("value").cloned().unwrap_or(serde_json::Value::Null)}),
-            None => return missing(format!("no mock reply for {op}")),
-            Some(v) if is_routes(v) => {
-                let routes = v.as_array().map(Vec::as_slice).unwrap_or(&[]);
-                match routes.iter().find(|r| r.get("when").is_none_or(|w| matches(w, Some(args)))) {
-                    Some(route) => &route["reply"],
-                    None => return missing(format!("no mock route for {op} {}", summary(args))),
-                }
-            }
-            Some(v) => v,
-        };
-        if answer.as_object().is_some_and(|o| o.len() == 1 && o.get("error").is_some_and(|e| e.is_object())) {
-            answer.clone()
-        } else {
-            serde_json::json!({"value": answer})
-        }
-    }
-
-    fn bridge(self: &Rc<Self>) -> wm_python::host::Bridge {
-        let mock = self.clone();
-        Box::new(move |op: &str, args: &str| {
-            let args: serde_json::Value = serde_json::from_str(args).unwrap_or(serde_json::Value::Null);
-            mock.calls.borrow_mut().push(serde_json::json!({"op": op, "args": args}));
-            if let Some(token) = args.get("async").and_then(|t| t.as_str()) {
-                // Answered by settle(), or by the test's own `result` event.
-                mock.waiting.borrow_mut().push((token.to_string(), op.to_string(), args.clone()));
-                return serde_json::json!({"value": null}).to_string();
-            }
-            mock.reply(op, &args).to_string()
-        })
-    }
-}
-
-/// Whether an op's mock answer is a list of routes rather than a list reply
-/// (such as `sensors.list`'s): every item a dict with a `reply`.
-fn is_routes(v: &serde_json::Value) -> bool {
-    v.as_array().is_some_and(|a| !a.is_empty() && a.iter().all(|r| r.get("reply").is_some()))
-}
-
-/// Whether [arg] fits [pattern]: a string exactly, or as a prefix when the
-/// pattern ends in `*`; a dict when each of its keys fits; anything else by
-/// equality, with `null` also matching an absent arg.
-fn matches(pattern: &serde_json::Value, arg: Option<&serde_json::Value>) -> bool {
-    use serde_json::Value as J;
-    match (pattern, arg) {
-        (J::Null, None) => true,
-        (J::String(p), Some(J::String(a))) => match p.strip_suffix('*') {
-            Some(prefix) => a.starts_with(prefix),
-            None => a == p,
-        },
-        (J::Object(p), Some(J::Object(_))) => p.iter().all(|(k, v)| matches(v, arg.and_then(|a| a.get(k)))),
-        (p, Some(a)) => p == a,
-        _ => false,
-    }
-}
-
-/// A call's args in a line, for a missing-route message: `GET https://...`
-/// for a request, else the JSON.
-fn summary(args: &serde_json::Value) -> String {
-    match (args.get("method").and_then(|m| m.as_str()), args.get("url").and_then(|u| u.as_str())) {
-        (Some(m), Some(u)) => format!("{m} {u}"),
-        _ => {
-            let mut text = args.to_string();
-            if text.len() > 200 {
-                let mut cut = 200;
-                while !text.is_char_boundary(cut) {
-                    cut -= 1;
-                }
-                text.truncate(cut);
-                text.push('…');
-            }
-            text
-        }
-    }
-}
-
-/// A file inside [dir], or why not: absolute paths and `..` are refused, and
-/// so is anything a symlink leads out of the folder.
-fn inside(dir: &Path, name: &str) -> Result<PathBuf, String> {
-    let rel = Path::new(name);
-    if name.is_empty() || rel.components().any(|c| !matches!(c, Component::Normal(_))) {
-        return Err(format!("'{name}' is not a file inside the plugin folder"));
-    }
-    let root = dir.canonicalize().map_err(|e| e.to_string())?;
-    let path = root.join(rel).canonicalize().map_err(|_| format!("no file '{name}' in the plugin folder"))?;
-    if !path.starts_with(&root) {
-        return Err(format!("'{name}' is not a file inside the plugin folder"));
-    }
-    Ok(path)
-}
-
-fn read_inside(dir: &Path, name: &str) -> Result<String, PyError> {
-    let path = inside(dir, name).map_err(|m| PyError::new(m, "ValueError"))?;
-    std::fs::read_to_string(&path).map_err(|e| PyError::new(format!("cannot read '{name}': {e}"), "ValueError"))
-}
-
-fn report(e: &PyError) {
+pub fn report(e: &PyError) {
     match e.line {
         Some(l) => eprintln!("{}: {} (line {l})", e.kind, e.message),
         None => eprintln!("{}: {}", e.kind, e.message),
@@ -527,7 +328,7 @@ fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Va
     ])
 }
 
-fn run(dir: &Path, mock: Option<&Path>) -> u8 {
+fn render(dir: &Path, mock: Option<&Path>) -> u8 {
     let m = match manifest(dir) {
         Ok(m) => m,
         Err(e) => {

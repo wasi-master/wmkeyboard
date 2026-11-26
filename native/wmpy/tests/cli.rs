@@ -1,10 +1,10 @@
-//! `wm-python-cli test` and `run` against plugin folders made on the fly.
+//! `wmpy test` and `render` against plugin folders made on the fly.
 
 use std::path::PathBuf;
 use std::process::Command;
 
 fn plugin(name: &str, files: &[(&str, &str)]) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("wm-python-cli-{}-{name}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("wmpy-{}-{name}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     for (f, text) in files {
@@ -14,7 +14,7 @@ fn plugin(name: &str, files: &[(&str, &str)]) -> PathBuf {
 }
 
 fn cli(args: &[&str]) -> (i32, String, String) {
-    let out = Command::new(env!("CARGO_BIN_EXE_wm-python-cli")).args(args).output().unwrap();
+    let out = Command::new(env!("CARGO_BIN_EXE_wmpy")).args(args).output().unwrap();
     (out.status.code().unwrap_or(-1), String::from_utf8_lossy(&out.stdout).into(), String::from_utf8_lossy(&out.stderr).into())
 }
 
@@ -64,7 +64,7 @@ fn files_outside_the_plugin_are_refused() {
 #[test]
 fn run_prints_the_first_render() {
     let dir = plugin("run", &[("plugin.json", MANIFEST), ("main.py", MAIN)]);
-    let (code, out, _) = cli(&["run", dir.to_str().unwrap()]);
+    let (code, out, _) = cli(&["render", dir.to_str().unwrap()]);
     assert_eq!(0, code);
     let v: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
     assert_eq!(v["ok"], true);

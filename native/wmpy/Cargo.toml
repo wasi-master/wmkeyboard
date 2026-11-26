@@ -1,0 +1,24 @@
+[package]
+name = "wmpy"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "wmpy: the command-line tool for WM Keyboard's Python plugins. Makes, checks, tests, runs, previews and packs them, vendors pure-Python packages, and serves the language server and MCP server."
+license = "MIT"
+
+[[bin]]
+name = "wmpy"
+path = "src/main.rs"
+
+[dependencies]
+wm-python = { path = "../wm-python" }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+base64 = { version = "0.22", default-features = false, features = ["alloc"] }
+clap = { version = "4.6.10", features = ["derive", "wrap_help"] }
+clap_complete = "4.6.12"
+wm-python-tooling = { version = "0.1.0", path = "../wm-python-tooling" }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
