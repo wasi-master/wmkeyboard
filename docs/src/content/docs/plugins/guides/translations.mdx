@@ -72,6 +72,16 @@ dictionary.wmplugin
     └── ru.json
 ```
 
-The editors hold one file per plugin for now, so build the archive by hand to
-add them. [Sharing your plugin](/plugins/guides/sharing/#several-files) shows
-how.
+[`wmpy pack`](/plugins/wmpy/#wmpy-pack) puts the `locales` folder in the
+archive, and so does the plugin editor on the web, where the files show
+under **Files**. To build the archive by hand,
+[Sharing your plugin](/plugins/guides/sharing/#several-files) shows how.
+
+### Keep the files up to date
+
+With [wmpy](/plugins/wmpy/#wmpy-i18n), `wmpy i18n extract --lang bn` writes
+`locales/bn.json` with every text your plugin translates, each one empty.
+Run it again after you change the code: it adds the new text and keeps your
+translations. `wmpy i18n check` fails when a translation is missing or its
+`{names}` don't match the English, and `wmpy i18n stats` shows how far each
+language has got.

@@ -23,6 +23,7 @@ pub mod document;
 pub mod fixes;
 pub mod format;
 pub mod highlight;
+pub mod i18n;
 pub(crate) mod infer;
 pub mod keyboard;
 pub mod signature;
@@ -34,5 +35,6 @@ pub mod parser;
 pub mod structure;
 pub mod stubs;
 pub mod text;
+pub mod usage;
 
 pub use document::{Document, Host, Verdict};
