@@ -100,70 +100,81 @@ object AiMarkdownBlocks {
      */
     data class TaskLine(val indent: String, val marker: Char, val checked: Boolean, val text: String)
 
-    private val FENCE = Regex("""^ {0,3}(```|~~~)\s*([\w+#.-]*).*$""")
-    private val HEADING = Regex("""^ {0,3}(#{1,6}) +(.*?)( +#+ *)?$""")
-    private val BULLET = Regex("""^( *)[-*+] +(.*)$""")
-    private val ORDERED = Regex("""^( *)(\d{1,3})[.)] +(.*)$""")
-    private val QUOTE = Regex("""^ {0,3}((?:> ?)+)(.*)$""")
-    private val RULE = Regex("""^ {0,3}([-*_])( *\1){2,} *$""")
-    private val SETEXT_1 = Regex("""^ {0,3}=+ *$""")
-    private val SETEXT_2 = Regex("""^ {0,3}-+ *$""")
-    private val TABLE_DELIMITER = Regex("""^ *\|? *:?-+:? *(\| *:?-+:? *)*\|? *$""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 176 KB across this file's patterns.
+    private val FENCE by lazy { Regex("""^ {0,3}(```|~~~)\s*([\w+#.-]*).*$""") }
+    private val HEADING by lazy { Regex("""^ {0,3}(#{1,6}) +(.*?)( +#+ *)?$""") }
+    private val BULLET by lazy { Regex("""^( *)[-*+] +(.*)$""") }
+    private val ORDERED by lazy { Regex("""^( *)(\d{1,3})[.)] +(.*)$""") }
+    private val QUOTE by lazy { Regex("""^ {0,3}((?:> ?)+)(.*)$""") }
+    private val RULE by lazy { Regex("""^ {0,3}([-*_])( *\1){2,} *$""") }
+    private val SETEXT_1 by lazy { Regex("""^ {0,3}=+ *$""") }
+    private val SETEXT_2 by lazy { Regex("""^ {0,3}-+ *$""") }
+    private val TABLE_DELIMITER by lazy { Regex("""^ *\|? *:?-+:? *(\| *:?-+:? *)*\|? *$""") }
 
     /** `[id]: url "title"`. The id may not start with `^`, which is a footnote. */
-    private val LINK_DEFINITION = Regex("""^ {0,3}\[([^\]^\n][^\]\n]*)]: *<?([^\s>]+)>?(?: +(?:"[^"]*"|'[^']*'|\([^)]*\)))? *$""")
-    private val FOOTNOTE_DEFINITION = Regex("""^ {0,3}\[\^([^\]\s]+)]: ?(.*)$""")
+    private val LINK_DEFINITION by lazy { Regex("""^ {0,3}\[([^\]^\n][^\]\n]*)]: *<?([^\s>]+)>?(?: +(?:"[^"]*"|'[^']*'|\([^)]*\)))? *$""") }
+    private val FOOTNOTE_DEFINITION by lazy { Regex("""^ {0,3}\[\^([^\]\s]+)]: ?(.*)$""") }
 
     /** An image, linked or not, with nothing else on its line. */
-    private val IMAGE_LINE = Regex("""^ {0,3}(?:\[!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)|!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)) *$""")
+    private val IMAGE_LINE by lazy {
+        Regex("""^ {0,3}(?:\[!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)|!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)) *$""")
+    }
 
     /**
      * `- [ ] text`, `- [x] text`, or a bare `- [ ]` somebody has only just typed.
      * One to four spaces between the marker and the box, as CommonMark allows.
      */
-    private val TASK = Regex("""^( *)([-*+]) {1,4}\[([ xX])\](?: +(.*)|)$""")
+    private val TASK by lazy { Regex("""^( *)([-*+]) {1,4}\[([ xX])\](?: +(.*)|)$""") }
 
     // Inline rules. Order matters where two can start at the same place: the
     // first in [INLINE_RULES] wins, so a linked image beats the link around it.
-    private val CODE = Regex("""(`+)(.+?)\1(?!`)""")
-    private val AUTOLINK = Regex("""<((?:https?|ftp)://[^\s<>]+|mailto:[^\s<>]+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+)>""")
-    private val HTML_PAIR = Regex("""<(b|strong|i|em|del|s|strike|u|ins|code|kbd|mark|sub|sup)>(.+?)</\1>""", RegexOption.IGNORE_CASE)
-    private val HTML_BREAK = Regex("""<br *\/?>""", RegexOption.IGNORE_CASE)
-    private val LINKED_IMAGE = Regex("""\[!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)""")
-    private val IMAGE = Regex("""!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*"|\s+'[^']*')?\s*\)""")
-    private val LINK = Regex("""\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*"|\s+'[^']*')?\s*\)""")
-    private val REF_IMAGE = Regex("""!\[([^\]\n]*)]\[([^\]\n]*)]""")
-    private val INLINE_FOOTNOTE = Regex("""\^\[([^\]\n]+)]""")
-    private val FOOTNOTE_REF = Regex("""\[\^([^\]\s]+)](?!:)""")
-    private val REF_LINK = Regex("""\[([^\]\n]+)](?:\[([^\]\n]*)])?""")
-    private val BOLD = Regex("""(\*\*|__)(?=\S)(.+?)(?<=\S)\1""")
-    private val STRIKE = Regex("""~~(?=\S)(.+?)(?<=\S)~~""")
-    private val ITALIC = Regex("""(?<![\w*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\w*_])""")
-    private val BARE_URL = Regex("""(?<![\w/@.:])(?:https?://|www\.)[^\s<>()\[\]]*[^\s<>()\[\].,:;!?'"*_~]""")
+    private val CODE by lazy { Regex("""(`+)(.+?)\1(?!`)""") }
+    private val AUTOLINK by lazy { Regex("""<((?:https?|ftp)://[^\s<>]+|mailto:[^\s<>]+|[\w.+-]+@[\w-]+(?:\.[\w-]+)+)>""") }
+    private val HTML_PAIR by lazy {
+        Regex("""<(b|strong|i|em|del|s|strike|u|ins|code|kbd|mark|sub|sup)>(.+?)</\1>""", RegexOption.IGNORE_CASE)
+    }
+    private val HTML_BREAK by lazy { Regex("""<br *\/?>""", RegexOption.IGNORE_CASE) }
+    private val LINKED_IMAGE by lazy {
+        Regex("""\[!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*")?\s*\)""")
+    }
+    private val IMAGE by lazy { Regex("""!\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*"|\s+'[^']*')?\s*\)""") }
+    private val LINK by lazy { Regex("""\[([^\]\n]*)]\(\s*<?([^\s)>]*)>?(?:\s+"[^"]*"|\s+'[^']*')?\s*\)""") }
+    private val REF_IMAGE by lazy { Regex("""!\[([^\]\n]*)]\[([^\]\n]*)]""") }
+    private val INLINE_FOOTNOTE by lazy { Regex("""\^\[([^\]\n]+)]""") }
+    private val FOOTNOTE_REF by lazy { Regex("""\[\^([^\]\s]+)](?!:)""") }
+    private val REF_LINK by lazy { Regex("""\[([^\]\n]+)](?:\[([^\]\n]*)])?""") }
+    private val BOLD by lazy { Regex("""(\*\*|__)(?=\S)(.+?)(?<=\S)\1""") }
+    private val STRIKE by lazy { Regex("""~~(?=\S)(.+?)(?<=\S)~~""") }
+    // The very pattern AiMarkdown.ITALIC compiles, so the two share one copy.
+    private val ITALIC: Regex get() = AiMarkdown.ITALIC
+    private val BARE_URL by lazy { Regex("""(?<![\w/@.:])(?:https?://|www\.)[^\s<>()\[\]]*[^\s<>()\[\].,:;!?'"*_~]""") }
 
     private enum class Kind {
         CODE, MATH, AUTOLINK, HTML_PAIR, HTML_BREAK, LINKED_IMAGE, IMAGE, LINK, REF_IMAGE,
         INLINE_FOOTNOTE, FOOTNOTE_REF, REF_LINK, BOLD, STRIKE, ITALIC, BARE_URL,
     }
 
-    private val INLINE_RULES = listOf(
-        Kind.CODE to CODE,
-        Kind.MATH to LatexMath.INLINE,
-        Kind.AUTOLINK to AUTOLINK,
-        Kind.HTML_PAIR to HTML_PAIR,
-        Kind.HTML_BREAK to HTML_BREAK,
-        Kind.LINKED_IMAGE to LINKED_IMAGE,
-        Kind.IMAGE to IMAGE,
-        Kind.LINK to LINK,
-        Kind.REF_IMAGE to REF_IMAGE,
-        Kind.INLINE_FOOTNOTE to INLINE_FOOTNOTE,
-        Kind.FOOTNOTE_REF to FOOTNOTE_REF,
-        Kind.REF_LINK to REF_LINK,
-        Kind.BOLD to BOLD,
-        Kind.STRIKE to STRIKE,
-        Kind.ITALIC to ITALIC,
-        Kind.BARE_URL to BARE_URL,
-    )
+    private val INLINE_RULES by lazy {
+        listOf(
+            Kind.CODE to CODE,
+            Kind.MATH to LatexMath.INLINE,
+            Kind.AUTOLINK to AUTOLINK,
+            Kind.HTML_PAIR to HTML_PAIR,
+            Kind.HTML_BREAK to HTML_BREAK,
+            Kind.LINKED_IMAGE to LINKED_IMAGE,
+            Kind.IMAGE to IMAGE,
+            Kind.LINK to LINK,
+            Kind.REF_IMAGE to REF_IMAGE,
+            Kind.INLINE_FOOTNOTE to INLINE_FOOTNOTE,
+            Kind.FOOTNOTE_REF to FOOTNOTE_REF,
+            Kind.REF_LINK to REF_LINK,
+            Kind.BOLD to BOLD,
+            Kind.STRIKE to STRIKE,
+            Kind.ITALIC to ITALIC,
+            Kind.BARE_URL to BARE_URL,
+        )
+    }
 
     /** CommonMark's escapable characters: a backslash before one makes it literal. */
     private const val ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
@@ -204,7 +215,7 @@ object AiMarkdownBlocks {
         )
     }
 
-    private val WHITESPACE = Regex("""\s+""")
+    private val WHITESPACE by lazy { Regex("""\s+""") }
 
     private fun refKey(label: String) = label.trim().replace(WHITESPACE, " ").lowercase()
 

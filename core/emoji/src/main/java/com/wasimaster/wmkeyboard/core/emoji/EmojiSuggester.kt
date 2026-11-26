@@ -163,8 +163,10 @@ class EmojiSuggester(
         /** Emoji per word in [suggestForText]: more than the strip's four, since the panel has room. */
         private const val PER_WORD = 8
 
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 66 KB across this file's patterns.
         /** A word for [suggestForText]: letters, marks and digits, an apostrophe inside. */
-        private val WORD = Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’][\\p{L}\\p{M}]+)*")
+        private val WORD by lazy { Regex("[\\p{L}\\p{M}\\p{N}]+(?:['’][\\p{L}\\p{M}]+)*") }
 
         /**
          * Curated word → emoji triggers; listed emojis always come first.

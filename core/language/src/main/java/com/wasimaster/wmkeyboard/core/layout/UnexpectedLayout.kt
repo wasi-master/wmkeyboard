@@ -712,11 +712,13 @@ object UnexpectedLayouts {
 
     // ---- constants ----
 
-    private val KeyboardOpen = Regex("""<keyboard[\s>/]""")
-    private val KeyOpen = Regex("""<key[\s/]""")
-    private val Attribute = Regex("""([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')""")
-    private val Entity = Regex("""&(#[xX]?[0-9a-fA-F]+|[a-zA-Z]+);""")
-    private val OldSymbol = Regex("""symbol='((?:[^'\\]|\\.)*)'""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 58 KB across this file's patterns.
+    private val KeyboardOpen by lazy { Regex("""<keyboard[\s>/]""") }
+    private val KeyOpen by lazy { Regex("""<key[\s/]""") }
+    private val Attribute by lazy { Regex("""([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')""") }
+    private val Entity by lazy { Regex("""&(#[xX]?[0-9a-fA-F]+|[a-zA-Z]+);""") }
+    private val OldSymbol by lazy { Regex("""symbol='((?:[^'\\]|\\.)*)'""") }
     private val NamedEntities = mapOf("amp" to "&", "lt" to "<", "gt" to ">", "quot" to "\"", "apos" to "'")
 
     private const val LOC_PREFIX = "loc "

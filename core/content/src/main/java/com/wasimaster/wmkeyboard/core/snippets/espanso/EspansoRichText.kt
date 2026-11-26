@@ -14,10 +14,12 @@ package com.wasimaster.wmkeyboard.core.snippets.espanso
  */
 internal object EspansoRichText {
 
-    private val TAG = Regex("""<[^>\n]{0,200}>""")
-    private val BLOCK_END = Regex("""(?i)</(p|div|li|tr|h[1-6]|blockquote)\s*>""")
-    private val LINE_BREAK = Regex("""(?i)<br\s*/?>""")
-    private val LIST_ITEM = Regex("""(?i)<li[^>]{0,200}>""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 21 KB across this file's patterns.
+    private val TAG by lazy { Regex("""<[^>\n]{0,200}>""") }
+    private val BLOCK_END by lazy { Regex("""(?i)</(p|div|li|tr|h[1-6]|blockquote)\s*>""") }
+    private val LINE_BREAK by lazy { Regex("""(?i)<br\s*/?>""") }
+    private val LIST_ITEM by lazy { Regex("""(?i)<li[^>]{0,200}>""") }
 
     /** HTML with its tags removed and its entities spelled out. */
     fun fromHtml(html: String): String {
@@ -45,9 +47,9 @@ internal object EspansoRichText {
         return out.toString()
     }
 
-    private val HEADING = Regex("""^\s{0,3}#{1,6}\s+""")
-    private val LINK = Regex("""\[([^\]\n]{0,200})\]\(([^)\s]{0,400})[^)]{0,100}\)""")
-    private val EMPHASIS = Regex("""(\*{1,3}|_{1,3}|`{1,3}|~~)(.+?)\1""")
+    private val HEADING by lazy { Regex("""^\s{0,3}#{1,6}\s+""") }
+    private val LINK by lazy { Regex("""\[([^\]\n]{0,200})\]\(([^)\s]{0,400})[^)]{0,100}\)""") }
+    private val EMPHASIS by lazy { Regex("""(\*{1,3}|_{1,3}|`{1,3}|~~)(.+?)\1""") }
 
     private fun flattenLine(line: String): String {
         var out = HEADING.replace(line, "")

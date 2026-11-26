@@ -59,8 +59,11 @@ object OfflineGifPacks {
     const val DATABASE_NAME = DATABASE
     private const val ITEM_PREFIX = "offline:"
     private const val SPACE_MARGIN_BYTES = 32L * 1024 * 1024
-    private val PACK_ID = Regex("[A-Za-z0-9._-]{1,64}")
-    private val FULL_ENTRY = Regex("""full/(?:\d+/)?(\d+)\.(webp|gif)""", RegexOption.IGNORE_CASE)
+
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 56 KB across this file's patterns.
+    private val PACK_ID by lazy { Regex("[A-Za-z0-9._-]{1,64}") }
+    private val FULL_ENTRY by lazy { Regex("""full/(?:\d+/)?(\d+)\.(webp|gif)""", RegexOption.IGNORE_CASE) }
 
     /** The extensions a picture of the user's own can come as, in the order a pack's file is looked for. */
     private val IMAGE_EXTENSIONS = listOf("webp", "gif")
@@ -202,8 +205,9 @@ object OfflineGifPacks {
     class ImageSource(val path: String, val size: Long, val open: () -> InputStream)
 
     /** Files any zip of pictures may carry beside them, passed over without making it something else. */
-    private val IGNORABLE_LEAF =
+    private val IGNORABLE_LEAF by lazy {
         Regex("""(?i)^(\..*|thumbs\.db|desktop\.ini|(readme|license|licence|credits|notice)([._-].*)?)$""")
+    }
 
     private fun ignorable(path: String): Boolean =
         path.startsWith("__MACOSX/") || IGNORABLE_LEAF.matches(path.substringAfterLast('/'))
@@ -396,8 +400,8 @@ object OfflineGifPacks {
             .filter { it.isNotEmpty() }
             .joinToString(" ")
 
-    private val CAMEL_HUMP = Regex("([a-z])([A-Z])")
-    private val NOT_A_WORD = Regex("[^\\p{L}\\p{N}]+")
+    private val CAMEL_HUMP by lazy { Regex("([a-z])([A-Z])") }
+    private val NOT_A_WORD by lazy { Regex("[^\\p{L}\\p{N}]+") }
 
     /** A picture's width and height, read from its header without decoding it; null when it is not one. */
     private fun sizeOf(file: File): Pair<Int, Int>? {

@@ -918,7 +918,10 @@ object ForeignBackups {
     private const val HELI_BLACKLISTS = "blacklists/"
     private const val USER_HISTORY = "UserHistoryDictionary"
     private const val USER_HISTORY_NAME = "UserHistoryDictionary"
-    private val HELI_LAYOUT = Regex("""(?:unprotected/)?layouts/((?:[a-z_]+/)?)(custom\.[^/]+)""")
+
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 18 KB across this file's patterns.
+    private val HELI_LAYOUT by lazy { Regex("""(?:unprotected/)?layouts/((?:[a-z_]+/)?)(custom\.[^/]+)""") }
     private const val HELI_USER_COLORS = "user_colors_"
     private const val HELI_MORE_COLORS = "user_more_colors_"
     private const val HELI_ALL_COLORS = "user_all_colors_"
@@ -944,8 +947,8 @@ object ForeignBackups {
     private const val FLORIS_KEYBOARDS = "files/ime/keyboard/"
     private const val FLORIS_THEMES = "files/ime/theme/"
     private const val FLORIS_OWN_LAYOUTS = "org.florisboard.layouts"
-    private val FLORIS_LAYOUT = Regex("""files/ime/keyboard/([^/]+)/layouts/characters/([^/]+)\.json""")
-    private val FLORIS_THEME = Regex("""files/ime/theme/([^/]+)/.+""")
+    private val FLORIS_LAYOUT by lazy { Regex("""files/ime/keyboard/([^/]+)/layouts/characters/([^/]+)\.json""") }
+    private val FLORIS_THEME by lazy { Regex("""files/ime/theme/([^/]+)/.+""") }
 
     private const val CLEVER_MANIFEST = "manifest.json"
     private const val CLEVER_CONFIG = "config.json"
@@ -970,7 +973,7 @@ object ForeignBackups {
 
     private const val HEADER_SUFFIX = ".header"
     private const val BODY_SUFFIX = ".body"
-    private val LOCALE_IN_PATH = Regex("""(?:dicts/|UserHistoryDictionary[._]?)([a-z]{2,3}(?:[_-][A-Za-z]{2,4})?)""")
+    private val LOCALE_IN_PATH by lazy { Regex("""(?:dicts/|UserHistoryDictionary[._]?)([a-z]{2,3}(?:[_-][A-Za-z]{2,4})?)""") }
     private const val LEARNED_LIST_NAME = "Learned words"
     private const val DEFAULT_LANG = "en"
     private const val BASE36 = 36

@@ -1292,8 +1292,10 @@ class SnippetStore(private val storageFile: File?) {
 
         private const val ID_SPREAD = 1000L
 
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 36 KB across this file's patterns.
         /** Any run of whitespace, which a saved trigger spelling holds as one space. */
-        private val WHITESPACE_RUN = Regex("\\s+")
+        private val WHITESPACE_RUN by lazy { Regex("\\s+") }
 
         /**
          * Marker for where the cursor should land after insertion. [expand]
@@ -1358,8 +1360,9 @@ class SnippetStore(private val storageFile: File?) {
          * The calendar goes there too, after the offset: one of ICU's calendar
          * types, or an alias from [CALENDAR_ALIASES].
          */
-        private val CUSTOM_DATE =
+        private val CUSTOM_DATE by lazy {
             Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?:@([A-Za-z][A-Za-z-]{1,23}))?(?::([^}\n]{1,40}))?\}""")
+        }
 
         /**
          * Names people use for a calendar that ICU calls something else. The
@@ -1369,20 +1372,20 @@ class SnippetStore(private val storageFile: File?) {
         private val CALENDAR_ALIASES = mapOf("hijri" to "islamic-umalqura", "jalali" to "persian")
 
         /** `{location}` or `{location:link}`. */
-        private val LOCATION = Regex("""\{location(?::([a-z_]{1,20}))?\}""")
+        private val LOCATION by lazy { Regex("""\{location(?::([a-z_]{1,20}))?\}""") }
 
         /** `{place:Home}` or `{place:Home:address}`. */
-        private val PLACE = Regex("""\{place:([^}:\n]{1,60})(?::([a-z_]{1,20}))?\}""")
+        private val PLACE by lazy { Regex("""\{place:([^}:\n]{1,60})(?::([a-z_]{1,20}))?\}""") }
 
         /** `{ha:light.kitchen}` or `{ha:sensor.outside:unit_of_measurement}`. */
-        private val HOME_ASSISTANT = Regex("""\{ha:([a-z0-9_]{1,40}\.[a-z0-9_]{1,80})(?::([a-z0-9_]{1,40}))?\}""")
+        private val HOME_ASSISTANT by lazy { Regex("""\{ha:([a-z0-9_]{1,40}\.[a-z0-9_]{1,80})(?::([a-z0-9_]{1,40}))?\}""") }
 
         /**
          * `{bullets:3}` and `{list:3}`: that many bulleted or numbered lines.
          * A keyword of their own, so they never meet the `{clip:…}` and
          * `{selection:…}` modifiers or an `{ask:…}` field.
          */
-        private val LIST = Regex("""\{(bullets|list)(?::(\d{1,3}))?\}""")
+        private val LIST by lazy { Regex("""\{(bullets|list)(?::(\d{1,3}))?\}""") }
 
         /** Most lines one `{bullets:N}` or `{list:N}` writes. */
         const val MAX_LIST_LINES = 50
@@ -1391,7 +1394,7 @@ class SnippetStore(private val storageFile: File?) {
         private const val DEFAULT_LIST_LINES = 3
 
         /** `{random:one|two|three}`, one alternative picked per insertion. */
-        private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
+        private val RANDOM by lazy { Regex("""\{random:([^}\n]{1,400})\}""") }
 
         /** Default pattern for a bare `{date}` or `{date+n}`. */
         private const val DEFAULT_DATE = "d MMM yyyy"
@@ -1577,7 +1580,7 @@ class SnippetStore(private val storageFile: File?) {
          * name stops at the first colon, so the default may hold colons of its
          * own (`{ask:Time:9:30}`), and neither may hold a brace or a newline.
          */
-        private val ASK = Regex("""\{(?i:ask):([^}:\n]{1,40})(?::([^}\n]{0,200}))?\}""")
+        private val ASK by lazy { Regex("""\{(?i:ask):([^}:\n]{1,40})(?::([^}\n]{0,200}))?\}""") }
 
         /** Most fields one snippet asks for; past this the tokens stay as typed. */
         const val MAX_ASKS = 12
@@ -1652,7 +1655,7 @@ class SnippetStore(private val storageFile: File?) {
         private const val IMAGE_GRACE_MS = 24L * 60 * 60 * 1000
 
         /** File names this app gives pictures: no separators, no leading dot. */
-        private val IMAGE_NAME = Regex("""[A-Za-z0-9_-]{1,64}\.(png|jpe?g|gif|webp)""", RegexOption.IGNORE_CASE)
+        private val IMAGE_NAME by lazy { Regex("""[A-Za-z0-9_-]{1,64}\.(png|jpe?g|gif|webp)""", RegexOption.IGNORE_CASE) }
 
         /** True when [name] is a picture name this app could have made. */
         fun isImageName(name: String?): Boolean = name != null && IMAGE_NAME.matches(name)

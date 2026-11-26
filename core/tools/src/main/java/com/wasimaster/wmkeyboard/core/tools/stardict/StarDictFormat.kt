@@ -159,12 +159,14 @@ object StarDictFormat {
         }?.takeIf { it.isNotEmpty() }
     }
 
-    private val BLOCK_ENDS = Regex("""(?i)<\s*(br|/p|/div|/li|/tr|/h[1-6]|/blockquote|/dd|/dt)\b[^>]*>""")
-    private val NOT_SHOWN = Regex("""(?is)<(style|script)\b.*?</\1\s*>""")
-    private val COMMENT = Regex("""(?s)<!--.*?-->""")
-    private val TAG = Regex("""<[^>]*>""")
-    private val ENTITY = Regex("""&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);""")
-    private val BLANKS = Regex("""[ \t ]+""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 21 KB across this file's patterns.
+    private val BLOCK_ENDS by lazy { Regex("""(?i)<\s*(br|/p|/div|/li|/tr|/h[1-6]|/blockquote|/dd|/dt)\b[^>]*>""") }
+    private val NOT_SHOWN by lazy { Regex("""(?is)<(style|script)\b.*?</\1\s*>""") }
+    private val COMMENT by lazy { Regex("""(?s)<!--.*?-->""") }
+    private val TAG by lazy { Regex("""<[^>]*>""") }
+    private val ENTITY by lazy { Regex("""&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);""") }
+    private val BLANKS by lazy { Regex("""[ \t ]+""") }
     private val NAMED = mapOf(
         "amp" to "&", "lt" to "<", "gt" to ">", "quot" to "\"", "apos" to "'", "nbsp" to " ",
         "mdash" to "—", "ndash" to "–", "hellip" to "…", "laquo" to "«", "raquo" to "»",

@@ -80,16 +80,23 @@ object DateSuggest {
     private val WEEKDAY_NAMES = weekdayNames.keys.sortedByDescending { it.length }.joinToString("|")
     private val MONTH_NAMES = monthNames.keys.sortedByDescending { it.length }.joinToString("|")
 
+    // The patterns here are `by lazy`: a compiled Regex holds native ICU
+    // sets for the life of the process (about 50 KB for these five), and the
+    // date chip asks on every keystroke. The day-and-month ones need a digit,
+    // so english() only reaches them once one is typed.
+
     /**
      * "friday", "next friday", "on fri". The word before the prefix decides
      * whether the phrase points forward at all: "last friday", "every
      * friday" and their kin are talking about something other than one
      * upcoming day, so they get no chip.
      */
-    private val WEEKDAY_TAIL = Regex(
-        """(?<![\p{L}])(?:(next|this|coming|on)\s+)?($WEEKDAY_NAMES)$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val WEEKDAY_TAIL by lazy {
+        Regex(
+            """(?<![\p{L}])(?:(next|this|coming|on)\s+)?($WEEKDAY_NAMES)$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
     private val WEEKDAY_GUARDS = setOf("last", "every", "each", "since", "past")
 
     /**
@@ -101,23 +108,35 @@ object DateSuggest {
         setOf("sun", "mon", "tue", "tues", "wed", "thu", "thur", "thurs", "fri", "sat")
 
     /** "aug 14", "august 14th" / "14 aug", "14th of august". */
-    private val MONTH_DAY_TAIL = Regex(
-        """(?<![\p{L}])($MONTH_NAMES)\s+(\d{1,2})(?:st|nd|rd|th)?$""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val DAY_MONTH_TAIL = Regex(
-        """(?<![\w.,])(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?($MONTH_NAMES)$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val MONTH_DAY_TAIL by lazy {
+        Regex(
+            """(?<![\p{L}])($MONTH_NAMES)\s+(\d{1,2})(?:st|nd|rd|th)?$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val DAY_MONTH_TAIL by lazy {
+        Regex(
+            """(?<![\w.,])(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?($MONTH_NAMES)$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** "the 15th" — the next month that has such a day. */
-    private val ORDINAL_TAIL = Regex(
-        """(?<![\p{L}])the\s+(\d{1,2})(?:st|nd|rd|th)$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val ORDINAL_TAIL by lazy {
+        Regex(
+            """(?<![\p{L}])the\s+(\d{1,2})(?:st|nd|rd|th)$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
-    /** "next month" keeps the day where the shorter month allows it. */
-    private val NEXT_MONTH_TAIL = Regex("""(?<![\p{L}])next\s+month$""", RegexOption.IGNORE_CASE)
+    /**
+     * "next month" keeps the day where the shorter month allows it. The whole
+     * pattern (9 KB for its \p{L}) waits behind its own end (2 KB), which has
+     * to match before the whole can.
+     */
+    private const val NEXT_MONTH = """next\s+month$"""
+    private val NEXT_MONTH_SEEN by lazy { Regex(NEXT_MONTH, RegexOption.IGNORE_CASE) }
+    private val NEXT_MONTH_TAIL by lazy { Regex("""(?<![\p{L}])""" + NEXT_MONTH, RegexOption.IGNORE_CASE) }
 
     /**
      * The forward date phrase that ends [text], or null. [languages] are the
@@ -148,7 +167,7 @@ object DateSuggest {
             return hit(text, start, jdn, annotation = dowDate(jdn), todayJdn = todayJdn)
         }
 
-        NEXT_MONTH_TAIL.find(text)?.let { match ->
+        (if (NEXT_MONTH_SEEN.containsMatchIn(text)) NEXT_MONTH_TAIL.find(text) else null)?.let { match ->
             val today = CalendarSystems.jdnToGregorian(todayJdn)
             val year = if (today.month == 12) today.year + 1 else today.year
             val month = if (today.month == 12) 1 else today.month + 1
@@ -178,6 +197,9 @@ object DateSuggest {
                 todayJdn = todayJdn,
             )
         }
+
+        // The rest all read a day number (`\d`): nothing to find without a digit.
+        if (!hasDecimalDigit(text)) return null
 
         val monthDay = MONTH_DAY_TAIL.find(text)?.let { match ->
             Triple(match.range.first, match.groupValues[1], match.groupValues[2])

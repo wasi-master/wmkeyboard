@@ -20,8 +20,10 @@ import java.util.Locale
  */
 internal object TextModifiers {
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 60 KB across this file's patterns.
     /** `{clip:…}` or `{selection:…}`, with the chain in group 2. */
-    val TOKEN = Regex("""\{(clip|selection):([^}\n]{1,200})\}""")
+    val TOKEN by lazy { Regex("""\{(clip|selection):([^}\n]{1,200})\}""") }
 
     /** [text] with every modifier in [chain] applied in turn. */
     fun apply(text: String, chain: String, locale: Locale = Locale.getDefault()): String =
@@ -101,14 +103,16 @@ internal object TextModifiers {
         return text.replace(old, new)
     }
 
-    private val CITATION = Regex(
-        """\[(?:\d{1,4}|[a-z]|note \d{1,3}|citation needed|clarification needed|who\?|when\?|according to whom\?|""" +
-            """dubious(?: [–-] discuss)?|failed verification|better source needed|page needed|verification needed)\]""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val SPACE_BEFORE_MARK = Regex(""" +([.,;:!?)])""")
-    private val SPACES = Regex("""[ \t]{2,}""")
-    private val URL = Regex("""(?:https?://|www\.)\S+""", RegexOption.IGNORE_CASE)
-    private val WORD = Regex("""\p{L}[\p{L}\p{M}'’]*""")
+    private val CITATION by lazy {
+        Regex(
+            """\[(?:\d{1,4}|[a-z]|note \d{1,3}|citation needed|clarification needed|who\?|when\?|according to whom\?|""" +
+                """dubious(?: [–-] discuss)?|failed verification|better source needed|page needed|verification needed)\]""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val SPACE_BEFORE_MARK by lazy { Regex(""" +([.,;:!?)])""") }
+    private val SPACES by lazy { Regex("""[ \t]{2,}""") }
+    private val URL by lazy { Regex("""(?:https?://|www\.)\S+""", RegexOption.IGNORE_CASE) }
+    private val WORD by lazy { Regex("""\p{L}[\p{L}\p{M}'’]*""") }
     private val QUOTES = mapOf('"' to '"', '\'' to '\'', '“' to '”', '‘' to '’', '«' to '»', '„' to '“', '「' to '」')
 }

@@ -1564,6 +1564,8 @@ object AiToolProtocol {
 
     private fun isNameChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_' || c == '.'
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 74 KB across this file's patterns.
     /**
      * Every marker spelling seen in the wild, as one pattern: optional
      * bracket, optional pipes either side, optional slash for a closer, the
@@ -1578,30 +1580,32 @@ object AiToolProtocol {
      * that way. A letter straight after the word means it was some longer
      * word (`<tool_callback>`), and is not a marker.
      */
-    private val MARKER = Regex(
-        """^(?:[<\[]\s*\|?\s*/?\s*(?:tool[_ ]?calls?|function[_ ]?calls?|functioncall)(?![A-Za-z])\s*\|?\s*[>\]]?""" +
-            """|</\s*function\s*>|/?tool_calls?(?![A-Za-z]))""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val MARKER by lazy {
+        Regex(
+            """^(?:[<\[]\s*\|?\s*/?\s*(?:tool[_ ]?calls?|function[_ ]?calls?|functioncall)(?![A-Za-z])\s*\|?\s*[>\]]?""" +
+                """|</\s*function\s*>|/?tool_calls?(?![A-Za-z]))""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** Llama 3.1's `<function=web_search>`, whose name is in the tag itself. */
-    private val FUNCTION_TAG = Regex("""^<function=([A-Za-z_][\w.\-]*)>""", RegexOption.IGNORE_CASE)
+    private val FUNCTION_TAG by lazy { Regex("""^<function=([A-Za-z_][\w.\-]*)>""", RegexOption.IGNORE_CASE) }
 
     /** `call:`, `json`, and the other labels templates put before the object. */
-    private val FILLER = Regex("""^(?:call|json|arguments|args|function)\s*[:=]?""", RegexOption.IGNORE_CASE)
+    private val FILLER by lazy { Regex("""^(?:call|json|arguments|args|function)\s*[:=]?""", RegexOption.IGNORE_CASE) }
 
     /** The label of a bare `call:NAME{…}`. */
-    private val CALL_LABEL = Regex("""^call\s*:\s*""", RegexOption.IGNORE_CASE)
+    private val CALL_LABEL by lazy { Regex("""^call\s*:\s*""", RegexOption.IGNORE_CASE) }
     private const val CALL_PREFIX = "call:"
 
     /**
      * `key=` or `key:` at the start of a function-style argument, the key
      * bare or quoted. A colon followed by `//` is an address, not a key.
      */
-    private val KEYWORD = Regex("""^(?:"([A-Za-z_][\w\-]*)"|'([A-Za-z_][\w\-]*)'|([A-Za-z_][\w\-]*))\s*(?:=(?!=)|:(?!//))\s*""")
+    private val KEYWORD by lazy { Regex("""^(?:"([A-Za-z_][\w\-]*)"|'([A-Za-z_][\w\-]*)'|([A-Za-z_][\w\-]*))\s*(?:=(?!=)|:(?!//))\s*""") }
 
     /** Where a name sits in a payload that would not parse, for the record. */
-    private val GUESSED_NAME = Regex("""["']?(?:name|tool|function)["']?\s*[:=]\s*["']?([A-Za-z_][\w.]*)""")
+    private val GUESSED_NAME by lazy { Regex("""["']?(?:name|tool|function)["']?\s*[:=]\s*["']?([A-Za-z_][\w.]*)""") }
 
     /** Canonical spellings, for deciding whether a cut-off tail could grow into one. */
     private val MARKER_SHAPES = listOf(

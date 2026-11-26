@@ -39,9 +39,11 @@ object ScreenDump {
         return parse(result.output).takeIf { it.isNotEmpty() }
     }
 
-    private val TEXT = Regex("text=\"([^\"]*)\"")
-    private val CLASS = Regex("class=\"([^\"]*)\"")
-    private val BOUNDS = Regex("bounds=\"\\[(\\d+),(\\d+)]\\[(\\d+),(\\d+)]\"")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 22 KB across this file's patterns.
+    private val TEXT by lazy { Regex("text=\"([^\"]*)\"") }
+    private val CLASS by lazy { Regex("class=\"([^\"]*)\"") }
+    private val BOUNDS by lazy { Regex("bounds=\"\\[(\\d+),(\\d+)]\\[(\\d+),(\\d+)]\"") }
 
     /** One line per node carrying text, in dump order (which is reading order). */
     fun parse(raw: String): List<ScreenLine> = raw.lineSequence().mapNotNull { line ->
@@ -68,10 +70,12 @@ object ScreenDump {
         .replace("&amp;", "&")
 
     /** Times, dates and bare counters a chat screen is full of: never a message. */
-    private val CHROME = Regex(
-        "^(?:\\d{1,2}[:.]\\d{2}(?:\\s?[AaPp]\\.?[Mm]\\.?)?|\\d+|today|yesterday|\\d{1,2}/\\d{1,2}(?:/\\d{2,4})?)$",
-        RegexOption.IGNORE_CASE,
-    )
+    private val CHROME by lazy {
+        Regex(
+            "^(?:\\d{1,2}[:.]\\d{2}(?:\\s?[AaPp]\\.?[Mm]\\.?)?|\\d+|today|yesterday|\\d{1,2}/\\d{1,2}(?:/\\d{2,4})?)$",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * The lines that look like chat messages, with a guess at who sent each.

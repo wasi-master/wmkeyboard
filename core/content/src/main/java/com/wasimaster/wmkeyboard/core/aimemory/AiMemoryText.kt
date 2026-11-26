@@ -252,8 +252,10 @@ object AiMemoryText {
         "that", "this", "it", "its", "as", "who", "which",
     )
 
-    private val WHITESPACE = Regex("""\s+""")
-    private val DIGIT_RUN = Regex("""\d(?:[ -]?\d){12,22}""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 30 KB across this file's patterns.
+    private val WHITESPACE by lazy { Regex("""\s+""") }
+    private val DIGIT_RUN by lazy { Regex("""\d(?:[ -]?\d){12,22}""") }
     private val CARD_DIGITS = 13..19
     private const val GENERATED_MIN = 12
     private const val PREFIX_MIN = 4
@@ -261,27 +263,33 @@ object AiMemoryText {
     private const val EDGE_PUNCTUATION = ".,;:!?\"'()[]{}<>"
 
     /** A secret named and then given: "password: hunter22", "PIN is 4821". */
-    private val NAMED_SECRET = Regex(
-        """\b(?:password|passcode|passphrase|passwd|pin(?: code| number)?|cvv|cvc|otp|one[- ]time (?:code|password)|""" +
-            """verification code|security code|recovery code|backup code|2fa code|seed phrase|recovery phrase|""" +
-            """private key|api key|secret key|access token|auth token|bearer token)""" +
-            """\s*(?:is|was|=|:)\s*\S{3,}""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val NAMED_SECRET by lazy {
+        Regex(
+            """\b(?:password|passcode|passphrase|passwd|pin(?: code| number)?|cvv|cvc|otp|one[- ]time (?:code|password)|""" +
+                """verification code|security code|recovery code|backup code|2fa code|seed phrase|recovery phrase|""" +
+                """private key|api key|secret key|access token|auth token|bearer token)""" +
+                """\s*(?:is|was|=|:)\s*\S{3,}""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * "the code 482913", "OTP 4821": a short number right after the word for
      * one. Not an area, zip, postal or dialling code, which are addresses.
      */
-    private val CODE_IN_WORDS = Regex(
-        """(?<!\b(?:area|zip|postal|post|country|dial|dialing|dialling|promo|discount|airport)\s)""" +
-            """\b(?:code|otp|pin)\b\D{0,12}\b\d{4,8}\b""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val CODE_IN_WORDS by lazy {
+        Regex(
+            """(?<!\b(?:area|zip|postal|post|country|dial|dialing|dialling|promo|discount|airport)\s)""" +
+                """\b(?:code|otp|pin)\b\D{0,12}\b\d{4,8}\b""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** Keys in their providers' own formats, and the start of a PEM block. */
-    private val KEY_SHAPES = Regex(
-        """(?:\bsk-[A-Za-z0-9_-]{16,}|\bAIza[0-9A-Za-z_-]{30,}|\bghp_[A-Za-z0-9]{30,}|\bgithub_pat_\w{20,}|""" +
-            """\bxox[abpr]-[A-Za-z0-9-]{10,}|\bAKIA[0-9A-Z]{16}\b|-----BEGIN [A-Z ]*PRIVATE KEY-----)""",
-    )
+    private val KEY_SHAPES by lazy {
+        Regex(
+            """(?:\bsk-[A-Za-z0-9_-]{16,}|\bAIza[0-9A-Za-z_-]{30,}|\bghp_[A-Za-z0-9]{30,}|\bgithub_pat_\w{20,}|""" +
+                """\bxox[abpr]-[A-Za-z0-9-]{10,}|\bAKIA[0-9A-Z]{16}\b|-----BEGIN [A-Z ]*PRIVATE KEY-----)""",
+        )
+    }
 }

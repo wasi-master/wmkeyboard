@@ -224,7 +224,9 @@ data class PluginToolSpec(
         get() = color.trim().takeIf { TOOL_COLOR.matches(it) }?.let { 0xFF000000L or it.drop(1).toLong(16) }
 
     private companion object {
-        val TOOL_COLOR = Regex("^#[0-9A-Fa-f]{6}$")
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 37 KB across this file's patterns.
+        val TOOL_COLOR by lazy { Regex("^#[0-9A-Fa-f]{6}$") }
     }
 }
 
@@ -401,14 +403,14 @@ object PluginManifestCodec {
     const val MAX_ACTION_NAME = 24
     private const val MAX_ACTION_SUMMARY = 80
     private const val MAX_ACTION_ICON = 48
-    private val ACTION_ID = Regex("^[a-z0-9_-]{1,32}$")
+    private val ACTION_ID by lazy { Regex("^[a-z0-9_-]{1,32}$") }
 
     /**
      * A single safe path segment, lowercase so two ids cannot collide into one
      * directory on a case-insensitive filesystem. Leading character is
      * alphanumeric, which is also what stops `.` and `..` from ever matching.
      */
-    private val ID_PATTERN = Regex("^[a-z0-9][a-z0-9._-]{2,63}$")
+    private val ID_PATTERN by lazy { Regex("^[a-z0-9][a-z0-9._-]{2,63}$") }
 
     /** Shown above a permission list, so it is kept short and inert. */
     const val MAX_NAME = 40
@@ -421,17 +423,17 @@ object PluginManifestCodec {
     const val MAX_SETTINGS = 24
     private const val MAX_SETTING_OPTIONS = 24
     private const val MAX_SETTING_TEXT = 64
-    private val SETTING_KEY = Regex("^[a-z_][a-z0-9_]{0,31}$")
-    private val KEYWORD = Regex("^[a-z0-9]{1,16}$")
+    private val SETTING_KEY by lazy { Regex("^[a-z_][a-z0-9_]{0,31}$") }
+    private val KEYWORD by lazy { Regex("^[a-z0-9]{1,16}$") }
     /** A Material Symbols name, or an SVG in the archive's `assets/` folder; see [PluginToolSpec.icon]. */
-    private val ICON = Regex("^([a-z0-9_]{0,48}|assets/[a-z0-9][a-z0-9_.-]{0,59}\\.svg)$")
+    private val ICON by lazy { Regex("^([a-z0-9_]{0,48}|assets/[a-z0-9][a-z0-9_.-]{0,59}\\.svg)$") }
 
     /**
      * A host name, or `*.` and one: letters, digits and dashes in dot-separated
      * labels, at least two of them, the last one not all digits. No IP
      * addresses, no ports, no `localhost`.
      */
-    private val HOST = Regex("^(\\*\\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]([a-z0-9-]{0,61}[a-z0-9])?$")
+    private val HOST by lazy { Regex("^(\\*\\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]([a-z0-9-]{0,61}[a-z0-9])?$") }
 
     /** Enough to echo an unknown permission back without pasting an essay into the UI. */
     private const val MAX_ECHO = 32
@@ -671,7 +673,7 @@ object PluginManifestCodec {
     /** Name endings that never resolve on the public internet. */
     val LOCAL_SUFFIXES = listOf("local", "lan", "home", "home.arpa", "internal", "localdomain")
 
-    private val LABEL = Regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
+    private val LABEL by lazy { Regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$") }
 
     fun sanitiseSetting(setting: PluginSettingSpec): PluginSettingSpec = setting.copy(
         key = setting.key.trim(),

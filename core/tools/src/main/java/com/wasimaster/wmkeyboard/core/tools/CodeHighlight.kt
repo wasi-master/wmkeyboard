@@ -123,12 +123,14 @@ object CodeHighlight {
         return out
     }
 
-    private val MD_HEADING = Regex("""(?m)^#{1,6} .*$""")
-    private val MD_FENCE = Regex("""(?ms)^ {0,3}```.*?(?:^ {0,3}```[ \t]*$|\z)""")
-    private val MD_CODE_SPAN = Regex("""`[^`\n]+`""")
-    private val MD_STRONG = Regex("""(\*\*|__)(?=\S).+?(?<=\S)\1|(?<![\w*])\*(?=\S)[^*\n]+?(?<=\S)\*(?!\*)|~~[^~\n]+~~""")
-    private val MD_LINK_TARGET = Regex("""(?<=\])\([^)\s]+(?: "[^"]*")?\)|<https?://[^>\s]+>""")
-    private val MD_MARKER = Regex("""(?m)^\s{0,6}(?:[-*+]|\d{1,3}[.)]|>)(?= )|^\s*\|?(?:\s*:?-{3,}:?\s*\|?)+\s*$""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 40 KB across this file's patterns.
+    private val MD_HEADING by lazy { Regex("""(?m)^#{1,6} .*$""") }
+    private val MD_FENCE by lazy { Regex("""(?ms)^ {0,3}```.*?(?:^ {0,3}```[ \t]*$|\z)""") }
+    private val MD_CODE_SPAN by lazy { Regex("""`[^`\n]+`""") }
+    private val MD_STRONG by lazy { Regex("""(\*\*|__)(?=\S).+?(?<=\S)\1|(?<![\w*])\*(?=\S)[^*\n]+?(?<=\S)\*(?!\*)|~~[^~\n]+~~""") }
+    private val MD_LINK_TARGET by lazy { Regex("""(?<=\])\([^)\s]+(?: "[^"]*")?\)|<https?://[^>\s]+>""") }
+    private val MD_MARKER by lazy { Regex("""(?m)^\s{0,6}(?:[-*+]|\d{1,3}[.)]|>)(?= )|^\s*\|?(?:\s*:?-{3,}:?\s*\|?)+\s*$""") }
 
     /**
      * Markdown's source, coloured by its marks rather than by words: headings

@@ -144,13 +144,15 @@ object NoteAssistPrompts {
         return text
     }
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 19 KB across this file's patterns.
     /** A whole answer inside one ``` fence, with or without a language. */
-    private val FENCE = Regex("""^```[\w-]*\n([\s\S]*?)\n?```$""")
+    private val FENCE by lazy { Regex("""^```[\w-]*\n([\s\S]*?)\n?```$""") }
 
-    private val BLANK_RUN = Regex("""\n{3,}""")
+    private val BLANK_RUN by lazy { Regex("""\n{3,}""") }
 
     /** "Title:", "Heading -", "Summary:" and their kin at the very start of an answer. */
-    private val LABEL = Regex("""^\s*(?:\*\*)?(?:title|heading|summary|tl;?dr)(?:\*\*)?\s*[:\-–—]\s*""", RegexOption.IGNORE_CASE)
+    private val LABEL by lazy { Regex("""^\s*(?:\*\*)?(?:title|heading|summary|tl;?dr)(?:\*\*)?\s*[:\-–—]\s*""", RegexOption.IGNORE_CASE) }
 }
 
 /**
@@ -234,7 +236,7 @@ object NoteAssistRules {
 
     private const val STAMPS_KEPT = 4
 
-    private val WHITESPACE = Regex("""\s+""")
+    private val WHITESPACE by lazy { Regex("""\s+""") }
     private const val FNV_OFFSET = -0x340d631b7bdddcdbL
     private const val FNV_PRIME = 0x100000001b3L
 }

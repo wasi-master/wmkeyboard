@@ -55,7 +55,9 @@ object VoiceSwearing {
             }.getOrDefault(emptySet())
         }
 
-    private val WORD = Regex("[\\p{L}\\p{M}]+(?:['’][\\p{L}\\p{M}]+)*")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 49 KB across this file's patterns.
+    private val WORD by lazy { Regex("[\\p{L}\\p{M}]+(?:['’][\\p{L}\\p{M}]+)*") }
 
     /** [text] with every word that [isSwearing] says yes to masked. */
     fun mask(text: String, isSwearing: (String) -> Boolean): String {

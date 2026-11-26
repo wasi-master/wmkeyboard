@@ -23,7 +23,9 @@ object ListContinuation {
         data class End(val length: Int) : Step
     }
 
-    private val ITEM = Regex("""^([ \t]*)(?:([-*+•])([ \t]+\[[ xX]])?|(\d{1,3})([.)])|([☐☑☒]))([ \t]+)""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 17 KB across this file's patterns.
+    private val ITEM by lazy { Regex("""^([ \t]*)(?:([-*+•])([ \t]+\[[ xX]])?|(\d{1,3})([.)])|([☐☑☒]))([ \t]+)""") }
 
     /**
      * What Enter does with the caret after [lineBefore] and in front of

@@ -64,8 +64,10 @@ object CodeSniff {
 
     // ---- JSON and markup: decided by the whole text's shape -------------------
 
-    private val JSON_KEY = Regex("""^[{\[]\s*(?:\{\s*)?"[^"\n]{1,200}"\s*:""")
-    private val JSON_ARRAY = Regex("""^\[\s*(?:[\[{"]|-?\d|true\b|false\b|null\b)""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 341 KB across this file's patterns.
+    private val JSON_KEY by lazy { Regex("""^[{\[]\s*(?:\{\s*)?"[^"\n]{1,200}"\s*:""") }
+    private val JSON_ARRAY by lazy { Regex("""^\[\s*(?:[\[{"]|-?\d|true\b|false\b|null\b)""") }
 
     private fun looksLikeJson(t: String): Boolean {
         val first = t[0]
@@ -77,7 +79,9 @@ object CodeSniff {
         return JSON_ARRAY.containsMatchIn(t.take(400)) && (',' in t.take(SCAN_CHARS) || t.length < 40)
     }
 
-    private val HTML_TAG = Regex("""(?i)^<(?:!doctype html|html|head|body|div|span|p|a|table|ul|ol|li|section|article|script|style|template)\b""")
+    private val HTML_TAG by lazy {
+        Regex("""(?i)^<(?:!doctype html|html|head|body|div|span|p|a|table|ul|ol|li|section|article|script|style|template)\b""")
+    }
 
     private fun markupLanguage(t: String): String? {
         if (t[0] != '<' || t[t.length - 1] != '>') return null
@@ -91,14 +95,14 @@ object CodeSniff {
 
     // ---- Markdown -------------------------------------------------------------
 
-    private val MD_HEADING = Regex("""^#{1,6} \S""")
-    private val MD_LIST = Regex("""^\s{0,6}(?:[-*+]|\d{1,3}[.)]) \S""")
-    private val MD_TASK = Regex("""^\s{0,6}[-*+] \[[ xX]\] """)
-    private val MD_QUOTE = Regex("""^> ?\S""")
-    private val MD_TABLE_RULE = Regex("""^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$""")
-    private val MD_BOLD = Regex("""(\*\*|__)(?=\S).+?(?<=\S)\1""")
-    private val MD_LINK = Regex("""\[[^\]\n]+\]\((?:https?://|/|#|mailto:)[^)\s]*\)""")
-    private val MD_CODE_SPAN = Regex("""`[^`\n]+`""")
+    private val MD_HEADING by lazy { Regex("""^#{1,6} \S""") }
+    private val MD_LIST by lazy { Regex("""^\s{0,6}(?:[-*+]|\d{1,3}[.)]) \S""") }
+    private val MD_TASK by lazy { Regex("""^\s{0,6}[-*+] \[[ xX]\] """) }
+    private val MD_QUOTE by lazy { Regex("""^> ?\S""") }
+    private val MD_TABLE_RULE by lazy { Regex("""^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$""") }
+    private val MD_BOLD by lazy { Regex("""(\*\*|__)(?=\S).+?(?<=\S)\1""") }
+    private val MD_LINK by lazy { Regex("""\[[^\]\n]+\]\((?:https?://|/|#|mailto:)[^)\s]*\)""") }
+    private val MD_CODE_SPAN by lazy { Regex("""`[^`\n]+`""") }
 
     /** How many different kinds of Markdown [head] uses: one is chance, two are intent. */
     private fun markdownFeatures(head: String, lines: List<String>): Int {
@@ -119,8 +123,8 @@ object CodeSniff {
 
     private val CODE_ENDINGS = charArrayOf(';', '{', '}')
     private val CODE_MARKS = listOf("=>", "->", "==", "!=", "&&", "||", "::", "();", "//", "/*", "+=", "-=", "?.", ":=")
-    private val ASSIGNMENT = Regex("""^\s*[A-Za-z_$][\w$.\[\]"']*\s*=\s*\S""")
-    private val CALL_LINE = Regex("""^\s*[A-Za-z_$][\w$.]*\([^)]*\)\s*;?\s*$""")
+    private val ASSIGNMENT by lazy { Regex("""^\s*[A-Za-z_$][\w$.\[\]"']*\s*=\s*\S""") }
+    private val CALL_LINE by lazy { Regex("""^\s*[A-Za-z_$][\w$.]*\([^)]*\)\s*;?\s*$""") }
 
     private fun hasCodeMark(line: String): Boolean {
         val t = line.trimEnd()
@@ -142,36 +146,38 @@ object CodeSniff {
 
     private class Rule(val language: String, val pattern: Regex, val weight: Int = 1)
 
-    private val RULES = listOf(
-        Rule("python", Regex("""^\s*def \w+\(.*\)\s*(?:->.*)?:\s*$"""), 2),
-        Rule("python", Regex("""^\s*class \w+(?:\(.*\))?:\s*$"""), 2),
-        Rule("python", Regex("""^\s*(?:from [\w.]+ import [\w*, ]+|import [\w.]+(?: as \w+)?(?:, [\w.]+)*)\s*$""")),
-        Rule("python", Regex("""^\s*(?:if|elif|else|for|while|with|try|except|finally)\b[^;{]*:\s*$""")),
-        Rule("python", Regex("""\bself\.\w|^\s*print\(|\bif __name__ ==|\bis not None\b|^\s*return\b""")),
+    private val RULES by lazy {
+        listOf(
+            Rule("python", Regex("""^\s*def \w+\(.*\)\s*(?:->.*)?:\s*$"""), 2),
+            Rule("python", Regex("""^\s*class \w+(?:\(.*\))?:\s*$"""), 2),
+            Rule("python", Regex("""^\s*(?:from [\w.]+ import [\w*, ]+|import [\w.]+(?: as \w+)?(?:, [\w.]+)*)\s*$""")),
+            Rule("python", Regex("""^\s*(?:if|elif|else|for|while|with|try|except|finally)\b[^;{]*:\s*$""")),
+            Rule("python", Regex("""\bself\.\w|^\s*print\(|\bif __name__ ==|\bis not None\b|^\s*return\b""")),
 
-        Rule("kotlin", Regex("""^\s*(?:(?:private|internal|override|suspend|inline|public)\s+)*fun\s+[\w<>.,\s]+\(""")),
-        Rule("kotlin", Regex("""^\s*(?:val|var)\s+\w+\s*(?::\s*[\w<>?,. ]+)?\s*=""")),
-        Rule("kotlin", Regex("""^\s*(?:data class|object|companion object|sealed (?:class|interface)|when\s*\(|package [a-z][\w.]*\s*$)""")),
-        Rule("kotlin", Regex("""\w!!|\?\.let\b|\bit\.\w|\blistOf\(|\bmutableListOf\(""")),
+            Rule("kotlin", Regex("""^\s*(?:(?:private|internal|override|suspend|inline|public)\s+)*fun\s+[\w<>.,\s]+\(""")),
+            Rule("kotlin", Regex("""^\s*(?:val|var)\s+\w+\s*(?::\s*[\w<>?,. ]+)?\s*=""")),
+            Rule("kotlin", Regex("""^\s*(?:data class|object|companion object|sealed (?:class|interface)|when\s*\(|package [a-z][\w.]*\s*$)""")),
+            Rule("kotlin", Regex("""\w!!|\?\.let\b|\bit\.\w|\blistOf\(|\bmutableListOf\(""")),
 
-        Rule("java", Regex("""^\s*(?:public|private|protected)\s+(?:static\s+)?(?:final\s+)?[\w<>\[\]]+\s+\w+\s*\(""")),
-        Rule("java", Regex("""^\s*(?:public\s+)?(?:final\s+)?class\s+\w+.*\{\s*$|^\s*@Override\b|System\.out\.print|^\s*import java\.""")),
-        Rule("java", Regex("""^\s*(?:String|int|long|boolean|double|List<.*>|Map<.*>)\s+\w+\s*=.*;\s*$""")),
+            Rule("java", Regex("""^\s*(?:public|private|protected)\s+(?:static\s+)?(?:final\s+)?[\w<>\[\]]+\s+\w+\s*\(""")),
+            Rule("java", Regex("""^\s*(?:public\s+)?(?:final\s+)?class\s+\w+.*\{\s*$|^\s*@Override\b|System\.out\.print|^\s*import java\.""")),
+            Rule("java", Regex("""^\s*(?:String|int|long|boolean|double|List<.*>|Map<.*>)\s+\w+\s*=.*;\s*$""")),
 
-        Rule("javascript", Regex("""^\s*(?:export\s+)?(?:const|let|var)\s+[\w{}\[\], ]+\s*=""")),
-        Rule("javascript", Regex("""^\s*(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s*\*?\s*\w*\s*\(""")),
-        Rule("javascript", Regex("""console\.\w+\(|document\.\w|\brequire\(['"]|^\s*import .+ from ['"]|=>\s*[{(]|\bawait fetch\(""")),
+            Rule("javascript", Regex("""^\s*(?:export\s+)?(?:const|let|var)\s+[\w{}\[\], ]+\s*=""")),
+            Rule("javascript", Regex("""^\s*(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s*\*?\s*\w*\s*\(""")),
+            Rule("javascript", Regex("""console\.\w+\(|document\.\w|\brequire\(['"]|^\s*import .+ from ['"]|=>\s*[{(]|\bawait fetch\(""")),
 
-        Rule("sql", Regex("""(?i)^\s*(?:select\s+.+\s+from\s+\w|insert\s+into\s+\w|update\s+\w+\s+set\s|delete\s+from\s+\w|create\s+(?:table|index|view)\s|alter\s+table\s|drop\s+table\s)"""), 2),
-        Rule("sql", Regex("""(?i)^\s*(?:where|from|join|left join|inner join|group by|order by|having|limit|values)\b""")),
+            Rule("sql", Regex("""(?i)^\s*(?:select\s+.+\s+from\s+\w|insert\s+into\s+\w|update\s+\w+\s+set\s|delete\s+from\s+\w|create\s+(?:table|index|view)\s|alter\s+table\s|drop\s+table\s)"""), 2),
+            Rule("sql", Regex("""(?i)^\s*(?:where|from|join|left join|inner join|group by|order by|having|limit|values)\b""")),
 
-        Rule("css", Regex("""^\s*[\w.#:\-\[\]="'*>+~ ,()]+\{\s*$""")),
-        Rule("css", Regex("""^\s*-{0,2}[a-z][a-z-]*\s*:\s*[^;{}]+;\s*$""")),
-        Rule("css", Regex("""^\s*@(?:media|import|font-face|keyframes)\b""")),
+            Rule("css", Regex("""^\s*[\w.#:\-\[\]="'*>+~ ,()]+\{\s*$""")),
+            Rule("css", Regex("""^\s*-{0,2}[a-z][a-z-]*\s*:\s*[^;{}]+;\s*$""")),
+            Rule("css", Regex("""^\s*@(?:media|import|font-face|keyframes)\b""")),
 
-        Rule("sh", Regex("""^#!/(?:usr/)?bin/(?:env )?(?:ba|z)?sh"""), 3),
-        Rule("sh", Regex("""^\s*\$ \S""")),
-    )
+            Rule("sh", Regex("""^#!/(?:usr/)?bin/(?:env )?(?:ba|z)?sh"""), 3),
+            Rule("sh", Regex("""^\s*\$ \S""")),
+        )
+    }
 
     /**
      * Commands a shell line starts with, unambiguous enough that one line is
@@ -184,7 +190,7 @@ object CodeSniff {
             "journalctl export echo am pm cmd settings setprop getprop logcat dumpsys flatpak snap dnf pacman yay"
         ).split(' ').toHashSet()
 
-    private val SHELL_ARGS = Regex("""\s(?:-{1,2}[\w-]+|[\w.~-]*/[\w./~-]*|\||&&|>|\$\w|[\w.-]+=[\w./-]+)""")
+    private val SHELL_ARGS by lazy { Regex("""\s(?:-{1,2}[\w-]+|[\w.~-]*/[\w./~-]*|\||&&|>|\$\w|[\w.-]+=[\w./-]+)""") }
     private val SHELL_SUBCOMMANDS = setOf(
         "install", "uninstall", "clone", "commit", "push", "pull", "checkout", "shell", "devices", "reboot",
         "update", "upgrade", "run", "add", "remove", "list", "status", "log", "flash", "sideload", "init", "build",

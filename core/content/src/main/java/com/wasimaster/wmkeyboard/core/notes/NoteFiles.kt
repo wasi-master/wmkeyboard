@@ -60,12 +60,14 @@ object NoteFiles {
     /** File names this reads as notes, by extension, ignoring case. */
     val IMPORT_EXTENSIONS: Set<String> = setOf("md", "markdown", "txt", "text")
 
-    private val TAGS_LINE = Regex("""^tags:\s*(.+)$""", RegexOption.IGNORE_CASE)
-    private val HEADING = Regex("""^#{1,6}\s+(.*?)(\s+#+\s*)?$""")
-    private val SLUG_KEEP = Regex("""[^\p{L}\p{N}]+""")
-    private val OBSIDIAN_TAG_DROP = Regex("""[^\p{L}\p{N}_/-]+""")
-    private val FRONT_KEY = Regex("""^(\w+):\s*(.*)$""")
-    private val FRONT_ITEM = Regex("""^\s*-\s+(.+)$""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 126 KB across this file's patterns.
+    private val TAGS_LINE by lazy { Regex("""^tags:\s*(.+)$""", RegexOption.IGNORE_CASE) }
+    private val HEADING by lazy { Regex("""^#{1,6}\s+(.*?)(\s+#+\s*)?$""") }
+    private val SLUG_KEEP by lazy { Regex("""[^\p{L}\p{N}]+""") }
+    private val OBSIDIAN_TAG_DROP by lazy { Regex("""[^\p{L}\p{N}_/-]+""") }
+    private val FRONT_KEY by lazy { Regex("""^(\w+):\s*(.*)$""") }
+    private val FRONT_ITEM by lazy { Regex("""^\s*-\s+(.+)$""") }
     private const val FRONT_DATE = "yyyy-MM-dd'T'HH:mm:ss"
 
     /** [note] as text, see the class note for the shape. */
@@ -312,7 +314,7 @@ object NoteFiles {
     }
 
     /** The name [fileName] gives a note whose title spells nothing: `note-12`. */
-    private val NOTE_ID_NAME = Regex("note-\\d+(-\\d+)?")
+    private val NOTE_ID_NAME by lazy { Regex("note-\\d+(-\\d+)?") }
 
     private fun stem(fileName: String): String =
         fileName.substringAfterLast('/').substringBeforeLast('.').trim()

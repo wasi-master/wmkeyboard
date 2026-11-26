@@ -88,7 +88,9 @@ object CalcRouting {
 
     private val TEMPERATURE = listOf("°C", "°F", "℃", "℉")
 
-    private val WORD = Regex("""\p{L}+""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 122 KB across this file's patterns.
+    private val WORD by lazy { Regex("""\p{L}+""") }
 
     /**
      * Words of a sentence that Numbat would read as units: "9 am - 5 pm" is
@@ -98,13 +100,13 @@ object CalcRouting {
     private val PROSE_WORDS = setOf("am", "pm", "a", "an", "at", "as", "in", "into", "to", "it", "is", "or", "and", "of")
 
     /** An operator with something on both sides: "5 ft + 30 cm", "3 km/h*20 min". */
-    private val BETWEEN = Regex("""[\p{L}\d)²³]\s*[+\-*/×÷−·^]\s*[\p{L}\d(]""")
+    private val BETWEEN by lazy { Regex("""[\p{L}\d)²³]\s*[+\-*/×÷−·^]\s*[\p{L}\d(]""") }
 
     /** "-> m", "→ m", " to mph", " in m", " as kWh" before a unit at the end. */
-    private val CONVERSION = Regex("""(?:->|→|\s(?:to|in|into|as)\s)\s*[\p{L}µ°][\p{L}\d/^µ²³·*]*$""", RegexOption.IGNORE_CASE)
+    private val CONVERSION by lazy { Regex("""(?:->|→|\s(?:to|in|into|as)\s)\s*[\p{L}µ°][\p{L}\d/^µ²³·*]*$""", RegexOption.IGNORE_CASE) }
 
-    private val TRAILING_IN = Regex("""\s+(?:to|in|into|as)\s+([\p{L}µ][\p{L}\d/^µ²³]*)$""", RegexOption.IGNORE_CASE)
+    private val TRAILING_IN by lazy { Regex("""\s+(?:to|in|into|as)\s+([\p{L}µ][\p{L}\d/^µ²³]*)$""", RegexOption.IGNORE_CASE) }
 
     /** A comma between digits that groups thousands: "1,500". */
-    private val GROUPING = Regex("""(?<=\d),(?=\d{3}(?!\d))""")
+    private val GROUPING by lazy { Regex("""(?<=\d),(?=\d{3}(?!\d))""") }
 }

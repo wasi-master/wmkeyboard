@@ -70,15 +70,18 @@ object AiSpokenText {
     }
 
     private const val ENDINGS = ".!?。！？।:;…"
-    private val HEADING = Regex("^#{1,6}\\s+")
-    private val BULLET = Regex("^([-*+•]|\\d+[.)])\\s+")
-    private val QUOTE = Regex("^>+\\s?")
-    private val IMAGE = Regex("!\\[([^\\]]*)]\\([^)]*\\)")
-    private val LINK = Regex("\\[([^\\]]+)]\\([^)]*\\)")
-    private val BARE_URL = Regex("https?://\\S+")
-    private val INLINE_CODE = Regex("`([^`]*)`")
-    private val EMPHASIS = Regex("(\\*\\*|__|\\*|_|~~)(\\S(?:.*?\\S)?)\\1")
-    private val CITATION = Regex("\\[\\d+(?:,\\s*\\d+)*]")
-    private val TABLE_RULE = Regex("^\\|?\\s*:?-{2,}:?\\s*(\\|\\s*:?-{2,}:?\\s*)*\\|?$")
-    private val SPACES = Regex("\\s+")
+
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 32 KB across this file's patterns.
+    private val HEADING by lazy { Regex("^#{1,6}\\s+") }
+    private val BULLET by lazy { Regex("^([-*+•]|\\d+[.)])\\s+") }
+    private val QUOTE by lazy { Regex("^>+\\s?") }
+    private val IMAGE by lazy { Regex("!\\[([^\\]]*)]\\([^)]*\\)") }
+    private val LINK by lazy { Regex("\\[([^\\]]+)]\\([^)]*\\)") }
+    private val BARE_URL by lazy { Regex("https?://\\S+") }
+    private val INLINE_CODE by lazy { Regex("`([^`]*)`") }
+    private val EMPHASIS by lazy { Regex("(\\*\\*|__|\\*|_|~~)(\\S(?:.*?\\S)?)\\1") }
+    private val CITATION by lazy { Regex("\\[\\d+(?:,\\s*\\d+)*]") }
+    private val TABLE_RULE by lazy { Regex("^\\|?\\s*:?-{2,}:?\\s*(\\|\\s*:?-{2,}:?\\s*)*\\|?$") }
+    private val SPACES by lazy { Regex("\\s+") }
 }

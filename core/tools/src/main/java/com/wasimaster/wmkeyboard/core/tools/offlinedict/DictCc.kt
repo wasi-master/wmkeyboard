@@ -226,11 +226,14 @@ object DictCc {
     }
 
     private const val SEP = "\u001f"
-    private val PAIR = Regex("""^#\s*([A-Za-z]{2,3})\s*-\s*([A-Za-z]{2,3})\b""")
-    private val NOTES = Regex("""\{[^}]*\}|\[[^\]]*\]|<[^>]*>""")
-    private val OPTIONAL = Regex("""\([^)]*\)""")
-    private val SPACES = Regex("""\s+""")
-    private val CONTROL = Regex("""[\t\n\r\u0000\u001f]""")
+
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 17 KB across this file's patterns.
+    private val PAIR by lazy { Regex("""^#\s*([A-Za-z]{2,3})\s*-\s*([A-Za-z]{2,3})\b""") }
+    private val NOTES by lazy { Regex("""\{[^}]*\}|\[[^\]]*\]|<[^>]*>""") }
+    private val OPTIONAL by lazy { Regex("""\([^)]*\)""") }
+    private val SPACES by lazy { Regex("""\s+""") }
+    private val CONTROL by lazy { Regex("""[\t\n\r\u0000\u001f]""") }
 
     /** Lines read before giving up on finding the pair: dict.cc's header is a few lines. */
     private const val HEADER_LINES = 50

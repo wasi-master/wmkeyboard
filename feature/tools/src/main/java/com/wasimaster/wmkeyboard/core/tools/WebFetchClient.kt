@@ -138,20 +138,26 @@ object WebFetchClient {
             .joinToString("\n")
             .trim()
 
-    private val SCHEME = Regex("""^[a-zA-Z][a-zA-Z0-9+.\-]*:""")
-    private val COMMENT = Regex("""<!--.*?-->""", RegexOption.DOT_MATCHES_ALL)
-    private val NON_TEXT = Regex(
-        """<(script|style|noscript|svg|template|head|iframe)\b[^>]*>.*?</\1>""",
-        setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
-    )
-    private val BREAK = Regex(
-        """</?(p|div|br|li|tr|h[1-6]|section|article|header|footer|blockquote|pre|table)\b[^>]*>""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val TAG = Regex("""<[^>]*>""", RegexOption.DOT_MATCHES_ALL)
-    private val TITLE = Regex("""<title\b[^>]*>(.*?)</title>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-    private val WHITESPACE = Regex("""[^\S\n]+""")
-    private val NUMERIC = Regex("""&#([xX]?[0-9a-fA-F]+);""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 28 KB across this file's patterns.
+    private val SCHEME by lazy { Regex("""^[a-zA-Z][a-zA-Z0-9+.\-]*:""") }
+    private val COMMENT by lazy { Regex("""<!--.*?-->""", RegexOption.DOT_MATCHES_ALL) }
+    private val NON_TEXT by lazy {
+        Regex(
+            """<(script|style|noscript|svg|template|head|iframe)\b[^>]*>.*?</\1>""",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
+        )
+    }
+    private val BREAK by lazy {
+        Regex(
+            """</?(p|div|br|li|tr|h[1-6]|section|article|header|footer|blockquote|pre|table)\b[^>]*>""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val TAG by lazy { Regex("""<[^>]*>""", RegexOption.DOT_MATCHES_ALL) }
+    private val TITLE by lazy { Regex("""<title\b[^>]*>(.*?)</title>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)) }
+    private val WHITESPACE by lazy { Regex("""[^\S\n]+""") }
+    private val NUMERIC by lazy { Regex("""&#([xX]?[0-9a-fA-F]+);""") }
 
     private val ENTITIES = listOf(
         "&nbsp;" to " ", "&amp;" to "&", "&lt;" to "<", "&gt;" to ">",

@@ -175,17 +175,22 @@ class ClipTokenizer(mergeLines: Sequence<String>) {
         private val VOCAB_BYTES: List<String> = BYTE_MAP.first
         private val BYTE_TO_SYMBOL: Array<String> = BYTE_MAP.second
 
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 98 KB across this file's patterns.
+        //
         // No UNICODE_CHARACTER_CLASS: Android's Pattern throws on that flag,
         // which made this companion fail to initialise and every on-device
         // model read as unreadable (#1398). Android's regex is ICU, where
         // \s, \p{L} and \p{N} are Unicode already; \p{Z} keeps the JVM's
         // ASCII-only \s from splitting no-break spaces off as symbols in tests.
-        private val PATTERN = java.util.regex.Pattern.compile(
-            "<\\|startoftext\\|>|<\\|endoftext\\|>|'s|'t|'re|'ve|'m|'ll|'d|\\p{L}+|\\p{N}|[^\\s\\p{Z}\\p{L}\\p{N}]+",
-            java.util.regex.Pattern.CASE_INSENSITIVE,
-        )
+        private val PATTERN by lazy {
+            java.util.regex.Pattern.compile(
+                "<\\|startoftext\\|>|<\\|endoftext\\|>|'s|'t|'re|'ve|'m|'ll|'d|\\p{L}+|\\p{N}|[^\\s\\p{Z}\\p{L}\\p{N}]+",
+                java.util.regex.Pattern.CASE_INSENSITIVE,
+            )
+        }
 
-        private val SPACES = Regex("\\s+")
+        private val SPACES by lazy { Regex("\\s+") }
 
         private fun pairKey(a: String, b: String) = "$a\u0001$b"
 

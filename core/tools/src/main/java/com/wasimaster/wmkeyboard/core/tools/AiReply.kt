@@ -358,18 +358,22 @@ object AiReplyParse {
     /** Longest one drafted reply may be before it is cut. */
     const val MAX_CANDIDATE = 600
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 23 KB across this file's patterns.
     /** Openings that are the model talking about the replies rather than one. */
-    private val PREAMBLE = Regex(
-        "^(sure|certainly|of course|here(\\s+are|\\s+is|'s)|okay|ok|option|reply|replies|" +
-            "alternatives?|suggestions?)\\b.*:\\s*$",
-        RegexOption.IGNORE_CASE,
-    )
+    private val PREAMBLE by lazy {
+        Regex(
+            "^(sure|certainly|of course|here(\\s+are|\\s+is|'s)|okay|ok|option|reply|replies|" +
+                "alternatives?|suggestions?)\\b.*:\\s*$",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** Numbering and bullets a model adds in front of each reply. */
-    private val BULLET = Regex("^\\s*(\\d+\\s*[.):\\-]|[-*•–—])\\s+")
+    private val BULLET by lazy { Regex("^\\s*(\\d+\\s*[.):\\-]|[-*•–—])\\s+") }
 
     /** A label some models put in front: "Option 2:", "Reply:", "Friendly:". */
-    private val LABEL = Regex("^\\s*(option|reply|version|alternative)\\s*\\d*\\s*:\\s*", RegexOption.IGNORE_CASE)
+    private val LABEL by lazy { Regex("^\\s*(option|reply|version|alternative)\\s*\\d*\\s*:\\s*", RegexOption.IGNORE_CASE) }
 
     private const val FALLBACK = 1
 
@@ -461,7 +465,7 @@ object AiReplyParse {
  */
 object ReplyText {
 
-    private val WORD = Regex("[A-Za-z][A-Za-z']+")
+    private val WORD by lazy { Regex("[A-Za-z][A-Za-z']+") }
 
     fun looksUnclear(text: String, isKnown: (String) -> Boolean): Boolean {
         val words = WORD.findAll(text).map { it.value.trim('\'') }.filter { it.length >= 3 }.toList()

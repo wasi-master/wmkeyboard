@@ -395,7 +395,10 @@ object SmartSuggest {
      * one (`#fff`, `#aabbcc`): `#bad`, `#cafe` and `#facade` stay words.
      */
     internal fun detectColour(tail: String): SmartHit? {
-        val code = (COLOUR_HEX.find(tail) ?: COLOUR_FUNCTION.find(tail))?.groupValues?.get(1) ?: return null
+        // Neither pattern can match without its "#" or ")", so ordinary text never compiles them.
+        val match = (if ('#' in tail) COLOUR_HEX.find(tail) else null)
+            ?: (if (')' in tail) COLOUR_FUNCTION.find(tail) else null)
+        val code = match?.groupValues?.get(1) ?: return null
         if (code.startsWith("#") && !hexLooksLikeColour(code.substring(1))) return null
         return SmartHit(
             kind = Kind.COLOUR, query = code, result = null, insert = null, replaceSpan = code.length,
@@ -409,11 +412,18 @@ object SmartSuggest {
             (h.length % 2 == 0 && h.chunked(2).all { it[0] == it[1] })
     }
 
-    private val COLOUR_HEX = Regex("""(?:^|[\s(:,;="'`])(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}))$""")
-    private val COLOUR_FUNCTION = Regex(
-        """(?:^|[\s(:,;="'`])((?:rgba?|hsla?|hwb|oklch|oklab|lab|lch|color)\([^()\n]{1,80}\))$""",
-        RegexOption.IGNORE_CASE,
-    )
+    // Every Regex in this object is `by lazy`, and [detect] only reaches one
+    // once the text could match it. A compiled pattern holds native ICU sets
+    // for the life of the keyboard's process, and the Unicode classes cost
+    // 20-100 KB each: built all at once, these came to about 805 KB, most of
+    // it for sums, amounts and phrases that plain typing never contains.
+    private val COLOUR_HEX by lazy { Regex("""(?:^|[\s(:,;="'`])(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4}))$""") }
+    private val COLOUR_FUNCTION by lazy {
+        Regex(
+            """(?:^|[\s(:,;="'`])((?:rgba?|hsla?|hwb|oklch|oklab|lab|lch|color)\([^()\n]{1,80}\))$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     fun detect(text: String, ctx: Context): SmartHit? {
         if (text.isEmpty()) return null
@@ -425,13 +435,20 @@ object SmartSuggest {
         val tail = text.takeLast(LOOKBEHIND)
         // A colour code says what it is: nothing below reads "#3b82f6" or "rgb(…)" as anything else.
         if (ctx.colourChips) detectColour(tail)?.let { return it }
+        // The amount, unit and sum patterns all need a digit (`\d`), and the
+        // Numbat one a digit or "(": text with neither cannot match them, so
+        // they are skipped, and never compiled for a session of plain words.
+        // A sum also needs a √ or π to stand in for its digits (see calcHit).
+        val digit = hasDecimalDigit(tail)
         // Ahead of currency and units: "5 ft + 30 cm" ends in "30 cm", which
         // the unit chip would answer alone, and the sum is what was meant.
-        if (ctx.calcEnabled && ctx.numbat != null) detectNumbat(tail, ctx, ctx.numbat, text)?.let { return it }
-        if (ctx.currencyEnabled) detectCurrency(tail, ctx)?.let { return it }
-        if (ctx.unitsEnabled) detectUnit(tail, ctx)?.let { return it }
-        if (ctx.calcEnabled) detectCalcPhrase(tail, ctx)?.let { return it }
-        if (ctx.calcEnabled) detectCalc(tail, ctx, text)?.let { return it }
+        if (ctx.calcEnabled && ctx.numbat != null && (digit || '(' in tail)) {
+            detectNumbat(tail, ctx, ctx.numbat, text)?.let { return it }
+        }
+        if (ctx.currencyEnabled && digit) detectCurrency(tail, ctx)?.let { return it }
+        if (ctx.unitsEnabled && digit) detectUnit(tail, ctx)?.let { return it }
+        if (ctx.calcEnabled && digit) detectCalcPhrase(tail, ctx)?.let { return it }
+        if (ctx.calcEnabled && (digit || '√' in tail || 'π' in tail)) detectCalc(tail, ctx, text)?.let { return it }
         if (ctx.numberChips) detectNumber(tail, ctx)?.let { return it }
         if (ctx.dateChips) detectDate(tail, ctx)?.let { return it }
         if (ctx.weatherChips) detectWeather(tail, ctx)?.let { return it }
@@ -565,7 +582,7 @@ object SmartSuggest {
     private const val MAG_END = """(?![\p{L}])"""
 
     /** One number with an optional multiplier after it. */
-    private val CHUNK = Regex("""($NUM)(?:\s?($MAG)$MAG_END)?""", RegexOption.IGNORE_CASE)
+    private val CHUNK by lazy { Regex("""($NUM)(?:\s?($MAG)$MAG_END)?""", RegexOption.IGNORE_CASE) }
 
     /** A run of such numbers: "1500", "1.5k", "1 thousand 500". */
     private val AMOUNT = """(?:$NUM)(?:\s?(?:$MAG)$MAG_END)?""" +
@@ -605,10 +622,12 @@ object SmartSuggest {
 
     // ---- currency ----
 
-    private val CURRENCY_SUFFIX =
+    private val CURRENCY_SUFFIX by lazy {
         Regex("""(?<![\w.,])($AMOUNT)\s?([\p{L}]{2,8}|[^\s\w])$""", RegexOption.IGNORE_CASE)
-    private val CURRENCY_PREFIX =
+    }
+    private val CURRENCY_PREFIX by lazy {
         Regex("""(?<![\w])([\p{L}]{0,2}[^\s\w])\s?($AMOUNT)$""", RegexOption.IGNORE_CASE)
+    }
 
     /** How the trigger was typed, kept so the chip can echo it back. */
     private data class CurrencyMatch(
@@ -898,7 +917,7 @@ object SmartSuggest {
     private val UNIT_AMOUNT = """(?:$NUM)(?:\s?(?i:$MAG_WORDS)$MAG_END)?""" +
         """(?:\s+(?:$NUM)(?:\s?(?i:$MAG_WORDS)$MAG_END)?)*"""
 
-    private val UNIT_TAIL = Regex("""(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})$""")
+    private val UNIT_TAIL by lazy { Regex("""(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})$""") }
 
     /**
      * "1 mile in cm", "5 kg to lb", "30c as f" (#970): the amount and unit,
@@ -906,9 +925,11 @@ object SmartSuggest {
      * converter knows, the one-letter ones included, since nobody types
      * "to c" meaning anything but the unit.
      */
-    private val UNIT_TO_TAIL = Regex(
-        """(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})\s+(?i:to|in|into|as)\s+([\p{L}°²³/]{1,12})$""",
-    )
+    private val UNIT_TO_TAIL by lazy {
+        Regex(
+            """(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})\s+(?i:to|in|into|as)\s+([\p{L}°²³/]{1,12})$""",
+        )
+    }
 
     private fun detectUnit(tail: String, ctx: Context): SmartHit? {
         UNIT_TO_TAIL.find(tail)?.let { asked ->
@@ -1273,14 +1294,14 @@ object SmartSuggest {
 
     // ---- arithmetic ----
 
-    private val CALC_TAIL = Regex("""(?<![\w.])([\d.,()+\-*/^%×÷−√πePpCc ]{2,40}?)(=?)$""")
+    private val CALC_TAIL by lazy { Regex("""(?<![\w.])([\d.,()+\-*/^%×÷−√πePpCc ]{2,40}?)(=?)$""") }
     private const val CALC_OPERATORS = "+-*/^%×÷−√"
     /** nPr and nCr, the only letters the strip reads as operators. */
     private const val CHOOSE_OPS = "pPcC"
     /** A written date: "12/04/2025", "2025-01-02", "3.4.26". */
-    private val DATE_LIKE = Regex("""^\d{1,4}([/.\-])\d{1,2}\1\d{1,4}$""")
+    private val DATE_LIKE by lazy { Regex("""^\d{1,4}([/.\-])\d{1,2}\1\d{1,4}$""") }
     /** "12/04" — a zero-padded pair is a date, not a division. */
-    private val PADDED_PAIR = Regex("""^0\d+/\d+$|^\d+/0\d+$""")
+    private val PADDED_PAIR by lazy { Regex("""^0\d+/\d+$|^\d+/0\d+$""") }
 
     /**
      * Arithmetic at the cursor. Spaces and "." are part of what a sum may be
@@ -1312,10 +1333,12 @@ object SmartSuggest {
      * a run the sum scanner reads as "026-03638-3", which is part of an
      * address and not a subtraction.
      */
-    private val LINK_PREFIX = Regex(
-        """://|^www\.|\p{L}[\p{L}\d-]*\.\p{L}{2,}[/:?#]|\p{L}[^/\s]*/""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val LINK_PREFIX by lazy {
+        Regex(
+            """://|^www\.|\p{L}[\p{L}\d-]*\.\p{L}{2,}[/:?#]|\p{L}[^/\s]*/""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** True when the word holding [start] in [text] reads as a link before it. */
     private fun insideLink(text: String, start: Int): Boolean {
@@ -1372,7 +1395,7 @@ object SmartSuggest {
      * "5 ft + 30 cm -> m", optionally closed by "=". [CalcRouting.routeChip]
      * decides which of these are sums at all.
      */
-    private val NUMBAT_TAIL = Regex("""(?<![\w.,])([(\d][\d.,()+\-*/^×÷−·→>²³µ°\s\p{L}]{2,60}?)(=?)$""")
+    private val NUMBAT_TAIL by lazy { Regex("""(?<![\w.,])([(\d][\d.,()+\-*/^×÷−·→>²³µ°\s\p{L}]{2,60}?)(=?)$""") }
 
     /**
      * A sum with units at the cursor, answered by Numbat. Like [detectCalc],
@@ -1588,26 +1611,34 @@ object SmartSuggest {
     // ---- spoken arithmetic ----
 
     /** "15% of 200", "15% tip on 4500" — a share of an amount. */
-    private val PERCENT_OF = Regex(
-        """(?<![\w.,])($NUM)\s?%\s(?:tip\s)?(?:of|on)\s($NUM)$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val PERCENT_OF by lazy {
+        Regex(
+            """(?<![\w.,])($NUM)\s?%\s(?:tip\s)?(?:of|on)\s($NUM)$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** "20% off 1500" — the amount after the discount. */
-    private val PERCENT_OFF = Regex(
-        """(?<![\w.,])($NUM)\s?%\soff\s(?:of\s)?($NUM)$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val PERCENT_OFF by lazy {
+        Regex(
+            """(?<![\w.,])($NUM)\s?%\soff\s(?:of\s)?($NUM)$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** "split 4500 between 3", "split 4500 3 ways", "4500 split 3 ways". */
-    private val SPLIT_LEAD = Regex(
-        """(?<![\p{L}])split\s($NUM)\s(?:(?:between|among|by)\s)?($NUM)(?:\s?(?:ways|people|persons|friends))?$""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val SPLIT_TRAIL = Regex(
-        """(?<![\w.,])($NUM)\ssplit\s(?:(?:between|among|by)\s)?($NUM)(?:\s?(?:ways|people|persons|friends))?$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val SPLIT_LEAD by lazy {
+        Regex(
+            """(?<![\p{L}])split\s($NUM)\s(?:(?:between|among|by)\s)?($NUM)(?:\s?(?:ways|people|persons|friends))?$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val SPLIT_TRAIL by lazy {
+        Regex(
+            """(?<![\w.,])($NUM)\ssplit\s(?:(?:between|among|by)\s)?($NUM)(?:\s?(?:ways|people|persons|friends))?$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * The arithmetic people write as prose rather than as a sum: percentages
@@ -1698,14 +1729,16 @@ object SmartSuggest {
 
     // ---- weather ----
 
-    private val WEATHER_PHRASE = Regex(
-        "(?:will it rain|is it (?:going to |gonna )?rain(?:ing)?|gonna rain|" +
-            "how(?:'s| is) the weather|hows the weather|what(?:'s| is) the weather(?: like)?|" +
-            "how (?:hot|cold|warm) is it(?: outside)?|" +
-            "temperature (?:outside|now|today|tomorrow)|chance of rain)" +
-            "(?:\\s(?:today|tomorrow|tonight))?\\s?\\??$",
-        RegexOption.IGNORE_CASE,
-    )
+    private val WEATHER_PHRASE by lazy {
+        Regex(
+            "(?:will it rain|is it (?:going to |gonna )?rain(?:ing)?|gonna rain|" +
+                "how(?:'s| is) the weather|hows the weather|what(?:'s| is) the weather(?: like)?|" +
+                "how (?:hot|cold|warm) is it(?: outside)?|" +
+                "temperature (?:outside|now|today|tomorrow)|chance of rain)" +
+                "(?:\\s(?:today|tomorrow|tonight))?\\s?\\??$",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * A question the weather tool can answer on the spot. The chip never
@@ -1766,18 +1799,35 @@ object SmartSuggest {
 
     // ---- lookups ----
 
-    private val DEFINE_TAIL = Regex(
-        """(?<![\p{L}])(?:define|definition of|meaning of)\s+([\p{L}]{2,24})\s?\??$""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val WHAT_MEAN_TAIL = Regex(
-        """(?<![\p{L}])what does\s+([\p{L}]{2,24})\s+mean\s?\??$""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val WIKI_TAIL = Regex(
-        """(?<![\p{L}])(?:who (?:is|was)|what (?:is|are)|tell me about)\s+([\p{L}][\p{L} .'\-]{1,40}?)\s?\??$""",
-        RegexOption.IGNORE_CASE,
-    )
+    // Each lookup pattern below is costly for its \p{L} classes (17-25 KB)
+    // and runs on every keystroke, so it waits behind a cheap pattern (about
+    // 2 KB) cut out of its own text with the same flags: whatever the whole
+    // pattern matches contains a match of the part, so the part finding
+    // nothing means the whole would have found nothing too.
+    private const val DEFINE_LEAD = """(?:define|definition of|meaning of)\s+"""
+    private const val WHAT_MEAN_END = """\s+mean\s?\??$"""
+    private const val WIKI_LEAD = """(?:who (?:is|was)|what (?:is|are)|tell me about)\s+"""
+    private val DEFINE_SEEN by lazy { Regex(DEFINE_LEAD, RegexOption.IGNORE_CASE) }
+    private val WHAT_MEAN_SEEN by lazy { Regex(WHAT_MEAN_END, RegexOption.IGNORE_CASE) }
+    private val WIKI_SEEN by lazy { Regex(WIKI_LEAD, RegexOption.IGNORE_CASE) }
+    private val DEFINE_TAIL by lazy {
+        Regex(
+            """(?<![\p{L}])""" + DEFINE_LEAD + """([\p{L}]{2,24})\s?\??$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val WHAT_MEAN_TAIL by lazy {
+        Regex(
+            """(?<![\p{L}])what does\s+([\p{L}]{2,24})""" + WHAT_MEAN_END,
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val WIKI_TAIL by lazy {
+        Regex(
+            """(?<![\p{L}])""" + WIKI_LEAD + """([\p{L}][\p{L} .'\-]{1,40}?)\s?\??$""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * Words a "what is …" has not finished saying yet. Not stopwords in
@@ -1798,14 +1848,14 @@ object SmartSuggest {
     private fun detectLookup(tail: String, ctx: Context): SmartHit? {
         val dictOn = toolOn(ToolbarTool.DICTIONARY, ctx)
         if (dictOn) {
-            val word = DEFINE_TAIL.find(tail)?.groupValues?.get(1)
-                ?: WHAT_MEAN_TAIL.find(tail)?.groupValues?.get(1)
+            val word = (if (DEFINE_SEEN.containsMatchIn(tail)) DEFINE_TAIL.find(tail) else null)?.groupValues?.get(1)
+                ?: (if (WHAT_MEAN_SEEN.containsMatchIn(tail)) WHAT_MEAN_TAIL.find(tail) else null)?.groupValues?.get(1)
             if (word != null && word.lowercase(Locale.ROOT) !in lookupNoise) {
                 return lookupHit(ToolbarTool.DICTIONARY, word)
             }
         }
         if (toolOn(ToolbarTool.WIKIPEDIA, ctx)) {
-            val term = WIKI_TAIL.find(tail)?.groupValues?.get(1)?.trim()
+            val term = (if (WIKI_SEEN.containsMatchIn(tail)) WIKI_TAIL.find(tail) else null)?.groupValues?.get(1)?.trim()
             if (term != null && term.length >= 3 &&
                 term.last().isLetter() &&
                 term.lowercase(Locale.ROOT) !in lookupNoise &&
@@ -1829,12 +1879,14 @@ object SmartSuggest {
 
     // ---- intents ----
 
-    private val TRANSLATE_TAIL = Regex(
-        "(?:how do (?:you|i) say|translate (?:this|it)|" +
-            "in (?:english|bengali|bangla|hindi|urdu|arabic|spanish|french|german|" +
-            "chinese|japanese|korean|italian|portuguese|russian|turkish))\\s?\\??$",
-        RegexOption.IGNORE_CASE,
-    )
+    private val TRANSLATE_TAIL by lazy {
+        Regex(
+            "(?:how do (?:you|i) say|translate (?:this|it)|" +
+                "in (?:english|bengali|bangla|hindi|urdu|arabic|spanish|french|german|" +
+                "chinese|japanese|korean|italian|portuguese|russian|turkish))\\s?\\??$",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** The language names [TRANSLATE_TAIL] knows, as the translator's codes. */
     private val TRANSLATE_LANGUAGES = mapOf(
@@ -1878,23 +1930,30 @@ object SmartSuggest {
      * end of the typed text. Only the common verbs, and only with a target
      * after them: "turn" alone is not a command.
      */
-    private val HA_TAIL = Regex(
-        """(?i)\b(?:(?:turn|switch|put|set)\s+(?:on|off)\s+(?:the\s+)?\S.*|(?:turn|switch|set)\s+(?:the\s+)?\S.*\s+(?:on|off|to\s+\S.*)|dim\s+(?:the\s+)?\S.*|(?:lock|unlock)\s+(?:the\s+)?\S.*|(?:open|close)\s+(?:the\s+)?(?:garage|blinds?|curtains?|shutters?|gate|door)\b.*|start\s+(?:the\s+)?(?:vacuum|robot|cleaning)\b.*|(?:play|pause|resume|stop)\s+(?:the\s+)?(?:music|tv|radio|speaker|player)\b.*|(?:arm|disarm)\s+(?:the\s+)?(?:alarm|house|home)\b.*)$""",
-    )
+    private val HA_TAIL by lazy {
+        Regex(
+            """(?i)\b(?:(?:turn|switch|put|set)\s+(?:on|off)\s+(?:the\s+)?\S.*|(?:turn|switch|set)\s+(?:the\s+)?\S.*\s+(?:on|off|to\s+\S.*)|dim\s+(?:the\s+)?\S.*|(?:lock|unlock)\s+(?:the\s+)?\S.*|(?:open|close)\s+(?:the\s+)?(?:garage|blinds?|curtains?|shutters?|gate|door)\b.*|start\s+(?:the\s+)?(?:vacuum|robot|cleaning)\b.*|(?:play|pause|resume|stop)\s+(?:the\s+)?(?:music|tv|radio|speaker|player)\b.*|(?:arm|disarm)\s+(?:the\s+)?(?:alarm|house|home)\b.*)$""",
+        )
+    }
     private const val HA_MIN_LENGTH = 8
 
-    private val LOCATION_TAIL = Regex(
-        "(?:^|[^\\p{L}])(?:i'?m at|i am at|i'?m here|i am here|my (?:current )?location|where i am|" +
-            "(?:send|share|here'?s|here is) (?:you )?my (?:current )?location)\\s?[:?!.]?$",
-        RegexOption.IGNORE_CASE,
-    )
+    // The place and song phrases cost 69 KB each for one [^\p{L}] at their
+    // front, and run on every keystroke while their tool is on. The rest of
+    // each pattern, with the same flags, costs 5-6 KB and has to match the end
+    // of the text before the whole could, so it goes first (see DEFINE_LEAD).
+    private const val LOCATION_PHRASE =
+        "(?:i'?m at|i am at|i'?m here|i am here|my (?:current )?location|where i am|" +
+            "(?:send|share|here'?s|here is) (?:you )?my (?:current )?location)\\s?[:?!.]?$"
+    private const val MUSIC_PHRASE =
+        "(?:what(?:'?s| is) (?:this|that) (?:song|track|tune|music)|what song is (?:this|that|playing)|" +
+            "which song is (?:this|that|playing)|name (?:this|that) (?:song|tune)|shazam (?:this|it))\\s?[:?!.]?$"
+    private val LOCATION_SEEN by lazy { Regex(LOCATION_PHRASE, RegexOption.IGNORE_CASE) }
+    private val MUSIC_SEEN by lazy { Regex(MUSIC_PHRASE, RegexOption.IGNORE_CASE) }
+
+    private val LOCATION_TAIL by lazy { Regex("(?:^|[^\\p{L}])" + LOCATION_PHRASE, RegexOption.IGNORE_CASE) }
 
     /** "what song is this", "what's this song", "name that tune": the Music ID tool, keeping the words. */
-    private val MUSIC_TAIL = Regex(
-        "(?:^|[^\\p{L}])(?:what(?:'?s| is) (?:this|that) (?:song|track|tune|music)|what song is (?:this|that|playing)|" +
-            "which song is (?:this|that|playing)|name (?:this|that) (?:song|tune)|shazam (?:this|it))\\s?[:?!.]?$",
-        RegexOption.IGNORE_CASE,
-    )
+    private val MUSIC_TAIL by lazy { Regex("(?:^|[^\\p{L}])" + MUSIC_PHRASE, RegexOption.IGNORE_CASE) }
 
     /** A celebratory phrase → the search the GIF panel opens on. */
     private val gifPhrases: List<Pair<String, String>> = listOf(
@@ -1944,12 +2003,14 @@ object SmartSuggest {
         }
         if (toolOn(ToolbarTool.LOCATION, ctx)) {
             // Straight quotes and curly ones both: phones type ’ in "I’m".
-            LOCATION_TAIL.find(tail.replace('’', '\''))?.let {
+            val said = tail.replace('’', '\'')
+            (if (LOCATION_SEEN.containsMatchIn(said)) LOCATION_TAIL.find(said) else null)?.let {
                 return intentHit(ToolbarTool.LOCATION, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
             }
         }
         if (toolOn(ToolbarTool.MUSIC_ID, ctx)) {
-            MUSIC_TAIL.find(tail.replace('’', '\''))?.let {
+            val said = tail.replace('’', '\'')
+            (if (MUSIC_SEEN.containsMatchIn(said)) MUSIC_TAIL.find(said) else null)?.let {
                 return intentHit(ToolbarTool.MUSIC_ID, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
             }
         }
@@ -1981,7 +2042,7 @@ object SmartSuggest {
     // A keyword only reads as one once the user has finished typing it, and
     // finishing it usually means hitting space — anchoring hard at the end
     // took the chip away on the very keystroke that confirmed the word.
-    private val KEYWORD_TAIL = Regex("""(?<![\w])([\p{L}]{2,16})\s*$""")
+    private val KEYWORD_TAIL by lazy { Regex("""(?<![\w])([\p{L}]{2,16})\s*$""") }
 
     /** The tool [word] is a keyword of, or null. What a reading is checked against on a conversion strip (#1029). */
     fun keywordTool(word: String, ctx: Context): ToolbarTool? {
@@ -2090,20 +2151,24 @@ object SmartSuggest {
      * arrives as one keystroke with the punctuation. Combining marks count
      * as letters: in Bengali or Hindi a vowel sign is part of the word.
      */
-    private val VOCAB_TAIL = Regex("""(?<![\p{L}\p{M}\d'’-])([\p{L}\p{M}][\p{L}\p{M}'’-]{0,22}[\p{L}\p{M}])([\s\p{Punct}]{0,2})$""")
+    private val VOCAB_TAIL by lazy {
+        Regex("""(?<![\p{L}\p{M}\d'’-])([\p{L}\p{M}][\p{L}\p{M}'’-]{0,22}[\p{L}\p{M}])([\s\p{Punct}]{0,2})$""")
+    }
 
     /**
      * Up to [VocabIndex.MAX_TRIGGER_WORDS] words before the separators, for
      * glosses of more than one word ("হেয় করা"); tried longest first so the
      * phrase wins over its last word.
      */
-    private val VOCAB_PHRASE_TAIL = Regex(
-        """((?:[\p{L}\p{M}][\p{L}\p{M}'’-]*[ ]+){0,${VocabIndex.MAX_TRIGGER_WORDS - 1}}""" +
-            """[\p{L}\p{M}][\p{L}\p{M}'’-]*[\p{L}\p{M}])([\s\p{Punct}]{0,2})$""",
-    )
+    private val VOCAB_PHRASE_TAIL by lazy {
+        Regex(
+            """((?:[\p{L}\p{M}][\p{L}\p{M}'’-]*[ ]+){0,${VocabIndex.MAX_TRIGGER_WORDS - 1}}""" +
+                """[\p{L}\p{M}][\p{L}\p{M}'’-]*[\p{L}\p{M}])([\s\p{Punct}]{0,2})$""",
+        )
+    }
 
     /** A word a name can be made of: letters, with the marks names carry. */
-    private val NAME_WORD = Regex("""[\p{L}\p{M}][\p{L}\p{M}'’.\-]*""")
+    private val NAME_WORD by lazy { Regex("""[\p{L}\p{M}][\p{L}\p{M}'’.\-]*""") }
 
     /**
      * A saved contact's name just typed: the chip offers to call them, and its
@@ -2235,7 +2300,7 @@ object SmartSuggest {
         )
     }
 
-    private val SPACES = Regex("""\s+""")
+    private val SPACES by lazy { Regex("""\s+""") }
 
     /** The longest run of words before the cursor that is a gloss in the index, with its hit. */
     private fun phraseHit(tail: String, index: VocabIndex, ctx: Context): Pair<String, VocabIndex.TriggerHit>? {
@@ -2439,4 +2504,22 @@ object SmartSuggest {
         if (sensitive) tools += tool else tools -= tool
         return encodeCaseSensitive(tools)
     }
+}
+
+/**
+ * Whether [text] holds a character regex `\d` matches: on Android's ICU that
+ * is any Unicode decimal digit (Nd), outside the BMP too, which is what
+ * [Character.isDigit] on a code point answers from the same data. The JVM's
+ * own `\d` is ASCII only, a subset, so a pattern that needs a `\d` can be
+ * skipped on either engine when this is false, and never compiled for text
+ * that has no number in it.
+ */
+internal fun hasDecimalDigit(text: CharSequence): Boolean {
+    var i = 0
+    while (i < text.length) {
+        val cp = Character.codePointAt(text, i)
+        if (Character.isDigit(cp)) return true
+        i += Character.charCount(cp)
+    }
+    return false
 }

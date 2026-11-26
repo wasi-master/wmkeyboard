@@ -60,7 +60,9 @@ object NoteRelated {
     /** Characters of a text that are read; the opening of a long note says what it is about. */
     private const val MAX_TEXT_CHARS = 8_000
 
-    private val WORD = Regex("""[\p{L}\p{N}][\p{L}\p{N}\p{M}'’_-]*""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 52 KB across this file's patterns.
+    private val WORD by lazy { Regex("""[\p{L}\p{N}][\p{L}\p{N}\p{M}'’_-]*""") }
 
     /**
      * The commonest English words, which every note shares with every other.

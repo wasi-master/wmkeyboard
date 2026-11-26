@@ -120,39 +120,45 @@ object AiVision {
         return null
     }
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 60 KB across this file's patterns.
     /** "vl", "vision", "omni" as words of their own: Qwen2.5-VL, llama-3.2-11b-vision, qwen3-omni. */
-    private val SEEING_TOKEN = Regex("(?<![a-z])(vl|vlm|vision|omni|ocr)(?![a-z])")
+    private val SEEING_TOKEN by lazy { Regex("(?<![a-z])(vl|vlm|vision|omni|ocr)(?![a-z])") }
 
-    private val BLIND = listOf(
-        Regex("deepseek"),
-        Regex("gpt-3\\.5"),
-        Regex("(?<![a-z0-9])o1-mini"),
-        Regex("(?<![a-z0-9])o3-mini"),
-        Regex("gpt-oss"),
-        Regex("(?<![a-z])qwq"),
-        Regex("coder"),
-        Regex("codestral"),
-        Regex("llama-?3\\.[13](?![0-9])"),
-        Regex("grok-3"),
-    )
+    private val BLIND by lazy {
+        listOf(
+            Regex("deepseek"),
+            Regex("gpt-3\\.5"),
+            Regex("(?<![a-z0-9])o1-mini"),
+            Regex("(?<![a-z0-9])o3-mini"),
+            Regex("gpt-oss"),
+            Regex("(?<![a-z])qwq"),
+            Regex("coder"),
+            Regex("codestral"),
+            Regex("llama-?3\\.[13](?![0-9])"),
+            Regex("grok-3"),
+        )
+    }
 
-    private val SEEING = listOf(
-        Regex("gpt-4o"),
-        Regex("gpt-4\\.1"),
-        Regex("gpt-5"),
-        Regex("(?<![a-z0-9])o3(?![a-z0-9-]*mini)"),
-        Regex("(?<![a-z0-9])o4"),
-        Regex("claude"),
-        Regex("gemini"),
-        Regex("gemma-?[34](?![0-9])"),
-        Regex("llama-?4"),
-        Regex("llava"),
-        Regex("pixtral"),
-        Regex("grok-[4-9]"),
-        Regex("minicpm-?v"),
-        Regex("moondream"),
-        Regex("mistral-(small|medium)-3"),
-    )
+    private val SEEING by lazy {
+        listOf(
+            Regex("gpt-4o"),
+            Regex("gpt-4\\.1"),
+            Regex("gpt-5"),
+            Regex("(?<![a-z0-9])o3(?![a-z0-9-]*mini)"),
+            Regex("(?<![a-z0-9])o4"),
+            Regex("claude"),
+            Regex("gemini"),
+            Regex("gemma-?[34](?![0-9])"),
+            Regex("llama-?4"),
+            Regex("llava"),
+            Regex("pixtral"),
+            Regex("grok-[4-9]"),
+            Regex("minicpm-?v"),
+            Regex("moondream"),
+            Regex("mistral-(small|medium)-3"),
+        )
+    }
 
     private fun key(config: AiClient.Config): String =
         config.provider.name + "|" + hostOf(config.baseUrl) + "|" + config.model.trim()

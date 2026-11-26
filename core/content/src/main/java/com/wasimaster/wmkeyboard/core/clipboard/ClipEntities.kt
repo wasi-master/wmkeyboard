@@ -105,27 +105,35 @@ object ClipEntities {
     /** How far from its keyword a code may sit and still count as that code. */
     private const val OTP_KEYWORD_RANGE = 40
 
-    private val URL = Regex(
-        """(?:https?://|www\.)[^\s<>"'`]{2,}""",
-        RegexOption.IGNORE_CASE,
-    )
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 84 KB across this file's patterns.
+    private val URL by lazy {
+        Regex(
+            """(?:https?://|www\.)[^\s<>"'`]{2,}""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * An address with no `https://` or `www.` in front (#612): `x.com`,
      * `m.youtube.com/watch?v=…`. Not part of an email address, a longer word
      * or a path, and only with a real ending; see [ClipLinks.isBareHost].
      */
-    private val BARE_URL = Regex(
-        """(?<![\w@./-])(${ClipLinks.BARE_HOST})(?![\w@-])([/?#][^\s<>"'`]*)?""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val BARE_URL by lazy {
+        Regex(
+            """(?<![\w@./-])(${ClipLinks.BARE_HOST})(?![\w@-])([/?#][^\s<>"'`]*)?""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * `name@example.com`, ASCII only, with a dotted domain that ends in two or
      * more letters. The guards keep it from starting inside a longer run of
      * address characters or ending halfway through a domain label.
      */
-    private val EMAIL = Regex("""(?<![\w.%+-])[A-Za-z0-9][A-Za-z0-9._%+-]{0,63}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?)*\.[A-Za-z]{2,24}(?![\w-])""")
+    private val EMAIL by lazy {
+        Regex("""(?<![\w.%+-])[A-Za-z0-9][A-Za-z0-9._%+-]{0,63}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?)*\.[A-Za-z]{2,24}(?![\w-])""")
+    }
 
     /**
      * The first email address in [text], or null: what a held clip's Compose
@@ -136,14 +144,14 @@ object ClipEntities {
 
     // The word-character guards keep digit runs glued to an identifier out —
     // `emoji_864356927` is a filename's tail, not a number to dial.
-    private val PHONE = Regex("""(?<![\w+])\+?\d[\d ().\-]{5,18}\d(?!\w)""")
+    private val PHONE by lazy { Regex("""(?<![\w+])\+?\d[\d ().\-]{5,18}\d(?!\w)""") }
 
     /**
      * `2024-05-12`, `12/05/24` — right digit count, wrong meaning. Pinned to
      * the two group shapes dates actually come in (`yyyy-m-d` and `d-m-yy`) so
      * a hyphenated phone number like `555-12-3456` is not mistaken for one.
      */
-    private val DATE = Regex("""\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}""")
+    private val DATE by lazy { Regex("""\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}""") }
 
     /** Separators people write phone numbers with. */
     private const val PHONE_SEPARATORS = " -()."
@@ -160,12 +168,14 @@ object ClipEntities {
             "認証コード|確認コード|認証番号|確認番号|ワンタイムパスワード|セキュリティコード|" +
             "인증번호|인증 번호|인증코드|확인코드|확인 코드|보안코드|승인번호"
 
-    private val OTP_KEYWORD = Regex(
-        "\\b(?:otp|one[- ]?time(?: password| passcode| code)?|passcode|pass code|" +
-            "verification|verify|confirmation|security code|auth(?:entication)? code|" +
-            "access code|login code|code|pin|2fa)\\b|$CJK_OTP_KEYWORDS",
-        RegexOption.IGNORE_CASE,
-    )
+    private val OTP_KEYWORD by lazy {
+        Regex(
+            "\\b(?:otp|one[- ]?time(?: password| passcode| code)?|passcode|pass code|" +
+                "verification|verify|confirmation|security code|auth(?:entication)? code|" +
+                "access code|login code|code|pin|2fa)\\b|$CJK_OTP_KEYWORDS",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * The user's own code words (#992), from Settings › Typing › One-time
@@ -205,7 +215,7 @@ object ClipEntities {
     // start (#992).
     // Either side of a decimal point or thousands comma is part of an amount:
     // `OTP for Rs 1500.00 is 482913` (#1049).
-    private val OTP_TOKEN = Regex("""(?<![A-Za-z0-9_-])(?<!\d[.,])(?:[A-Za-z]-)?[A-Z0-9]{4,8}(?![A-Za-z0-9_-])(?![.,]\d)""")
+    private val OTP_TOKEN by lazy { Regex("""(?<![A-Za-z0-9_-])(?<!\d[.,])(?:[A-Za-z]-)?[A-Z0-9]{4,8}(?![A-Za-z0-9_-])(?![.,]\d)""") }
 
     /**
      * Every fragment in [text], with [sourceId] stamped on each. Ranges never

@@ -113,10 +113,12 @@ object VoiceClipGate {
         return true
     }
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 50 KB across this file's patterns.
     /** A transcript that is nothing but one bracketed or starred sound caption. */
-    private val CAPTION = Regex("""^(\[[^\]]*\]|\([^)]*\)|\*[^*]*\*)[.!?]*$""")
-    private val NOT_WORD = Regex("""[^\p{L}\p{N}]+""")
-    private val SPACES = Regex(""" +""")
+    private val CAPTION by lazy { Regex("""^(\[[^\]]*\]|\([^)]*\)|\*[^*]*\*)[.!?]*$""") }
+    private val NOT_WORD by lazy { Regex("""[^\p{L}\p{N}]+""") }
+    private val SPACES by lazy { Regex(""" +""") }
 
     /** Whisper's captions for silence, as they come out after [isStockPhrase] normalizes them. */
     private val STOCK_PHRASES = setOf(

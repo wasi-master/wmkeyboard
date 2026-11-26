@@ -27,13 +27,15 @@ object KokoroText {
         "nine" to "ninth", "twelve" to "twelfth",
     )
 
-    private val MONEY = Regex("""([$£€])\s?(\d[\d,]*)(?:\.(\d{1,2}))?""")
-    private val PERCENT = Regex("""(\d[\d,]*(?:\.\d+)?)\s?%""")
-    private val ORDINAL = Regex("""\b(\d+)(st|nd|rd|th)\b""", RegexOption.IGNORE_CASE)
-    private val DECIMAL = Regex("""\b(\d[\d,]*)\.(\d+)\b""")
-    private val NUMBER = Regex("""\b\d[\d,]*\b""")
-    private val CASE_SPLIT = Regex("""(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])""")
-    private val MIXED_WORD = Regex("""\b[A-Za-z]*[a-z][A-Z][A-Za-z]*\b|\b[A-Z]{2,}[a-z]+\w*\b""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 46 KB across this file's patterns.
+    private val MONEY by lazy { Regex("""([$£€])\s?(\d[\d,]*)(?:\.(\d{1,2}))?""") }
+    private val PERCENT by lazy { Regex("""(\d[\d,]*(?:\.\d+)?)\s?%""") }
+    private val ORDINAL by lazy { Regex("""\b(\d+)(st|nd|rd|th)\b""", RegexOption.IGNORE_CASE) }
+    private val DECIMAL by lazy { Regex("""\b(\d[\d,]*)\.(\d+)\b""") }
+    private val NUMBER by lazy { Regex("""\b\d[\d,]*\b""") }
+    private val CASE_SPLIT by lazy { Regex("""(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])""") }
+    private val MIXED_WORD by lazy { Regex("""\b[A-Za-z]*[a-z][A-Z][A-Za-z]*\b|\b[A-Z]{2,}[a-z]+\w*\b""") }
 
     /** [text] with its numbers in words and its run-together words split. */
     fun normalize(text: String): String {

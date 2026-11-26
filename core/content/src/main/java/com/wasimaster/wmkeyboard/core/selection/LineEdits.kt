@@ -15,11 +15,13 @@ package com.wasimaster.wmkeyboard.core.selection
  */
 object LineEdits {
 
-    private val NUMBER_PREFIX = Regex("""^(\s*)\d+[.)]\s+""")
-    private val BULLET_PREFIX = Regex("""^(\s*)[•\-*–]\s+""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 17 KB across this file's patterns.
+    private val NUMBER_PREFIX by lazy { Regex("""^(\s*)\d+[.)]\s+""") }
+    private val BULLET_PREFIX by lazy { Regex("""^(\s*)[•\-*–]\s+""") }
 
     /** `☐ `, `☑ `, `✅ `, or a Markdown task box (`- [ ] `, `[x] `). */
-    private val CHECKBOX_PREFIX = Regex("""^(\s*)(?:[☐☑☒✅✓✔]|(?:[-*]\s+)?\[[ xX]])\s+""")
+    private val CHECKBOX_PREFIX by lazy { Regex("""^(\s*)(?:[☐☑☒✅✓✔]|(?:[-*]\s+)?\[[ xX]])\s+""") }
 
     /**
      * Ascending in natural order (digit runs compared as numbers, case

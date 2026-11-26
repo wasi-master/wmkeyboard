@@ -30,54 +30,66 @@ data class ParsedLocation(
  */
 object LocationParser {
 
-    private val URL = Regex("""(?:https?://|geo:)[^\s<>"'`]+""", RegexOption.IGNORE_CASE)
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 88 KB across this file's patterns.
+    private val URL by lazy { Regex("""(?:https?://|geo:)[^\s<>"'`]+""", RegexOption.IGNORE_CASE) }
 
     private const val NUM = """-?\d{1,3}(?:\.\d+)?"""
 
     /** Google's exact pin inside a place link's data blob. */
-    private val GOOGLE_PIN = Regex("""!3d($NUM)!4d($NUM)""")
+    private val GOOGLE_PIN by lazy { Regex("""!3d($NUM)!4d($NUM)""") }
 
     /** A query parameter carrying "lat,lon". */
-    private val PAIR_PARAM = Regex(
-        """[?&#](?:q|query|ll|sll|daddr|destination|center|coordinate|coordinates|pin|point|loc)=\s*($NUM)\s*,\s*($NUM)""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val MLAT = Regex("""[?&#]mlat=($NUM)""", RegexOption.IGNORE_CASE)
-    private val MLON = Regex("""[?&#]mlon=($NUM)""", RegexOption.IGNORE_CASE)
+    private val PAIR_PARAM by lazy {
+        Regex(
+            """[?&#](?:q|query|ll|sll|daddr|destination|center|coordinate|coordinates|pin|point|loc)=\s*($NUM)\s*,\s*($NUM)""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val MLAT by lazy { Regex("""[?&#]mlat=($NUM)""", RegexOption.IGNORE_CASE) }
+    private val MLON by lazy { Regex("""[?&#]mlon=($NUM)""", RegexOption.IGNORE_CASE) }
 
     /** Google's viewport, `/@lat,lon,15z`: where the map was looking, a fair answer when there is no pin. */
-    private val AT_VIEWPORT = Regex("""/@($NUM),($NUM)""")
+    private val AT_VIEWPORT by lazy { Regex("""/@($NUM),($NUM)""") }
 
     /** OpenStreetMap and OsmAnd's `#map=zoom/lat/lon`. */
-    private val MAP_FRAGMENT = Regex("""#map=\d+(?:\.\d+)?/($NUM)/($NUM)""")
+    private val MAP_FRAGMENT by lazy { Regex("""#map=\d+(?:\.\d+)?/($NUM)/($NUM)""") }
 
     /** Bing's `cp=lat~lon`. */
-    private val BING = Regex("""[?&]cp=($NUM)~($NUM)""", RegexOption.IGNORE_CASE)
+    private val BING by lazy { Regex("""[?&]cp=($NUM)~($NUM)""", RegexOption.IGNORE_CASE) }
 
-    private val GOOGLE_PLACE_NAME = Regex("""/maps/place/([^/@?#]+)""")
+    private val GOOGLE_PLACE_NAME by lazy { Regex("""/maps/place/([^/@?#]+)""") }
 
     /** WM Keyboard's own card: `…/place/#lat,lon;n=name`. */
-    private val CARD = Regex("""#($NUM),($NUM)(?:;n=([^;]*))?""")
+    private val CARD by lazy { Regex("""#($NUM),($NUM)(?:;n=([^;]*))?""") }
 
-    private val GEO_URI = Regex(
-        """geo:($NUM),($NUM)(?:[^?\s]*)(?:\?q=([^\s]*))?""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val GEO_QUERY = Regex("""^($NUM)\s*,\s*($NUM)(?:\(([^)]*)\)?)?""")
+    private val GEO_URI by lazy {
+        Regex(
+            """geo:($NUM),($NUM)(?:[^?\s]*)(?:\?q=([^\s]*))?""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
+    private val GEO_QUERY by lazy { Regex("""^($NUM)\s*,\s*($NUM)(?:\(([^)]*)\)?)?""") }
 
-    private val DEGREES = Regex(
-        """(\d{1,2})\s*°\s*(\d{1,2})\s*['′’]\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|″|”|'')?\s*([NSns])[\s,;]+""" +
-            """(\d{1,3})\s*°\s*(\d{1,2})\s*['′’]\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|″|”|'')?\s*([EWew])""",
-    )
+    private val DEGREES by lazy {
+        Regex(
+            """(\d{1,2})\s*°\s*(\d{1,2})\s*['′’]\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|″|”|'')?\s*([NSns])[\s,;]+""" +
+                """(\d{1,3})\s*°\s*(\d{1,2})\s*['′’]\s*(\d{1,2}(?:\.\d+)?)\s*(?:"|″|”|'')?\s*([EWew])""",
+        )
+    }
 
     /** "23.7806, 90.4193", or with hemisphere letters, "23.7806 N, 90.4193 E". */
-    private val DECIMAL_PAIR = Regex(
-        """(?<![\w.\-])(-?\d{1,2}\.\d{3,})\s*°?\s*([NSns])?\s*[,;\s]\s*(-?\d{1,3}\.\d{3,})\s*°?\s*([EWew])?(?![\w.])""",
-    )
+    private val DECIMAL_PAIR by lazy {
+        Regex(
+            """(?<![\w.\-])(-?\d{1,2}\.\d{3,})\s*°?\s*([NSns])?\s*[,;\s]\s*(-?\d{1,3}\.\d{3,})\s*°?\s*([EWew])?(?![\w.])""",
+        )
+    }
 
-    private val PLUS_CODE = Regex(
-        """(?<![\w+])[23456789CFGHJMPQRVWXcfghjmpqrvwx]{8}\+[23456789CFGHJMPQRVWXcfghjmpqrvwx]{2,7}(?!\w)""",
-    )
+    private val PLUS_CODE by lazy {
+        Regex(
+            """(?<![\w+])[23456789CFGHJMPQRVWXcfghjmpqrvwx]{8}\+[23456789CFGHJMPQRVWXcfghjmpqrvwx]{2,7}(?!\w)""",
+        )
+    }
 
     /** Every place in [text], in the order they appear, never overlapping. */
     fun findAll(text: String): List<ParsedLocation> {

@@ -334,28 +334,34 @@ object SelectionMacros {
     /** Below this a selection is too short to be worth acting on at all. */
     private const val MIN_LENGTH = 1
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 101 KB across this file's patterns.
     /**
      * A whole selection that is one address. Deliberately stricter than the
      * shapes a mail server will accept: quoted local parts and bracketed IP
      * domains exist, and a selection that looks like one is far more likely to
      * be code than an address somebody wants to write to.
      */
-    private val EMAIL = Regex("""[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9\-]{1,63}(?:\.[A-Za-z0-9\-]{1,63})*\.[A-Za-z]{2,24}""")
+    private val EMAIL by lazy { Regex("""[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9\-]{1,63}(?:\.[A-Za-z0-9\-]{1,63})*\.[A-Za-z]{2,24}""") }
 
     /** A whole selection that is one link, with or without its scheme. */
-    private val URL = Regex(
-        """(?:[a-z][a-z0-9+.\-]{1,15}://|www\.)[^\s<>"'`]{2,}""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val URL by lazy {
+        Regex(
+            """(?:[a-z][a-z0-9+.\-]{1,15}://|www\.)[^\s<>"'`]{2,}""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * A bare domain typed without a scheme, which is how links are written in
      * ordinary prose. Kept apart from [URL] because it needs a known ending to
      * be a link at all: without one, `Mr.Smith` and `file.txt` are links.
      */
-    private val BARE_DOMAIN = Regex(
-        """[A-Za-z0-9\-]{1,63}(?:\.[A-Za-z0-9\-]{1,63})*\.([A-Za-z]{2,24})(?:[/?#][^\s]*)?""",
-    )
+    private val BARE_DOMAIN by lazy {
+        Regex(
+            """[A-Za-z0-9\-]{1,63}(?:\.[A-Za-z0-9\-]{1,63})*\.([A-Za-z]{2,24})(?:[/?#][^\s]*)?""",
+        )
+    }
 
     /**
      * Endings a bare domain is allowed to have.
@@ -379,7 +385,7 @@ object SelectionMacros {
      * really do copy whole: `(555) 123-4567`. Anything else leading is not a
      * number, which is what keeps a bulleted line or a quoted figure out.
      */
-    private val PHONE = Regex("""\+?\(?\d[\d ().\-]{5,18}\d""")
+    private val PHONE by lazy { Regex("""\+?\(?\d[\d ().\-]{5,18}\d""") }
 
     /** Separators a number may be written with, ignored when it is reformatted. */
     private const val PHONE_SEPARATORS = " -().[]/"
@@ -496,9 +502,9 @@ object SelectionMacros {
     }
 
     /** An Amazon product number where the path names one: `/dp/B0…`, `/gp/product/B0…`. */
-    private val AMAZON_ASIN = Regex("""/(?:dp|gp/product|gp/aw/d|product|exec/obidos/asin)/([A-Z0-9]{10})(?=[/?#]|$)""")
+    private val AMAZON_ASIN by lazy { Regex("""/(?:dp|gp/product|gp/aw/d|product|exec/obidos/asin)/([A-Z0-9]{10})(?=[/?#]|$)""") }
 
-    private val AMAZON_REF = Regex("/ref=[^/]*$")
+    private val AMAZON_REF by lazy { Regex("/ref=[^/]*$") }
 
     /** `/Lamp-Shade-Linen/dp/B0ABCDEFGH/ref=sr_1_3` is `/dp/B0ABCDEFGH`. */
     private fun amazonPath(path: String): String =
@@ -508,242 +514,244 @@ object SelectionMacros {
         if (pattern.matches(path)) pattern.replace(path, replacement) else path
     }
 
-    private val SITE_RULES = listOf(
-        // A product page is its number: the name in front of it, the
-        // referral after it and every parameter go, as Link Cleaner does.
-        // Amazon keeps nothing; a variant has a number of its own.
-        SiteRule(
-            listOf("amazon."),
-            pathPattern = AMAZON_ASIN,
-            keep = emptySet(),
-            pathRewrite = { amazonPath(it) },
-        ),
-        SiteRule(
-            listOf("amazon.", "amzn."),
-            params = setOf(
-                "content-id", "crid", "sprefix", "dib", "dib_tag", "qid", "sr", "ref_", "_encoding",
-                "linkcode", "linkid", "camp", "creative", "creativeasin", "ascsubtag", "spla", "spia",
-                "social_share", "starsleft", "skipredirect", "smid_share", "tag",
-                // Paid-search and affiliate ids (#1470).
-                "hvadid", "hvbmt", "hvdev", "hvlocphy", "hvnetw", "hvqmt", "hvrand", "hvtargid", "hvpone",
-                "hvptwo", "hvpos", "hydadcr", "adgrpid", "associatetag", "dchild", "aaxitk", "refrid", "reftag",
-                "store_ref", "twitchreferral", "ytwchpos", "lp_asin", "visitid", "ts_id",
-                "shoppingportalenabled", "isdramintegrated", "muclientname", "ingress", "plattr", "pbs",
+    private val SITE_RULES by lazy {
+        listOf(
+            // A product page is its number: the name in front of it, the
+            // referral after it and every parameter go, as Link Cleaner does.
+            // Amazon keeps nothing; a variant has a number of its own.
+            SiteRule(
+                listOf("amazon."),
+                pathPattern = AMAZON_ASIN,
+                keep = emptySet(),
+                pathRewrite = { amazonPath(it) },
             ),
-            prefixes = listOf("pd_rd_", "pf_rd_"),
-            pathRewrite = { AMAZON_REF.replace(it, "") },
-        ),
-        SiteRule(
-            listOf("bestbuy.com"),
-            pathPattern = Regex("""^/site/(?:.+/)?\d+\.p/?$"""),
-            keep = emptySet(),
-            pathRewrite = pathRewrite(Regex("""^/site/(?:.+/)?(\d+\.p)/?$"""), "/site/$1"),
-        ),
-        SiteRule(
-            listOf("walmart.com"),
-            pathPattern = Regex("""^/ip/(?:[^/]+/)?\d+/?$"""),
-            keep = emptySet(),
-            pathRewrite = pathRewrite(Regex("""^/ip/(?:[^/]+/)?(\d+)/?$"""), "/ip/$1"),
-        ),
-        SiteRule(
-            listOf("ebay."),
-            pathPattern = Regex("""^/itm/(?:[^/]+/)?\d+/?$"""),
-            keep = setOf("var"),
-            pathRewrite = pathRewrite(Regex("""^/itm/(?:[^/]+/)?(\d+)/?$"""), "/itm/$1"),
-        ),
-        SiteRule(
-            listOf("etsy.com"),
-            pathPattern = Regex("""^(?:/[a-z]{2}(?:-[a-z]{2})?)?/listing/\d+(?:/[^/]*)?$"""),
-            keep = emptySet(),
-            pathRewrite = pathRewrite(Regex("""^((?:/[a-z]{2}(?:-[a-z]{2})?)?/listing/\d+)(?:/[^/]*)?$"""), "$1"),
-        ),
-        SiteRule(listOf("aliexpress."), pathPattern = Regex("""^/item/\d+\.html$"""), keep = emptySet()),
-        SiteRule(listOf("youtube.com"), path = "/watch", keep = setOf("v", "t", "list", "index")),
-        SiteRule(listOf("youtube.com"), path = "/shorts/", keep = emptySet()),
-        SiteRule(listOf("youtu.be"), keep = setOf("t", "list", "index")),
-        // Posts and videos whose every parameter is about the share, never
-        // about the page (#1470): these keep only what opens them even by
-        // default, because nothing a reader needs can be lost.
-        SiteRule(listOf("twitter.com", "x.com"), pathPattern = Regex("""^/[^/]+/status/\d+"""), keep = emptySet(), always = true),
-        SiteRule(listOf("bsky.app"), pathPattern = Regex("""^/profile/[^/]+/post/"""), keep = emptySet(), always = true),
-        SiteRule(listOf("threads.net", "threads.com"), pathPattern = Regex("""^/@[^/]+/post/"""), keep = emptySet(), always = true),
-        SiteRule(listOf("instagram.com"), pathPattern = Regex("""^/(?:[^/]+/)?(?:p|reels?|tv)/"""), keep = setOf("img_index"), always = true),
-        SiteRule(listOf("tiktok.com"), pathPattern = Regex("""^/@[^/]*/(?:video|photo)/\d+"""), keep = emptySet(), always = true),
-        SiteRule(
-            listOf("open.spotify.com"),
-            pathPattern = Regex("""^/(?:intl-[a-z]+/)?(?:track|album|playlist|episode|show|artist)/"""),
-            keep = setOf("t"),
-            always = true,
-        ),
-        SiteRule(listOf("reddit.com"), pathPattern = Regex("""^/r/[^/]+/comments/"""), keep = setOf("context")),
-        SiteRule(listOf("facebook.com"), pathPattern = Regex("""^/(?:story|permalink)\.php$"""), keep = setOf("story_fbid", "id")),
-        SiteRule(listOf("linkedin.com"), pathPattern = Regex("""^/(?:posts|feed/update|jobs/view)/"""), keep = emptySet()),
-        SiteRule(listOf("pinterest."), pathPattern = Regex("""^/pin/\d+"""), keep = emptySet()),
-        SiteRule(listOf("play.google.com"), path = "/store/apps/details", keep = setOf("id")),
-        SiteRule(listOf("xiaohongshu.com"), pathPattern = Regex("""^/(?:explore|discovery/item)/"""), keep = setOf("xsec_token")),
-        SiteRule(listOf("webtoons.com"), pathPattern = Regex("""/(?:viewer|list)$"""), keep = setOf("title_no", "episode_no")),
-        SiteRule(listOf("macys.com"), path = "/shop/product/", keep = setOf("id")),
-        SiteRule(
-            listOf("youtube.com", "youtu.be"),
-            params = setOf("feature", "pp", "kw", "embeds_referring_euri", "embeds_referring_origin", "source_ve_path"),
-        ),
-        SiteRule(listOf("twitter.com", "x.com"), params = setOf("s", "t", "cn", "ref_src", "ref_url")),
-        SiteRule(
-            listOf("instagram.com"),
-            params = setOf(
-                "igsh", "igshid", "ig_rid", "igsi", "click_source", "cplk", "dlrf", "exln", "mdxt", "ndid", "obrf",
-                "psln", "rpxt", "srtk", "stkn", "vrfl", "xtok",
+            SiteRule(
+                listOf("amazon.", "amzn."),
+                params = setOf(
+                    "content-id", "crid", "sprefix", "dib", "dib_tag", "qid", "sr", "ref_", "_encoding",
+                    "linkcode", "linkid", "camp", "creative", "creativeasin", "ascsubtag", "spla", "spia",
+                    "social_share", "starsleft", "skipredirect", "smid_share", "tag",
+                    // Paid-search and affiliate ids (#1470).
+                    "hvadid", "hvbmt", "hvdev", "hvlocphy", "hvnetw", "hvqmt", "hvrand", "hvtargid", "hvpone",
+                    "hvptwo", "hvpos", "hydadcr", "adgrpid", "associatetag", "dchild", "aaxitk", "refrid", "reftag",
+                    "store_ref", "twitchreferral", "ytwchpos", "lp_asin", "visitid", "ts_id",
+                    "shoppingportalenabled", "isdramintegrated", "muclientname", "ingress", "plattr", "pbs",
+                ),
+                prefixes = listOf("pd_rd_", "pf_rd_"),
+                pathRewrite = { AMAZON_REF.replace(it, "") },
             ),
-        ),
-        SiteRule(listOf("threads.net", "threads.com"), params = setOf("xmt", "slof")),
-        SiteRule(
-            listOf("facebook.com", "fb.com", "fb.watch", "messenger.com"),
-            params = setOf(
-                "mibextid", "rdid", "share_url", "sfnsn", "extid", "paipv", "eav", "comment_tracking",
-                "_rdr", "_nc_x", "action_history", "dti", "ftentidentifier", "ls_ref", "referral_code",
-                "referral_story_type", "tracking", "video_source", "wtsid", "hc_ref", "hc_location", "notif_id",
-                "notif_t", "ref_component", "ref_page", "acontext", "privacy_mutation_token",
+            SiteRule(
+                listOf("bestbuy.com"),
+                pathPattern = Regex("""^/site/(?:.+/)?\d+\.p/?$"""),
+                keep = emptySet(),
+                pathRewrite = pathRewrite(Regex("""^/site/(?:.+/)?(\d+\.p)/?$"""), "/site/$1"),
             ),
-            prefixes = listOf("__tn__", "__cft__", "__xts__", "__eep__"),
-        ),
-        SiteRule(
-            listOf("tiktok.com"),
-            params = setOf(
-                "_r", "_t", "is_from_webapp", "sender_device", "sender_web_id", "share_app_id",
-                "share_link_id", "share_item_id", "share_author_id", "tt_from", "u_code", "timestamp",
-                "user_id", "social_sharing", "checksum", "sec_user_id", "enter_from", "is_copy_url",
-                "web_id", "refer",
-                // What a TikTok share link carries besides the video (#1470).
-                "_d", "preview_pb", "sharer_language", "share_iid", "share_app_name", "share_region", "share_source",
-                "social_share_type", "ugbiz_name", "ug_btm", "sp_root_share_link_id", "sp_level", "sp_root_u",
-                "sp_root_d", "link_reflow_popup_iteration_sharer", "panel_source_v2", "share_enter_from",
-                "item_author_type", "enable_checksum", "embed_source", "enter_method", "referer_url",
-                "referer_video_id", "sec_uid", "cachesdk", "trackparams", "region", "source", "_source_",
+            SiteRule(
+                listOf("walmart.com"),
+                pathPattern = Regex("""^/ip/(?:[^/]+/)?\d+/?$"""),
+                keep = emptySet(),
+                pathRewrite = pathRewrite(Regex("""^/ip/(?:[^/]+/)?(\d+)/?$"""), "/ip/$1"),
             ),
-        ),
-        SiteRule(
-            listOf("reddit.com", "redd.it"),
-            params = setOf(
-                "share_id", "rdt", "\$deep_link", "\$3p", "\$original_url", "%24deep_link", "%243p", "%24original_url",
-                "correlation_id", "ref_campaign", "ref_source", "_branch_match_id", "entry_point", "post_fullname",
-                "post_index", "referrer_domain", "referrer_url", "target_user", "geoip_country",
+            SiteRule(
+                listOf("ebay."),
+                pathPattern = Regex("""^/itm/(?:[^/]+/)?\d+/?$"""),
+                keep = setOf("var"),
+                pathRewrite = pathRewrite(Regex("""^/itm/(?:[^/]+/)?(\d+)/?$"""), "/itm/$1"),
             ),
-        ),
-        SiteRule(listOf("spotify.com"), params = setOf("si", "nd", "pi", "dl_branch", "dlsi", "referral", "sp_cid", "context")),
-        SiteRule(
-            listOf("linkedin.com"),
-            params = setOf(
-                "trk", "trkinfo", "trackingid", "lipi", "midtoken", "midsig", "eid", "otptoken",
-                "refid", "originalsubdomain", "rcm", "lici", "isss", "original_referer", "originalreferer",
-                "referenceid", "upsellorderorigin", "courseclaim", "u",
+            SiteRule(
+                listOf("etsy.com"),
+                pathPattern = Regex("""^(?:/[a-z]{2}(?:-[a-z]{2})?)?/listing/\d+(?:/[^/]*)?$"""),
+                keep = emptySet(),
+                pathRewrite = pathRewrite(Regex("""^((?:/[a-z]{2}(?:-[a-z]{2})?)?/listing/\d+)(?:/[^/]*)?$"""), "$1"),
             ),
-        ),
-        SiteRule(
-            listOf("aliexpress."),
-            params = setOf(
-                "scm", "pvid", "algo_pvid", "algo_exp_id", "btsid", "ws_ab_test", "terminal_id",
-                "gatewayadapt", "_randl_currency", "_randl_shipto", "gps-id", "pdp_npi", "pdp_ext_f",
-                "utparam", "sk", "af", "cv", "cn", "dp", "src", "sourcetype",
-                "algo_expid", "mall_affr", "curpageloguid", "scm-url", "scm_id", "utparam-url", "spm",
+            SiteRule(listOf("aliexpress."), pathPattern = Regex("""^/item/\d+\.html$"""), keep = emptySet()),
+            SiteRule(listOf("youtube.com"), path = "/watch", keep = setOf("v", "t", "list", "index")),
+            SiteRule(listOf("youtube.com"), path = "/shorts/", keep = emptySet()),
+            SiteRule(listOf("youtu.be"), keep = setOf("t", "list", "index")),
+            // Posts and videos whose every parameter is about the share, never
+            // about the page (#1470): these keep only what opens them even by
+            // default, because nothing a reader needs can be lost.
+            SiteRule(listOf("twitter.com", "x.com"), pathPattern = Regex("""^/[^/]+/status/\d+"""), keep = emptySet(), always = true),
+            SiteRule(listOf("bsky.app"), pathPattern = Regex("""^/profile/[^/]+/post/"""), keep = emptySet(), always = true),
+            SiteRule(listOf("threads.net", "threads.com"), pathPattern = Regex("""^/@[^/]+/post/"""), keep = emptySet(), always = true),
+            SiteRule(listOf("instagram.com"), pathPattern = Regex("""^/(?:[^/]+/)?(?:p|reels?|tv)/"""), keep = setOf("img_index"), always = true),
+            SiteRule(listOf("tiktok.com"), pathPattern = Regex("""^/@[^/]*/(?:video|photo)/\d+"""), keep = emptySet(), always = true),
+            SiteRule(
+                listOf("open.spotify.com"),
+                pathPattern = Regex("""^/(?:intl-[a-z]+/)?(?:track|album|playlist|episode|show|artist)/"""),
+                keep = setOf("t"),
+                always = true,
             ),
-            prefixes = listOf("aff_"),
-        ),
-        SiteRule(
-            listOf("ebay."),
-            params = setOf(
-                "_trkparms", "_trksid", "amdata", "hash", "mkcid", "mkevt", "mkrid", "campid", "toolid",
-                "customid", "_from", "ssspo", "sssrc", "ssuid", "widget_ver", "itmmeta", "itmprp", "_skw", "epid",
+            SiteRule(listOf("reddit.com"), pathPattern = Regex("""^/r/[^/]+/comments/"""), keep = setOf("context")),
+            SiteRule(listOf("facebook.com"), pathPattern = Regex("""^/(?:story|permalink)\.php$"""), keep = setOf("story_fbid", "id")),
+            SiteRule(listOf("linkedin.com"), pathPattern = Regex("""^/(?:posts|feed/update|jobs/view)/"""), keep = emptySet()),
+            SiteRule(listOf("pinterest."), pathPattern = Regex("""^/pin/\d+"""), keep = emptySet()),
+            SiteRule(listOf("play.google.com"), path = "/store/apps/details", keep = setOf("id")),
+            SiteRule(listOf("xiaohongshu.com"), pathPattern = Regex("""^/(?:explore|discovery/item)/"""), keep = setOf("xsec_token")),
+            SiteRule(listOf("webtoons.com"), pathPattern = Regex("""/(?:viewer|list)$"""), keep = setOf("title_no", "episode_no")),
+            SiteRule(listOf("macys.com"), path = "/shop/product/", keep = setOf("id")),
+            SiteRule(
+                listOf("youtube.com", "youtu.be"),
+                params = setOf("feature", "pp", "kw", "embeds_referring_euri", "embeds_referring_origin", "source_ve_path"),
             ),
-        ),
-        SiteRule(
-            listOf("etsy.com"),
-            params = setOf(
-                "click_key", "click_sum", "ref", "pro", "frs", "sts", "organic_search_click", "plkey",
-                "external", "sr_prefetch", "pf_from", "sca", "bes", "content_source", "pop",
+            SiteRule(listOf("twitter.com", "x.com"), params = setOf("s", "t", "cn", "ref_src", "ref_url")),
+            SiteRule(
+                listOf("instagram.com"),
+                params = setOf(
+                    "igsh", "igshid", "ig_rid", "igsi", "click_source", "cplk", "dlrf", "exln", "mdxt", "ndid", "obrf",
+                    "psln", "rpxt", "srtk", "stkn", "vrfl", "xtok",
+                ),
             ),
-            prefixes = listOf("ga_"),
-        ),
-        SiteRule(listOf("medium.com"), params = setOf("source")),
-        // More of what ClearURLs, AdGuard and uBlock Origin take per site (#1470).
-        SiteRule(listOf("play.google.com"), params = setOf("referrer", "pcampaignid")),
-        SiteRule(
-            listOf("temu.com"),
-            params = setOf(
-                "adg_ctx", "freesia_scene", "from_share", "mrk_rec", "refer_page_el_sn", "refer_page_id",
-                "refer_page_name", "refer_page_sn", "refer_share_channel", "refer_share_id", "refer_share_suin",
-                "refer_source", "share_img", "spec_gallery_id", "top_gallery_url", "g_ccy", "g_lg", "g_region", "g_site",
+            SiteRule(listOf("threads.net", "threads.com"), params = setOf("xmt", "slof")),
+            SiteRule(
+                listOf("facebook.com", "fb.com", "fb.watch", "messenger.com"),
+                params = setOf(
+                    "mibextid", "rdid", "share_url", "sfnsn", "extid", "paipv", "eav", "comment_tracking",
+                    "_rdr", "_nc_x", "action_history", "dti", "ftentidentifier", "ls_ref", "referral_code",
+                    "referral_story_type", "tracking", "video_source", "wtsid", "hc_ref", "hc_location", "notif_id",
+                    "notif_t", "ref_component", "ref_page", "acontext", "privacy_mutation_token",
+                ),
+                prefixes = listOf("__tn__", "__cft__", "__xts__", "__eep__"),
             ),
-            prefixes = listOf("_x_", "_oak_", "_p_", "_bg_"),
-        ),
-        SiteRule(
-            listOf("bilibili.com", "b23.tv"),
-            params = setOf(
-                "bbid", "broadcast_type", "buvid", "callback", "from", "from_source", "from_spmid", "from_spm_id",
-                "is_room_feed", "is_story_h5", "mid", "msource", "csource", "plat_id", "refer_from", "seid",
-                "session_id", "share_from", "share_medium", "share_plat", "share_session_id", "share_source",
-                "share_tag", "spm_id_from", "spmid", "timestamp", "ts", "unique_k", "up_id", "vd_source", "visit_id",
-                "caid", "creative_id", "linked_creative_id", "request_id", "resource_id", "track_id", "trackid",
+            SiteRule(
+                listOf("tiktok.com"),
+                params = setOf(
+                    "_r", "_t", "is_from_webapp", "sender_device", "sender_web_id", "share_app_id",
+                    "share_link_id", "share_item_id", "share_author_id", "tt_from", "u_code", "timestamp",
+                    "user_id", "social_sharing", "checksum", "sec_user_id", "enter_from", "is_copy_url",
+                    "web_id", "refer",
+                    // What a TikTok share link carries besides the video (#1470).
+                    "_d", "preview_pb", "sharer_language", "share_iid", "share_app_name", "share_region", "share_source",
+                    "social_share_type", "ugbiz_name", "ug_btm", "sp_root_share_link_id", "sp_level", "sp_root_u",
+                    "sp_root_d", "link_reflow_popup_iteration_sharer", "panel_source_v2", "share_enter_from",
+                    "item_author_type", "enable_checksum", "embed_source", "enter_method", "referer_url",
+                    "referer_video_id", "sec_uid", "cachesdk", "trackparams", "region", "source", "_source_",
+                ),
             ),
-        ),
-        SiteRule(
-            listOf("taobao.com", "tmall.com"),
-            params = setOf(
-                "abbucket", "abtest", "acm", "algo_expid", "algo_pvid", "ali_refid", "ali_trackid", "bftrwd", "bfttag",
-                "cpp", "impid", "lygclk", "mytmenu", "ns", "pvid", "scm", "share_crt_v", "shareurl", "short_name",
-                "sourcetype", "sp_tk", "spm", "suid", "trackinfo", "turing_bucket", "un", "ut_sk", "utkn", "utparam",
-                "app_pvid", "traceid", "xid", "activityid", "ptl",
+            SiteRule(
+                listOf("reddit.com", "redd.it"),
+                params = setOf(
+                    "share_id", "rdt", "\$deep_link", "\$3p", "\$original_url", "%24deep_link", "%243p", "%24original_url",
+                    "correlation_id", "ref_campaign", "ref_source", "_branch_match_id", "entry_point", "post_fullname",
+                    "post_index", "referrer_domain", "referrer_url", "target_user", "geoip_country",
+                ),
             ),
-        ),
-        SiteRule(
-            listOf("lazada."),
-            params = setOf(
-                "abid", "ad_src", "clicktrackinfo", "did", "impsrc", "mp", "pa", "pid_pvid", "pos", "pvid", "scm",
-                "spm", "src", "laz_trackid", "from",
+            SiteRule(listOf("spotify.com"), params = setOf("si", "nd", "pi", "dl_branch", "dlsi", "referral", "sp_cid", "context")),
+            SiteRule(
+                listOf("linkedin.com"),
+                params = setOf(
+                    "trk", "trkinfo", "trackingid", "lipi", "midtoken", "midsig", "eid", "otptoken",
+                    "refid", "originalsubdomain", "rcm", "lici", "isss", "original_referer", "originalreferer",
+                    "referenceid", "upsellorderorigin", "courseclaim", "u",
+                ),
             ),
-        ),
-        SiteRule(listOf("daraz."), params = setOf("spm", "scm", "pvid", "clicktrackinfo", "mp", "from", "laz_trackid")),
-        SiteRule(listOf("shopee."), params = setOf("publish_id", "sp_atk", "xptdk", "uls_trackid", "smtt")),
-        SiteRule(
-            listOf("flipkart.com"),
-            params = setOf(
-                "cid", "lid", "pid_ref", "collection-tab-name", "ctx", "fm", "hpid", "nnc", "otracker", "otracker1",
-                "ppn", "ppt", "qh", "srno", "ssid", "_refid", "affid", "iid", "pageuid", "pwsvid", "store",
+            SiteRule(
+                listOf("aliexpress."),
+                params = setOf(
+                    "scm", "pvid", "algo_pvid", "algo_exp_id", "btsid", "ws_ab_test", "terminal_id",
+                    "gatewayadapt", "_randl_currency", "_randl_shipto", "gps-id", "pdp_npi", "pdp_ext_f",
+                    "utparam", "sk", "af", "cv", "cn", "dp", "src", "sourcetype",
+                    "algo_expid", "mall_affr", "curpageloguid", "scm-url", "scm_id", "utparam-url", "spm",
+                ),
+                prefixes = listOf("aff_"),
             ),
-        ),
-        SiteRule(listOf("netflix.com"), params = setOf("tctx", "trackid", "source")),
-        SiteRule(listOf("imdb.com"), params = setOf("ref_"), prefixes = listOf("pf_rd_")),
-        SiteRule(listOf("twitch.tv"), params = setOf("tt_content", "tt_medium", "web_only")),
-        SiteRule(listOf("apple.com"), params = setOf("itscg", "itsct", "app", "ct", "pt", "mttnsubad")),
-        SiteRule(listOf("nytimes.com"), params = setOf("smid", "smtyp", "impression_id", "referringsource", "sgrp")),
-        SiteRule(listOf("washingtonpost.com"), params = setOf("itid")),
-        SiteRule(listOf("substack.com"), params = setOf("isfreemail", "triedredirect", "r")),
-        SiteRule(listOf("github.com"), params = setOf("email_source", "email_token", "reference_location")),
-        SiteRule(listOf("weibo.com", "weibo.cn"), params = setOf("dt_dapp", "weibo_id")),
-        SiteRule(listOf("snapchat.com"), params = setOf("sc_referrer", "sc_ua", "share_id", "sender_web_id")),
-        SiteRule(listOf("quora.com"), params = setOf("al_imp", "share")),
-        SiteRule(listOf("airbnb."), params = setOf("federated_search_id", "search_type", "source_impression_id", "source")),
-        SiteRule(listOf("zillow.com"), params = setOf("rtoken")),
-        SiteRule(listOf("walmart.com"), params = setOf("u1"), prefixes = listOf("ath")),
-        SiteRule(listOf("bestbuy.com"), params = setOf("acampid", "intl", "loc", "mpid", "adcampaignid", "sharedid", "subid1", "subid2", "subid3", "svlink", "vehicle")),
-        SiteRule(listOf("store.steampowered.com", "steamcommunity.com"), params = setOf("snr")),
-        SiteRule(listOf("yahoo.com"), params = setOf("guccounter", "guce_referrer", "guce_referrer_sig", "ncid", "__ysp", "soc_src", "soc_trk")),
-        SiteRule(listOf("pinterest.", "pin.it"), params = setOf("invite_code", "sender", "sfo")),
-        SiteRule(
-            listOf("google."),
-            params = setOf(
-                "ved", "ei", "sca_esv", "sca_upv", "oq", "gs_lcrp", "gs_lp", "gs_lcp", "gs_ssp", "sourceid",
-                "sxsrf", "iflsig", "sclient", "rlz", "bih", "biw", "dpr", "uact", "aqs", "client", "stick",
-                "sei", "mstk", "csui", "prmd", "fbs", "vet", "sa", "source", "ie",
-                "atyp", "cad", "cd", "cshid", "dcr", "esrc", "ictx", "je", "uds", "sstk", "g_ep", "gws_rd", "gfe_rd",
+            SiteRule(
+                listOf("ebay."),
+                params = setOf(
+                    "_trkparms", "_trksid", "amdata", "hash", "mkcid", "mkevt", "mkrid", "campid", "toolid",
+                    "customid", "_from", "ssspo", "sssrc", "ssuid", "widget_ver", "itmmeta", "itmprp", "_skw", "epid",
+                ),
             ),
-            path = "/search",
-        ),
-        SiteRule(
-            listOf("bing.com"),
-            params = setOf("form", "cvid", "pq", "sk", "sc", "qs", "sp", "ghc", "lq", "ghsh", "ghacc", "ghpl"),
-            path = "/search",
-        ),
-    )
+            SiteRule(
+                listOf("etsy.com"),
+                params = setOf(
+                    "click_key", "click_sum", "ref", "pro", "frs", "sts", "organic_search_click", "plkey",
+                    "external", "sr_prefetch", "pf_from", "sca", "bes", "content_source", "pop",
+                ),
+                prefixes = listOf("ga_"),
+            ),
+            SiteRule(listOf("medium.com"), params = setOf("source")),
+            // More of what ClearURLs, AdGuard and uBlock Origin take per site (#1470).
+            SiteRule(listOf("play.google.com"), params = setOf("referrer", "pcampaignid")),
+            SiteRule(
+                listOf("temu.com"),
+                params = setOf(
+                    "adg_ctx", "freesia_scene", "from_share", "mrk_rec", "refer_page_el_sn", "refer_page_id",
+                    "refer_page_name", "refer_page_sn", "refer_share_channel", "refer_share_id", "refer_share_suin",
+                    "refer_source", "share_img", "spec_gallery_id", "top_gallery_url", "g_ccy", "g_lg", "g_region", "g_site",
+                ),
+                prefixes = listOf("_x_", "_oak_", "_p_", "_bg_"),
+            ),
+            SiteRule(
+                listOf("bilibili.com", "b23.tv"),
+                params = setOf(
+                    "bbid", "broadcast_type", "buvid", "callback", "from", "from_source", "from_spmid", "from_spm_id",
+                    "is_room_feed", "is_story_h5", "mid", "msource", "csource", "plat_id", "refer_from", "seid",
+                    "session_id", "share_from", "share_medium", "share_plat", "share_session_id", "share_source",
+                    "share_tag", "spm_id_from", "spmid", "timestamp", "ts", "unique_k", "up_id", "vd_source", "visit_id",
+                    "caid", "creative_id", "linked_creative_id", "request_id", "resource_id", "track_id", "trackid",
+                ),
+            ),
+            SiteRule(
+                listOf("taobao.com", "tmall.com"),
+                params = setOf(
+                    "abbucket", "abtest", "acm", "algo_expid", "algo_pvid", "ali_refid", "ali_trackid", "bftrwd", "bfttag",
+                    "cpp", "impid", "lygclk", "mytmenu", "ns", "pvid", "scm", "share_crt_v", "shareurl", "short_name",
+                    "sourcetype", "sp_tk", "spm", "suid", "trackinfo", "turing_bucket", "un", "ut_sk", "utkn", "utparam",
+                    "app_pvid", "traceid", "xid", "activityid", "ptl",
+                ),
+            ),
+            SiteRule(
+                listOf("lazada."),
+                params = setOf(
+                    "abid", "ad_src", "clicktrackinfo", "did", "impsrc", "mp", "pa", "pid_pvid", "pos", "pvid", "scm",
+                    "spm", "src", "laz_trackid", "from",
+                ),
+            ),
+            SiteRule(listOf("daraz."), params = setOf("spm", "scm", "pvid", "clicktrackinfo", "mp", "from", "laz_trackid")),
+            SiteRule(listOf("shopee."), params = setOf("publish_id", "sp_atk", "xptdk", "uls_trackid", "smtt")),
+            SiteRule(
+                listOf("flipkart.com"),
+                params = setOf(
+                    "cid", "lid", "pid_ref", "collection-tab-name", "ctx", "fm", "hpid", "nnc", "otracker", "otracker1",
+                    "ppn", "ppt", "qh", "srno", "ssid", "_refid", "affid", "iid", "pageuid", "pwsvid", "store",
+                ),
+            ),
+            SiteRule(listOf("netflix.com"), params = setOf("tctx", "trackid", "source")),
+            SiteRule(listOf("imdb.com"), params = setOf("ref_"), prefixes = listOf("pf_rd_")),
+            SiteRule(listOf("twitch.tv"), params = setOf("tt_content", "tt_medium", "web_only")),
+            SiteRule(listOf("apple.com"), params = setOf("itscg", "itsct", "app", "ct", "pt", "mttnsubad")),
+            SiteRule(listOf("nytimes.com"), params = setOf("smid", "smtyp", "impression_id", "referringsource", "sgrp")),
+            SiteRule(listOf("washingtonpost.com"), params = setOf("itid")),
+            SiteRule(listOf("substack.com"), params = setOf("isfreemail", "triedredirect", "r")),
+            SiteRule(listOf("github.com"), params = setOf("email_source", "email_token", "reference_location")),
+            SiteRule(listOf("weibo.com", "weibo.cn"), params = setOf("dt_dapp", "weibo_id")),
+            SiteRule(listOf("snapchat.com"), params = setOf("sc_referrer", "sc_ua", "share_id", "sender_web_id")),
+            SiteRule(listOf("quora.com"), params = setOf("al_imp", "share")),
+            SiteRule(listOf("airbnb."), params = setOf("federated_search_id", "search_type", "source_impression_id", "source")),
+            SiteRule(listOf("zillow.com"), params = setOf("rtoken")),
+            SiteRule(listOf("walmart.com"), params = setOf("u1"), prefixes = listOf("ath")),
+            SiteRule(listOf("bestbuy.com"), params = setOf("acampid", "intl", "loc", "mpid", "adcampaignid", "sharedid", "subid1", "subid2", "subid3", "svlink", "vehicle")),
+            SiteRule(listOf("store.steampowered.com", "steamcommunity.com"), params = setOf("snr")),
+            SiteRule(listOf("yahoo.com"), params = setOf("guccounter", "guce_referrer", "guce_referrer_sig", "ncid", "__ysp", "soc_src", "soc_trk")),
+            SiteRule(listOf("pinterest.", "pin.it"), params = setOf("invite_code", "sender", "sfo")),
+            SiteRule(
+                listOf("google."),
+                params = setOf(
+                    "ved", "ei", "sca_esv", "sca_upv", "oq", "gs_lcrp", "gs_lp", "gs_lcp", "gs_ssp", "sourceid",
+                    "sxsrf", "iflsig", "sclient", "rlz", "bih", "biw", "dpr", "uact", "aqs", "client", "stick",
+                    "sei", "mstk", "csui", "prmd", "fbs", "vet", "sa", "source", "ie",
+                    "atyp", "cad", "cd", "cshid", "dcr", "esrc", "ictx", "je", "uds", "sstk", "g_ep", "gws_rd", "gfe_rd",
+                ),
+                path = "/search",
+            ),
+            SiteRule(
+                listOf("bing.com"),
+                params = setOf("form", "cvid", "pq", "sk", "sc", "qs", "sp", "ghc", "lq", "ghsh", "ghacc", "ghpl"),
+                path = "/search",
+            ),
+        )
+    }
 
     /**
      * Links that only send the browser on somewhere else, and the parameter
@@ -1387,10 +1395,10 @@ object SelectionMacros {
         return parts.toString()
     }
 
-    private val SHORTS_PATH = Regex("""/shorts/([A-Za-z0-9_-]+)/?""")
+    private val SHORTS_PATH by lazy { Regex("""/shorts/([A-Za-z0-9_-]+)/?""") }
 
     /** A YouTube video's id: eleven of these, but nothing promises the count. */
-    private val VIDEO_ID = Regex("""[A-Za-z0-9_-]{6,20}""")
+    private val VIDEO_ID by lazy { Regex("""[A-Za-z0-9_-]{6,20}""") }
 
     private fun joinQuery(first: String, rest: String?): String =
         if (rest.isNullOrEmpty()) first else "$first&$rest"
@@ -1450,7 +1458,7 @@ object SelectionMacros {
         else -> true
     }
 
-    private val NON_SPACE_RUN = Regex("""\S+""")
+    private val NON_SPACE_RUN by lazy { Regex("""\S+""") }
 
     /** What a sentence ends a link with, which is not part of the link. */
     private const val LINK_TRAILING_PUNCTUATION = ".,;:!)]}'\"»”’>"

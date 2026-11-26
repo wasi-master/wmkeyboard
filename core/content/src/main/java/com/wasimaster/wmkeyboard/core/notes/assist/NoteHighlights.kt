@@ -98,58 +98,68 @@ object NoteHighlights {
     /** A clock time that may follow a date: "at 5pm", ", 14:30". */
     private const val TIME_TAIL = """(?:,?\s*(?:at\s+|@\s*)?(?:\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.)|\d{1,2}:\d{2}))?"""
 
-    private val DATE_SHAPES: List<Regex> = listOf(
-        // 2026-11-20
-        """(?<![\d/.-])\d{4}[-/.]\d{1,2}[-/.]\d{1,2}(?![\d/.-])""",
-        // 20/11/2026, 11-20-26
-        """(?<![\d/.-])\d{1,2}([/.\-])\d{1,2}\1(?:\d{4}|\d{2})(?![\d/.-])""",
-        // 20 Nov, 20th of November 2026
-        """(?<![\p{L}\d])\d{1,2}(?:st|nd|rd|th)?\s*(?:of\s+)?(?:$MONTHS)\.?(?![\p{L}])(?:,?\s+\d{4}(?!\d))?""",
-        // Nov 20, November 20th, 2026
-        """(?<![\p{L}])(?:$MONTHS)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?![\d\p{L}])(?:,?\s+\d{4}(?!\d))?""",
-        // tomorrow, day after tomorrow, next week, next friday, this sat, friday
-        """(?<![\p{L}])(?:day after tomorrow|tomorrow|tonight|today|next week|next month|""" +
-            """(?:next|this|coming)\s+(?:$WEEKDAYS|$SHORT_WEEKDAYS)|(?:$WEEKDAYS))(?![\p{L}])""",
-    ).map { Regex(it + TIME_TAIL, RegexOption.IGNORE_CASE) } +
-        // ২০/১১/২০২৬: DateTimes reads the digits of any script, but the
-        // shapes above only find ASCII ones. Bengali's words are DatePhrases'.
-        Regex("""(?<![\d০-৯/.-])[০-৯]{1,2}([/.\-])[০-৯]{1,2}\1(?:[০-৯]{4}|[০-৯]{2})(?![\d০-৯/.-])""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 64 KB across this file's patterns.
+    private val DATE_SHAPES: List<Regex> by lazy {
+        listOf(
+            // 2026-11-20
+            """(?<![\d/.-])\d{4}[-/.]\d{1,2}[-/.]\d{1,2}(?![\d/.-])""",
+            // 20/11/2026, 11-20-26
+            """(?<![\d/.-])\d{1,2}([/.\-])\d{1,2}\1(?:\d{4}|\d{2})(?![\d/.-])""",
+            // 20 Nov, 20th of November 2026
+            """(?<![\p{L}\d])\d{1,2}(?:st|nd|rd|th)?\s*(?:of\s+)?(?:$MONTHS)\.?(?![\p{L}])(?:,?\s+\d{4}(?!\d))?""",
+            // Nov 20, November 20th, 2026
+            """(?<![\p{L}])(?:$MONTHS)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?![\d\p{L}])(?:,?\s+\d{4}(?!\d))?""",
+            // tomorrow, day after tomorrow, next week, next friday, this sat, friday
+            """(?<![\p{L}])(?:day after tomorrow|tomorrow|tonight|today|next week|next month|""" +
+                """(?:next|this|coming)\s+(?:$WEEKDAYS|$SHORT_WEEKDAYS)|(?:$WEEKDAYS))(?![\p{L}])""",
+        ).map { Regex(it + TIME_TAIL, RegexOption.IGNORE_CASE) } +
+            // ২০/১১/২০২৬: DateTimes reads the digits of any script, but the
+            // shapes above only find ASCII ones. Bengali's words are DatePhrases'.
+            Regex("""(?<![\d০-৯/.-])[০-৯]{1,2}([/.\-])[০-৯]{1,2}\1(?:[০-৯]{4}|[০-৯]{2})(?![\d০-৯/.-])""")
+    }
 
     /** A clock time right after a phrase [DatePhrases] found: "morgen 14:30", "আগামীকাল at 5pm". */
-    private val TIME_AFTER = Regex("^$TIME_TAIL", RegexOption.IGNORE_CASE)
+    private val TIME_AFTER by lazy { Regex("^$TIME_TAIL", RegexOption.IGNORE_CASE) }
 
     /**
      * The words that make a date a deadline, read on the date's own line
      * before it. "by" and "before" are deliberately in: "pay by Friday" is
      * the commonest deadline there is.
      */
-    private val DEADLINE_WORDS = Regex(
-        """(?<![\p{L}])(?:due|deadline|deadlines|submit|submission|submissions|apply|application|applications|""" +
-            """last date|last day|closing date|closes|close|closing|expires|expire|expiry|expiring|renew|renewal|""" +
-            """pay|payment|by|before|until|till|no later than|ends|ending|cutoff|cut-off|register|registration)(?![\p{L}])""" +
-            """|শেষ তারিখ|জমা|মেয়াদ""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val DEADLINE_WORDS by lazy {
+        Regex(
+            """(?<![\p{L}])(?:due|deadline|deadlines|submit|submission|submissions|apply|application|applications|""" +
+                """last date|last day|closing date|closes|close|closing|expires|expire|expiry|expiring|renew|renewal|""" +
+                """pay|payment|by|before|until|till|no later than|ends|ending|cutoff|cut-off|register|registration)(?![\p{L}])""" +
+                """|শেষ তারিখ|জমা|মেয়াদ""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** Words that make every date on their line a birthday or an anniversary. */
-    private val BIRTHDAY_WORDS = Regex(
-        """(?<![\p{L}])(?:birthday|birthdays|bday|b'day|b-day|anniversary|born on|dob|date of birth)(?![\p{L}])""" +
-            """|জন্মদিন|বার্ষিকী|জন্ম তারিখ""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val BIRTHDAY_WORDS by lazy {
+        Regex(
+            """(?<![\p{L}])(?:birthday|birthdays|bday|b'day|b-day|anniversary|born on|dob|date of birth)(?![\p{L}])""" +
+                """|জন্মদিন|বার্ষিকী|জন্ম তারিখ""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     private const val CURRENCY_CODES = "usd|eur|gbp|inr|bdt|pkr|npr|lkr|jpy|cny|rmb|aud|cad|chf|sgd|aed|sar|myr|idr|php|thb|krw|try|rub|ngn|zar|brl|mxn"
     private const val CURRENCY_WORDS = "dollars|dollar|euros|euro|pounds|pound|rupees|rupee|taka|tk|yen|yuan|riyal|ringgit|baht|won|lira|rand|naira|pesos|peso"
 
-    private val AMOUNT = Regex(
-        // £12, $1,200.50, ৳ 500, Rs. 300, USD 40, 2.5k
-        """(?:[$€£¥₹৳₽₩₺₦₱]|(?<![\p{L}])(?:$CURRENCY_CODES|rs\.?|tk\.?)\s?)\s?\d[\d,]*(?:\.\d+)?(?:\s?(?:k|m|bn|million|billion|lakh|lakhs|crore|crores)(?![\p{L}]))?""" +
-            // 40 USD, 1,200 taka, 300 rupees
-            """|(?<![\d.,\p{L}])\d[\d,]*(?:\.\d+)?\s?(?:$CURRENCY_CODES|$CURRENCY_WORDS)(?![\p{L}])""" +
-            // 500 টাকা
-            """|(?<![\d.,])[\d০-৯][\d০-৯,]*(?:\.[\d০-৯]+)?\s?টাকা""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val AMOUNT by lazy {
+        Regex(
+            // £12, $1,200.50, ৳ 500, Rs. 300, USD 40, 2.5k
+            """(?:[$€£¥₹৳₽₩₺₦₱]|(?<![\p{L}])(?:$CURRENCY_CODES|rs\.?|tk\.?)\s?)\s?\d[\d,]*(?:\.\d+)?(?:\s?(?:k|m|bn|million|billion|lakh|lakhs|crore|crores)(?![\p{L}]))?""" +
+                // 40 USD, 1,200 taka, 300 rupees
+                """|(?<![\d.,\p{L}])\d[\d,]*(?:\.\d+)?\s?(?:$CURRENCY_CODES|$CURRENCY_WORDS)(?![\p{L}])""" +
+                // 500 টাকা
+                """|(?<![\d.,])[\d০-৯][\d০-৯,]*(?:\.[\d০-৯]+)?\s?টাকা""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * Every highlight in [text], de-duplicated, ordered by [NoteHighlightKind]

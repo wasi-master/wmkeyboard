@@ -698,9 +698,11 @@ private fun skipDeclaration(xml: String, open: Int): Int {
     return xml.length
 }
 
-private val AttributePattern = Regex("""([A-Za-z_:][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')""")
+// Built on first use: each compiled Regex holds native ICU sets for the
+// life of the process, about 29 KB across this file's patterns.
+private val AttributePattern by lazy { Regex("""([A-Za-z_:][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')""") }
 
-private val EntityPattern = Regex("&(#[xX][0-9a-fA-F]+|#[0-9]+|[A-Za-z]+);")
+private val EntityPattern by lazy { Regex("&(#[xX][0-9a-fA-F]+|#[0-9]+|[A-Za-z]+);") }
 
 internal fun decodeEntities(value: String): String {
     if ('&' !in value) return value
@@ -1195,14 +1197,16 @@ internal object XkbSymbolsReader {
      * Keysyms for keys that type nothing a grid shows: modifiers, editing and
      * function keys. Left out without a note, unlike a name that is not known.
      */
-    private val FunctionKeysym = Regex(
-        "(?:.*_[LR]|ISO_.*|Mode_switch|Multi_key|Caps_Lock|Num_Lock|Scroll_Lock|Shift_Lock|BackSpace|Tab|Return|" +
-            "Escape|Delete|Insert|Home|End|Prior|Next|Left|Right|Up|Down|Print|Menu|KP_.*|F\\d+|XF86.*|Pointer_.*|" +
-            "Hyper_.*|Super_.*|Meta_.*|Alt_.*|Control_.*|Linefeed|Clear|Pause|Sys_Req|Break|Cancel|Execute|Undo|" +
-            "Redo|Find|Help|Select)",
-    )
+    private val FunctionKeysym by lazy {
+        Regex(
+            "(?:.*_[LR]|ISO_.*|Mode_switch|Multi_key|Caps_Lock|Num_Lock|Scroll_Lock|Shift_Lock|BackSpace|Tab|Return|" +
+                "Escape|Delete|Insert|Home|End|Prior|Next|Left|Right|Up|Down|Print|Menu|KP_.*|F\\d+|XF86.*|Pointer_.*|" +
+                "Hyper_.*|Super_.*|Meta_.*|Alt_.*|Control_.*|Linefeed|Clear|Pause|Sys_Req|Break|Cancel|Execute|Undo|" +
+                "Redo|Find|Help|Select)",
+        )
+    }
 
-    private val BlockHeader = Regex("""xkb_symbols\s+"[^"]*"\s*\{""")
+    private val BlockHeader by lazy { Regex("""xkb_symbols\s+"[^"]*"\s*\{""") }
 
     private val MergeWords = setOf("include", "augment", "override", "replace")
     private const val WordChars = "_-."

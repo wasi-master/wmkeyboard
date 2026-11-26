@@ -55,16 +55,18 @@ value class MixTemplate(val pattern: String) {
         private const val HEX_SEQ = "u?[0-9a-f]{2,6}(?:-u?[0-9a-f]{2,6})*"
         private const val EXT = "(png|webp|gif)"
 
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 17 KB across this file's patterns.
         /** `…/20201001/u1f603/u1f603_u1f601.png`: the dated layout, the pair's first emoji naming the folder. */
-        private val DATED = Regex("^(.*?)/(\\d{8})/($U_SEQ)/\\3_($U_SEQ)\\.$EXT((?:[?#].*)?)$", RegexOption.IGNORE_CASE)
+        private val DATED by lazy { Regex("^(.*?)/(\\d{8})/($U_SEQ)/\\3_($U_SEQ)\\.$EXT((?:[?#].*)?)$", RegexOption.IGNORE_CASE) }
 
         /** `…/1f603_1f601…` anywhere in the last path segment, with or without the `u`s. */
-        private val FLAT = Regex("^(.*/[^/?#]*?|[^/?#]*?)($HEX_SEQ)_($HEX_SEQ)([^/]*)$", RegexOption.IGNORE_CASE)
+        private val FLAT by lazy { Regex("^(.*/[^/?#]*?|[^/?#]*?)($HEX_SEQ)_($HEX_SEQ)([^/]*)$", RegexOption.IGNORE_CASE) }
 
         /** The emoji themselves, percent-encoded, either side of the underscore. */
-        private val ENCODED = Regex("^(.*?)((?:%[0-9a-f]{2})+)_((?:%[0-9a-f]{2})+)(.*)$", RegexOption.IGNORE_CASE)
+        private val ENCODED by lazy { Regex("^(.*?)((?:%[0-9a-f]{2})+)_((?:%[0-9a-f]{2})+)(.*)$", RegexOption.IGNORE_CASE) }
 
-        private val SIZE_PARAM = Regex("([?&](?:size|s|w|width)=)\\d+", RegexOption.IGNORE_CASE)
+        private val SIZE_PARAM by lazy { Regex("([?&](?:size|s|w|width)=)\\d+", RegexOption.IGNORE_CASE) }
 
         /** True when [text] has a placeholder in it, so is a pattern rather than an example. */
         fun isPattern(text: String): Boolean =

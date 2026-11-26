@@ -25,12 +25,17 @@ object Places {
     private const val NUMBER = """[-+]?\d{1,3}(?:\.\d+)?"""
     private const val LAT_LABEL = """(?:lat(?:itude)?[:\s]*)?"""
     private const val LNG_LABEL = """(?:l(?:ng|on|ong)(?:gitude)?[:\s]*)?"""
-    private val DECIMAL = Regex(
-        """\(?\s*$LAT_LABEL($NUMBER)\s*°?\s*([nsew])?\s*[,;\s]\s*$LNG_LABEL($NUMBER)\s*°?\s*([nsew])?\s*\)?""",
-        RegexOption.IGNORE_CASE,
-    )
+
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 78 KB across this file's patterns.
+    private val DECIMAL by lazy {
+        Regex(
+            """\(?\s*$LAT_LABEL($NUMBER)\s*°?\s*([nsew])?\s*[,;\s]\s*$LNG_LABEL($NUMBER)\s*°?\s*([nsew])?\s*\)?""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
     private const val DMS_ONE = """(\d{1,3})°\s*(\d{1,2})['′]\s*(?:(\d{1,2}(?:\.\d+)?)["″])?\s*([nsew])"""
-    private val DMS = Regex("""$DMS_ONE\s*[,;\s]\s*$DMS_ONE""", RegexOption.IGNORE_CASE)
+    private val DMS by lazy { Regex("""$DMS_ONE\s*[,;\s]\s*$DMS_ONE""", RegexOption.IGNORE_CASE) }
 
     private val STRONG = setOf(
         "road", "street", "avenue", "lane", "sector", "block", "house", "plot", "flat", "floor",
@@ -42,12 +47,12 @@ object Places {
         "প্লট", "ফ্ল্যাট", "তলা", "টাওয়ার", "মার্কেট", "থানা", "জেলা", "উপজেলা", "ইউনিয়ন", "ডাকঘর",
         "লেন", "এভিনিউ", "কলোনি", "মহল্লা",
     )
-    private val WEAK_STREET = Regex("""\b\d+[a-z]?\s+(?:[^\s,]+\s+){1,3}(?:rd|st|ave|ln|blvd|dr|hwy|sq|ct|pl)\b""")
-    private val WEAK_UNIT = Regex("""\b(?:apt|bldg)\.?\s*#?\d""")
-    private val POSTCODE = Regex(""",.*\b(?:\d{4,6}|[a-z]{1,2}\d[a-z\d]?\s?\d[a-z]{2})\b""")
-    private val LONG_DIGITS = Regex("""\d{7,}""")
-    private val CLOCK = Regex("""\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b""")
-    private val WORD = Regex("""[\p{L}\p{M}.]+""")
+    private val WEAK_STREET by lazy { Regex("""\b\d+[a-z]?\s+(?:[^\s,]+\s+){1,3}(?:rd|st|ave|ln|blvd|dr|hwy|sq|ct|pl)\b""") }
+    private val WEAK_UNIT by lazy { Regex("""\b(?:apt|bldg)\.?\s*#?\d""") }
+    private val POSTCODE by lazy { Regex(""",.*\b(?:\d{4,6}|[a-z]{1,2}\d[a-z\d]?\s?\d[a-z]{2})\b""") }
+    private val LONG_DIGITS by lazy { Regex("""\d{7,}""") }
+    private val CLOCK by lazy { Regex("""\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b""") }
+    private val WORD by lazy { Regex("""[\p{L}\p{M}.]+""") }
 
     fun parseCoordinates(text: String): LatLng? {
         val t = text.trim()

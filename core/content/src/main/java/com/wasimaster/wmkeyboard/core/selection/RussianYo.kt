@@ -41,6 +41,9 @@ class RussianYo(dictionary: String) {
 
     private companion object {
         const val PUNCTUATION = """[{}()|<>=_"'«»„“#$^%&*+:;,?!‑\-\[\]]"""
-        val WORD = Regex("""[А-ЯЁа-яё][а-яё]+(?![а-яё]|\.[  \t]+(?:[а-яё]|[А-ЯЁ]{2}|$PUNCTUATION)|\.$PUNCTUATION)""")
+
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 9 KB across this file's patterns.
+        val WORD by lazy { Regex("""[А-ЯЁа-яё][а-яё]+(?![а-яё]|\.[  \t]+(?:[а-яё]|[А-ЯЁ]{2}|$PUNCTUATION)|\.$PUNCTUATION)""") }
     }
 }

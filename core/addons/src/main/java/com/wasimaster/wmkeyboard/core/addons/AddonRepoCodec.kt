@@ -57,11 +57,13 @@ object AddonRepoCodec {
         )
     }
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 15 KB across this file's patterns.
     /** `owner/repository`, GitHub's own shorthand: no scheme, no host, two parts. */
-    private val GITHUB_SHORTHAND = Regex("""[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._-]+""")
+    private val GITHUB_SHORTHAND by lazy { Regex("""[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._-]+""") }
 
     /** `es`, `es-419`, `pt-BR`, `bn_rom-BD`: a language id, then an optional region. */
-    private val LOCALE = Regex("""[a-z]{2,3}(_[a-z0-9]+)*(-[A-Za-z0-9]{2,8})?""")
+    private val LOCALE by lazy { Regex("""[a-z]{2,3}(_[a-z0-9]+)*(-[A-Za-z0-9]{2,8})?""") }
 
     /**
      * The localizations worth offering: well-formed, with a payload, one per
@@ -78,7 +80,7 @@ object AddonRepoCodec {
     }
 
     /** A variant id: file-name-like, so it can sit in an install key. */
-    private val VARIANT_ID = Regex("""[A-Za-z0-9][A-Za-z0-9._-]*""")
+    private val VARIANT_ID by lazy { Regex("""[A-Za-z0-9][A-Za-z0-9._-]*""") }
 
     /**
      * The variants worth offering: well-formed, with a payload, one per id. A

@@ -44,21 +44,23 @@ object DateTimes {
     private const val HOUR_MS = 3_600_000L
     private const val DAY_MS = 86_400_000L
 
-    private val WS = Regex("""\s+""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 48 KB across this file's patterns.
+    private val WS by lazy { Regex("""\s+""") }
 
     private const val TIME = """(\d{1,2})(?:([:.])(\d{2})(?::(\d{2}))?)?\s*(am|pm|a\.m\.|p\.m\.)?"""
     private const val BN_TIME = """(সকাল|ভোর|দুপুর|বিকাল|বিকেল|সন্ধ্যা|সন্ধ্যে|রাত|রাত্রি)?\s*(\d{1,2})(?::(\d{2}))?\s*টা(?:য়|র)?"""
     private const val SEP_BEFORE = """(?:^|(?<=\d)t|[\s,]+(?:at\s+)?|\s*@\s*)"""
     private const val SEP_AFTER = """(?:$|[\s,]+(?:on\s+)?)"""
-    private val TIME_END = Regex("$SEP_BEFORE$TIME$")
-    private val TIME_START = Regex("^$TIME$SEP_AFTER")
-    private val BN_TIME_END = Regex("$SEP_BEFORE$BN_TIME$")
-    private val BN_TIME_START = Regex("^$BN_TIME$SEP_AFTER")
+    private val TIME_END by lazy { Regex("$SEP_BEFORE$TIME$") }
+    private val TIME_START by lazy { Regex("^$TIME$SEP_AFTER") }
+    private val BN_TIME_END by lazy { Regex("$SEP_BEFORE$BN_TIME$") }
+    private val BN_TIME_START by lazy { Regex("^$BN_TIME$SEP_AFTER") }
 
-    private val ZONE_UTC = Regex("""(?:^|\s)(utc|gmt|z)(?:\s*([+-]\d{1,2}(?::?\d{2})?))?$""")
-    private val ZONE_OFFSET = Regex("""\s*([+-]\d{2}:?\d{2})$""")
-    private val ZONE_ABBREV = Regex("""\s([a-z]{2,5})$""")
-    private val OFFSET = Regex("""([+-])(\d{1,2})(?::?(\d{2}))?""")
+    private val ZONE_UTC by lazy { Regex("""(?:^|\s)(utc|gmt|z)(?:\s*([+-]\d{1,2}(?::?\d{2})?))?$""") }
+    private val ZONE_OFFSET by lazy { Regex("""\s*([+-]\d{2}:?\d{2})$""") }
+    private val ZONE_ABBREV by lazy { Regex("""\s([a-z]{2,5})$""") }
+    private val OFFSET by lazy { Regex("""([+-])(\d{1,2})(?::?(\d{2}))?""") }
 
     private val MONTHS: Map<String, Int> = buildMap {
         fun month(index: Int, vararg names: String) = names.forEach { put(it, index) }
@@ -76,17 +78,19 @@ object DateTimes {
         month(12, "december", "dec", "ডিসেম্বর")
     }
     private val MONTH_NAMES = MONTHS.keys.sortedByDescending { it.length }.joinToString("|")
-    private val ISO = Regex("""(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})""")
-    private val NUMERIC = Regex("""(\d{1,2})([/.\-])(\d{1,2})\2(\d{4}|\d{2})""")
-    private val DAY_MONTH = Regex("""(\d{1,2})(?:st|nd|rd|th|ই|শে|লা|রা|ঠা)?\s*(?:of\s+)?($MONTH_NAMES)(?:,?\s+(\d{4}))?""")
-    private val MONTH_DAY = Regex("""($MONTH_NAMES)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?""")
+    private val ISO by lazy { Regex("""(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})""") }
+    private val NUMERIC by lazy { Regex("""(\d{1,2})([/.\-])(\d{1,2})\2(\d{4}|\d{2})""") }
+    private val DAY_MONTH by lazy { Regex("""(\d{1,2})(?:st|nd|rd|th|ই|শে|লা|রা|ঠা)?\s*(?:of\s+)?($MONTH_NAMES)(?:,?\s+(\d{4}))?""") }
+    private val MONTH_DAY by lazy { Regex("""($MONTH_NAMES)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?""") }
     private val TODAY = setOf("today", "tonight", "আজ", "আজকে")
     /** The moment itself (#970): "now" in a message is a time like any other. */
     private val NOW = setOf("now", "right now", "time now", "the time now", "এখন", "এখনই")
     /** `Mon 14 Sep`: the weekday is decoration on a date that names its day. */
-    private val WEEKDAY_PREFIX = Regex(
-        """^(?:sun|sunday|mon|monday|tue|tues|tuesday|wed|wednesday|thu|thur|thurs|thursday|fri|friday|sat|saturday)[,\s]+(?=\d)""",
-    )
+    private val WEEKDAY_PREFIX by lazy {
+        Regex(
+            """^(?:sun|sunday|mon|monday|tue|tues|tuesday|wed|wednesday|thu|thur|thurs|thursday|fri|friday|sat|saturday)[,\s]+(?=\d)""",
+        )
+    }
 
     private class Time(val hour: Int, val minute: Int, val second: Int)
     private class Day(val year: Int, val month: Int, val day: Int, val ambiguous: Boolean)
@@ -268,12 +272,14 @@ object DateTimes {
     /** Where a clock time may sit in the text, and which grammar reads it. Tried in this order. */
     private class TimeShape(val regex: Regex, val atEnd: Boolean, val bengali: Boolean)
 
-    private val TIME_SHAPES = listOf(
-        TimeShape(TIME_END, atEnd = true, bengali = false),
-        TimeShape(BN_TIME_END, atEnd = true, bengali = true),
-        TimeShape(TIME_START, atEnd = false, bengali = false),
-        TimeShape(BN_TIME_START, atEnd = false, bengali = true),
-    )
+    private val TIME_SHAPES by lazy {
+        listOf(
+            TimeShape(TIME_END, atEnd = true, bengali = false),
+            TimeShape(BN_TIME_END, atEnd = true, bengali = true),
+            TimeShape(TIME_START, atEnd = false, bengali = false),
+            TimeShape(BN_TIME_START, atEnd = false, bengali = true),
+        )
+    }
 
     private fun normalise(text: String): String =
         decomposeNukta(DigitScripts.toAsciiDigits(text) ?: text)

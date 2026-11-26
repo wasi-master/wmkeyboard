@@ -134,7 +134,9 @@ object ImportLink {
     /** Trailing characters a link picks up from the sentence it was written in. */
     private const val TRAILING = ".,;:!?)]}>'\"„“”’"
 
-    private val URL_IN_TEXT = Regex("""https?://[^\s<>"'\\]+""", RegexOption.IGNORE_CASE)
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 18 KB across this file's patterns.
+    private val URL_IN_TEXT by lazy { Regex("""https?://[^\s<>"'\\]+""", RegexOption.IGNORE_CASE) }
 
     /**
      * A Signal pack link, in the form it is shared in and the form Signal
@@ -142,26 +144,32 @@ object ImportLink {
      * in the fragment (so that it never reaches signal.art's server) and the
      * second in the query.
      */
-    private val SIGNAL_PACK = Regex(
-        """(?:https://signal\.art/addstickers/?#|sgnl://addstickers/?\?)([A-Za-z0-9_=&]+)""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val SIGNAL_PACK by lazy {
+        Regex(
+            """(?:https://signal\.art/addstickers/?#|sgnl://addstickers/?\?)([A-Za-z0-9_=&]+)""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /**
      * A Telegram set link on the web. Group 1 is the set name. https only,
      * like every other address here: a plain http one falls through and is
      * refused as [Target.Insecure].
      */
-    private val TELEGRAM_WEB = Regex(
-        """https://(?:www\.)?(?:t\.me|telegram\.me|telegram\.dog)/(?:addstickers|addemoji)/([A-Za-z0-9_]{1,64})(?![A-Za-z0-9_])""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val TELEGRAM_WEB by lazy {
+        Regex(
+            """https://(?:www\.)?(?:t\.me|telegram\.me|telegram\.dog)/(?:addstickers|addemoji)/([A-Za-z0-9_]{1,64})(?![A-Za-z0-9_])""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     /** The form Telegram opens: `tg://addstickers?set=<name>`. Group 1 is the set name. */
-    private val TELEGRAM_APP = Regex(
-        """tg:(?://)?(?:addstickers|addemoji)/?\?(?:[^\s#]*&)?set=([A-Za-z0-9_]{1,64})(?![A-Za-z0-9_])""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val TELEGRAM_APP by lazy {
+        Regex(
+            """tg:(?://)?(?:addstickers|addemoji)/?\?(?:[^\s#]*&)?set=([A-Za-z0-9_]{1,64})(?![A-Za-z0-9_])""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
     private const val SIGNAL_ID_LENGTH = 32
     private const val SIGNAL_KEY_LENGTH = 64
 

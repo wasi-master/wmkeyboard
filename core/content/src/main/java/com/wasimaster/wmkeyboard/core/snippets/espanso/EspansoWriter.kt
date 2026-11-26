@@ -283,15 +283,18 @@ object EspansoWriter {
         SnippetVariable.LANGUAGE,
     )
 
-    private val CUSTOM_DATE =
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 19 KB across this file's patterns.
+    private val CUSTOM_DATE by lazy {
         Regex("""\{date(?:([+-]\d{1,9})([smhdwMy])?)?(?:@([A-Za-z][A-Za-z-]{1,23}))?(?::([^}\n]{1,40}))?\}""")
-    private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
+    }
+    private val RANDOM by lazy { Regex("""\{random:([^}\n]{1,400})\}""") }
 
     /** Seconds in each unit a `{date±n…}` shift can name; a month and a year are approximate. */
     private val OFFSET_SECONDS = mapOf(
         "m" to 60L, "h" to 3_600L, "d" to 86_400L, "w" to 604_800L, "M" to 2_592_000L, "y" to 31_536_000L,
     )
-    private val REFERENCE = Regex("""\$(\d)|\$\{(\d):([a-z]{1,8})\}""")
+    private val REFERENCE by lazy { Regex("""\$(\d)|\$\{(\d):([a-z]{1,8})\}""") }
 
     /**
      * Snippet text as an Espanso replacement, and the variables it needs.
@@ -403,7 +406,7 @@ object EspansoWriter {
     }
 
     /** `{ask:Name}` or `{ask:Name:default}`, as [SnippetStore.asks] reads them. */
-    private val ASK = Regex("""\{(?i:ask):([^}:\n]{1,40})(?::([^}\n]{0,200}))?\}""")
+    private val ASK by lazy { Regex("""\{(?i:ask):([^}:\n]{1,40})(?::([^}\n]{0,200}))?\}""") }
 
     /** The name the form an exported snippet's fill-in fields share goes under. */
     private const val FORM_VAR = "wmform"

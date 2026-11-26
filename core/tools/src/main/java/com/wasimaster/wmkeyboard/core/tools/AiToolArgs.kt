@@ -91,10 +91,14 @@ object AiCalendarArgs {
     private const val HOUR_MS = 60L * 60L * 1000L
     const val DAY_MS = 24L * HOUR_MS
 
-    private val MOMENT = Regex(
-        """(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?)?\s*(?:Z|[+-]\d{2}:?\d{2})?""",
-        RegexOption.IGNORE_CASE,
-    )
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 33 KB across this file's patterns.
+    private val MOMENT by lazy {
+        Regex(
+            """(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?)?\s*(?:Z|[+-]\d{2}:?\d{2})?""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 }
 
 /**
@@ -183,11 +187,11 @@ object AiClockArgs {
     private const val WORKDAYS = 0b001_1111
     private const val WEEKEND = 0b110_0000
 
-    private val TIME = Regex("""(\d{1,2})(?:[:.](\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?""", RegexOption.IGNORE_CASE)
-    private val COLONS = Regex("""\d{1,2}:\d{2}(?::\d{2})?""")
-    private val BARE = Regex("""\d+(?:\.\d+)?""")
-    private val PART = Regex("""(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)""")
-    private val FILLER = Regex("""[\s,]|and""")
+    private val TIME by lazy { Regex("""(\d{1,2})(?:[:.](\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?""", RegexOption.IGNORE_CASE) }
+    private val COLONS by lazy { Regex("""\d{1,2}:\d{2}(?::\d{2})?""") }
+    private val BARE by lazy { Regex("""\d+(?:\.\d+)?""") }
+    private val PART by lazy { Regex("""(\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)""") }
+    private val FILLER by lazy { Regex("""[\s,]|and""") }
 
     /** Monday first, as the clock's bits are. */
     private val DAY_NAMES = listOf(

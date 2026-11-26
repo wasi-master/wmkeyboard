@@ -324,14 +324,18 @@ object FlashcardImport {
         return rows
     }
 
-    private val CLOZE = Regex("""\{\{c\d+::""")
-    private val SOUND = Regex("""\[sound:[^\]]*]""")
-    private val BREAK = Regex("""<\s*/?\s*(br|div|p|li|tr|hr)\b[^>]*>""", RegexOption.IGNORE_CASE)
-    private val TAG = Regex("""</?[A-Za-z][^<>]*>""")
-    private val COMMENT = Regex("""<!--.*?-->""", RegexOption.DOT_MATCHES_ALL)
-    private val STYLE = Regex("""<(style|script)\b[^>]*>.*?</\1\s*>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-    private val ENTITY = Regex("""&(#x[0-9A-Fa-f]+|#\d+|[A-Za-z]+);""")
-    private val FURIGANA = Regex(""" ?([^\s\[\]]+)\[([\u3040-\u30FF\u30FC]+)]""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 26 KB across this file's patterns.
+    private val CLOZE by lazy { Regex("""\{\{c\d+::""") }
+    private val SOUND by lazy { Regex("""\[sound:[^\]]*]""") }
+    private val BREAK by lazy { Regex("""<\s*/?\s*(br|div|p|li|tr|hr)\b[^>]*>""", RegexOption.IGNORE_CASE) }
+    private val TAG by lazy { Regex("""</?[A-Za-z][^<>]*>""") }
+    private val COMMENT by lazy { Regex("""<!--.*?-->""", RegexOption.DOT_MATCHES_ALL) }
+    private val STYLE by lazy {
+        Regex("""<(style|script)\b[^>]*>.*?</\1\s*>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+    }
+    private val ENTITY by lazy { Regex("""&(#x[0-9A-Fa-f]+|#\d+|[A-Za-z]+);""") }
+    private val FURIGANA by lazy { Regex(""" ?([^\s\[\]]+)\[([\u3040-\u30FF\u30FC]+)]""") }
     private val NAMED_ENTITIES = mapOf(
         "amp" to "&", "lt" to "<", "gt" to ">", "quot" to "\"", "apos" to "'", "nbsp" to " ",
         "ndash" to "–", "mdash" to "—", "hellip" to "…", "lsquo" to "‘", "rsquo" to "’",

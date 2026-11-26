@@ -25,14 +25,16 @@ object NoteStudyCards {
     private const val MAX_TERM_WORDS = 8
     private const val MAX_BACK_CHARS = 400
 
-    private val LIST_MARKER = Regex("""^\s*(?:[-*+•]\s+(?:\[[ xX]\]\s*)?|\d{1,3}[.)]\s+|>\s*)""")
-    private val HEADING = Regex("""^\s*#{1,6}\s""")
-    private val BOLD_TERM = Regex("""^\*\*(.+?)\*\*\s*[:\-–—=]?\s*(.+)$""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 26 KB across this file's patterns.
+    private val LIST_MARKER by lazy { Regex("""^\s*(?:[-*+•]\s+(?:\[[ xX]\]\s*)?|\d{1,3}[.)]\s+|>\s*)""") }
+    private val HEADING by lazy { Regex("""^\s*#{1,6}\s""") }
+    private val BOLD_TERM by lazy { Regex("""^\*\*(.+?)\*\*\s*[:\-–—=]?\s*(.+)$""") }
     private val SEPARATORS = listOf(" :: ", " | ", " — ", " – ", " - ", " = ", ": ", " : ", "\t")
-    private val QUESTION = Regex("""^(?:q|question|প্রশ্ন)\s*[:.)]\s*(.+)$""", RegexOption.IGNORE_CASE)
-    private val ANSWER = Regex("""^(?:a|answer|উত্তর)\s*[:.)]\s*(.+)$""", RegexOption.IGNORE_CASE)
-    private val TABLE_RULE = Regex("""^\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)*\|?$""")
-    private val URL_START = Regex("""^(?:https?://|www\.)""", RegexOption.IGNORE_CASE)
+    private val QUESTION by lazy { Regex("""^(?:q|question|প্রশ্ন)\s*[:.)]\s*(.+)$""", RegexOption.IGNORE_CASE) }
+    private val ANSWER by lazy { Regex("""^(?:a|answer|উত্তর)\s*[:.)]\s*(.+)$""", RegexOption.IGNORE_CASE) }
+    private val TABLE_RULE by lazy { Regex("""^\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)*\|?$""") }
+    private val URL_START by lazy { Regex("""^(?:https?://|www\.)""", RegexOption.IGNORE_CASE) }
 
     /** The cards [body] spells out, in order, a repeated front kept once. */
     fun fromText(body: String): List<FlashcardImport.Card> {

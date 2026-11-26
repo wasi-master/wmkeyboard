@@ -495,7 +495,9 @@ object NotesLogic {
         return start to end
     }
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 15 KB across this file's patterns.
     /** Indent, marker, optional task box, optional number, and the number's punctuation. */
-    private val LIST_MARKER = Regex("""^( *)(?:([-*+]) (\[[ xX]\] )?|(\d{1,3})([.)]) )""")
-    private val ORDERED = Regex("""^ *\d{1,3}[.)] """)
+    private val LIST_MARKER by lazy { Regex("""^( *)(?:([-*+]) (\[[ xX]\] )?|(\d{1,3})([.)]) )""") }
+    private val ORDERED by lazy { Regex("""^ *\d{1,3}[.)] """) }
 }

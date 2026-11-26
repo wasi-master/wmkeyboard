@@ -177,9 +177,13 @@ class SendLink(base: String, val id: String, val secret: ByteArray) {
     override fun toString(): String = url
 
     companion object {
-        private val PATTERN = Regex(
-            """(https?://[^\s/#?]+(?:/[^\s#?]*?)?)/download/([0-9a-fA-F]{10,16})/?(?:\?[^\s#]*)?#([A-Za-z0-9_-]{22})(?![A-Za-z0-9_-])""",
-        )
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 9 KB across this file's patterns.
+        private val PATTERN by lazy {
+            Regex(
+                """(https?://[^\s/#?]+(?:/[^\s#?]*?)?)/download/([0-9a-fA-F]{10,16})/?(?:\?[^\s#]*)?#([A-Za-z0-9_-]{22})(?![A-Za-z0-9_-])""",
+            )
+        }
 
         /** The link, if the whole of [text] (trimmed) is one. */
         fun parse(text: String): SendLink? {
@@ -187,8 +191,12 @@ class SendLink(base: String, val id: String, val secret: ByteArray) {
             return from(m)
         }
 
-        /** The first Send link anywhere in [text]: typed, pasted, or buried in a message. */
-        fun find(text: String): SendLink? = PATTERN.find(text)?.let(::from)
+        /**
+         * The first Send link anywhere in [text]: typed, pasted, or buried in a
+         * message. The smart strip asks on every keystroke, and no link lacks
+         * the pattern's literal "/download/", so plain text never compiles it.
+         */
+        fun find(text: String): SendLink? = if ("/download/" !in text) null else PATTERN.find(text)?.let(::from)
 
         private fun from(m: MatchResult): SendLink? {
             val secret = runCatching { Base64Url.decode(m.groupValues[3]) }.getOrNull() ?: return null

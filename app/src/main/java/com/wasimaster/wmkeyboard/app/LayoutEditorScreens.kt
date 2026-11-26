@@ -9093,8 +9093,10 @@ private fun KeyWidthPercentField(width: Float, gridWeight: Float, resetKey: Any?
     )
 }
 
+// Built on first use: each compiled Regex holds native ICU sets for the
+// life of the process, about 18 KB across this file's patterns.
 /** Up to 100, with one decimal, either separator. */
-private val percentPattern = Regex("""^\d{0,3}([.,]\d?)?$""")
+private val percentPattern by lazy { Regex("""^\d{0,3}([.,]\d?)?$""") }
 
 /**
  * How far a size slider travels: its usual range, widened to reach a value that
@@ -9128,7 +9130,7 @@ private const val SizeNudgeStep = 0.05f
  * The one format the editable size fields read and write. Both separators are
  * accepted because a decimal comma is what half of Europe's keyboards offer.
  */
-private val gridSizePattern = Regex("""^\d{0,2}([.,]\d{0,2})?$""")
+private val gridSizePattern by lazy { Regex("""^\d{0,2}([.,]\d{0,2})?$""") }
 
 /**
  * Fixed notation, not the reader's own, because this is the one number on the

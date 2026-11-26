@@ -25,18 +25,20 @@ internal object ReleaseNotesMarkdown {
     /** How deep a heading may go before it stops being worth a size of its own. */
     private const val MAX_HEADING = 6
 
-    private val HEADING = Regex("""^ {0,3}(#{1,6}) +(.*?)(?: +#+)? *$""")
-    private val BULLET = Regex("""^( *)[-*+] +(.*)$""")
-    private val FENCE = Regex("""^ {0,3}(```|~~~).*$""")
-    private val RULE = Regex("""^ {0,3}([-*_])( *\1){2,} *$""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 40 KB across this file's patterns.
+    private val HEADING by lazy { Regex("""^ {0,3}(#{1,6}) +(.*?)(?: +#+)? *$""") }
+    private val BULLET by lazy { Regex("""^( *)[-*+] +(.*)$""") }
+    private val FENCE by lazy { Regex("""^ {0,3}(```|~~~).*$""") }
+    private val RULE by lazy { Regex("""^ {0,3}([-*_])( *\1){2,} *$""") }
 
     // Bold before italic, and both requiring a non-space just inside the
     // markers, so "2 * 3" and "a_b_c" are text. Same rule as AiMarkdown, for
     // the same reason: a changelog is prose with file names in it.
-    private val BOLD = Regex("""(\*\*|__)(?=\S)(.+?)(?<=\S)\1""", RegexOption.DOT_MATCHES_ALL)
-    private val ITALIC = Regex("""(?<![\w*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\w*_])""")
-    private val CODE = Regex("""`([^`\n]+)`""")
-    private val LINK = Regex("""\[([^\]\n]*)]\((\S*?)\)""")
+    private val BOLD by lazy { Regex("""(\*\*|__)(?=\S)(.+?)(?<=\S)\1""", RegexOption.DOT_MATCHES_ALL) }
+    private val ITALIC by lazy { Regex("""(?<![\w*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\w*_])""") }
+    private val CODE by lazy { Regex("""`([^`\n]+)`""") }
+    private val LINK by lazy { Regex("""\[([^\]\n]*)]\((\S*?)\)""") }
 
     /** [text] as blocks, in the order they were written. */
     fun parse(text: String): List<NotesBlock> {

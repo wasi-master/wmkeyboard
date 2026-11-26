@@ -12,26 +12,29 @@ package com.wasimaster.wmkeyboard.core.tools
  */
 object AiMarkdown {
 
-    private val HEADING = Regex("""^ {0,3}#{1,6} +\S""", RegexOption.MULTILINE)
-    private val BULLET = Regex("""^ {0,3}[-*+] +\S""", RegexOption.MULTILINE)
-    private val QUOTE = Regex("""^ {0,3}> +""", RegexOption.MULTILINE)
-    private val FENCE = Regex("""^ {0,3}(```|~~~)""", RegexOption.MULTILINE)
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 58 KB across this file's patterns.
+    private val HEADING by lazy { Regex("""^ {0,3}#{1,6} +\S""", RegexOption.MULTILINE) }
+    private val BULLET by lazy { Regex("""^ {0,3}[-*+] +\S""", RegexOption.MULTILINE) }
+    private val QUOTE by lazy { Regex("""^ {0,3}> +""", RegexOption.MULTILINE) }
+    private val FENCE by lazy { Regex("""^ {0,3}(```|~~~)""", RegexOption.MULTILINE) }
     // Bold/italic require non-space just inside the markers, so "2 * 3 * 4"
     // and "a_b_c" stay plain text.
-    private val BOLD = Regex("""(\*\*|__)(?=\S)(.+?)(?<=\S)\1""", RegexOption.DOT_MATCHES_ALL)
-    private val ITALIC = Regex("""(?<![\w*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\w*_])""")
-    private val CODE = Regex("""`([^`\n]+)`""")
-    private val LINK = Regex("""\[([^\]\n]*)]\((\S*?)\)""")
+    private val BOLD by lazy { Regex("""(\*\*|__)(?=\S)(.+?)(?<=\S)\1""", RegexOption.DOT_MATCHES_ALL) }
+    /** Shared with [AiMarkdownBlocks], which reads emphasis the same way: one compiled copy, 21 KB of ICU sets. */
+    internal val ITALIC by lazy { Regex("""(?<![\w*_])([*_])(?=\S)([^*_\n]+?)(?<=\S)\1(?![\w*_])""") }
+    private val CODE by lazy { Regex("""`([^`\n]+)`""") }
+    private val LINK by lazy { Regex("""\[([^\]\n]*)]\((\S*?)\)""") }
 
-    private val HEADING_PREFIX = Regex("""^ {0,3}#{1,6} +""")
-    private val HEADING_SUFFIX = Regex(""" +#+ *$""")
-    private val QUOTE_PREFIX = Regex("""^ {0,3}(> ?)+""")
-    private val BULLET_PREFIX = Regex("""^( *)[-*+] +""")
-    private val FENCE_LINE = Regex("""^ {0,3}(```|~~~).*$""")
-    private val RULE_LINE = Regex("""^ {0,3}([-*_])( *\1){2,} *$""")
-    private val TABLE_ROW = Regex("""^ {0,3}\|.*\| *$""")
-    private val TABLE_DIVIDER = Regex("""^ {0,3}\|? *:?-{3,}:? *(\| *:?-{3,}:? *)*\|? *$""")
-    private val TABLE = Regex("""^ {0,3}\|.*\| *\n {0,3}\|? *:?-{3,}:? *\|""", RegexOption.MULTILINE)
+    private val HEADING_PREFIX by lazy { Regex("""^ {0,3}#{1,6} +""") }
+    private val HEADING_SUFFIX by lazy { Regex(""" +#+ *$""") }
+    private val QUOTE_PREFIX by lazy { Regex("""^ {0,3}(> ?)+""") }
+    private val BULLET_PREFIX by lazy { Regex("""^( *)[-*+] +""") }
+    private val FENCE_LINE by lazy { Regex("""^ {0,3}(```|~~~).*$""") }
+    private val RULE_LINE by lazy { Regex("""^ {0,3}([-*_])( *\1){2,} *$""") }
+    private val TABLE_ROW by lazy { Regex("""^ {0,3}\|.*\| *$""") }
+    private val TABLE_DIVIDER by lazy { Regex("""^ {0,3}\|? *:?-{3,}:? *(\| *:?-{3,}:? *)*\|? *$""") }
+    private val TABLE by lazy { Regex("""^ {0,3}\|.*\| *\n {0,3}\|? *:?-{3,}:? *\|""", RegexOption.MULTILINE) }
 
     /** A table row's cells, the bars at its ends taken off; a `\|` inside a cell stays a bar. */
     private fun tableCells(line: String): List<String> =

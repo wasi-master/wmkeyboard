@@ -28,7 +28,9 @@ object PromptSafety {
         "without clothes", "no clothes", "no clothing", "see through", "see-through clothes", "wet t-shirt",
     )
 
-    private val WORD = Regex("[\\p{L}\\p{N}]+")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 42 KB across this file's patterns.
+    private val WORD by lazy { Regex("[\\p{L}\\p{N}]+") }
 
     /** The first blocked word or phrase in any of [texts], or null when they may be drawn. */
     fun blocked(vararg texts: String?): String? {

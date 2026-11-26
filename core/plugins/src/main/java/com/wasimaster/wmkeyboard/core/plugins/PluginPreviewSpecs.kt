@@ -135,10 +135,12 @@ internal object PluginPreviewRules {
     const val MAX_SYNTAX = 16
     const val MAX_NAME = 24
 
-    private val ID = Regex("^[a-z0-9_-]{1,32}$")
-    private val EXTENSION = Regex("^[a-z0-9][a-z0-9._+-]{0,15}$")
-    private val FILE_NAME = Regex("^[A-Za-z0-9._+-]{1,40}$")
-    private val MIME = Regex("^[a-z0-9][a-z0-9.+-]*/([a-z0-9][a-z0-9.+_-]*\\*?|\\*)$")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 17 KB across this file's patterns.
+    private val ID by lazy { Regex("^[a-z0-9_-]{1,32}$") }
+    private val EXTENSION by lazy { Regex("^[a-z0-9][a-z0-9._+-]{0,15}$") }
+    private val FILE_NAME by lazy { Regex("^[A-Za-z0-9._+-]{1,40}$") }
+    private val MIME by lazy { Regex("^[a-z0-9][a-z0-9.+-]*/([a-z0-9][a-z0-9.+_-]*\\*?|\\*)$") }
 
     fun sanitisePreview(p: PluginPreviewSpec): PluginPreviewSpec = p.copy(
         id = p.id.trim(),

@@ -22848,7 +22848,7 @@ class SettingsRepository(private val context: Context) {
      * generates. No separators, and no leading dot, so "." and ".." can't
      * match at all.
      */
-    private val SAFE_STICKER_NAME = Regex("""[A-Za-z0-9_-]+(\.[A-Za-z0-9]+)?""")
+    private val SAFE_STICKER_NAME by lazy { Regex("""[A-Za-z0-9_-]+(\.[A-Za-z0-9]+)?""") }
 
     /**
      * Sticker packs as `{manifest, files}`, with every image base64'd beside
@@ -23082,7 +23082,7 @@ class SettingsRepository(private val context: Context) {
     private val iconManifestPath = "${IconPackStore.DIR_NAME}/packs.json"
 
     /** Same shape as [SAFE_STICKER_NAME]: what a restore will accept for a pack id. */
-    private val SAFE_ICON_NAME = Regex("""[A-Za-z0-9_-]+(\.[A-Za-z0-9]+)?""")
+    private val SAFE_ICON_NAME by lazy { Regex("""[A-Za-z0-9_-]+(\.[A-Za-z0-9]+)?""") }
 
     /**
      * What a restore will accept for an icon file name: a slot id, which has
@@ -23091,7 +23091,7 @@ class SettingsRepository(private val context: Context) {
      * away every `key.shift.svg`, so a restored pack came back with no icons
      * in it (Telegram 5273).
      */
-    private val SAFE_ICON_FILE = Regex("""[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.[A-Za-z0-9]+""")
+    private val SAFE_ICON_FILE by lazy { Regex("""[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.[A-Za-z0-9]+""") }
 
     /**
      * Icon packs as `{manifest, files}`, with every SVG base64'd beside the

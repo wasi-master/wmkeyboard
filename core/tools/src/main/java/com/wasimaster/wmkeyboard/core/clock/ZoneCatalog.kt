@@ -166,7 +166,9 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
             return sign * (hours * 60 + minutes)
         }
 
-        private val OFFSET = Regex("""(?i)(?:utc|gmt)?\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?""")
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 46 KB across this file's patterns.
+        private val OFFSET by lazy { Regex("""(?i)(?:utc|gmt)?\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?""") }
 
         /** Folds case and accents, so "sao" finds São Paulo and "zur" Zürich. */
         fun fold(text: String): String =
@@ -176,8 +178,8 @@ class ZoneCatalog(private val names: ZoneNames, now: Long = System.currentTimeMi
                 .replace(NON_WORD, " ")
                 .trim()
 
-        private val MARKS = Regex("\\p{Mn}+")
-        private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
+        private val MARKS by lazy { Regex("\\p{Mn}+") }
+        private val NON_WORD by lazy { Regex("[^\\p{L}\\p{N}]+") }
 
         private fun abbreviations(id: String): String {
             val tz = TimeZone.getTimeZone(id)

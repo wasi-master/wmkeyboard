@@ -122,20 +122,22 @@ object ClipLinkChain {
         }
     }
 
-    private val SchemePrefix = Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 21 KB across this file's patterns.
+    private val SchemePrefix by lazy { Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://") }
 
     /** A comma or semicolon that starts a tail inside what looked like one link. */
-    private val RunOn = Regex("""[,;](?=[=/])""")
+    private val RunOn by lazy { Regex("""[,;](?=[=/])""") }
 
     /** A run of anything but the separators tails are written between. */
-    private val Token = Regex("""[^\s,;]+""")
+    private val Token by lazy { Regex("""[^\s,;]+""") }
 
     private const val Leading = "([{\"'<"
     private const val Trailing = ")]}\"'>.:!?"
 
-    private val QueryValue = Regex("""[A-Za-z0-9_.~%-]{1,200}""")
-    private val PathChars = Regex("""[A-Za-z0-9_.~%@:+!$&'()*=/-]+""")
-    private val BareId = Regex("""[A-Za-z0-9_-]+""")
+    private val QueryValue by lazy { Regex("""[A-Za-z0-9_.~%-]{1,200}""") }
+    private val PathChars by lazy { Regex("""[A-Za-z0-9_.~%@:+!$&'()*=/-]+""") }
+    private val BareId by lazy { Regex("""[A-Za-z0-9_-]+""") }
 
     /** The shortest bare id read as a tail: anything shorter is a word or a number. */
     private const val MIN_BARE_ID = 6

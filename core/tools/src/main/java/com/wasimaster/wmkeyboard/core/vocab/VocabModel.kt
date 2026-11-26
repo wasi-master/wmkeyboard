@@ -48,15 +48,19 @@ data class VocabQuotation(
         }
 
     private companion object {
-        val YEAR = Regex("""^\s*((?:c\.\s*)?\d{4}(?:[–-]\d{2,4})?)""")
-        val DATE_PREFIX = Regex("""^\s*(?:c\.\s*)?\d{4}(?:[–-]\d{2,4})?(?:\s+[A-Z][a-z]+(?:\s+\d{1,2})?)?,?\s*""")
-        val NOISE = listOf(
-            Regex("""\s*→\S+"""),
-            Regex("""\s*,?\s*archived from the original on [^,:;]+"""),
-            Regex("""\s*\[…\]"""),
-            Regex("""\s*\[\.\.\.\]"""),
-            Regex("""\s*\(\s*\)"""),
-        )
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 28 KB across this file's patterns.
+        val YEAR by lazy { Regex("""^\s*((?:c\.\s*)?\d{4}(?:[–-]\d{2,4})?)""") }
+        val DATE_PREFIX by lazy { Regex("""^\s*(?:c\.\s*)?\d{4}(?:[–-]\d{2,4})?(?:\s+[A-Z][a-z]+(?:\s+\d{1,2})?)?,?\s*""") }
+        val NOISE by lazy {
+            listOf(
+                Regex("""\s*→\S+"""),
+                Regex("""\s*,?\s*archived from the original on [^,:;]+"""),
+                Regex("""\s*\[…\]"""),
+                Regex("""\s*\[\.\.\.\]"""),
+                Regex("""\s*\(\s*\)"""),
+            )
+        }
     }
 }
 

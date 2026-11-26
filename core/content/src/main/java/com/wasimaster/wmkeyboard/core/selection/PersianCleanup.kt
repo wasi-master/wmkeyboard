@@ -15,27 +15,31 @@ object PersianCleanup {
     private const val BEFORE = """«\[\(\{"""
     private const val AFTER_NO_DOT = """:!،؛؟»\]\)\}"""
 
-    private val RULES: List<Pair<Regex, String>> = listOf(
-        // Half-spaces that do nothing, then the ones that belong.
-        Regex("$ZWNJ{2,}") to ZWNJ,
-        Regex("$ZWNJ+ ") to " ",
-        Regex(" $ZWNJ+") to " ",
-        Regex("(?<![$LETTERS])$ZWNJ+") to "",
-        Regex("$ZWNJ+(?![$LETTERS])") to "",
-        Regex("ـ") to "",
-        Regex("(?<=\\S) {2,}(?=\\S)") to " ",
-        Regex("([^ \n]ه) ی(?= |\n|$)") to "$1$ZWNJ" + "ی",
-        Regex("(^|[ \n])(ن?می) (?=[$LETTERS])", RegexOption.MULTILINE) to "$1$2$ZWNJ",
-        Regex("(?<=[^\n\\d $AFTER$BEFORE]{2}) (تر(?:ین?)?|گری?|های?)(?=[ \n$AFTER$BEFORE]|$)") to "$ZWNJ$1",
-        Regex("([^ \n]ه) (ا(?:م|یم|ش|ند|ی|ید|ت))(?=[ \n$AFTER]|$)") to "$1$ZWNJ$2",
-        Regex("(?<=ه)(ها)") to "$ZWNJ$1",
-        // Punctuation sits against the word before it.
-        Regex(" ([$AFTER])") to "$1",
-        Regex("([$BEFORE]) ") to "$1",
-        Regex("([$AFTER_NO_DOT])(?=[$LETTERS])") to "$1 ",
-        Regex("\\.(?=[$LETTERS])") to ". ",
-        Regex("(?<=[$LETTERS])([$BEFORE])") to " $1",
-    )
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 39 KB across this file's patterns.
+    private val RULES: List<Pair<Regex, String>> by lazy {
+        listOf(
+            // Half-spaces that do nothing, then the ones that belong.
+            Regex("$ZWNJ{2,}") to ZWNJ,
+            Regex("$ZWNJ+ ") to " ",
+            Regex(" $ZWNJ+") to " ",
+            Regex("(?<![$LETTERS])$ZWNJ+") to "",
+            Regex("$ZWNJ+(?![$LETTERS])") to "",
+            Regex("ـ") to "",
+            Regex("(?<=\\S) {2,}(?=\\S)") to " ",
+            Regex("([^ \n]ه) ی(?= |\n|$)") to "$1$ZWNJ" + "ی",
+            Regex("(^|[ \n])(ن?می) (?=[$LETTERS])", RegexOption.MULTILINE) to "$1$2$ZWNJ",
+            Regex("(?<=[^\n\\d $AFTER$BEFORE]{2}) (تر(?:ین?)?|گری?|های?)(?=[ \n$AFTER$BEFORE]|$)") to "$ZWNJ$1",
+            Regex("([^ \n]ه) (ا(?:م|یم|ش|ند|ی|ید|ت))(?=[ \n$AFTER]|$)") to "$1$ZWNJ$2",
+            Regex("(?<=ه)(ها)") to "$ZWNJ$1",
+            // Punctuation sits against the word before it.
+            Regex(" ([$AFTER])") to "$1",
+            Regex("([$BEFORE]) ") to "$1",
+            Regex("([$AFTER_NO_DOT])(?=[$LETTERS])") to "$1 ",
+            Regex("\\.(?=[$LETTERS])") to ". ",
+            Regex("(?<=[$LETTERS])([$BEFORE])") to " $1",
+        )
+    }
 
     /** [text] tidied; unchanged if there is nothing to do. */
     fun clean(text: String): String {

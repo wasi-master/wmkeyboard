@@ -223,40 +223,44 @@ object NotificationOtpExtractor {
     /** Google's `G-123456` style branding prefix, not part of the code. */
     private const val BRAND_PREFIX = "(?:[A-Za-z]-)?"
 
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 23 KB across this file's patterns.
     /**
      * Precision order: the first pattern to produce a valid code wins, so the
      * shapes that can only be a code come before the looser ones.
      */
-    private val ANCHORED = listOf(
-        // "482913 is your Amazon OTP", "4279 is the verification code for …"
-        Regex(
-            "\\b$BRAND_PREFIX$CODE\\s+is\\s+(?:your|the)?\\s*(?:[\\w.-]+\\s+)?$KEYWORDS",
-            RegexOption.IGNORE_CASE,
-        ),
-        // "Your OTP is 482913", "code: 482913", "PIN - 4829"
-        Regex(
-            "$KEYWORDS\\s*(?:is|:|-|=)\\s*$BRAND_PREFIX$CODE\\b",
-            RegexOption.IGNORE_CASE,
-        ),
-        // "OTP for account 2310990533 is 4279" — keyword, a short stretch of
-        // anything-but-sentence-end, then "is" and the code.
-        Regex(
-            "$KEYWORDS\\b[^.!\\n]{0,40}?\\bis\\s+$BRAND_PREFIX$CODE\\b",
-            RegexOption.IGNORE_CASE,
-        ),
-        // "use 482913 to sign in", "enter 4829 to verify"
-        Regex(
-            "\\b(?:use|enter|type)\\s+(?:code\\s+)?$BRAND_PREFIX$CODE\\b",
-            RegexOption.IGNORE_CASE,
-        ),
-        // "当前验证码为 467321", "認証コードは123456です", "인증번호 [123456]"
-        // (#992): the keyword, a few joining characters that are not part of
-        // a code, then the code. ASCII guards, since `\b` means nothing next
-        // to Han and Android's `\w` matches it.
-        Regex(
-            "(?:${ClipEntities.CJK_OTP_KEYWORDS})[^0-9A-Za-z\\n]{0,6}?(?<![0-9A-Za-z])$CODE(?![0-9A-Za-z])",
-        ),
-    )
+    private val ANCHORED by lazy {
+        listOf(
+            // "482913 is your Amazon OTP", "4279 is the verification code for …"
+            Regex(
+                "\\b$BRAND_PREFIX$CODE\\s+is\\s+(?:your|the)?\\s*(?:[\\w.-]+\\s+)?$KEYWORDS",
+                RegexOption.IGNORE_CASE,
+            ),
+            // "Your OTP is 482913", "code: 482913", "PIN - 4829"
+            Regex(
+                "$KEYWORDS\\s*(?:is|:|-|=)\\s*$BRAND_PREFIX$CODE\\b",
+                RegexOption.IGNORE_CASE,
+            ),
+            // "OTP for account 2310990533 is 4279" — keyword, a short stretch of
+            // anything-but-sentence-end, then "is" and the code.
+            Regex(
+                "$KEYWORDS\\b[^.!\\n]{0,40}?\\bis\\s+$BRAND_PREFIX$CODE\\b",
+                RegexOption.IGNORE_CASE,
+            ),
+            // "use 482913 to sign in", "enter 4829 to verify"
+            Regex(
+                "\\b(?:use|enter|type)\\s+(?:code\\s+)?$BRAND_PREFIX$CODE\\b",
+                RegexOption.IGNORE_CASE,
+            ),
+            // "当前验证码为 467321", "認証コードは123456です", "인증번호 [123456]"
+            // (#992): the keyword, a few joining characters that are not part of
+            // a code, then the code. ASCII guards, since `\b` means nothing next
+            // to Han and Android's `\w` matches it.
+            Regex(
+                "(?:${ClipEntities.CJK_OTP_KEYWORDS})[^0-9A-Za-z\\n]{0,6}?(?<![0-9A-Za-z])$CODE(?![0-9A-Za-z])",
+            ),
+        )
+    }
 
     fun extract(text: String): String? {
         if (text.isBlank()) return null

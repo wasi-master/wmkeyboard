@@ -241,7 +241,9 @@ class ImmichClient(server: String, private val apiKey: String) {
                 .build()
         }
 
-        private val UUID_SEGMENT = Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+        // Built on first use: each compiled Regex holds native ICU sets for the
+        // life of the process, about 8 KB across this file's patterns.
+        private val UUID_SEGMENT by lazy { Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$") }
 
         /** `/api/assets/{id}/thumbnail`: the call's shape, with no asset or album named. */
         fun route(url: HttpUrl): String =

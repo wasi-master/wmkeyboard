@@ -110,19 +110,23 @@ private fun AnnotatedString.Builder.appendInline(line: String, accent: Color, di
     append(line, at, line.length)
 }
 
-private val MdHeading = Regex("""^#{1,6} (.*)$""")
-private val MdTask = Regex("""^(\s*)[-*+] \[([ xX])\] (.*)$""")
-private val MdBullet = Regex("""^(\s*)[-*+] (.*)$""")
-private val MdQuote = Regex("""^> ?(.*)$""")
-private val MdTableRule = Regex("""^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$""")
+// Built on first use: each compiled Regex holds native ICU sets for the
+// life of the process, about 53 KB across this file's patterns.
+private val MdHeading by lazy { Regex("""^#{1,6} (.*)$""") }
+private val MdTask by lazy { Regex("""^(\s*)[-*+] \[([ xX])\] (.*)$""") }
+private val MdBullet by lazy { Regex("""^(\s*)[-*+] (.*)$""") }
+private val MdQuote by lazy { Regex("""^> ?(.*)$""") }
+private val MdTableRule by lazy { Regex("""^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$""") }
 
 /** Groups: 1 image alt, 2 link text, 3 code, 4 bold mark, 5 bold, 6 strikethrough, 7 and 8 italics. */
-private val MdInline = Regex(
-    """!\[([^\]\n]*)\]\([^)\n]*\)""" +
-        """|\[([^\]\n]+)\]\([^)\n]*\)""" +
-        """|`([^`\n]+)`""" +
-        """|(\*\*|__)(?=\S)(.+?)(?<=\S)\4""" +
-        """|~~(?=\S)(.+?)(?<=\S)~~""" +
-        """|(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?!\*)""" +
-        """|(?<![\w_])_(?=\S)([^_\n]+?)(?<=\S)_(?![\w_])""",
-)
+private val MdInline by lazy {
+    Regex(
+        """!\[([^\]\n]*)\]\([^)\n]*\)""" +
+            """|\[([^\]\n]+)\]\([^)\n]*\)""" +
+            """|`([^`\n]+)`""" +
+            """|(\*\*|__)(?=\S)(.+?)(?<=\S)\4""" +
+            """|~~(?=\S)(.+?)(?<=\S)~~""" +
+            """|(?<![\w*])\*(?=\S)([^*\n]+?)(?<=\S)\*(?!\*)""" +
+            """|(?<![\w_])_(?=\S)([^_\n]+?)(?<=\S)_(?![\w_])""",
+    )
+}

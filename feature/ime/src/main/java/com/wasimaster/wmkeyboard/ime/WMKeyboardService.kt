@@ -67595,7 +67595,10 @@ open class WMKeyboardService : InputMethodService() {
         )
 
         /** A word of a punctuated phrase, for [withListCapitals]: letters, their marks and apostrophes. */
-        private val VOICE_CASED_WORD = Regex("[\\p{L}\\p{M}'’]+")
+        // Lazy: only the voice list's capitalising reads it, and a compiled
+        // \p{L}\p{M} class is about 42 KB of native ICU sets held from the
+        // service's start otherwise.
+        private val VOICE_CASED_WORD by lazy { Regex("[\\p{L}\\p{M}'’]+") }
 
         /** Enough of a WebP to read the header flag that says it is animated. */
         private const val WEBP_HEADER_BYTES = 32

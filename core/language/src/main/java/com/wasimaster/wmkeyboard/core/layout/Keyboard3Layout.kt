@@ -1225,13 +1225,15 @@ object Keyboard3Layouts {
     /** A marker in the output of a key that types nothing, kept apart from FlorisBoard's own ids. */
     private val DROPPED: KeyAction = KeyAction.Unknown("keyboard3")
 
-    private val RootOpen = Regex("""<keyboard3[\s>]""")
-    private val Doctype = Regex("""<!DOCTYPE""", RegexOption.IGNORE_CASE)
-    private val Whitespace = Regex("""\s+""")
-    private val SetRef = Regex("""\$\[(\w+)\]""")
-    private val MarkersOnly = Regex("""(?:\\m\{[^}]+\})+""")
-    private val AnyMarkerThenChar = Regex("""\\m\{\.\}(?:\(\.\)|\.)?""")
-    private val FlorisReference = Regex("""@[a-z0-9]+:[a-z_]+/.+""")
+    // Built on first use: each compiled Regex holds native ICU sets for the
+    // life of the process, about 17 KB across this file's patterns.
+    private val RootOpen by lazy { Regex("""<keyboard3[\s>]""") }
+    private val Doctype by lazy { Regex("""<!DOCTYPE""", RegexOption.IGNORE_CASE) }
+    private val Whitespace by lazy { Regex("""\s+""") }
+    private val SetRef by lazy { Regex("""\$\[(\w+)\]""") }
+    private val MarkersOnly by lazy { Regex("""(?:\\m\{[^}]+\})+""") }
+    private val AnyMarkerThenChar by lazy { Regex("""\\m\{\.\}(?:\(\.\)|\.)?""") }
+    private val FlorisReference by lazy { Regex("""@[a-z0-9]+:[a-z_]+/.+""") }
 
     private const val ROOT = "keyboard3"
     private const val TOUCH = "touch"
