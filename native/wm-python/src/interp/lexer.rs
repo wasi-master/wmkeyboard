@@ -1,12 +1,14 @@
 //! Port of PyLexer.kt. Turns source text into tokens, with Python's significant
 //! indentation (synthetic INDENT, DEDENT and NEWLINE tokens) and f-strings split
 //! into their pieces. Newlines inside (), [] and {} are ignored, and `#` starts
-//! a comment. Like PyMini's lexer it walks grapheme clusters.
+//! a comment. It walks code points, as Python's does: a combining mark or an
+//! emoji modifier right after a quote is the string's first character, not
+//! part of the quote.
 
 use std::rc::Rc;
 
 use super::error::PyError;
-use super::text::{char_is_hex_digit, char_is_letter, char_is_number, graphemes, parse_swift_double, parse_swift_int, trim_whitespaces};
+use super::text::{category_abbr, char_is_hex_digit, char_is_letter, char_is_number, parse_swift_double, parse_swift_int, trim_whitespaces};
 
 /// One segment of an f-string as the lexer sees it; the expression stays raw source.
 #[derive(Clone, Debug, PartialEq)]
@@ -24,6 +26,10 @@ pub(crate) enum Tok {
     Bytes(Vec<u8>),
     FString(Vec<FRawPart>),
     Name(Rc<str>),
+    /// A literal this interpreter reads but cannot make, kept until it runs:
+    /// it raises (kind, message) there, so the rest of the module still loads.
+    /// An int past 64 bits, a complex number, an unknown `\N{name}`.
+    Invalid(&'static str, String),
     Keyword(&'static str),
     Op(&'static str),
     Newline,
@@ -43,12 +49,12 @@ const KEYWORDS: &[&str] = &[
     "if", "elif", "else", "while", "for", "in", "def", "return", "break", "continue", "pass", "True", "False", "None",
     "and", "or", "not", "lambda", "try", "except", "finally", "raise", "import", "from", "as", "is", "del", "global",
     // Additions to PyMini.
-    "class", "with", "nonlocal", "assert", "yield",
+    "class", "with", "nonlocal", "assert", "yield", "async", "await",
 ];
 
 // Longest first, so `**=` and `//=` beat `**` and `//`.
 const MULTI_OPS: &[&str] = &[
-    "...", "**=", "//=", "<<=", ">>=", "**", "//", "<<", ">>", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "->", ":=",
+    "...", "**=", "//=", "<<=", ">>=", "**", "//", "<<", ">>", "==", "!=", "<=", ">=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "@=", "->", ":=",
 ];
 const SINGLE_OPS: &[&str] =
     &["+", "-", "*", "/", "%", "<", ">", "=", "(", ")", ",", ":", ".", "[", "]", "{", "}", "&", "|", "^", "~", ";", "@"];
@@ -67,8 +73,10 @@ fn perr(message: impl Into<String>, line: u32) -> PyError {
 
 /// Scan the whole source. Always ends with `Eof`.
 pub(crate) fn tokenize(source: &str) -> Result<Vec<Token>, PyError> {
+    // A byte order mark some editors write first is not code.
+    let source = source.strip_prefix('\u{FEFF}').unwrap_or(source);
     let normalised = source.replace("\r\n", "\n").replace('\r', "\n");
-    let chars = graphemes(&normalised);
+    let chars = code_points(&normalised);
     let mut lexer = Lexer {
         chars: &chars,
         pos: 0,
@@ -78,6 +86,7 @@ pub(crate) fn tokenize(source: &str) -> Result<Vec<Token>, PyError> {
         tokens: Vec::new(),
         at_line_start: true,
         names: std::collections::HashMap::new(),
+        deferred: None,
     };
     lexer.run()?;
     Ok(lexer.tokens)
@@ -95,12 +104,30 @@ struct Lexer<'a> {
     /// interpreter in two places is the same pointer: a scope finds it by
     /// address before comparing text.
     names: std::collections::HashMap<String, Rc<str>>,
+    /// A string's own error, raised when the string is used: an unknown `\N{name}`.
+    deferred: Option<String>,
+}
+
+/// Each code point of [s] as its own slice.
+fn code_points(s: &str) -> Vec<&str> {
+    s.char_indices().map(|(i, c)| &s[i..i + c.len_utf8()]).collect()
+}
+
+/// Whether [c] may continue a name past its first character: a letter, a
+/// digit, `_`, a combining mark (the vowel signs and virama of Indic
+/// scripts), or a zero width joiner or non-joiner.
+fn continues_name(c: &str) -> bool {
+    if char_is_letter(c) || char_is_number(c) || c == "_" {
+        return true;
+    }
+    let Some(ch) = c.chars().next() else { return false };
+    matches!(ch, '\u{200C}' | '\u{200D}') || category_abbr(ch).starts_with('M') || category_abbr(ch) == "Pc"
 }
 
 /// Split one placeholder's raw text into expression, `!conversion` and `:spec`.
 /// A self-documenting `{x=}` also gives the text it writes before the value.
 fn placeholder(body: &str, line: u32) -> Result<(Option<String>, FRawPart), PyError> {
-    let chars = graphemes(body);
+    let chars = code_points(body);
     let mut depth: i64 = 0;
     let mut quote: Option<&str> = None;
     let mut conv: Option<String> = None;
@@ -167,7 +194,7 @@ fn placeholder(body: &str, line: u32) -> Result<(Option<String>, FRawPart), PyEr
 fn spec_parts(spec: &str, line: u32) -> Result<Vec<FRawPart>, PyError> {
     let mut parts = Vec::new();
     let mut lit = String::new();
-    let chars = graphemes(spec);
+    let chars = code_points(spec);
     let mut i = 0;
     while i < chars.len() {
         if chars[i] == "{" {
@@ -309,7 +336,13 @@ impl<'a> Lexer<'a> {
             n += 1;
         }
         let quote = self.peek(n);
-        if n == 0 || (quote != Some("\"") && quote != Some("'")) {
+        let is_quote = |q: Option<&str>| q == Some("\"") || q == Some("'");
+        // `u"…"`, Python 2's unicode prefix, which Python 3 keeps and ignores.
+        if n == 0 && matches!(self.peek(0), Some("u" | "U")) && is_quote(self.peek(1)) {
+            self.pos += 1;
+            return Some((false, false));
+        }
+        if n == 0 || !is_quote(quote) {
             return None;
         }
         self.pos += n;
@@ -447,8 +480,16 @@ impl<'a> Lexer<'a> {
                         }
                         self.pos += 1;
                     }
-                    let v = parse_swift_int(&digits, radix).ok_or_else(|| perr("invalid number", self.line))?;
-                    self.push(Tok::Int(v), self.line);
+                    if digits.is_empty() || !digits.chars().all(|c| c.is_digit(radix)) {
+                        return Err(perr("invalid number", self.line));
+                    }
+                    match parse_swift_int(&digits, radix) {
+                        Some(v) => self.push(Tok::Int(v), self.line),
+                        None => {
+                            let message = format!("int literal 0{p}{digits} is past 64 bits, which this interpreter's ints are");
+                            self.push(Tok::Invalid("OverflowError", message), self.line);
+                        }
+                    }
                     return Ok(());
                 }
             }
@@ -487,6 +528,11 @@ impl<'a> Lexer<'a> {
             } else {
                 break;
             }
+        }
+        if matches!(self.chars.get(self.pos), Some(&"j") | Some(&"J")) {
+            self.pos += 1;
+            self.push(Tok::Invalid("NotImplementedError", format!("complex numbers ({s}j) are not supported")), self.line);
+            return Ok(());
         }
         if is_double {
             let d = parse_swift_double(&s).ok_or_else(|| perr(format!("invalid number '{s}'"), self.line))?;
@@ -528,14 +574,22 @@ impl<'a> Lexer<'a> {
         if raw {
             return Ok(format!("\\{c}"));
         }
-        // `\N{NAME}` needs Unicode's table of names, which is not carried here:
-        // refused by name rather than kept as text Python would never produce.
+        // `\N{EM DASH}`: a character by its name, from the names this
+        // interpreter carries. An unknown one is the string's error when it runs.
         if c == "N" && self.chars.get(self.pos) == Some(&"{") {
             let name: String = self.chars[self.pos + 1..].iter().take_while(|c| **c != "}" && **c != "\n").copied().collect();
-            return Err(perr(
-                format!("\\N{{{name}}} names a character by its Unicode name, which plugins cannot do; write the character itself or its \\u escape"),
-                self.line,
-            ));
+            let closed = self.chars.get(self.pos + 1 + code_points(&name).len()) == Some(&"}");
+            if !closed {
+                return Err(perr("malformed \\N character escape", self.line));
+            }
+            self.pos += code_points(&name).len() + 2;
+            return Ok(match super::charnames::lookup(&name) {
+                Some(ch) => ch.to_string(),
+                None => {
+                    self.deferred.get_or_insert(format!("unknown Unicode character name '{name}' in \\N{{...}}: write the character itself or its \\u escape"));
+                    String::new()
+                }
+            });
         }
         // Unrecognised escapes keep the backslash, as Python does, so ¯\_(ツ)_/¯ survives.
         Ok(match c {
@@ -604,7 +658,10 @@ impl<'a> Lexer<'a> {
                 s.push_str(&self.scan_escape(raw)?);
             } else if self.closes_string(quote, length) {
                 self.pos += length;
-                self.push(Tok::Str(s), start_line);
+                match self.deferred.take() {
+                    Some(message) => self.push(Tok::Invalid("SyntaxError", message), start_line),
+                    None => self.push(Tok::Str(s), start_line),
+                }
                 return Ok(());
             } else {
                 if c == "\n" {
@@ -628,6 +685,13 @@ impl<'a> Lexer<'a> {
         let mut lit = String::new();
         while self.pos < self.chars.len() {
             let c = self.chars[self.pos];
+            // A backslash before a brace stays a backslash, and the brace opens
+            // or closes a field as usual: rf"\{name}" is a backslash then name.
+            if c == "\\" && matches!(self.peek(1), Some("{") | Some("}")) {
+                lit.push('\\');
+                self.pos += 1;
+                continue;
+            }
             if c == "\\" {
                 lit.push_str(&self.scan_escape(raw)?);
                 continue;
@@ -637,7 +701,10 @@ impl<'a> Lexer<'a> {
                 if !lit.is_empty() {
                     parts.push(FRawPart::Lit(lit));
                 }
-                self.push(Tok::FString(parts), start_line);
+                match self.deferred.take() {
+                    Some(message) => self.push(Tok::Invalid("SyntaxError", message), start_line),
+                    None => self.push(Tok::FString(parts), start_line),
+                }
                 return Ok(());
             }
             if c == "{" {
@@ -724,7 +791,7 @@ impl<'a> Lexer<'a> {
         let mut s = String::new();
         while self.pos < self.chars.len() {
             let c = self.chars[self.pos];
-            if char_is_letter(c) || char_is_number(c) || c == "_" {
+            if continues_name(c) {
                 s.push_str(c);
                 self.pos += 1;
             } else {

@@ -114,12 +114,12 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("mixed_indentation", s("if True:\n \tx = 1\n"), s("if True:\n\tx = 1\n"), host()),
         ("syntax_expected", s("x = = 1\n"), s("x = 1\n"), host()),
         ("syntax_at_end", s("x = 1 +\n"), s("x = 1 + 2\n"), host()),
-        ("unsupported", s("async def a():\n    pass\n"), s("def a():\n    pass\n"), host()),
+        ("unsupported", s("x = 2j\n"), s("x = 2\n"), host()),
         ("undefined_name", s("print(zzz)\n"), s("zzz = 1\nprint(zzz)\n"), host()),
         ("name_typo", s("count = 1\nprint(cuont)\n"), s("count = 1\nprint(count)\n"), host()),
         ("module_not_imported", s("x = math.pi\n"), s("import math\nx = math.pi\n"), host()),
         ("removed_builtin", s("open('f')\n"), s("len('f')\n"), host()),
-        ("missing_builtin", s("x = memoryview\n"), s("x = frozenset\n"), host()),
+        ("missing_builtin", s("x = complex\n"), s("x = frozenset\n"), host()),
         ("import_not_available", s("import socket\n"), s("import json\n"), host()),
         ("unused_local", s("def f():\n    x = 1\n    return 2\n"), s("def f():\n    x = 1\n    return x\n"), host()),
         ("unused_parameter", s("def f(a):\n    return 1\n"), s("def f(a):\n    return a\n"), host()),
@@ -274,6 +274,13 @@ fn what_the_interpreter_runs_is_not_flagged() {
         "if (n := 3):\n    pass\n",
         "x = ...\n",
         "import logging, contextlib, collections.abc, os.path\n",
+        "async def f():\n    await g()\n    async with g() as h:\n        pass\n    async for i in h:\n        pass\n    return [j async for j in h]\nasync def g():\n    pass\n",
+        "x = 2 @ 3\nx @= 4\n",
+        "x = u'text'\n",
+        "errors = (KeyError, ValueError)\ntry:\n    pass\nexcept errors[0]:\n    pass\n",
+        "import struct, zlib, argparse, unittest.mock, inspect, importlib.util, email.utils, weakref\n",
+        "print(aiter, anext, memoryview, __import__('json'))\n",
+        "type Pair[T] = tuple[T, T]\ntype Num = int | float\ndef first[T](xs: list[T]) -> T:\n    return xs[0]\nclass Box[T, *Ts, **P](list[T]):\n    pass\nprint(Pair, Num, first, Box)\ntype = 3\nprint(type)\n",
     ];
     for source in sources {
         let d = diagnostics(source, &host());
@@ -285,12 +292,9 @@ fn what_the_interpreter_runs_is_not_flagged() {
 #[test]
 fn every_unsupported_construct_is_named() {
     let cases = [
-        ("async def f():\n    pass\n", "async"),
-        ("async def f():\n    await g()\n", "await"),
-        ("x = a @ b\n", "@"),
         ("a, *b, *c = [1, 2]\n", "two starred targets"),
         ("x = 2j\n", "complex numbers"),
-        ("x @= 1\n", "@"),
+        ("try:\n    pass\nexcept* ValueError:\n    pass\n", "except*"),
     ];
     for (source, what) in cases {
         let d = diagnostics(source, &host());

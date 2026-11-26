@@ -18,6 +18,8 @@ pub(crate) enum BinOp {
     BitXor,
     LShift,
     RShift,
+    /// `@`, which only classes with `__matmul__` answer.
+    MatMul,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -113,6 +115,9 @@ pub(crate) struct Frame {
     pub names: Vec<Rc<str>>,
     /// A `yield` in the body: calling it makes a generator.
     pub generator: bool,
+    /// An `async def`: calling it makes a coroutine (an async generator
+    /// with `yield` too), which runs when awaited.
+    pub coroutine: bool,
 }
 
 /// One `for … in … if …` clause of a comprehension.
@@ -143,6 +148,8 @@ pub(crate) struct Comprehension {
 #[derive(Debug, Default)]
 pub(crate) struct Params {
     pub positional: Vec<Param>,
+    /// How many of [positional] come before a `/`: no keyword can fill them.
+    pub posonly: usize,
     pub variadic: Option<Rc<str>>,
     /// Parameters after `*` or `*rest`, which only a keyword can fill.
     pub keyword_only: Vec<Param>,
@@ -234,12 +241,82 @@ pub(crate) enum Expr {
     Yield(Option<Box<Expr>>),
     /// `yield from iterable`.
     YieldFrom(Box<Expr>),
+    /// `await value`: runs a coroutine to its end there and then, as
+    /// nothing else is waiting to run.
+    Await(Box<Expr>),
+    /// A literal this interpreter reads but cannot make (an int past 64
+    /// bits, a complex number, an unknown `\N{name}`): evaluating it raises
+    /// (kind, message), so the module around it still loads.
+    Invalid(&'static str, Rc<str>),
+}
+
+/// Calls [f] on each expression directly inside [e], not inside a lambda's
+/// or a comprehension's own body.
+pub(crate) fn each_child_mut(e: &mut Expr, f: &mut dyn FnMut(&mut Expr)) {
+    fn fparts(parts: &mut [FPart], f: &mut dyn FnMut(&mut Expr)) {
+        for p in parts {
+            if let FPart::Expression { expr, spec, .. } = p {
+                f(expr);
+                if let Some(s) = spec {
+                    fparts(s, f);
+                }
+            }
+        }
+    }
+    match e {
+        Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Name(_) => {}
+        Expr::Invalid(..) | Expr::Lambda(_) | Expr::Comprehension(_) | Expr::Yield(None) => {}
+        Expr::FString(parts) => fparts(parts, f),
+        Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => items.iter_mut().for_each(f),
+        Expr::Dict(pairs) => {
+            for (k, v) in pairs {
+                f(k);
+                f(v);
+            }
+        }
+        Expr::Unary(_, x) | Expr::Starred(x) | Expr::YieldFrom(x) | Expr::Yield(Some(x)) | Expr::Attribute(x, _) | Expr::Await(x) => f(x),
+        Expr::Binary(_, a, b) | Expr::BoolOp(_, a, b) | Expr::Index(a, b) => {
+            f(a);
+            f(b);
+        }
+        Expr::Compare(left, pairs) => {
+            f(left);
+            for (_, x) in pairs {
+                f(x);
+            }
+        }
+        Expr::Ternary(t) => {
+            f(&mut t.0);
+            f(&mut t.1);
+            f(&mut t.2);
+        }
+        Expr::Call(callee, args, kwargs) => {
+            f(callee);
+            args.iter_mut().for_each(&mut *f);
+            for (_, v) in kwargs {
+                f(v);
+            }
+        }
+        Expr::Slice(s) => {
+            f(&mut s.0);
+            for x in [&mut s.1, &mut s.2, &mut s.3].into_iter().flatten() {
+                f(x);
+            }
+        }
+        Expr::Walrus(w) => f(&mut w.1),
+    }
 }
 
 /// One `except …:` clause. `types` empty means a bare `except:`.
 #[derive(Debug)]
 pub(crate) struct ExceptHandler {
     pub types: Vec<Rc<str>>,
+    /// Types given by any other expression (`except errors():`, `except
+    /// (A,) + more:`), evaluated when an exception reaches the clause; and,
+    /// marked true, the names above that are not builtin exceptions, whose
+    /// value is tried when the name does not match (`except re.error:`,
+    /// `except RETRYABLE:` holding a tuple), an error finding it ignored.
+    pub exprs: Vec<(Expr, bool)>,
     pub binding: Option<Name>,
     pub body: Vec<Stmt>,
 }

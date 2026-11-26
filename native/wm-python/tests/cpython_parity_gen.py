@@ -613,6 +613,492 @@ t = time.gmtime(1700000000)
 y, m, d, *_ = t
 repr((t.tm_year, t[1], (y, m, d), time.strftime('%Y-%m-%d %H:%M:%S', t), time.asctime(t), type(time.time_ns()).__name__, time.strptime('2024-03-05', '%Y-%m-%d')[:3], len(t)))
 '''),
+    ("string_concat_with_fstrings", "strings", r'''
+v = 'x'
+msg = (f"the version is {v!r}. "
+       "next line "
+       f"and {1 + 1}")
+repr((msg, "a" "b" f"{v}" "c", u'old' + U"style", rf"\{v}", fr"\{v}\x"))
+'''),
+    ("subscripts_trailing_comma_and_slices", "syntax", r'''
+class Grid:
+    def __getitem__(self, k):
+        return k
+g = Grid()
+X = dict[
+    str,
+    int,
+]
+repr((g[1:2, ::3], g[..., 1:], g[1, 2], g[1,], X == dict[str, int], X, list[int]("ab")))
+'''),
+    ("yield_inside_expressions", "generators", r'''
+def gen():
+    got = yield 1
+    r = (yield got).upper()
+    if (yield r):
+        return (yield "last")
+    return "no"
+it = gen()
+out = [next(it), it.send("hi"), it.send("x"), it.send(True)]
+try:
+    it.send("done")
+except StopIteration as e:
+    out.append(e.value)
+repr(out)
+'''),
+    ("except_any_expression", "errors", r'''
+import re
+def errors():
+    return (KeyError, ValueError)
+out = []
+try:
+    {}["k"]
+except errors() as e:
+    out.append(type(e).__name__)
+try:
+    int("x")
+except (TypeError,) + (ValueError,):
+    out.append("tuple sum")
+try:
+    re.compile("(")
+except re.error:
+    out.append("re.error")
+RETRY = (KeyError, IndexError)
+try:
+    [][1]
+except RETRY:
+    out.append("tuple name")
+repr(out)
+'''),
+    ("matmul_and_type_params", "classes", r'''
+class M:
+    def __init__(self, v):
+        self.v = v
+    def __matmul__(self, o):
+        return M(self.v * o.v)
+    def __rmatmul__(self, o):
+        return M(o * self.v)
+m = M(2) @ M(5)
+m @= M(3)
+def first[T](xs: list[T]) -> T:
+    return xs[0]
+class Box[T]:
+    def __init__(self, v):
+        self.v = v
+type Pair = tuple[int, Later]
+class Later:
+    pass
+try:
+    1 @ 2
+except TypeError as e:
+    err = str(e)
+repr((m.v, (4 @ M(2)).v, err, first([9]), Box(1).v, Pair.__value__ == tuple[int, Later], repr(Pair)))
+'''),
+    ("async_await_with_for", "async", r'''
+import asyncio
+from collections.abc import Awaitable, Coroutine, AsyncIterator
+log = []
+async def add(a, b):
+    await asyncio.sleep(0)
+    return a + b
+class Ctx:
+    async def __aenter__(self):
+        log.append("enter")
+        return "res"
+    async def __aexit__(self, t, v, tb):
+        log.append(("exit", t.__name__ if t else None))
+        return t is KeyError
+async def ticker(n):
+    for i in range(n):
+        yield i * 10
+async def main():
+    x = await add(1, 2)
+    y = await asyncio.gather(add(1, 1), add(2, 2))
+    t = asyncio.create_task(add(5, 5))
+    async with Ctx() as r:
+        log.append(r)
+    async with Ctx():
+        raise KeyError("x")
+    out = []
+    async for v in ticker(4):
+        if v == 20:
+            continue
+        out.append(v)
+    else:
+        out.append("else")
+    agen = ticker(1)
+    first = await anext(agen)
+    last = await anext(agen, "dflt")
+    return x, y, await t, out, first, last
+c = add(1, 2)
+kinds = (type(c).__name__, asyncio.iscoroutine(c), asyncio.iscoroutinefunction(add), isinstance(c, Coroutine), isinstance(c, Awaitable), isinstance(ticker(1), AsyncIterator))
+c.close()
+repr((asyncio.run(main()), log, kinds))
+'''),
+    ("datetime_time_zones", "stdlib", r'''
+from datetime import datetime, timezone, timedelta, time, UTC
+utc = datetime(2024, 3, 5, 12, 30, tzinfo=timezone.utc)
+ist = timezone(timedelta(hours=5, minutes=30), "IST")
+a = datetime(2024, 1, 1, tzinfo=timezone.utc)
+b = datetime(2024, 1, 1, 5, 30, tzinfo=ist)
+try:
+    a < datetime(2024, 1, 1)
+except TypeError as e:
+    err = str(e)
+repr((str(utc), utc, utc.astimezone(ist).isoformat(timespec="minutes"), utc.strftime("%Y-%m-%d %H:%M %z %Z"), utc.timestamp(),
+      str(datetime.fromisoformat("2024-03-05T12:30:00+05:30")), datetime.fromisoformat("2024-03-05T12:30:00Z").tzinfo,
+      str(datetime.fromtimestamp(0, timezone.utc)), a == b, a - b, ist, timezone(timedelta(hours=-8)), timezone.utc is UTC, err,
+      str(datetime.strptime("2024-03-05 10:00 +0100", "%Y-%m-%d %H:%M %z")), time(9, 5, tzinfo=ist)))
+'''),
+    ("typing_unions_and_aliases", "typing", r'''
+import typing, types
+from typing import get_args, get_origin, Optional, Union, List, Callable, Generator, TypeAlias
+T = typing.TypeVar("T")
+class Box(typing.Generic[T]):
+    def __init__(self, v):
+        self.v = v
+class Lookup(typing.Mapping[str, int]):
+    def __getitem__(self, k):
+        return 1
+    def __iter__(self):
+        return iter(["a"])
+    def __len__(self):
+        return 1
+X: TypeAlias = dict[str, int]
+repr((int | str, isinstance(3, int | str), isinstance(3.5, int | str), get_args(int | None), Optional[int], get_args(Optional[int]),
+      get_origin(List[int]), get_args(Callable[[int], str]), get_args(dict[str, int]), get_origin(list[int]), X,
+      get_origin(Union[int, str]) is Union, Box[int](3).v, T, dict(Lookup()), isinstance(Lookup(), typing.Mapping),
+      types.GenericAlias, types.UnionType))
+'''),
+    ("unicode_names_and_code_points", "strings", r'''
+import unicodedata
+emoji = {"light": "🏻", "acc": "̀"}
+नमस्ते = 3
+repr(("\N{EM DASH}", "\N{no-break space}" == "\xa0", "\N{GREEK SMALL LETTER MU}", unicodedata.name("é"), unicodedata.lookup("SNOWMAN"),
+      unicodedata.name("한"), unicodedata.name("\x1b", "none"), len(emoji["light"]), [hex(ord(c)) for c in emoji["acc"]], नमस्ते))
+'''),
+    ("class_module_names", "classes", r'''
+import re, collections, datetime
+repr((type(re.match("a", "a")), datetime.datetime, collections.Counter, datetime.timezone))
+'''),
+    ("mock_records_and_asserts", "mock", r"""
+from unittest.mock import Mock, MagicMock, call, ANY, DEFAULT, sentinel
+m = Mock(name="svc")
+m(1, k=2)
+m.child.go(3)
+msgs = []
+try:
+    m.assert_called_with(9)
+except AssertionError as e:
+    msgs.append(str(e))
+try:
+    m.child.go.assert_called_once_with(4)
+except AssertionError as e:
+    msgs.append(str(e))
+try:
+    Mock(name="never").assert_called()
+except AssertionError as e:
+    msgs.append(str(e))
+mm = MagicMock()
+defaults = (len(mm), bool(mm), list(mm), 3 in mm, int(mm), float(mm))
+mm.__len__.return_value = 4
+se = Mock(side_effect=[1, DEFAULT], return_value="d")
+repr((m.call_args, m.mock_calls, m.method_calls, m.mock_calls == [call(1, k=2), call.child.go(3)], call(1, ANY) == call(1, "x"), [ANY] == [5], msgs, defaults, len(mm), se(), se(), sentinel.x is sentinel.x, repr(call.a(1).b(k=2))))
+"""),
+    ("mock_patch_restores", "mock", r"""
+import textwrap, json
+from unittest.mock import patch, PropertyMock
+with patch("textwrap.dedent", return_value="P") as d:
+    inside = textwrap.dedent("  x")
+    d.assert_called_once_with("  x")
+@patch("json.dumps", return_value="J")
+def f(md):
+    return (json.dumps(1), md.call_count)
+class K:
+    def m(self):
+        return "real"
+    @property
+    def p(self):
+        return 1
+with patch.object(K, "m", return_value="fake"):
+    faked = K().m()
+with patch.object(K, "p", new_callable=PropertyMock) as pm:
+    pm.return_value = 7
+    prop = K().p
+cfg = {"a": 1}
+with patch.dict(cfg, {"b": 2}):
+    patched = dict(cfg)
+repr((inside, textwrap.dedent("  y"), f(), json.dumps([1]), faked, K().m(), prop, K().p, patched, cfg))
+"""),
+    ("mock_spec_and_autospec", "mock", r"""
+from unittest.mock import Mock, create_autospec, seal
+class Foo:
+    x = 1
+    def bar(self, a, b=2):
+        return a
+s = Mock(spec=Foo)
+errs = []
+try:
+    s.nope
+except AttributeError as e:
+    errs.append(str(e))
+af = create_autospec(Foo)
+inst = af()
+try:
+    inst.bar()
+except TypeError as e:
+    errs.append(str(e))
+inst.bar(1)
+sealed = Mock()
+sealed.a.b = 1
+seal(sealed)
+try:
+    sealed.c
+except AttributeError as e:
+    errs.append(str(e))
+repr((isinstance(s, Foo), errs, inst.bar.call_args, sealed.a.b))
+"""),
+    ("unittest_runs_cases", "unittest", r"""
+import io, unittest
+class T(unittest.TestCase):
+    def test_ok(self):
+        self.assertEqual([1, 2], [1, 2])
+    def test_fail(self):
+        self.assertIn(3, [1, 2])
+    def test_err(self):
+        {}["k"]
+    @unittest.skip("later")
+    def test_skip(self):
+        pass
+stream = io.StringIO()
+r = unittest.TextTestRunner(stream=stream).run(unittest.defaultTestLoader.loadTestsFromTestCase(T))
+repr((r.testsRun, len(r.failures), len(r.errors), len(r.skipped), r.wasSuccessful(), str(r.failures[0][1]).strip().splitlines()[-1]))
+"""),
+    ("struct_layouts", "stdlib", r"""
+import struct
+errs = []
+for fmt, args in [("<b", (200,)), ("<H", (1, 2)), ("<4s", (3,))]:
+    try:
+        struct.pack(fmt, *args)
+    except struct.error as e:
+        errs.append(str(e))
+repr((struct.pack("<Ihq?", 7, -2, 2 ** 40, True), struct.unpack(">Hd", struct.pack(">Hd", 513, 0.5)), struct.calcsize("<iqs"), struct.calcsize("!3sH"), struct.unpack_from("<H", b"xx\x01\x02", 2), list(struct.iter_unpack("<B", b"ab")), errs))
+"""),
+    ("zlib_checksums_and_round_trips", "stdlib", r"""
+import zlib, gzip
+data = b"hello hello hello" * 20
+c = zlib.compressobj()
+streamed = c.compress(data[:100]) + c.compress(data[100:]) + c.flush()
+d = zlib.decompressobj()
+back = d.decompress(streamed[:10]) + d.decompress(streamed[10:])
+try:
+    zlib.decompress(b"nope")
+    err = None
+except zlib.error as e:
+    err = str(e)
+repr((zlib.crc32(b"abc"), zlib.adler32(b"abc"), zlib.decompress(zlib.compress(data, 9)) == data, back == data, gzip.decompress(gzip.compress(b"xyz")), err))
+"""),
+    ("binary_text_codings", "stdlib", r"""
+import base64, binascii
+errs = []
+try:
+    base64.b64decode("abc")
+except binascii.Error as e:
+    errs.append(str(e))
+repr((base64.b64encode(b"hi!"), base64.urlsafe_b64encode(b"\xfb\xff"), base64.b32encode(b"ab"), base64.b16decode("6869"), base64.a85encode(b"hello"), base64.b85encode(b"hello"), binascii.hexlify(b"\x01\xab", "-"), binascii.unhexlify("ff00"), binascii.crc32(b"x"), errs))
+"""),
+    ("encodings_and_error_handlers", "strings", r"""
+errs = []
+try:
+    "é".encode("ascii")
+except UnicodeEncodeError as e:
+    errs.append(str(e))
+try:
+    b"a\xffb".decode("utf-8")
+except UnicodeDecodeError as e:
+    errs.append(str(e))
+repr(("aé€".encode("ascii", "replace"), "aé".encode("ascii", "xmlcharrefreplace"), "é".encode("ascii", "backslashreplace"), b"a\xffb".decode("utf-8", "replace"), b"a\xffb".decode("utf-8", "backslashreplace"), "é".encode("latin-1"), "€".encode("cp1252"), "hi".encode("utf-16"), b"\xff\xfeh\x00".decode("utf-16"), "x".encode("utf-8-sig"), "a\n".encode("unicode_escape"), errs))
+"""),
+    ("text_helpers_shlex_csv_difflib", "stdlib", r'''
+import shlex, csv, io, difflib
+rows = list(csv.reader(io.StringIO('a,"b,c",d\n1,"x ""q""",3\n')))
+out = io.StringIO()
+w = csv.writer(out)
+w.writerow(["a", "b,c", 'q"'])
+dw = io.StringIO()
+dictw = csv.DictWriter(dw, fieldnames=["k", "v"])
+dictw.writeheader()
+dictw.writerow({"k": 1, "v": "two"})
+diff = list(difflib.unified_diff(["a\n", "b\n"], ["a\n", "c\n"], "x", "y"))
+repr((shlex.split("a 'b c' \"d e\" f\\ g"), shlex.quote("it's"), shlex.join(["a", "b c"]), rows, out.getvalue(), dw.getvalue(), diff, round(difflib.SequenceMatcher(None, "abcd", "abxd").ratio(), 3), difflib.get_close_matches("appel", ["ape", "apple", "peach"])))
+'''),
+    ("configparser_and_argparse", "stdlib", r"""
+import configparser, argparse
+cp = configparser.ConfigParser()
+cp.read_string("[main]\nport = 8080\ndebug = yes\nname = %(port)s-x\n[other]\nk=v\n")
+p = argparse.ArgumentParser(prog="tool")
+p.add_argument("path")
+p.add_argument("-n", "--count", type=int, default=1)
+p.add_argument("--flag", action="store_true")
+p.add_argument("--mode", choices=["a", "b"])
+ns = p.parse_args(["file.txt", "-n", "3", "--flag"])
+repr((cp.sections(), cp.getint("main", "port"), cp.getboolean("main", "debug"), cp.get("main", "name"), dict(cp["other"]), ns.path, ns.count, ns.flag, ns.mode, p.format_usage()))
+"""),
+    ("calendar_and_pprint", "stdlib", r"""
+import calendar, pprint
+repr((calendar.isleap(2024), tuple(map(int, calendar.monthrange(2024, 2))), int(calendar.weekday(2024, 3, 1)), calendar.leapdays(2000, 2025), calendar.month(2024, 2), pprint.pformat({"b": [1, 2, 3] * 8, "a": {"x": "y" * 30}}, width=40)))
+"""),
+    ("inspect_signatures", "stdlib", r"""
+import inspect, binascii
+def f(a, b=2, /, c=3, *args, d, e=5, **kw):
+    pass
+class C:
+    def m(self, x, y=1):
+        pass
+async def co():
+    pass
+sig = inspect.signature(f)
+bound = sig.bind(1, d=4)
+bound.apply_defaults()
+try:
+    f(1, b=2, d=4)
+    posonly = None
+except TypeError as e:
+    posonly = str(e)
+repr((str(sig), [p.kind.name for p in sig.parameters.values()], posonly, binascii.hexlify(b"\x01\x02\x03", b":", 2), str(inspect.signature(C.m)), str(inspect.signature(C().m)), dict(bound.arguments), inspect.isfunction(f), inspect.ismethod(C().m), inspect.isclass(C), inspect.iscoroutinefunction(co), inspect.getfullargspec(C.m).args))
+"""),
+    ("literal_eval_and_import_module", "stdlib", r"""
+import ast, importlib
+errs = []
+for src in ["x", "f()", "1 +"]:
+    try:
+        ast.literal_eval(src)
+    except (ValueError, SyntaxError) as e:
+        errs.append(type(e).__name__)
+repr((ast.literal_eval("{'a': [1, 2.5, (3, None)], 'b': -4, 'c': 1 + 2j == 0 or True}") if False else ast.literal_eval("{'a': [1, 2.5, (3, None)], 'b': -4, 's': {1}}"), errs, importlib.import_module("json").dumps([1]), importlib.import_module("email.utils").__name__))
+"""),
+    ("email_addresses_and_messages", "stdlib", r"""
+from email.utils import parseaddr, formataddr, getaddresses
+from email.message import EmailMessage
+msg = EmailMessage()
+msg["Subject"] = "Hi"
+msg["To"] = "a@example.com"
+msg.set_content("body text")
+repr((parseaddr("Ann <ann@example.com>"), formataddr(("Bob", "bob@example.com")), getaddresses(["a@x.com, B <b@y.com>"]), msg["subject"], msg.get_content_type(), msg.get_content().strip()))
+"""),
+    ("array_typed_items", "stdlib", r"""
+import array
+a = array.array("h", [1, -2, 3])
+b = a
+a += array.array("h", [4])
+errs = []
+try:
+    array.array("b", [200])
+except OverflowError as e:
+    errs.append(str(e))
+repr((a, a is b, a.tobytes(), array.array("h", a.tobytes()) == a, a.itemsize, a.typecode, list(reversed(a)), a[1:3], errs))
+"""),
+    ("containers_ask_eq_of_their_items", "classes", r"""
+class AnyThing:
+    def __eq__(self, other):
+        return True
+class Key:
+    def __init__(self, v):
+        self.v = v
+    def __eq__(self, other):
+        return isinstance(other, Key) and other.v == self.v
+    __hash__ = None
+any_ = AnyThing()
+items = [Key(1), Key(2)]
+repr(((1, any_) == (1, "z"), [any_] == [3], {"k": any_} == {"k": 9}, Key(2) in items, items.index(Key(2)), items.count(Key(1)), (Key(1),).index(Key(1)), [1, any_] != [1, 2]))
+"""),
+    ("number_hooks_of_objects", "classes", r"""
+import math
+class N:
+    def __index__(self):
+        return 3
+    def __int__(self):
+        return 7
+    def __float__(self):
+        return 2.5
+    def __abs__(self):
+        return "abs"
+    def __round__(self, n=None):
+        return ("round", n)
+    def __floor__(self):
+        return "floor"
+    def __divmod__(self, o):
+        return ("divmod", o)
+    def __bool__(self):
+        return False
+n = N()
+repr((int(n), float(n), [0, 1, 2, 3, 4][n], [0, 1, 2, 3, 4][n:], list(range(n)), hex(n), "ab" * n, abs(n), round(n), round(n, 2), math.floor(n), divmod(n, 2), bool(n), math.sqrt(n), chr(65 + n.__index__())))
+"""),
+    ("try_else_and_in_place_operators", "syntax", r"""
+def f():
+    try:
+        pass
+    except KeyError:
+        return "caught"
+    else:
+        raise KeyError("from else")
+try:
+    f()
+    r = "none"
+except KeyError as e:
+    r = str(e)
+class Acc:
+    def __init__(self):
+        self.items = []
+    def __iadd__(self, x):
+        self.items.append(x)
+        return self
+    def __add__(self, x):
+        return "copy"
+a = Acc()
+same = a
+a += 1
+a += 2
+repr((r, a is same, a.items))
+"""),
+    ("descriptors_and_live_dict", "classes", r"""
+class Lazy:
+    def __init__(self, f):
+        self.f = f
+    def __set_name__(self, owner, name):
+        self.name = name
+    def __get__(self, obj, owner=None):
+        if obj is None:
+            return self
+        v = obj.__dict__[self.name] = self.f(obj)
+        return v
+class Doubled:
+    def __get__(self, obj, owner=None):
+        return obj.__dict__.get("_v") if obj is not None else "class"
+    def __set__(self, obj, value):
+        obj.__dict__["_v"] = value * 2
+class Logged:
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, ("set", value))
+    @property
+    def p(self):
+        return self.__dict__.get("_p")
+    @p.setter
+    def p(self, v):
+        self.__dict__["_p"] = v
+class C:
+    @Lazy
+    def big(self):
+        return 42
+    d = Doubled()
+c = C()
+c.d = 5
+vars(c)["extra"] = 1
+lg = Logged()
+lg.p = 3
+lg.q = 4
+repr((c.big, c.big, "big" in vars(c), c.d, C.d, c.extra, sorted(vars(c)), lg.p, lg.q, C.__init__ is object.__init__ or callable(C.__init__)))
+"""),
 ]
 
 
@@ -697,9 +1183,11 @@ fn lookbehind_needs_a_fixed_width() {
 }
 
 #[test]
-fn unicode_name_escapes_are_refused_by_name() {
-    let message = big_stack(|| Runtime::default().run("'\\\\N{BULLET}'").unwrap_err().to_string());
-    assert!(message.contains("\\\\N{BULLET}"), "{message}");
+fn unicode_name_escapes() {
+    assert_eq!(py("'\\\\N{BULLET}' + '\\\\N{em dash}' + '\\\\N{CJK UNIFIED IDEOGRAPH-4E2D}'"), "•—中");
+    // A name not carried is the string's own error, raised only when it runs.
+    let message = big_stack(|| Runtime::default().run("def f():\\n    return '\\\\N{NOT A NAME}'\\nf()").unwrap_err().to_string());
+    assert!(message.contains("NOT A NAME"), "{message}");
 }
 
 #[test]

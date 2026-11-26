@@ -47,7 +47,7 @@ fn the_pymini_modules_and_builtins_are_all_there() {
         ("random", &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed"]),
         ("time", &["time", "monotonic", "parts", "format", "time_ns", "monotonic_ns", "perf_counter", "perf_counter_ns", "process_time", "process_time_ns", "thread_time", "thread_time_ns", "struct_time", "gmtime", "localtime", "mktime", "strftime", "strptime", "asctime", "ctime", "timezone", "altzone", "daylight", "tzname"]),
         ("json", &["dumps", "loads"]),
-        ("re", &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile", "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG"]),
+        ("re", &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile", "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG", "Pattern", "Match", "error"]),
         ("sys", &["version", "version_info", "hexversion", "maxsize", "maxunicode", "byteorder", "platform", "executable", "argv", "path", "modules", "stdout", "stderr", "stdin", "getrecursionlimit", "setrecursionlimit", "exit", "intern", "getdefaultencoding", "getfilesystemencoding", "exc_info"]),
     ];
     for (module, names) in modules {
@@ -57,7 +57,7 @@ fn the_pymini_modules_and_builtins_are_all_there() {
         want.sort();
         assert_eq!(found, want, "{module}");
     }
-    for b in ["len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted", "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map", "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "bytearray", "frozenset", "slice", "ascii", "eval", "exec", "globals", "locals", "dir"] {
+    for b in ["len", "str", "repr", "print", "int", "float", "bool", "abs", "round", "min", "max", "sum", "range", "sorted", "reversed", "list", "dict", "set", "tuple", "enumerate", "zip", "ord", "chr", "any", "all", "type", "map", "filter", "divmod", "pow", "hex", "bin", "oct", "format", "isinstance", "callable", "bytes", "bytearray", "frozenset", "slice", "ascii", "eval", "exec", "globals", "locals", "dir", "aiter", "anext", "memoryview", "__import__"] {
         assert_eq!(api::model().find(b).map(|e| e.kind), Some(ApiKind::Builtin), "{b}");
     }
     for m in ["str.encode", "bytes.fromhex", "bytes.hex", "bytes.decode", "list.append", "dict.items", "str.removeprefix", "str.translate", "str.maketrans", "dict.fromkeys", "Pattern.search", "Pattern.sub"] {

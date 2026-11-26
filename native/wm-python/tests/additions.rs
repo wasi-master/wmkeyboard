@@ -80,7 +80,7 @@ fn bad_bytes_raise_catchable_decode_errors() {
         )
     );
     assert!(failure("bytes([255]).decode()").contains("UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0"));
-    assert!(failure("'x'.encode('latin-1')").contains("LookupError: unknown encoding: latin-1"));
+    assert!(failure("'x'.encode('koi8-r')").contains("LookupError: unknown encoding: koi8-r"));
     assert!(failure("bytes([256])").contains("ValueError: bytes must be in range(0, 256)"));
     assert!(failure("bytes('x')").contains("TypeError"));
 }
@@ -152,7 +152,7 @@ fn bad_date_patterns_are_value_errors() {
 #[test]
 fn check_reports_what_load_would() {
     assert!(check("def f(x):\n    return x\n").is_ok());
-    for source in ["x = (1,\ny = 2", "async def g():\n    pass", "if True:\nx = 1", "x = 1 $ 2", "f\"{}\""] {
+    for source in ["x = (1,\ny = 2", "def g(:\n    pass", "if True:\nx = 1", "x = 1 $ 2", "f\"{}\""] {
         let c = check(source).unwrap_err();
         let l = Runtime::default().load(source).unwrap_err();
         assert_eq!((c.message.clone(), c.kind.clone(), c.line), (l.message, l.kind, l.line), "{source}");

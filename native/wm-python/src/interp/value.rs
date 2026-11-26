@@ -119,7 +119,95 @@ impl Class {
 /// An instance of a [Class], with its own attributes.
 pub struct Instance {
     pub class: Rc<Class>,
-    pub attrs: RefCell<NameMap>,
+    /// The instance's attributes, until something asks for its `__dict__`.
+    attrs: RefCell<NameMap>,
+    /// Made the first time `__dict__` or `vars()` is asked for: from then on
+    /// the attributes live in this dict, which the script holds too, so
+    /// `self.__dict__[key] = value` sets an attribute.
+    dict: std::cell::OnceCell<DictRef>,
+}
+
+impl Instance {
+    pub fn new(class: Rc<Class>) -> Instance {
+        Instance { class, attrs: RefCell::new(name_map(0)), dict: std::cell::OnceCell::new() }
+    }
+
+    #[inline]
+    pub fn get(&self, name: &str) -> Option<Value> {
+        match self.dict.get() {
+            None => self.attrs.borrow().get(name).cloned(),
+            Some(d) => d.borrow().get(&StrKey(name)).cloned(),
+        }
+    }
+
+    #[inline]
+    pub fn has(&self, name: &str) -> bool {
+        match self.dict.get() {
+            None => self.attrs.borrow().contains_key(name),
+            Some(d) => d.borrow().contains_key(&StrKey(name)),
+        }
+    }
+
+    pub fn insert(&self, name: Rc<str>, value: Value) {
+        match self.dict.get() {
+            None => {
+                self.attrs.borrow_mut().insert(name, value);
+            }
+            Some(d) => {
+                d.borrow_mut().insert(HKey::Str(name), value);
+            }
+        }
+    }
+
+    pub fn remove(&self, name: &str) -> bool {
+        match self.dict.get() {
+            None => self.attrs.borrow_mut().shift_remove(name).is_some(),
+            Some(d) => d.borrow_mut().shift_remove(&StrKey(name)).is_some(),
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        match self.dict.get() {
+            None => self.attrs.borrow().len(),
+            Some(d) => d.borrow().len(),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// The attributes with string names, in the order they were set.
+    pub fn pairs(&self) -> Vec<(Rc<str>, Value)> {
+        match self.dict.get() {
+            None => self.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+            Some(d) => d.borrow().iter().filter_map(|(k, v)| if let HKey::Str(s) = k { Some((s.clone(), v.clone())) } else { None }).collect(),
+        }
+    }
+
+    pub fn keys(&self) -> Vec<Rc<str>> {
+        self.pairs().into_iter().map(|(k, _)| k).collect()
+    }
+
+    pub fn clear(&self) {
+        self.attrs.borrow_mut().clear();
+        if let Some(d) = self.dict.get() {
+            d.borrow_mut().clear();
+        }
+    }
+
+    /// The instance's `__dict__`: one dict, the same each time.
+    pub fn dict(&self) -> DictRef {
+        self.dict
+            .get_or_init(|| {
+                let mut m = DictMap::default();
+                for (k, v) in self.attrs.borrow_mut().drain(..) {
+                    m.insert(HKey::Str(k), v);
+                }
+                Rc::new(RefCell::new(m))
+            })
+            .clone()
+    }
 }
 
 /// The callable and descriptor shapes classes need.
@@ -140,6 +228,10 @@ pub enum Object {
     Iterator(super::generators::IterObject),
     /// A generator, made by calling a function with `yield` in it or by `(x for x in xs)`.
     Generator(super::generators::Generator),
+    /// What calling an `async def` makes, run when awaited.
+    Coroutine(super::generators::Coroutine),
+    /// An `async def` with `yield` in it: its name and the generator under it.
+    AsyncGen(Rc<str>, Value),
     /// `range(start, stop, step)`, which counts without holding its numbers.
     Range(i64, i64, i64),
     /// `d.keys()`, `d.values()` or `d.items()`: a live view of the dict.
@@ -278,6 +370,18 @@ pub struct Function {
 impl Function {
     pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>, defaults: Vec<Option<Value>>) -> Function {
         Function { name, body, closure, owner: RefCell::new(None), defaults, attrs: RefCell::new(name_map(0)) }
+    }
+
+    /// The name its repr shows: a `__qualname__` set on it, or `C.m` for a
+    /// method defined in a class body, or its own.
+    pub fn qualified_name(&self) -> Rc<str> {
+        if let Some(Value::Str(s)) = self.attrs.borrow().get("__qualname__") {
+            return s.clone();
+        }
+        match self.owner.borrow().as_ref().and_then(|w| w.upgrade()) {
+            Some(class) => Rc::from(format!("{}.{}", class.name, self.display_name())),
+            None => self.display_name(),
+        }
     }
 
     /// The name it shows: a `__qualname__` or `__name__` set on it, or the one it was defined with.
@@ -619,7 +723,7 @@ impl Value {
             Value::Function(_) | Value::Builtin(_) | Value::ModuleFunction(_) | Value::HostFunction(_) => "function",
             Value::Module(_) => "module",
             Value::Exception(_) => "Exception",
-            Value::Match(_) => "Match",
+            Value::Match(_) => "re.Match",
             Value::Bytes(_) => "bytes",
             Value::Class(_) => "type",
             Value::Instance(_) => "object",
@@ -631,6 +735,8 @@ impl Value {
                 Object::Super { .. } => "super",
                 Object::Iterator(i) => i.kind,
                 Object::Generator(_) => "generator",
+                Object::Coroutine(_) => "coroutine",
+                Object::AsyncGen(..) => "async_generator",
                 Object::Range(..) => "range",
                 Object::DictView(k, _) => k.type_name(),
                 Object::Slice(..) => "slice",
@@ -787,7 +893,7 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::Float(f) => format_double(*f),
         Value::Str(s) => s.to_string(),
         Value::List(_) | Value::Dict(_) | Value::Tuple(_) | Value::Set(_) | Value::Bytes(_) => py_repr(v),
-        Value::Function(f) => format!("<function {}>", f.display_name()),
+        Value::Function(f) => format!("<function {}>", f.qualified_name()),
         Value::Builtin(n) if matches!(n.as_ref(), "Ellipsis" | "NotImplemented") => n.to_string(),
         Value::Builtin(n) => match n.strip_prefix(super::methods::UNBOUND_PREFIX).and_then(|m| m.split_once('.')) {
             Some((ty, method)) => format!("<method '{method}' of '{ty}' objects>"),
@@ -799,8 +905,11 @@ pub(crate) fn py_str(v: &Value) -> String {
         Value::ModuleFunction(mf) => format!("<builtin {}.{}>", mf.0, mf.1),
         Value::Exception(e) => e.message.clone(),
         Value::Match(m) => format!("<Match {}>", str_repr(&m.value())),
-        Value::Class(c) => format!("<class '{}'>", c.name),
-        Value::Instance(i) => match i.attrs.borrow().get("args") {
+        Value::Class(c) => match c.attrs.borrow().get("__module__") {
+            Some(Value::Str(m)) if m.as_ref() != "builtins" => format!("<class '{m}.{}'>", c.name),
+            _ => format!("<class '{}'>", c.name),
+        },
+        Value::Instance(i) => match i.get("args") {
             Some(Value::Tuple(args)) if i.class.exception_root.is_some() => match args.len() {
                 0 => String::new(),
                 1 => py_str(&args[0]),
@@ -815,6 +924,8 @@ pub(crate) fn py_str(v: &Value) -> String {
             Object::Range(a, b, c) => format!("range({a}, {b}, {c})"),
             Object::DictView(k, d) => format!("{}({})", k.type_name(), py_repr(&Value::list(view_items(*k, d)))),
             Object::Generator(g) => format!("<generator object {}>", g.name),
+            Object::Coroutine(c) => format!("<coroutine object {}>", c.name),
+            Object::AsyncGen(n, _) => format!("<async_generator object {n}>"),
             Object::Pattern { pattern, flags } => {
                 let names: Vec<&str> = [(2, "re.IGNORECASE"), (8, "re.MULTILINE"), (16, "re.DOTALL")]
                     .iter()
@@ -929,7 +1040,7 @@ pub(crate) fn py_repr(v: &Value) -> String {
         }),
         Value::Exception(e) => format!("{}({})", e.kind, e.args.iter().map(py_repr).collect::<Vec<_>>().join(", ")),
         Value::Instance(i) if i.class.exception_root.is_some() => {
-            let args = match i.attrs.borrow().get("args") {
+            let args = match i.get("args") {
                 Some(Value::Tuple(a)) => a.iter().map(py_repr).collect::<Vec<_>>().join(", "),
                 _ => String::new(),
             };
@@ -958,6 +1069,30 @@ pub(crate) fn format_double(d: f64) -> String {
         }
     }
     c_general(d, 17)
+}
+
+/// Whether a container holds an instance anywhere inside it, so `==` on it
+/// has to ask that instance's `__eq__`. A huge or cyclic container answers
+/// yes once it has looked at enough items: the slow path is right too.
+pub(crate) fn holds_instance(v: &Value) -> bool {
+    fn walk(v: &Value, budget: &mut u32) -> bool {
+        if *budget == 0 {
+            return true;
+        }
+        *budget -= 1;
+        match v {
+            Value::Instance(_) => true,
+            Value::List(l) => l.borrow().iter().any(|x| walk(x, budget)),
+            Value::Tuple(t) => t.iter().any(|x| walk(x, budget)),
+            Value::Dict(d) => d.borrow().values().any(|x| walk(x, budget)),
+            _ => false,
+        }
+    }
+    match v {
+        Value::Instance(_) => true,
+        Value::List(_) | Value::Tuple(_) | Value::Dict(_) => walk(v, &mut 4096),
+        _ => false,
+    }
 }
 
 /// Python `==`. Numbers compare across types, so 1 == 1.0 == True.

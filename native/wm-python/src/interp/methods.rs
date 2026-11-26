@@ -5,7 +5,7 @@
 use std::rc::Rc;
 
 use super::ast::BinOp;
-use super::bytes::{decode, encode, from_hex, to_hex};
+use super::bytes::{decode, encode_with, from_hex, to_hex};
 use super::error::R;
 use super::eval::{set_algebra, Interp};
 use super::regex::Match;
@@ -135,7 +135,7 @@ impl Interp {
             }
             Value::Instance(inst) => {
                 // The common case, `self.method(...)`, without making a bound method.
-                let own = inst.attrs.borrow().get(name).cloned();
+                let own = inst.get(name);
                 if own.is_none() {
                     if let Some(Value::Function(f)) = inst.class.lookup(name) {
                         let mut args = args;
@@ -154,6 +154,10 @@ impl Interp {
             Value::Object(o) if matches!(o.as_ref(), Object::Generator(_)) => {
                 let o = o.clone();
                 self.generator_method(&o, name, &args)
+            }
+            Value::Object(o) if matches!(o.as_ref(), Object::Coroutine(_) | Object::AsyncGen(..)) => {
+                let o = o.clone();
+                self.coroutine_method(&o, name, &args)
             }
             Value::Object(o) if matches!(o.as_ref(), Object::Iterator(_)) && matches!(name, "__next__" | "__iter__") => {
                 if name == "__iter__" {
@@ -205,7 +209,9 @@ impl Interp {
                 let m = self.attribute(obj, name)?;
                 self.call_value(&m, args, kwargs)
             }
-            Value::Builtin(b) if b.as_ref() == "object" => {
+            // `object.__init__(self)`, `Exception.__init__(self, message)` and
+            // the rest of a builtin type's attributes, called.
+            Value::Builtin(_) => {
                 let m = self.attribute(obj, name)?;
                 self.call_value(&m, args, kwargs)
             }
@@ -588,7 +594,12 @@ impl Interp {
                     Some(Value::Str(e)) => e.clone(),
                     Some(_) => return Err(self.error("encode() argument 'encoding' must be str", "TypeError")),
                 };
-                match encode(s, &enc) {
+                let errors = match args.get(1).or_else(|| kwarg(&kwargs, "errors")) {
+                    None => Rc::from("strict"),
+                    Some(Value::Str(e)) => e.clone(),
+                    Some(_) => return Err(self.error("encode() argument 'errors' must be str", "TypeError")),
+                };
+                match encode_with(s, &enc, &errors) {
                     Ok(b) => Ok(Value::bytes(&b)),
                     Err(e) => Err(self.byte_error(e)),
                 }
@@ -597,8 +608,30 @@ impl Interp {
         }
     }
 
-    fn prefix_test(&self, s: &str, args: &[Value], suffix: bool) -> R<bool> {
+    fn prefix_test(&mut self, s: &Rc<str>, args: &[Value], suffix: bool) -> R<bool> {
         let first = args.first().ok_or_else(|| self.error("expected a string argument", "TypeError"))?;
+        // `s.startswith(p, start, end)` tests the slice s[start:end].
+        let whole: &str = s;
+        let window: String;
+        let s: &str = if args.len() > 1 {
+            let b = self.chars(s);
+            let count = b.len() - 1;
+            let lower = match args.get(1) {
+                Some(Value::None) | None => 0,
+                Some(v) => normalise(v.as_int().unwrap_or(0), count),
+            };
+            let upper = match args.get(2) {
+                Some(Value::None) | None => count,
+                Some(v) => normalise(v.as_int().unwrap_or(count as i64), count),
+            };
+            if lower > upper {
+                return Ok(false);
+            }
+            window = whole[b[lower] as usize..b[upper] as usize].to_string();
+            &window
+        } else {
+            whole
+        };
         // `startswith` accepts a tuple of prefixes as well as one string.
         let candidates: Vec<Value> = match first {
             Value::Tuple(t) => t.as_ref().clone(),
@@ -636,50 +669,26 @@ impl Interp {
     }
 
     fn trim(&mut self, s: &Rc<str>, args: &[Value], left: bool, right: bool) -> Value {
-        // ASCII text cut by ASCII characters (by default space, tab and line
-        // feed: there is no carriage return in it) trims byte by byte.
-        let custom = match args.first() {
-            Some(Value::Str(c)) => Some(c.clone()),
+        // As CPython, by code point: `"a\r\n".rstrip("\n")` leaves the "\r".
+        // With no argument, whatever str.isspace() calls whitespace.
+        let custom: Option<Vec<char>> = match args.first() {
+            Some(Value::Str(c)) => Some(c.chars().collect()),
             _ => None,
         };
-        if super::eval::plain_ascii(s) && custom.as_deref().is_none_or(super::eval::plain_ascii) {
-            let cut = |b: u8| match &custom {
-                Some(c) => c.as_bytes().contains(&b),
-                None => matches!(b, b' ' | b'\t' | b'\n'),
-            };
-            let bytes = s.as_bytes();
-            let (mut from, mut to) = (0, bytes.len());
-            if left {
-                while from < to && cut(bytes[from]) {
-                    from += 1;
-                }
-            }
-            if right {
-                while to > from && cut(bytes[to - 1]) {
-                    to -= 1;
-                }
-            }
-            return if (from, to) == (0, bytes.len()) { Value::Str(s.clone()) } else { Value::str(&s[from..to]) };
-        }
-        let cut: Vec<String> = match args.first() {
-            Some(Value::Str(c)) => graphemes(c).into_iter().map(String::from).collect(),
-            _ => vec![" ".into(), "\t".into(), "\n".into(), "\r".into()],
+        let cut = |c: char| match &custom {
+            Some(set) => set.contains(&c),
+            None => c.is_whitespace() || ('\u{1c}'..='\u{1f}').contains(&c),
         };
-        let b = self.chars(s);
-        let cs: Vec<&str> = (0..b.len() - 1).map(|i| &s[b[i] as usize..b[i + 1] as usize]).collect();
-        let mut from = 0;
-        let mut to = cs.len();
-        if left {
-            while from < to && cut.iter().any(|c| c == cs[from]) {
-                from += 1;
-            }
+        let t: &str = match (left, right) {
+            (true, true) => s.trim_matches(cut),
+            (true, false) => s.trim_start_matches(cut),
+            _ => s.trim_end_matches(cut),
+        };
+        if t.len() == s.len() {
+            Value::Str(s.clone())
+        } else {
+            Value::str(t)
         }
-        if right {
-            while to > from && cut.iter().any(|c| c == cs[to - 1]) {
-                to -= 1;
-            }
-        }
-        Value::str(cs[from..to].concat())
     }
 
     fn pad(&mut self, s: &Rc<str>, args: &[Value], align: char) -> String {
@@ -698,7 +707,8 @@ impl Interp {
         match align {
             '>' => fill.repeat(padding) + s,
             '^' => {
-                let l = padding / 2;
+                // CPython's str.center: an odd margin's extra goes left when the width is odd.
+                let l = padding / 2 + (padding & width as usize & 1);
                 fill.repeat(l) + s + &fill.repeat(padding - l)
             }
             _ => s.to_string() + &fill.repeat(padding),
@@ -995,7 +1005,8 @@ impl Interp {
             }
             "remove" => {
                 self.arity("remove", &args, 1)?;
-                let i = l.borrow().iter().position(|v| py_equals(v, &args[0]));
+                let items = l.borrow().clone();
+                let i = self.position_eq(&items, &args[0], 0)?;
                 match i {
                     Some(i) => {
                         l.borrow_mut().remove(i);
@@ -1008,16 +1019,15 @@ impl Interp {
                 let needle = args.first().ok_or_else(|| self.error("index() needs a value", "TypeError"))?;
                 let items = l.borrow().clone();
                 let from = if args.len() > 1 { normalise(args[1].as_int().unwrap_or(0), items.len()) } else { 0 };
-                for (i, v) in items.iter().enumerate().skip(from) {
-                    if py_equals(v, needle) {
-                        return Ok(Value::Int(i as i64));
-                    }
+                if let Some(i) = self.position_eq(&items, needle, from)? {
+                    return Ok(Value::Int(i as i64));
                 }
                 Err(self.error(format!("{} is not in list", py_repr(needle)), "ValueError"))
             }
             "count" => {
                 self.arity("count", &args, 1)?;
-                Ok(Value::Int(l.borrow().iter().filter(|v| py_equals(v, &args[0])).count() as i64))
+                let items = l.borrow().clone();
+                Ok(Value::Int(self.count_eq(&items, &args[0])? as i64))
             }
             "sort" => {
                 let mut items = l.borrow().clone();
@@ -1043,11 +1053,11 @@ impl Interp {
         match name {
             "count" => {
                 self.arity("count", args, 1)?;
-                Ok(Value::Int(t.iter().filter(|v| py_equals(v, &args[0])).count() as i64))
+                Ok(Value::Int(self.count_eq(t, &args[0])? as i64))
             }
             "index" => {
                 self.arity("index", args, 1)?;
-                match t.iter().position(|v| py_equals(v, &args[0])) {
+                match self.position_eq(t, &args[0], 0)? {
                     Some(i) => Ok(Value::Int(i as i64)),
                     None => Err(self.error(format!("{} is not in tuple", py_repr(&args[0])), "ValueError")),
                 }

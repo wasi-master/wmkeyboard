@@ -174,7 +174,7 @@ struct Walk {
 fn field(d: &Value, key: &str) -> Value {
     match d {
         Value::Dict(m) => m.borrow().get(&HKey::str(key)).cloned().unwrap_or(Value::None),
-        Value::Instance(i) => i.attrs.borrow().get(key).cloned().unwrap_or(Value::None),
+        Value::Instance(i) => i.get(key).unwrap_or(Value::None),
         _ => Value::None,
     }
 }

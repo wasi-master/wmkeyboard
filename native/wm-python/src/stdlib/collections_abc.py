@@ -50,6 +50,21 @@ _BUILTIN[type({}.values())] = _SIZED_ITER | {"__reversed__"}
 _BUILTIN[type(x for x in ())] = _GENERATOR
 
 
+async def _co():
+    pass
+
+
+async def _ag():
+    yield
+
+
+_c = _co()
+_BUILTIN[type(_c)] = {"__await__", "send", "throw", "close"}
+_c.close()
+_BUILTIN[type(_ag())] = {"__aiter__", "__anext__", "asend", "athrow", "aclose"}
+del _c, _co, _ag
+
+
 def _mro(C):
     try:
         return C.__mro__
@@ -154,6 +169,86 @@ class Generator(Iterator):
     def __subclasshook__(cls, C):
         if cls is Generator:
             return _check_methods(C, "__iter__", "__next__", "send", "throw", "close")
+        return NotImplemented
+
+
+class Awaitable(metaclass=ABCMeta):
+    @abstractmethod
+    def __await__(self):
+        yield
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is Awaitable:
+            return _check_methods(C, "__await__")
+        return NotImplemented
+
+
+class Coroutine(Awaitable):
+    @abstractmethod
+    def send(self, value):
+        raise StopIteration
+
+    @abstractmethod
+    def throw(self, typ, val=None, tb=None):
+        raise typ if val is None else val
+
+    def close(self):
+        pass
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is Coroutine:
+            return _check_methods(C, "__await__", "send", "throw", "close")
+        return NotImplemented
+
+
+class AsyncIterable(metaclass=ABCMeta):
+    @abstractmethod
+    def __aiter__(self):
+        return AsyncIterator()
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is AsyncIterable:
+            return _check_methods(C, "__aiter__")
+        return NotImplemented
+
+
+class AsyncIterator(AsyncIterable):
+    @abstractmethod
+    async def __anext__(self):
+        raise StopAsyncIteration
+
+    def __aiter__(self):
+        return self
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is AsyncIterator:
+            return _check_methods(C, "__anext__", "__aiter__")
+        return NotImplemented
+
+
+class AsyncGenerator(AsyncIterator):
+    async def __anext__(self):
+        return await self.asend(None)
+
+    @abstractmethod
+    async def asend(self, value):
+        raise StopAsyncIteration
+
+    @abstractmethod
+    async def athrow(self, typ, val=None, tb=None):
+        raise typ if val is None else val
+
+    async def aclose(self):
+        pass
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is AsyncGenerator:
+            return _check_methods(C, "__aiter__", "__anext__", "asend", "athrow", "aclose")
         return NotImplemented
 
 

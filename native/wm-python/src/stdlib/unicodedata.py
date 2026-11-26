@@ -1,5 +1,9 @@
 """unicodedata: normal forms and character properties, from the Unicode
-tables the interpreter carries. Character names are not among them."""
+tables the interpreter carries. Of the names, it has those code is likely to
+use (ASCII, Latin, Greek, punctuation, currency, arrows, mathematics, box
+drawing, common symbols and emoji) and the ones Unicode builds by rule (CJK
+ideographs, Hangul syllables); name() of any other character raises
+ValueError, as it does for one with no name."""
 
 import _native
 
@@ -31,6 +35,19 @@ def mirrored(chr):
 
 
 _MISSING = object()
+
+
+def name(chr, default=_MISSING):
+    n = _native.char_name(chr)
+    if n is None:
+        if default is _MISSING:
+            raise ValueError("no such name")
+        return default
+    return n
+
+
+def lookup(name):
+    return _native.char_lookup(name)
 
 
 def decimal(chr, default=_MISSING):

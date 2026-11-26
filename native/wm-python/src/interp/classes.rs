@@ -28,6 +28,10 @@ const REPR_NESTING: u32 = 200;
 /// or a property's `.setter`.
 pub(crate) const HIDDEN_BASE_INIT: &str = "__base_init__";
 pub(crate) const HIDDEN_OBJECT_SETATTR: &str = "__object_setattr__";
+pub(crate) const HIDDEN_OBJECT_DELATTR: &str = "__object_delattr__";
+pub(crate) const HIDDEN_OBJECT_EQ: &str = "__object_eq__";
+pub(crate) const HIDDEN_OBJECT_NE: &str = "__object_ne__";
+pub(crate) const HIDDEN_OBJECT_HASH: &str = "__object_hash__";
 pub(crate) const HIDDEN_OBJECT_GETATTR: &str = "__object_getattr__";
 pub(crate) const HIDDEN_DEFAULT_STR: &str = "__default_str__";
 pub(crate) const HIDDEN_DEFAULT_REPR: &str = "__default_repr__";
@@ -54,6 +58,26 @@ fn operator_methods(op: BinOp) -> (&'static str, &'static str) {
         BinOp::BitXor => ("__xor__", "__rxor__"),
         BinOp::LShift => ("__lshift__", "__rlshift__"),
         BinOp::RShift => ("__rshift__", "__rrshift__"),
+        BinOp::MatMul => ("__matmul__", "__rmatmul__"),
+    }
+}
+
+/// The in-place method `x op= y` asks for first.
+pub(crate) fn inplace_method(op: BinOp) -> &'static str {
+    match op {
+        BinOp::Add => "__iadd__",
+        BinOp::Sub => "__isub__",
+        BinOp::Mul => "__imul__",
+        BinOp::Div => "__itruediv__",
+        BinOp::FloorDiv => "__ifloordiv__",
+        BinOp::Mod => "__imod__",
+        BinOp::Pow => "__ipow__",
+        BinOp::BitAnd => "__iand__",
+        BinOp::BitOr => "__ior__",
+        BinOp::BitXor => "__ixor__",
+        BinOp::LShift => "__ilshift__",
+        BinOp::RShift => "__irshift__",
+        BinOp::MatMul => "__imatmul__",
     }
 }
 
@@ -80,7 +104,16 @@ impl Interp {
         }
         let mut bases = Vec::with_capacity(def.bases.len());
         for b in &def.bases {
-            bases.push(self.eval(b, env)?);
+            let v = self.eval(b, env)?;
+            // `class Names(List[str])`: a base that is not a class names the
+            // ones it stands for through `__mro_entries__`.
+            if let Value::Instance(_) = v {
+                if let Some(entries) = self.dunder(&v, "__mro_entries__", vec![Value::tuple(Vec::new())])? {
+                    bases.extend(self.iterate(&entries)?);
+                    continue;
+                }
+            }
+            bases.push(v);
         }
         let mut kwargs: Vec<(Rc<str>, Value)> = Vec::new();
         for (k, e) in &def.keywords {
@@ -98,6 +131,10 @@ impl Interp {
         }
         let explicit = kwargs.iter().position(|(k, _)| k.as_ref() == "metaclass").map(|i| kwargs.remove(i).1);
         let scope = Env::new(Some(env.clone()));
+        // As in Python, the body starts with `__module__`, the defining module's name.
+        if let Some(module) = env.module().vars.borrow().get("__name__").cloned() {
+            scope.define(&Rc::from("__module__"), module);
+        }
         scope.define(&Rc::from("__qualname__"), Value::Str(def.name.clone()));
         if let Value::Str(doc) = super::eval::docstring(&def.body) {
             scope.define(&Rc::from("__doc__"), Value::Str(doc));
@@ -221,6 +258,22 @@ impl Interp {
             own(v, &class);
         }
         self.track_class(&class);
+        // Each attribute whose class has `__set_name__` hears its owner and name.
+        let named: Vec<(Rc<str>, Value)> = class
+            .attrs
+            .borrow()
+            .iter()
+            .filter(|(_, v)| matches!(v, Value::Instance(i) if i.class.lookup("__set_name__").is_some()))
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
+        for (attr, v) in named {
+            if let Value::Instance(i) = &v {
+                if let Some(hook) = i.class.lookup("__set_name__") {
+                    let bound = self.bind(hook, v.clone(), &i.class);
+                    self.call_value(&bound, vec![Value::Class(class.clone()), Value::Str(attr)], Vec::new())?;
+                }
+            }
+        }
         if class.exception_root.is_some() {
             self.exception_classes.insert(class.name.clone(), class.clone());
         }
@@ -451,11 +504,11 @@ impl Interp {
             }
             return Ok(made);
         }
-        let inst = Rc::new(Instance { class: class.clone(), attrs: RefCell::new(name_map(0)) });
+        let inst = Rc::new(Instance::new(class.clone()));
         self.track_instance(&inst);
         let value = Value::Instance(inst.clone());
         if class.exception_root.is_some() {
-            inst.attrs.borrow_mut().insert(Rc::from("args"), Value::tuple(args.clone()));
+            inst.insert(Rc::from("args"), Value::tuple(args.clone()));
         }
         match class.lookup("__init__") {
             Some(init) => {
@@ -492,11 +545,42 @@ impl Interp {
     /// class's (bound), then `__getattr__`.
     #[inline(never)]
     pub(crate) fn instance_attr(&mut self, inst: &Rc<Instance>, name: &str) -> R<Option<Value>> {
-        // No property anywhere in the class: the instance's own attribute
-        // wins without asking the class first.
-        if self.class_traits(&inst.class) & HAS_PROPERTY == 0 {
-            if let Some(v) = inst.attrs.borrow().get(name) {
-                return Ok(Some(v.clone()));
+        let traits = self.class_traits(&inst.class);
+        if traits & HAS_GETATTRIBUTE != 0 {
+            if let Some(hook) = inst.class.lookup("__getattribute__") {
+                let bound = self.bind(hook, Value::Instance(inst.clone()), &inst.class);
+                match self.call_value(&bound, vec![Value::str(name)], Vec::new()) {
+                    Ok(v) => return Ok(Some(v)),
+                    // As CPython: an AttributeError from it hands over to __getattr__.
+                    Err(Exc::Error(e)) if !e.is_abort() && e.kind == "AttributeError" => match inst.class.lookup("__getattr__") {
+                        Some(getattr) => {
+                            let bound = self.bind(getattr, Value::Instance(inst.clone()), &inst.class);
+                            return self.call_value(&bound, vec![Value::str(name)], Vec::new()).map(Some);
+                        }
+                        None => return Err(Exc::Error(e)),
+                    },
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        if let Some(v) = self.generic_attr(inst, name, traits)? {
+            return Ok(Some(v));
+        }
+        if let Some(getattr) = inst.class.lookup("__getattr__") {
+            let bound = self.bind(getattr, Value::Instance(inst.clone()), &inst.class);
+            return self.call_value(&bound, vec![Value::str(name)], Vec::new()).map(Some);
+        }
+        Ok(None)
+    }
+
+    /// What `object.__getattribute__` finds: a property, the instance's own
+    /// attribute, the class's (bound), and the attributes every object has.
+    pub(crate) fn generic_attr(&mut self, inst: &Rc<Instance>, name: &str, traits: u8) -> R<Option<Value>> {
+        // No property or descriptor anywhere in the class: the instance's
+        // own attribute wins without asking the class first.
+        if traits & (HAS_PROPERTY | HAS_DESCRIPTOR) == 0 {
+            if let Some(v) = inst.get(name) {
+                return Ok(Some(v));
             }
         }
         let from_class = inst.class.lookup(name);
@@ -506,28 +590,38 @@ impl Interp {
                 return self.call_value(&get, vec![Value::Instance(inst.clone())], Vec::new()).map(Some);
             }
         }
-        let own = inst.attrs.borrow().get(name).cloned();
+        // A descriptor with `__set__` or `__delete__` (a data descriptor)
+        // wins over the instance's own attribute; one with only `__get__` does not.
+        let getter = match &from_class {
+            Some(d @ Value::Instance(di)) if traits & HAS_DESCRIPTOR != 0 => di.class.lookup("__get__").map(|g| {
+                let data = di.class.lookup("__set__").is_some() || di.class.lookup("__delete__").is_some();
+                (d.clone(), di.class.clone(), g, data)
+            }),
+            _ => None,
+        };
+        if let Some((d, dclass, g, true)) = &getter {
+            let bound = self.bind(g.clone(), d.clone(), dclass);
+            return self.call_value(&bound, vec![Value::Instance(inst.clone()), Value::Class(inst.class.clone())], Vec::new()).map(Some);
+        }
+        let own = inst.get(name);
         if own.is_some() {
             return Ok(own);
+        }
+        if let Some((d, dclass, g, _)) = getter {
+            let bound = self.bind(g, d, &dclass);
+            return self.call_value(&bound, vec![Value::Instance(inst.clone()), Value::Class(inst.class.clone())], Vec::new()).map(Some);
         }
         if let Some(v) = from_class {
             return Ok(Some(self.bind(v, Value::Instance(inst.clone()), &inst.class)));
         }
         match name {
             "__class__" => return Ok(Some(Value::Class(inst.class.clone()))),
-            "__dict__" => {
-                let pairs: Vec<(Rc<str>, Value)> = inst.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-                return Ok(Some(Value::dict(pairs)));
-            }
+            "__dict__" => return Ok(Some(Value::Dict(inst.dict()))),
             "__str__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_STR))))),
             "__repr__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_REPR))))),
             // An exception's cause and context are None until `raise … from` sets one.
             "__cause__" | "__context__" | "__traceback__" if inst.class.exception_root.is_some() => return Ok(Some(Value::None)),
             _ => {}
-        }
-        if let Some(getattr) = inst.class.lookup("__getattr__") {
-            let bound = self.bind(getattr, Value::Instance(inst.clone()), &inst.class);
-            return self.call_value(&bound, vec![Value::str(name)], Vec::new()).map(Some);
         }
         Ok(None)
     }
@@ -547,6 +641,18 @@ impl Interp {
         Some(match name {
             "__name__" | "__qualname__" => Value::Str(class.name.clone()),
             "__doc__" => Value::None,
+            // What every class has from `object`.
+            "__init__" if !class.is_type => hidden(HIDDEN_BASE_INIT),
+            "__new__" if !class.is_type => hidden(HIDDEN_OBJECT_NEW),
+            "__setattr__" => hidden(HIDDEN_OBJECT_SETATTR),
+            "__delattr__" => hidden(HIDDEN_OBJECT_DELATTR),
+            "__eq__" => hidden(HIDDEN_OBJECT_EQ),
+            "__ne__" => hidden(HIDDEN_OBJECT_NE),
+            "__hash__" => hidden(HIDDEN_OBJECT_HASH),
+            "__getattribute__" => hidden(HIDDEN_OBJECT_GETATTR),
+            "__init_subclass__" => object(Object::Bound(Value::Class(class.clone()), hidden(HIDDEN_OBJECT_INIT_SUBCLASS))),
+            "__str__" => hidden(HIDDEN_DEFAULT_STR),
+            "__repr__" => hidden(HIDDEN_DEFAULT_REPR),
             "__base__" => class.base().cloned().map(Value::Class).unwrap_or(Value::Builtin(Rc::from("object"))),
             "__bases__" => {
                 if class.bases.is_empty() {
@@ -607,6 +713,10 @@ impl Interp {
             "__init_subclass__" => bound(HIDDEN_OBJECT_INIT_SUBCLASS),
             "__init__" => bound(HIDDEN_BASE_INIT),
             "__setattr__" => bound(HIDDEN_OBJECT_SETATTR),
+            "__delattr__" => bound(HIDDEN_OBJECT_DELATTR),
+            "__eq__" => bound(HIDDEN_OBJECT_EQ),
+            "__ne__" => bound(HIDDEN_OBJECT_NE),
+            "__hash__" => bound(HIDDEN_OBJECT_HASH),
             "__getattr__" | "__getattribute__" => bound(HIDDEN_OBJECT_GETATTR),
             "__str__" => bound(HIDDEN_DEFAULT_STR),
             "__repr__" => bound(HIDDEN_DEFAULT_REPR),
@@ -619,25 +729,20 @@ impl Interp {
     pub(crate) fn set_attr(&mut self, obj: &Value, name: &Rc<str>, value: Value) -> R<()> {
         match obj {
             Value::Instance(inst) => {
-                if self.class_traits(&inst.class) & (HAS_PROPERTY | HAS_SETATTR) == 0 {
+                let traits = self.class_traits(&inst.class);
+                if traits & (HAS_PROPERTY | HAS_SETATTR | HAS_DESCRIPTOR) == 0 {
                     return self.raw_set(inst, name.clone(), value);
                 }
-                if let Some(Value::Object(o)) = inst.class.lookup(name) {
-                    if let Object::Property { set, .. } = o.as_ref() {
-                        if set.is_none() {
-                            return Err(self.error(format!("property '{name}' has no setter"), "AttributeError"));
-                        }
-                        let set = set.clone();
-                        self.call_value(&set, vec![obj.clone(), value], Vec::new())?;
+                // As CPython: the class's `__setattr__` first, and properties
+                // and descriptors through `object.__setattr__`.
+                if traits & HAS_SETATTR != 0 {
+                    if let Some(setattr) = inst.class.lookup("__setattr__") {
+                        let bound = self.bind(setattr, obj.clone(), &inst.class);
+                        self.call_value(&bound, vec![Value::Str(name.clone()), value], Vec::new())?;
                         return Ok(());
                     }
                 }
-                if let Some(setattr) = inst.class.lookup("__setattr__") {
-                    let bound = self.bind(setattr, obj.clone(), &inst.class);
-                    self.call_value(&bound, vec![Value::Str(name.clone()), value], Vec::new())?;
-                    return Ok(());
-                }
-                self.raw_set(inst, name.clone(), value)
+                self.object_setattr(inst, name, value)
             }
             Value::Class(c) => {
                 if shapes_lookup(name, Some(&value)) || c.attrs.borrow().get(name.as_ref()).is_some_and(|old| shapes_lookup(name, Some(old))) {
@@ -670,10 +775,23 @@ impl Interp {
                 }
                 Ok(())
             }
+            // What a script sets on `builtins` is what the name means everywhere.
+            Value::Module(m) if m.as_ref() == "builtins" => {
+                let m = m.clone();
+                self.set_module_override(&m, name, Some(value));
+                Ok(())
+            }
             // A module written in Python takes new globals, as `mod.x = 1` gives it.
             Value::Module(m) if self.module_envs.contains_key(m.as_ref()) => {
                 let env = self.module_envs[m.as_ref()].clone();
                 env.vars.borrow_mut().insert(name.clone(), value);
+                Ok(())
+            }
+            // Any other module keeps what is set on it beside its own members:
+            // `json.dumps = fake` for a test, put back afterwards.
+            Value::Module(m) => {
+                let m = m.clone();
+                self.set_module_override(&m, name, Some(value));
                 Ok(())
             }
             other => Err(self.error(
@@ -683,13 +801,66 @@ impl Interp {
         }
     }
 
+    /// `object.__setattr__`: a property's setter or a data descriptor's
+    /// `__set__` when the class has one by that name, else the instance's own.
+    pub(crate) fn object_setattr(&mut self, inst: &Rc<Instance>, name: &Rc<str>, value: Value) -> R<()> {
+        match inst.class.lookup(name) {
+            Some(ref d @ Value::Instance(ref di)) => {
+                if let Some(set) = di.class.lookup("__set__") {
+                    let bound = self.bind(set, d.clone(), &di.class);
+                    self.call_value(&bound, vec![Value::Instance(inst.clone()), value], Vec::new())?;
+                    return Ok(());
+                }
+                if di.class.lookup("__delete__").is_some() {
+                    return Err(self.error(format!("__set__ is not defined for the descriptor '{name}'"), "AttributeError"));
+                }
+            }
+            Some(Value::Object(o)) => {
+                if let Object::Property { set, .. } = o.as_ref() {
+                    if set.is_none() {
+                        return Err(self.error(
+                            format!("property '{name}' of '{}' object has no setter", inst.class.name),
+                            "AttributeError",
+                        ));
+                    }
+                    let set = set.clone();
+                    self.call_value(&set, vec![Value::Instance(inst.clone()), value], Vec::new())?;
+                    return Ok(());
+                }
+            }
+            _ => {}
+        }
+        self.raw_set(inst, name.clone(), value)
+    }
+
+    /// `object.__delattr__`: a data descriptor's `__delete__`, a property's
+    /// deleter, or the instance's own attribute.
+    pub(crate) fn object_delattr(&mut self, inst: &Rc<Instance>, name: &str) -> R<()> {
+        match inst.class.lookup(name) {
+            Some(ref d @ Value::Instance(ref di)) => {
+                if let Some(del) = di.class.lookup("__delete__") {
+                    let bound = self.bind(del, d.clone(), &di.class);
+                    self.call_value(&bound, vec![Value::Instance(inst.clone())], Vec::new())?;
+                    return Ok(());
+                }
+            }
+            Some(Value::Object(o)) if matches!(o.as_ref(), Object::Property { .. }) => {
+                return Err(self.error(format!("property '{name}' of '{}' object has no deleter", inst.class.name), "AttributeError"));
+            }
+            _ => {}
+        }
+        if inst.remove(name) {
+            Ok(())
+        } else {
+            Err(self.error(format!("'{}' object has no attribute '{name}'", inst.class.name), "AttributeError"))
+        }
+    }
+
     pub(crate) fn raw_set(&mut self, inst: &Rc<Instance>, name: Rc<str>, value: Value) -> R<()> {
-        let mut attrs = inst.attrs.borrow_mut();
-        if attrs.len() >= self.max_container && !attrs.contains_key(&name) {
-            drop(attrs);
+        if inst.len() >= self.max_container && !inst.has(&name) {
             return Err(self.container_abort("object"));
         }
-        attrs.insert(name, value);
+        inst.insert(name, value);
         Ok(())
     }
 
@@ -702,7 +873,8 @@ impl Interp {
                     self.call_value(&bound, vec![Value::str(name)], Vec::new())?;
                     return Ok(());
                 }
-                inst.attrs.borrow_mut().shift_remove(name).is_some()
+                let inst = inst.clone();
+                return self.object_delattr(&inst, name);
             }
             Value::Class(c) => {
                 let old = c.attrs.borrow_mut().shift_remove(name);
@@ -712,6 +884,17 @@ impl Interp {
                 old.is_some()
             }
             Value::Function(f) => f.attrs.borrow_mut().shift_remove(name).is_some(),
+            Value::Module(m) if m.as_ref() == "builtins" => {
+                let m = m.clone();
+                self.set_module_override(&m, &Rc::from(name), None)
+            }
+            Value::Module(m) if self.module_envs.contains_key(m.as_ref()) => {
+                self.module_envs[m.as_ref()].vars.borrow_mut().shift_remove(name).is_some()
+            }
+            Value::Module(m) => {
+                let m = m.clone();
+                self.set_module_override(&m, &Rc::from(name), None)
+            }
             _ => false,
         };
         if removed {
@@ -727,11 +910,143 @@ impl Interp {
     pub(crate) fn dunder(&mut self, v: &Value, name: &str, args: Vec<Value>) -> R<Option<Value>> {
         if let Value::Instance(inst) = v {
             if let Some(m) = inst.class.lookup(name) {
-                let bound = self.bind(m, v.clone(), &inst.class);
+                let bound = self.special_bound(m, v, &inst.class)?;
                 return self.call_value(&bound, args, Vec::new()).map(Some);
             }
         }
         Ok(None)
+    }
+
+    /// What an instance's `__index__` gives, as `operator.index` reads it;
+    /// None for anything that is not an instance or has none.
+    pub(crate) fn index_of_instance(&mut self, v: &Value) -> R<Option<i64>> {
+        if !matches!(v, Value::Instance(_)) {
+            return Ok(None);
+        }
+        match self.dunder(v, "__index__", Vec::new())? {
+            Some(Value::Int(i)) => Ok(Some(i)),
+            Some(Value::Bool(b)) => Ok(Some(b as i64)),
+            Some(other) => Err(self.error(format!("__index__ returned non-int (type {})", other.type_name()), "TypeError")),
+            None => Ok(None),
+        }
+    }
+
+    /// The builtins that ask an instance argument for a number: `int(x)`
+    /// its `__int__`, `abs(x)` its `__abs__`, `hex(x)` its `__index__`, and
+    /// so on. None when the builtin runs as usual.
+    pub(crate) fn number_protocol(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Option<Value>> {
+        let Some(first) = args.first() else { return Ok(None) };
+        let is_inst = |v: &Value| matches!(v, Value::Instance(_));
+        let not_int = |me: &Self, v: &Value| me.error(format!("'{}' object cannot be interpreted as an integer", v.type_name()), "TypeError");
+        match name {
+            "int" if args.len() == 1 && kwargs.is_empty() && is_inst(first) => {
+                for hook in ["__int__", "__index__", "__trunc__"] {
+                    if let Some(r) = self.dunder(first, hook, Vec::new())? {
+                        return match r {
+                            Value::Int(_) => Ok(Some(r)),
+                            Value::Bool(b) => Ok(Some(Value::Int(b as i64))),
+                            other => Err(self.error(format!("{hook} returned non-int (type {})", other.type_name()), "TypeError")),
+                        };
+                    }
+                }
+                Err(self.error(
+                    format!("int() argument must be a string, a bytes-like object or a real number, not '{}'", first.type_name()),
+                    "TypeError",
+                ))
+            }
+            "float" if args.len() == 1 && is_inst(first) => {
+                if let Some(r) = self.dunder(first, "__float__", Vec::new())? {
+                    return match r {
+                        Value::Float(_) => Ok(Some(r)),
+                        other => Err(self.error(
+                            format!("{}.__float__ returned non-float (type {})", first.type_name(), other.type_name()),
+                            "TypeError",
+                        )),
+                    };
+                }
+                if let Some(i) = self.index_of_instance(first)? {
+                    return Ok(Some(Value::Float(i as f64)));
+                }
+                Err(self.error(format!("float() argument must be a string or a real number, not '{}'", first.type_name()), "TypeError"))
+            }
+            "bool" if args.len() == 1 => Ok(Some(Value::Bool(self.truth(first)?))),
+            "bytes" if args.len() == 1 && is_inst(first) => {
+                if let Some(r) = self.dunder(first, "__bytes__", Vec::new())? {
+                    return match r {
+                        Value::Bytes(_) => Ok(Some(r)),
+                        other => Err(self.error(format!("__bytes__ returned non-bytes (type {})", other.type_name()), "TypeError")),
+                    };
+                }
+                if let Some(i) = self.index_of_instance(first)? {
+                    return self.call_builtin("bytes", &[Value::Int(i)], kwargs).map(Some);
+                }
+                let items = self.iterate(first)?;
+                self.call_builtin("bytes", &[Value::list(items)], kwargs).map(Some)
+            }
+            "abs" if is_inst(first) => match self.dunder(first, "__abs__", Vec::new())? {
+                Some(r) => Ok(Some(r)),
+                None => Err(self.error(format!("bad operand type for abs(): '{}'", first.type_name()), "TypeError")),
+            },
+            "round" if is_inst(first) => match self.dunder(first, "__round__", args[1..].to_vec())? {
+                Some(r) => Ok(Some(r)),
+                None => Err(self.error(format!("type {} doesn't define __round__ method", first.type_name()), "TypeError")),
+            },
+            "hex" | "oct" | "bin" | "chr" if args.len() == 1 && is_inst(first) => match self.index_of_instance(first)? {
+                Some(i) => self.call_builtin(name, &[Value::Int(i)], kwargs).map(Some),
+                None => Err(not_int(self, first)),
+            },
+            "divmod" if args.len() == 2 => {
+                if let Some(r) = self.dunder(&args[0], "__divmod__", vec![args[1].clone()])? {
+                    if !is_not_implemented(&r) {
+                        return Ok(Some(r));
+                    }
+                }
+                if let Some(r) = self.dunder(&args[1], "__rdivmod__", vec![args[0].clone()])? {
+                    if !is_not_implemented(&r) {
+                        return Ok(Some(r));
+                    }
+                }
+                Err(self.error(
+                    format!("unsupported operand type(s) for divmod(): '{}' and '{}'", args[0].type_name(), args[1].type_name()),
+                    "TypeError",
+                ))
+            }
+            "pow" if args.len() == 3 && is_inst(first) => match self.dunder(first, "__pow__", args[1..].to_vec())? {
+                Some(r) if !is_not_implemented(&r) => Ok(Some(r)),
+                _ => Err(self.error(
+                    format!("unsupported operand type(s) for ** or pow(): '{}', '{}', '{}'", args[0].type_name(), args[1].type_name(), args[2].type_name()),
+                    "TypeError",
+                )),
+            },
+            "range" => {
+                let mut ints = Vec::with_capacity(args.len());
+                for a in args {
+                    if is_inst(a) {
+                        match self.index_of_instance(a)? {
+                            Some(i) => ints.push(Value::Int(i)),
+                            None => return Err(not_int(self, a)),
+                        }
+                    } else {
+                        ints.push(a.clone());
+                    }
+                }
+                self.call_builtin("range", &ints, kwargs).map(Some)
+            }
+            _ => Ok(None),
+        }
+    }
+
+    /// What a special method found on the class is called as: a function
+    /// bound to the receiver, or whatever a descriptor's `__get__` hands
+    /// back (`unittest.mock` keeps its magic methods behind one).
+    pub(crate) fn special_bound(&mut self, m: Value, receiver: &Value, class: &Rc<Class>) -> R<Value> {
+        if let Value::Instance(di) = &m {
+            if let Some(g) = di.class.lookup("__get__") {
+                let getter = self.bind(g, m.clone(), &di.class);
+                return self.call_value(&getter, vec![receiver.clone(), Value::Class(class.clone())], Vec::new());
+            }
+        }
+        Ok(self.bind(m, receiver.clone(), class))
     }
 
     /// `a op b` when either side is an instance.
@@ -745,6 +1060,19 @@ impl Interp {
         if let Some(v) = self.dunder(b, reflected, vec![a.clone()])? {
             if !is_not_implemented(&v) {
                 return Ok(v);
+            }
+        }
+        // `"ab" * n` repeats by what `n.__index__()` says.
+        if op == BinOp::Mul {
+            let is_seq = |v: &Value| matches!(v, Value::Str(_) | Value::List(_) | Value::Tuple(_) | Value::Bytes(_));
+            if is_seq(a) {
+                if let Some(n) = self.index_of_instance(b)? {
+                    return self.binary_op(op, a, &Value::Int(n));
+                }
+            } else if is_seq(b) {
+                if let Some(n) = self.index_of_instance(a)? {
+                    return self.binary_op(op, &Value::Int(n), b);
+                }
             }
         }
         Err(self.error(
@@ -767,19 +1095,117 @@ impl Interp {
         Ok(v.truthy())
     }
 
-    /// `==`, asking `__eq__` when either side is an instance.
+    /// `==`, asking `__eq__` when either side is an instance, or holds one:
+    /// `[ANY] == [5]` asks `ANY`.
     pub(crate) fn eq(&mut self, a: &Value, b: &Value) -> R<bool> {
-        if matches!(a, Value::Instance(_)) || matches!(b, Value::Instance(_)) {
-            for (x, y) in [(a, b), (b, a)] {
-                if let Some(r) = self.dunder(x, "__eq__", vec![y.clone()])? {
-                    if !is_not_implemented(&r) {
-                        return self.truth(&r);
+        match (a, b) {
+            (Value::Instance(_), _) | (_, Value::Instance(_)) => {
+                for (x, y) in [(a, b), (b, a)] {
+                    if let Some(r) = self.dunder(x, "__eq__", vec![y.clone()])? {
+                        if !is_not_implemented(&r) {
+                            return self.truth(&r);
+                        }
                     }
                 }
+                Ok(py_identical(a, b))
             }
-            return Ok(py_identical(a, b));
+            (Value::List(x), Value::List(y)) if !Rc::ptr_eq(x, y) && (holds_instance(a) || holds_instance(b)) => {
+                let (x, y) = (x.borrow().clone(), y.borrow().clone());
+                self.eq_items(&x, &y)
+            }
+            (Value::Tuple(x), Value::Tuple(y)) if holds_instance(a) || holds_instance(b) => self.eq_items(x, y),
+            (Value::Dict(x), Value::Dict(y)) if !Rc::ptr_eq(x, y) && (holds_instance(a) || holds_instance(b)) => {
+                let (x, y) = (x.borrow().clone(), y.borrow().clone());
+                if x.len() != y.len() {
+                    return Ok(false);
+                }
+                self.eq_enter()?;
+                let mut same = true;
+                for (k, v) in x.iter() {
+                    let r = match y.get(k) {
+                        Some(w) => self.eq(v, w),
+                        None => Ok(false),
+                    };
+                    match r {
+                        Ok(true) => {}
+                        other => {
+                            same = false;
+                            if let Err(e) = other {
+                                self.eq_depth -= 1;
+                                return Err(e);
+                            }
+                            break;
+                        }
+                    }
+                }
+                self.eq_depth -= 1;
+                Ok(same)
+            }
+            _ => Ok(py_equals(a, b)),
         }
-        Ok(py_equals(a, b))
+    }
+
+    fn eq_enter(&mut self) -> R<()> {
+        if self.eq_depth >= 200 {
+            return Err(self.error("maximum recursion depth exceeded in comparison", "RecursionError"));
+        }
+        self.eq_depth += 1;
+        Ok(())
+    }
+
+    /// Two sequences item by item, the same object counting as equal
+    /// without asking it, as Python's lists and tuples do.
+    fn eq_items(&mut self, x: &[Value], y: &[Value]) -> R<bool> {
+        if x.len() != y.len() {
+            return Ok(false);
+        }
+        self.eq_enter()?;
+        let mut result = Ok(true);
+        for (p, q) in x.iter().zip(y) {
+            if let (Value::Instance(i), Value::Instance(j)) = (p, q) {
+                if Rc::ptr_eq(i, j) {
+                    continue;
+                }
+            }
+            match self.eq(p, q) {
+                Ok(true) => {}
+                other => {
+                    result = other;
+                    break;
+                }
+            }
+        }
+        self.eq_depth -= 1;
+        result
+    }
+
+    /// Where `needle` first is in `items` from `from` on, by `==`.
+    pub(crate) fn position_eq(&mut self, items: &[Value], needle: &Value, from: usize) -> R<Option<usize>> {
+        if !holds_instance(needle) && !items.iter().any(holds_instance) {
+            return Ok(items.iter().skip(from).position(|v| py_equals(v, needle)).map(|i| i + from));
+        }
+        for (i, v) in items.iter().enumerate().skip(from) {
+            if let (Value::Instance(p), Value::Instance(q)) = (v, needle) {
+                if Rc::ptr_eq(p, q) {
+                    return Ok(Some(i));
+                }
+            }
+            if self.eq(v, needle)? {
+                return Ok(Some(i));
+            }
+        }
+        Ok(None)
+    }
+
+    /// How many of `items` equal `needle`.
+    pub(crate) fn count_eq(&mut self, items: &[Value], needle: &Value) -> R<usize> {
+        let mut n = 0;
+        let mut from = 0;
+        while let Some(i) = self.position_eq(items, needle, from)? {
+            n += 1;
+            from = i + 1;
+        }
+        Ok(n)
     }
 
     /// `<`, `<=`, `>`, `>=` when either side is an instance, with Python's reflection.
@@ -866,7 +1292,7 @@ impl Interp {
             Value::Instance(inst) => {
                 for name in ["__str__", "__repr__"] {
                     if let Some(m) = inst.class.lookup(name) {
-                        let bound = self.bind(m, v.clone(), &inst.class);
+                        let bound = self.special_bound(m, v, &inst.class)?;
                         return match self.call_value(&bound, Vec::new(), Vec::new())? {
                             Value::Str(s) => Ok(s.to_string()),
                             other => Err(self.error(format!("{name} returned non-string (type {})", other.type_name()), "TypeError")),
@@ -923,7 +1349,7 @@ impl Interp {
             },
             Value::Instance(inst) => match inst.class.lookup("__repr__") {
                 Some(m) => {
-                    let bound = self.bind(m, v.clone(), &inst.class);
+                    let bound = self.special_bound(m, v, &inst.class)?;
                     match self.call_value(&bound, Vec::new(), Vec::new())? {
                         Value::Str(s) => s.to_string(),
                         other => return Err(self.error(format!("__repr__ returned non-string (type {})", other.type_name()), "TypeError")),
@@ -978,6 +1404,49 @@ impl Interp {
 
     /// Whether `except [clause]` catches an error of [kind], counting the
     /// script's own exception classes and their bases.
+    /// Which of [handlers] catches an exception of [kind]: a bare `except:`,
+    /// a plain name by name, any other type expression by its value, which
+    /// is worked out only now.
+    pub(crate) fn handler_for(&mut self, handlers: &[ExceptHandler], kind: &str, env: &Rc<Env>) -> R<Option<usize>> {
+        for (i, h) in handlers.iter().enumerate() {
+            if (h.types.is_empty() && h.exprs.is_empty()) || h.types.iter().any(|t| self.exception_is(t, kind)) {
+                return Ok(Some(i));
+            }
+            for (e, lenient) in &h.exprs {
+                let v = match self.eval(e, env) {
+                    Ok(v) => v,
+                    Err(Exc::Error(err)) if *lenient && !err.is_abort() => continue,
+                    Err(other) => return Err(other),
+                };
+                match self.catches(&v, kind) {
+                    Ok(true) => return Ok(Some(i)),
+                    Ok(false) => {}
+                    Err(_) if *lenient => {}
+                    Err(other) => return Err(other),
+                }
+            }
+        }
+        Ok(None)
+    }
+
+    /// Whether the value of an `except` type expression catches [kind]: a
+    /// class, a built-in exception, or a tuple of them.
+    fn catches(&mut self, v: &Value, kind: &str) -> R<bool> {
+        match v {
+            Value::Tuple(items) => {
+                for x in items.iter() {
+                    if self.catches(x, kind)? {
+                        return Ok(true);
+                    }
+                }
+                Ok(false)
+            }
+            Value::Class(c) => Ok(self.exception_is(&c.name, kind)),
+            Value::Builtin(n) if EXCEPTION_KINDS.contains(&n.as_ref()) => Ok(self.exception_is(n, kind)),
+            _ => Err(self.error("catching classes that do not inherit from BaseException is not allowed", "TypeError")),
+        }
+    }
+
     pub(crate) fn exception_is(&self, clause: &str, kind: &str) -> bool {
         if exception_matches(clause, kind) {
             return true;
@@ -1019,8 +1488,8 @@ impl Interp {
         if let Some(class) = self.exception_classes.get(error.kind.as_str()).cloned() {
             // Raised by name from the host (a PermissionError, an HTTPError):
             // make it an instance of the class the script can match on.
-            let inst = Rc::new(Instance { class, attrs: RefCell::new(name_map(0)) });
-            inst.attrs.borrow_mut().insert(Rc::from("args"), Value::tuple(vec![Value::str(&error.message)]));
+            let inst = Rc::new(Instance::new(class));
+            inst.insert(Rc::from("args"), Value::tuple(vec![Value::str(&error.message)]));
             self.track_instance(&inst);
             return Value::Instance(inst);
         }
@@ -1088,7 +1557,7 @@ impl Interp {
             if self.module_envs.contains_key(&prefix) {
                 continue;
             }
-            if let Some(source) = self.source_modules.get(&prefix).cloned() {
+            if let Some(source) = self.source_modules.get(&prefix).map(|s| s.text()) {
                 self.load_source(&prefix, &source)?;
             } else if !self.host_modules.contains_key(&prefix) && !self.enabled_modules.contains(&prefix.as_str()) {
                 // A folder of modules with no __init__.py: an empty namespace.
@@ -1127,6 +1596,9 @@ impl Interp {
         if let Some(env) = self.module_envs.get(module) {
             if let Some(v) = env.vars.borrow().get(name) {
                 return Some(v.clone());
+            }
+            if let Some(v) = self.globals_dict_get(env, name) {
+                return Some(v);
             }
         }
         let sub = format!("{module}.{name}");
@@ -1178,13 +1650,15 @@ impl Interp {
             "vars" => {
                 self.arity(name, args, 1)?;
                 match &args[0] {
-                    Value::Instance(i) => {
-                        let pairs: Vec<(Rc<str>, Value)> = i.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-                        Value::dict(pairs)
-                    }
+                    Value::Instance(i) => Value::Dict(i.dict()),
                     Value::Class(c) => self.class_attr(c, "__dict__").unwrap_or(Value::None),
                     other => return Err(self.error(format!("vars() argument must have __dict__, not '{}'", other.type_name()), "TypeError")),
                 }
+            }
+            "iter" if args.len() == 2 => {
+                // `iter(callable, sentinel)`: calls until the sentinel comes back.
+                let helper = self.python_builtin("__iter_call__")?;
+                self.call_value(&helper, args.to_vec(), Vec::new())?
             }
             "iter" => {
                 self.arity(name, args, 1)?;
@@ -1292,7 +1766,7 @@ impl Interp {
             HIDDEN_BASE_INIT => {
                 if let Some(Value::Instance(inst)) = args.first() {
                     if inst.class.exception_root.is_some() {
-                        inst.attrs.borrow_mut().insert(Rc::from("args"), Value::tuple(args[1..].to_vec()));
+                        inst.insert(Rc::from("args"), Value::tuple(args[1..].to_vec()));
                     }
                 }
                 Value::None
@@ -1302,7 +1776,15 @@ impl Interp {
                     return Err(self.error("__setattr__ needs an object, a name and a value", "TypeError"));
                 };
                 let attr = self.attr_name(&attr, "__setattr__")?;
-                self.raw_set(&inst, Rc::from(attr.as_str()), value)?;
+                self.object_setattr(&inst, &Rc::from(attr.as_str()), value)?;
+                Value::None
+            }
+            HIDDEN_OBJECT_DELATTR => {
+                let (Some(Value::Instance(inst)), Some(attr)) = (arg(0), arg(1)) else {
+                    return Err(self.error("__delattr__ needs an object and a name", "TypeError"));
+                };
+                let attr = self.attr_name(&attr, "__delattr__")?;
+                self.object_delattr(&inst, &attr)?;
                 Value::None
             }
             HIDDEN_OBJECT_GETATTR => {
@@ -1310,8 +1792,8 @@ impl Interp {
                     return Err(self.error("__getattribute__ needs an object and a name", "TypeError"));
                 };
                 let attr = self.attr_name(&attr, "__getattribute__")?;
-                let own = inst.attrs.borrow().get(attr.as_str()).cloned();
-                match own.or_else(|| inst.class.lookup(&attr).map(|v| self.bind(v, Value::Instance(inst.clone()), &inst.class))) {
+                let traits = self.class_traits(&inst.class);
+                match self.generic_attr(&inst, &attr, traits)? {
                     Some(v) => v,
                     None => return Err(self.error(format!("'{}' object has no attribute '{attr}'", inst.class.name), "AttributeError")),
                 }
@@ -1346,11 +1828,45 @@ impl Interp {
                 let Some(Value::Class(c)) = arg(0) else {
                     return Err(self.error("object.__new__(X): X is not a class", "TypeError"));
                 };
-                let inst = Rc::new(Instance { class: c.clone(), attrs: RefCell::new(name_map(0)) });
+                let inst = Rc::new(Instance::new(c.clone()));
                 self.track_instance(&inst);
                 Value::Instance(inst)
             }
-            HIDDEN_DEFAULT_STR => Value::str(py_str(&arg(0).unwrap_or(Value::None))),
+            // As CPython, object.__str__ shows what the class's __repr__ gives.
+            HIDDEN_DEFAULT_STR => match arg(0) {
+                Some(v @ Value::Instance(_)) => Value::str(self.to_repr(&v)?),
+                other => Value::str(py_str(&other.unwrap_or(Value::None))),
+            },
+            HIDDEN_OBJECT_EQ => {
+                let (Some(a), Some(b)) = (arg(0), arg(1)) else {
+                    return Err(self.error("__eq__ expected 1 argument", "TypeError"));
+                };
+                if py_identical(&a, &b) {
+                    Value::Bool(true)
+                } else {
+                    Value::Builtin(Rc::from("NotImplemented"))
+                }
+            }
+            HIDDEN_OBJECT_NE => {
+                let (Some(a), Some(b)) = (arg(0), arg(1)) else {
+                    return Err(self.error("__ne__ expected 1 argument", "TypeError"));
+                };
+                // The inverse of what `__eq__` says, unless it has no answer.
+                let eq = match self.dunder(&a, "__eq__", vec![b.clone()])? {
+                    Some(r) => r,
+                    None if py_identical(&a, &b) => Value::Bool(true),
+                    None => Value::Builtin(Rc::from("NotImplemented")),
+                };
+                if is_not_implemented(&eq) {
+                    eq
+                } else {
+                    Value::Bool(!self.truth(&eq)?)
+                }
+            }
+            HIDDEN_OBJECT_HASH => match arg(0) {
+                Some(v) => Value::Int(identity(&v) >> 4),
+                None => return Err(self.error("__hash__ expected an object", "TypeError")),
+            },
             HIDDEN_DEFAULT_REPR => Value::str(py_repr(&arg(0).unwrap_or(Value::None))),
             HIDDEN_PROPERTY_SETTER | HIDDEN_PROPERTY_GETTER => {
                 let (Some(Value::Object(p)), Some(f)) = (arg(0), arg(1)) else {
@@ -1445,7 +1961,7 @@ impl Interp {
                 "object" => true,
                 kind if EXCEPTION_KINDS.contains(&kind) => match value {
                     Value::Exception(e) => self.exception_is(kind, &e.kind),
-                    Value::Instance(i) => self.exception_is(kind, &i.class.name),
+                    Value::Instance(i) => i.class.exception_root.is_some() && self.exception_is(kind, &i.class.name),
                     _ => false,
                 },
                 // The other built-in types: function, generator, module and the like.
@@ -1494,6 +2010,11 @@ impl Interp {
                 return self.truth(&r);
             }
         }
+        if let Value::Instance(_) = ty {
+            if let Some(r) = self.dunder(ty, "__subclasscheck__", vec![sub.clone()])? {
+                return self.truth(&r);
+            }
+        }
         Ok(false)
     }
 
@@ -1514,7 +2035,7 @@ impl Interp {
         };
         match v {
             Value::Instance(i) => {
-                names.extend(i.attrs.borrow().keys().map(|s| s.to_string()));
+                names.extend(i.keys().iter().map(|s| s.to_string()));
                 from_class(&i.class, &mut names);
                 names.extend(["__class__", "__dict__", "__repr__", "__str__"].map(String::from));
             }
@@ -1576,7 +2097,28 @@ impl Interp {
                 }
                 None => Ok(false),
             },
+            // `isinstance(x, int | str)`: an object that answers for itself.
+            Value::Instance(_) => match self.dunder(ty, "__instancecheck__", vec![v.clone()])? {
+                Some(r) => self.truth(&r),
+                None => Ok(false),
+            },
             _ => Ok(false),
+        }
+    }
+
+    /// Whether `claimed`, a class or a built-in type, is `ty` (or one in
+    /// a tuple of them) or a subclass of it.
+    pub(crate) fn type_matches(&self, claimed: &Value, ty: &Value) -> bool {
+        match (claimed, ty) {
+            (_, Value::Tuple(t)) => t.iter().any(|x| self.type_matches(claimed, x)),
+            (Value::Class(c), _) => self.class_matches(c, ty),
+            (Value::Builtin(a), Value::Builtin(b)) => {
+                a == b
+                    || b.as_ref() == "object"
+                    || (a.as_ref() == "bool" && b.as_ref() == "int")
+                    || (EXCEPTION_KINDS.contains(&a.as_ref()) && self.exception_is(b, a))
+            }
+            _ => false,
         }
     }
 
@@ -1585,7 +2127,7 @@ impl Interp {
             Value::Tuple(t) => t.iter().any(|x| self.class_matches(c, x)),
             Value::Class(other) => c.is_subclass_of(other),
             Value::Builtin(n) if n.as_ref() == "object" => true,
-            Value::Builtin(n) => self.exception_is(n, &c.name),
+            Value::Builtin(n) => c.exception_root.is_some() && self.exception_is(n, &c.name),
             _ => false,
         }
     }
@@ -1596,6 +2138,18 @@ impl Interp {
 pub(crate) const HAS_PROPERTY: u8 = 1;
 /// `__setattr__` somewhere in the class or its bases.
 pub(crate) const HAS_SETATTR: u8 = 2;
+/// `__getattribute__` somewhere in the class or its bases: every attribute
+/// read on an instance goes through it.
+pub(crate) const HAS_GETATTRIBUTE: u8 = 4;
+/// An attribute whose class defines `__get__`, `__set__` or `__delete__`
+/// somewhere in the class or its bases: reads and writes ask it.
+pub(crate) const HAS_DESCRIPTOR: u8 = 8;
+
+/// Whether [v] is a descriptor object: an instance whose class defines
+/// `__get__`, `__set__` or `__delete__`.
+fn is_descriptor(v: &Value) -> bool {
+    matches!(v, Value::Instance(i) if i.class.lookup("__get__").is_some() || i.class.lookup("__set__").is_some() || i.class.lookup("__delete__").is_some())
+}
 
 /// Whether setting or deleting [name] (to [value]) on a class changes how
 /// its instances' attributes are looked up: a property, or a dunder.
@@ -1623,6 +2177,12 @@ impl Interp {
                 }
                 if name.as_ref() == "__setattr__" {
                     bits |= HAS_SETATTR;
+                }
+                if name.as_ref() == "__getattribute__" {
+                    bits |= HAS_GETATTRIBUTE;
+                }
+                if is_descriptor(v) {
+                    bits |= HAS_DESCRIPTOR;
                 }
             }
         }

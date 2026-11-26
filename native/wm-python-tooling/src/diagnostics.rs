@@ -13,7 +13,7 @@
 
 use crate::checks;
 use crate::document::{Document, Host};
-use crate::lexer::{number_shape, TokenKind, FOREIGN_PREFIX, TRIPLE, UNTERMINATED};
+use crate::lexer::{number_shape, TokenKind, TRIPLE, UNTERMINATED};
 use crate::structure::{BracketIssue, IndentIssue};
 use crate::text::Span;
 
@@ -263,11 +263,6 @@ fn lexical(doc: &Document, out: &mut Vec<Diagnostic>) {
                     let span = Span::new(start, (q as u32 + quotes).min(t.end(i)));
                     let code = if t.has(i, TRIPLE) { Code::UnclosedTripleString } else { Code::UnclosedString };
                     out.push(Diagnostic::new(code, span, &[]));
-                }
-                // Bytes literals run; only u"" strings are refused.
-                let first = t.units()[start as usize] as u8;
-                if t.has(i, FOREIGN_PREFIX) && (first == b'u' || first == b'U') {
-                    out.push(Diagnostic::new(Code::Unsupported, Span::new(start, start + 1), &["u\"\" strings"]));
                 }
             }
             TokenKind::Number => {

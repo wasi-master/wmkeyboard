@@ -180,9 +180,9 @@ fn small_programs() {
 
 #[test]
 fn rejected_syntax_says_why() {
-    assert!(failure("def f():\n    print((yield 1))").contains("write it as a statement of its own"));
+    assert!(failure("def f(a, a):\n    pass").contains("duplicate parameter 'a'"));
     assert!(failure("yield 1").contains("'yield' outside function"));
-    assert!(failure("async def f():\n    pass").contains("'async' is not supported"));
+    assert!(failure("async x = 1").contains("expected 'def', 'with' or 'for' after 'async'"));
 }
 
 #[test]

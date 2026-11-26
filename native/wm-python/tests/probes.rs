@@ -67,7 +67,13 @@ const DIVERGES: &[(&str, &str)] = &[
     ("188-edge-except-order.py", concat!(r##"[<class 'ValueError'>, "lookup:'k'", 'arith', 'lookup:i']"##, "\n")),
     ("137-is-identity.py", concat!(r##"[True, True, False, False, True, False]"##, "\n")),
     ("163-edge-predicates-unicode.py", concat!(r##"[True, True, False, True, True, True, False, True, True]"##, "\n")),
-    ("164-edge-strip-graphemes.py", concat!(r##"['éxé', 'x', 'a', 'x']"##, "\n")),
+    // 2026-11-27: strip() works on code points, as CPython's does, so
+    // stripping "e" leaves the accent it carried.
+    ("164-edge-strip-graphemes.py", "['\u{301}xe\u{301}', 'x', 'a', 'x']\n"),
+    // 2026-11-27: center() puts the odd pad character where CPython does,
+    // and float() says what it could not convert in CPython's words.
+    ("040-strings-pad.py", "['005', '-005', 'abc', 'a**', '  a', '---ab--', 'abc']\n"),
+    ("006-builtins-float-err.py", "ERROR: Line 1: ValueError: could not convert string to float: 'x1'\n"),
     ("165-edge-find-graphemes.py", concat!(r##"[1, 2, 1, 3, -1, 1]"##, "\n")),
     ("166-edge-split-unicode.py", concat!(r##"[['a', 'b', 'c'], ['a​b'], ['x\r', 'y'], ['', '', 'a']]"##, "\n")),
     ("182-edge-json-unicode.py", concat!(r##"['"😀é\\u0001\\b"', 0, 'é\n', '{"a": 1.0, "b": 1e+20, "c": -0.0}', 100.0, 0, 0]"##, "\n")),

@@ -31,7 +31,9 @@
 mod ast;
 mod builtins;
 mod bytes;
+mod charnames;
 mod classes;
+mod compress;
 mod datefmt;
 mod error;
 mod eval;
@@ -49,6 +51,7 @@ mod regex;
 mod resolve;
 mod scope;
 mod stdlib;
+mod structs;
 mod text;
 mod value;
 
@@ -226,7 +229,7 @@ impl Runtime {
     /// this runtime and on the importing call's budget. A [package] is the
     /// source of `pkg/__init__.py`, which relative imports resolve against.
     pub fn add_source_module(&mut self, name: &str, source: &str, package: bool) {
-        self.interp.source_modules.insert(name.to_string(), Rc::from(source));
+        self.interp.source_modules.insert(name.to_string(), stdlib::ModuleSource::Text(Rc::from(source)));
         if package {
             self.interp.packages.insert(name.to_string());
         }
@@ -251,7 +254,10 @@ impl Runtime {
                 continue;
             }
             if !self.interp.source_modules.contains_key(*name) {
-                self.add_source_module(name, source, *package);
+                self.interp.source_modules.insert(name.to_string(), stdlib::ModuleSource::Packed(source));
+                if *package {
+                    self.interp.packages.insert(name.to_string());
+                }
             }
         }
     }

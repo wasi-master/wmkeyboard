@@ -66,6 +66,30 @@ pub(crate) enum GenState {
     Done,
 }
 
+/// A coroutine: what calling an `async def` makes, or what an async
+/// generator's `__anext__`, `asend`, `athrow` and `aclose` hand back. It runs
+/// when awaited, to its end, as nothing else is waiting to run meanwhile.
+pub struct Coroutine {
+    pub(crate) name: Rc<str>,
+    pub(crate) state: RefCell<CoState>,
+}
+
+pub(crate) enum CoState {
+    /// The function and its frame, its arguments bound.
+    Pending(Rc<Function>, Rc<Env>),
+    /// An async generator's next item, or the one after sending a value.
+    Next(Value),
+    Send(Value, Value),
+    Throw(Value, Value),
+    Close(Value),
+    Running,
+    Done,
+}
+
+pub(crate) fn coroutine(name: Rc<str>, state: CoState) -> Value {
+    Value::Object(Rc::new(Object::Coroutine(Coroutine { name, state: RefCell::new(state) })))
+}
+
 pub(crate) enum GenBody {
     Function(FnGen),
     Comprehension(CompGen),
@@ -795,12 +819,16 @@ impl Interp {
                     let StmtKind::Try(t) = &stmt.kind else { continue };
                     if let (Phase::Body, Exc::Error(e)) = (phase, &exc) {
                         if !e.is_abort() {
-                            let handler = t.handlers.iter().position(|h| h.types.is_empty() || h.types.iter().any(|ty| self.exception_is(ty, &e.kind)));
-                            if let Some(i) = handler {
-                                let Exc::Error(e) = exc else { unreachable!() };
-                                let saved = self.enter_handler(&t.handlers[i], &e, env);
-                                enter(&mut g.levels, depth, Inner::Try { phase: Phase::Handler(i), pending: None, saved: Some(saved) });
-                                return Ok(());
+                            let kind = e.kind.clone();
+                            match self.handler_for(&t.handlers, &kind, env) {
+                                Ok(Some(i)) => {
+                                    let Exc::Error(e) = exc else { unreachable!() };
+                                    let saved = self.enter_handler(&t.handlers[i], &e, env);
+                                    enter(&mut g.levels, depth, Inner::Try { phase: Phase::Handler(i), pending: None, saved: Some(saved) });
+                                    return Ok(());
+                                }
+                                Ok(None) => {}
+                                Err(e2) => exc = e2,
                             }
                         }
                     }
@@ -861,6 +889,106 @@ impl Interp {
         let saved_instance = self.active_instance.replace(caught);
         let saved_line = std::mem::replace(&mut self.active_line, error.line);
         (saved_exception, saved_instance, saved_line)
+    }
+
+    // MARK: - coroutines
+
+    /// `await value`: a coroutine runs to its end; anything else with an
+    /// `__await__` has the iterator that gives run until it returns.
+    pub(crate) fn await_value(&mut self, v: Value) -> R<Value> {
+        let it = match &v {
+            Value::Object(o) if matches!(o.as_ref(), Object::Coroutine(_) | Object::Generator(_)) => v.clone(),
+            _ => match self.dunder(&v, "__await__", Vec::new())? {
+                Some(it) => it,
+                None => return Err(self.error(format!("object {} can't be used in 'await' expression", v.type_name()), "TypeError")),
+            },
+        };
+        if let Value::Object(o) = &it {
+            match o.as_ref() {
+                Object::Coroutine(_) => return self.coroutine_run(o),
+                Object::Generator(_) => loop {
+                    // What it yields would go to an event loop; there is none to wait for.
+                    if let Step::Return(v) = self.gen_resume(o, Resume::Send(Value::None))? {
+                        return Ok(v);
+                    }
+                },
+                _ => {}
+            }
+        }
+        loop {
+            match self.dunder(&it, "__next__", Vec::new()) {
+                Ok(Some(_)) => {}
+                Ok(None) => return Err(self.error(format!("__await__() returned non-iterator of type '{}'", it.type_name()), "TypeError")),
+                Err(Exc::Error(e)) if !e.is_abort() && e.kind == "StopIteration" => {
+                    let caught = self.caught_value(&e);
+                    return Ok(self.attribute(&caught, "value").unwrap_or(Value::None));
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    /// Runs a coroutine to its end: its value, or what it raised.
+    pub(crate) fn coroutine_run(&mut self, o: &Rc<Object>) -> R<Value> {
+        let Object::Coroutine(c) = o.as_ref() else { unreachable!() };
+        let busy = match &*c.state.borrow() {
+            CoState::Running => Some("coroutine is being awaited already"),
+            CoState::Done => Some("cannot reuse already awaited coroutine"),
+            _ => None,
+        };
+        if let Some(message) = busy {
+            return Err(self.error(message, "RuntimeError"));
+        }
+        let state = std::mem::replace(&mut *c.state.borrow_mut(), CoState::Running);
+        let gen_step = |this: &mut Interp, gen: &Value, method: &str, args: &[Value]| -> R<Value> {
+            let Value::Object(g) = gen else { return Ok(Value::None) };
+            match this.generator_method(g, method, args) {
+                // An async generator that ends says so with StopAsyncIteration.
+                Err(Exc::Error(e)) if !e.is_abort() && e.kind == "StopIteration" && method != "close" => Err(this.error("", "StopAsyncIteration")),
+                r => r,
+            }
+        };
+        let result = match state {
+            CoState::Pending(f, frame) => self.run_body(&f, frame),
+            CoState::Next(g) => gen_step(self, &g, "__next__", &[]),
+            CoState::Send(g, v) => gen_step(self, &g, "send", &[v]),
+            CoState::Throw(g, v) => gen_step(self, &g, "throw", &[v]),
+            CoState::Close(g) => gen_step(self, &g, "close", &[]),
+            CoState::Running | CoState::Done => unreachable!(),
+        };
+        *c.state.borrow_mut() = CoState::Done;
+        result
+    }
+
+    /// The methods of a coroutine and of an async generator.
+    pub(crate) fn coroutine_method(&mut self, o: &Rc<Object>, name: &str, args: &[Value]) -> R<Value> {
+        match (o.as_ref(), name) {
+            (Object::Coroutine(_), "send" | "__next__") => {
+                let v = self.coroutine_run(o)?;
+                Err(self.stop_iteration(v))
+            }
+            (Object::Coroutine(c), "throw") => {
+                *c.state.borrow_mut() = CoState::Done;
+                match args.first() {
+                    Some(v) => Err(self.exception_from(v)),
+                    None => Err(self.error("throw expected at least 1 argument, got 0", "TypeError")),
+                }
+            }
+            (Object::Coroutine(c), "close") => {
+                *c.state.borrow_mut() = CoState::Done;
+                Ok(Value::None)
+            }
+            (Object::Coroutine(_), "__await__") | (Object::AsyncGen(..), "__aiter__") => Ok(Value::Object(o.clone())),
+            (Object::AsyncGen(n, g), "__anext__") => Ok(coroutine(n.clone(), CoState::Next(g.clone()))),
+            (Object::AsyncGen(n, g), "asend") => Ok(coroutine(n.clone(), CoState::Send(g.clone(), args.first().cloned().unwrap_or(Value::None)))),
+            (Object::AsyncGen(n, g), "athrow") => match args.first() {
+                Some(v) => Ok(coroutine(n.clone(), CoState::Throw(g.clone(), v.clone()))),
+                None => Err(self.error("athrow expected at least 1 argument, got 0", "TypeError")),
+            },
+            (Object::AsyncGen(n, g), "aclose") => Ok(coroutine(n.clone(), CoState::Close(g.clone()))),
+            (Object::AsyncGen(..), _) => Err(self.error(format!("'async_generator' object has no attribute '{name}'"), "AttributeError")),
+            _ => Err(self.error(format!("'coroutine' object has no attribute '{name}'"), "AttributeError")),
+        }
     }
 
     // MARK: - generator methods

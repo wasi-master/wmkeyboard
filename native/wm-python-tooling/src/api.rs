@@ -105,10 +105,16 @@ pub const MODULES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// Standard library modules written in Python that API 5 plugins can import.
 /// Their members are not modelled, so code using them is not checked name by name.
 pub const LIBRARY: &[&str] = &[
-    "abc", "base64", "bisect", "collections", "collections.abc", "contextlib", "copy", "dataclasses", "datetime",
-    "enum", "fnmatch", "functools", "hashlib", "heapq", "hmac", "html", "io", "itertools", "keyword", "logging",
-    "numbers", "operator", "os", "os.path", "statistics", "string", "textwrap", "traceback", "types", "typing",
-    "unicodedata", "urllib", "urllib.parse", "uuid", "warnings",
+    "abc", "argparse", "array", "ast", "asyncio", "base64", "binascii", "bisect", "builtins", "calendar", "codecs",
+    "collections", "collections.abc", "configparser", "contextlib", "contextvars", "copy", "csv", "dataclasses",
+    "datetime", "difflib", "email", "email.charset", "email.errors", "email.header", "email.message", "email.mime",
+    "email.mime.application", "email.mime.audio", "email.mime.base", "email.mime.image", "email.mime.message",
+    "email.mime.multipart", "email.mime.nonmultipart", "email.mime.text", "email.parser", "email.policy",
+    "email.utils", "enum", "errno", "fnmatch", "functools", "gzip", "hashlib", "heapq", "hmac", "html", "importlib",
+    "importlib.metadata", "importlib.resources", "importlib.util", "inspect", "io", "itertools", "keyword", "logging",
+    "mimetypes", "numbers", "operator", "os", "os.path", "pprint", "secrets", "shlex", "statistics", "string",
+    "struct", "textwrap", "traceback", "types", "typing", "unicodedata", "unittest", "unittest.mock", "urllib",
+    "urllib.parse", "uuid", "warnings", "weakref", "zlib",
 ];
 pub const CONTRACT: &[&str] = &["render", "on_event", "transform"];
 
@@ -124,15 +130,15 @@ pub const EXCEPTIONS: &[&str] = &[
     "BaseException", "SystemExit", "KeyboardInterrupt", "RecursionError", "ModuleNotFoundError", "UnicodeEncodeError",
     "EOFError", "FloatingPointError", "SyntaxError", "IndentationError", "FileExistsError", "IsADirectoryError",
     "NotADirectoryError", "BlockingIOError", "ConnectionRefusedError", "ConnectionResetError", "ConnectionAbortedError",
-    "BrokenPipeError", "Warning", "UserWarning", "DeprecationWarning", "PendingDeprecationWarning", "RuntimeWarning",
+    "BrokenPipeError", "StopAsyncIteration", "Warning", "UserWarning", "DeprecationWarning", "PendingDeprecationWarning", "RuntimeWarning",
     "SyntaxWarning", "FutureWarning", "ImportWarning", "UnicodeWarning", "BytesWarning", "ResourceWarning",
 ];
 
 /// Builtins taken out because they reach outside the script.
-pub const REMOVED_BUILTINS: &[&str] = &["open", "input", "compile", "__import__", "breakpoint", "exit", "quit", "help"];
+pub const REMOVED_BUILTINS: &[&str] = &["open", "input", "compile", "breakpoint", "exit", "quit", "help"];
 
 /// Builtins Python has and PyMini does not.
-pub const MISSING_BUILTINS: &[&str] = &["memoryview", "complex", "aiter", "anext"];
+pub const MISSING_BUILTINS: &[&str] = &["complex"];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
 /// typed text or reach the file system. (The network, the clipboard and the
@@ -366,6 +372,10 @@ fn build() -> Model {
     add("vars", Builtin, Some("vars(obj)"), None, "An object's attributes as a dict.");
     add("iter", Builtin, Some("iter(values)"), None, "An iterator over values, which next() takes items from.");
     add("next", Builtin, Some("next(iterator, default)"), None, "The next item, or default when there is none left; without a default, StopIteration.");
+    add("aiter", Builtin, Some("aiter(async_iterable)"), None, "An async iterator over async_iterable, which anext() takes items from.");
+    add("anext", Builtin, Some("anext(async_iterator, default)"), None, "Awaited, the next item, or default when there is none left; without a default, StopAsyncIteration.");
+    add("memoryview", Builtin, Some("memoryview(data)"), None, "A view of bytes or a bytearray that indexes and slices like them: memoryview(b\"ab\")[0] is 97.");
+    add("__import__", Builtin, Some("__import__(name, globals=None, locals=None, fromlist=(), level=0)"), None, "The module the import statement would load: the top package, or the named module itself when fromlist is given.");
     add("property", Builtin, Some("property(fget, fset=None)"), None, "A computed attribute. Usually written as @property above a method, and @name.setter for the setter.");
     add("staticmethod", Builtin, Some("staticmethod(function)"), None, "A method that takes neither self nor the class. Usually written as @staticmethod.");
     add("classmethod", Builtin, Some("classmethod(function)"), None, "A method that takes the class as its first argument. Usually written as @classmethod.");
@@ -566,6 +576,9 @@ fn build() -> Model {
         add(leak(format!("re.{name}")), Function, Some(leak(sig.to_string())), None, doc);
     }
     add("Pattern", Type, None, None, "What re.compile returns. Its methods are re's, without the pattern argument.");
+    add("re.Pattern", Type, None, None, "The type of what re.compile returns, for isinstance() and annotations.");
+    add("re.Match", Type, None, None, "The type of what re.search, re.match and re.fullmatch return, for isinstance() and annotations.");
+    add("re.error", Type, None, None, "What a pattern that does not compile raises. Here it is ValueError.");
     for (name, sig, doc) in [
         ("search", "search(text, pos=0, endpos=None)", "The first match anywhere in text, or None."),
         ("match", "match(text, pos=0, endpos=None)", "A match at the start of text, or None."),

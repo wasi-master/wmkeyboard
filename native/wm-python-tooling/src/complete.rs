@@ -388,7 +388,9 @@ impl<'a> Context<'a> {
                 .collect();
             return self.finish(items, false);
         }
-        self.finish(self.importable_modules(), false)
+        // Ranked: `wm`, the built-in modules and the bundled libraries come
+        // before the standard library's long list.
+        self.finish(self.importable_modules(), true)
     }
 
     /// `wm`, the six modules, and the standard library modules API 5 plugins may import.

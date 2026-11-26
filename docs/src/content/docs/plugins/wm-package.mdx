@@ -90,6 +90,8 @@ needs:
   expressions, which run only as far as something asks
 - the walrus `:=`, `...`, `eval` and `exec`, `from module import *`, and
   `from __future__ import annotations`
+- `async def`, `await`, `async for` and `async with`, which `asyncio` runs one
+  coroutine at a time (see below)
 - list, dict and set comprehensions, f-strings (`{x=}` too), slicing, slice
   assignment, unpacking with a starred target (`first, *rest = items`), type
   annotations (read and ignored)
@@ -97,25 +99,28 @@ needs:
 - exact 64-bit integers with `<<`, `>>` and the other bit operators,
   `int.from_bytes` and `n.to_bytes` for binary formats; past 64 bits a result
   becomes a float, since there are no big integers
-- Python's string escapes, `\x41`, `\u00e9` and `\U0001F600` included, though
-  not `\N{name}`
+- Python's string escapes, `\x41`, `\u00e9`, `\U0001F600` and `\N{BULLET}`
+  included
 - Python's sorting (stable, with `key` and `reverse`), dict keys (`1` and
   `1.0` are one key; `__hash__` and `__eq__` decide for your classes),
   `frozenset`, `bytearray`, and `re.compile` with lookahead, lookbehind and
   backreferences
 - `type(x)` answers with the type (`type(1) is int`), and `d.keys()`,
   `d.values()` and `d.items()` are live views of the dict, as in Python
+- descriptors (`__get__`, `__set__`, `__set_name__`), `__getattribute__`, a
+  live `obj.__dict__`, in-place methods such as `__iadd__`, and the number
+  hooks (`__index__`, `__int__`, `__float__`, `__abs__`, `__round__` and the
+  rest) that the builtins and `math` ask
 
-Not there: `async` and `await`, `compile`, `open` and `__import__`, big
-integers, and subclasses of `dict`, `list` or `str`. A script that uses
-`async` is refused with a message that names it.
+Not there: `compile`, `open`, big integers, complex numbers, `%` formatting of
+bytes, and subclasses of `dict`, `list` or `str`.
 
 **Modules you can import:**
 
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `base64`, `bisect`, `collections`, `collections.abc`, `contextlib`, `copy`, `dataclasses`, `datetime`, `enum`, `fnmatch`, `functools`, `hashlib`, `heapq`, `hmac`, `html`, `io`, `itertools`, `keyword`, `logging`, `numbers`, `operator`, `os.path`, `statistics`, `string`, `textwrap`, `traceback`, `types`, `typing`, `unicodedata`, `urllib.parse`, `uuid`, `warnings` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `csv`, `dataclasses`, `datetime`, `difflib`, `email` and its modules, `enum`, `errno`, `fnmatch`, `functools`, `gzip`, `hashlib`, `heapq`, `hmac`, `html`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `itertools`, `keyword`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pprint`, `secrets`, `shlex`, `statistics`, `string`, `struct`, `textwrap`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `zlib` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -130,11 +135,30 @@ integers, and subclasses of `dict`, `list` or `str`. A script that uses
 `logging` and `warnings` all write to the plugin's log, where `print` goes.
 `os` is only its path functions and an empty `environ`: files go through
 [`wm.storage`](#storage) and [`wm.files`](#files). `unicodedata` has normal
-forms, categories and digit values, but not character names. In `itertools`, `count`, `cycle` and `repeat` are endless
+forms, categories, digit values and character names. In `itertools`, `count`, `cycle` and `repeat` are endless
 iterators: `islice`, `takewhile`, `zip` and `next()` take only what they need
-from them. `typing.NamedTuple` classes unpack and compare like tuples. The
-[classic reference](/plugins/api-reference/#the-python-you-get) has more detail
-on the built-in modules, strings and dicts.
+from them. `typing.NamedTuple` classes unpack and compare like tuples.
+
+`asyncio` has no event loop. Awaiting a coroutine runs it to its end there and
+then, so `create_task` starts one at once, `gather` awaits each in turn and
+`sleep` returns without waiting; waiting on something only another task could
+finish, such as an empty `Queue`, raises `RuntimeError`. `unittest` runs
+`TestCase` classes with Python's assertion messages, and `unittest.mock` has
+`Mock`, `MagicMock`, `AsyncMock`, `PropertyMock`, `patch` (with `.object`,
+`.dict` and `.multiple`), `call`, `ANY`, `mock_open`, `create_autospec` and
+`seal`. `zlib`, `gzip`, `struct`, `array`, `binascii` and `base64` work on bytes
+in memory. `str.encode`, `bytes.decode` and `codecs` know UTF-8 (with or without
+a signature), UTF-16, UTF-32, ASCII, Latin-1, Windows-1252, `unicode_escape`,
+`rot13` and `hex`. `argparse` parses the list you give it; on bad input it
+writes the usage to the log and raises `SystemExit`. `inspect` reads
+signatures and kinds of object but has no source to show, `ast` has only
+`literal_eval`, `importlib.import_module` imports by name, and
+`importlib.metadata` finds no installed packages. A `weakref` keeps its object
+alive, since there is no garbage collector to watch it go. `secrets` draws on
+a seed taken once from the system's random source.
+
+The [classic reference](/plugins/api-reference/#the-python-you-get) has more
+detail on the built-in modules, strings and dicts.
 
 ## plugin
 

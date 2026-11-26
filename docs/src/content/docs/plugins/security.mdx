@@ -44,10 +44,14 @@ user granted.
    the plugin's page, behind a warning, and the global
    <SettingsPath path="Tools / Plugins / Allow risky permissions" /> switch, which
    is off by default. An update that adds one, or adds a host, leaves it off.
-6. **Plugins cannot execute downloaded code.** There is no `eval`, `exec`,
-   `compile` or `__import__`, and `import` reaches the plugin's own files and the
-   bundled library only. A plugin is source, read by the interpreter's own
-   parser.
+6. **Plugins cannot load native or Android code.** `import` reaches the
+   plugin's own files and the bundled library only, and there is no `compile`
+   or `open`. A plugin is source, read by the interpreter's own parser. `eval`
+   and `exec` do exist: they run Python text in the same interpreter, with the
+   plugin's own permissions, step budget and limits, so they reach nothing the
+   plugin's source could not. A plugin granted `network` could fetch Python
+   text and run it that way, so what such a plugin does is not fixed by the
+   source you installed.
 7. **Plugins reach Android only through named calls.** No `open`, no `os`, no
    reflection, no class loading, no file paths, no Intents. Each host call
    (`http.request`, `field.insert`, ...) is checked twice: the interpreter
@@ -78,11 +82,13 @@ editor's preview runs the same code compiled to WebAssembly.
 The sandbox is mostly a matter of what was never written. PyMini has no file,
 network or process access because none exists in it, not because a check stands
 in the way. `import` reaches `math`, `re`, `json`, `time`, `random` and `sys`,
-and each of those only computes: `time` reads the clock, `random` draws from a
-seedable generator, `sys` holds a version string. The built-in functions have no
-`open`, `eval`, `exec`, `compile`, `getattr` or `__import__`, and there are no
-classes, so there is no object model to climb through to reach something the
-API left out.
+and the standard library modules written in Python on top of them, and each of
+those only computes: `time` reads the clock, `random` draws from a seedable
+generator, `sys` holds a version string. The built-in functions have no `open`
+or `compile`. Classes, `getattr`, `eval` and `exec` are there, but every object
+a script can reach is one the interpreter made. No host object stands behind
+any of them, so climbing the object model (`().__class__.__mro__` and on) finds
+only more of the interpreter's own values.
 
 The boundary with the app is coarse on purpose. The app passes in a plugin's
 source, its settings and each event as JSON, and gets JSON back: a widget tree,

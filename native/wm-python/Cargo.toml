@@ -9,6 +9,10 @@ license = "MIT"
 [lib]
 path = "src/lib.rs"
 
+[build-dependencies]
+# Deflates the stdlib modules written in Python (build.rs).
+miniz_oxide = { version = "0.8", default-features = false, features = ["with-alloc"] }
+
 [dependencies]
 unicode-segmentation = "1.13"
 unicode-normalization = "0.1.26"

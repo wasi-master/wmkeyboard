@@ -48,8 +48,8 @@ A message such as `expected ')'` is the keyboard's parser stopping on a line
 it cannot read yet. `wmpy pip check NAME` shows that line for any package.
 
 Some packages fail on purpose: they reach for the file system, sockets,
-threads, other processes or the interpreter's own internals (`inspect`,
-`importlib`), which plugins go without. Some have a replacement in the
+threads, other processes or the interpreter's own internals (frames, code
+objects, `sys.settrace`), which plugins go without. Some have a replacement in the
 [`wm` package](/plugins/wm-package/), such as `wm.http` for sockets, and
 the keyboard ships its own [`requests`, `httpx` and
 `urllib.request`](/plugins/guides/requests/) that go through `wm.http`.

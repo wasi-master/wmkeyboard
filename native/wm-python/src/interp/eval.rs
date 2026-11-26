@@ -31,8 +31,10 @@ pub const MAX_CALL_DEPTH: u32 = 1000;
 
 /// The most native stack a script may use, measured from where it started.
 /// Hosts give scripts 8 MB; what is left over covers the stretch between
-/// two checks and the host's own frames.
-pub const STACK_BUDGET: usize = 6 << 20;
+/// two checks and the host's own frames. An unoptimised build's frames are
+/// about twice the size, so it allows 24 MB, which its tests' 64 MB threads
+/// give: 1,000 calls deep fits either way.
+pub const STACK_BUDGET: usize = if cfg!(debug_assertions) { 24 << 20 } else { 6 << 20 };
 
 /// How often, in steps, the cancel flag and the deadline are read.
 const POLL_EVERY: u64 = 256;
@@ -147,6 +149,14 @@ pub(crate) struct Interp {
     pub max_string: usize,
     pub(crate) call_depth: u32,
     cluster_cache: Option<(Rc<str>, Rc<[u32]>)>,
+    /// The dict `globals()` gave for a module: names set through it are
+    /// found when the module's own variables do not have them.
+    globals_dicts: Vec<(std::rc::Weak<Env>, DictRef)>,
+    /// How deep `==` is inside containers that hold instances.
+    pub(crate) eq_depth: u32,
+    /// Attributes set on a module written in Rust or by the host
+    /// (`json.dumps = fake`, `time.time = fake`): they win over its own.
+    module_overrides: HashMap<(Rc<str>, Rc<str>), Value>,
     pub cancel: Arc<AtomicBool>,
     #[cfg(not(target_arch = "wasm32"))]
     pub deadline: Option<std::time::Instant>,
@@ -168,7 +178,7 @@ pub(crate) struct Interp {
     /// The functions running now, innermost last, with their scopes: what `super()` reads.
     pub(crate) frames: Vec<(Rc<Function>, Rc<Env>)>,
     /// Modules written in Python that a script may import, by dotted name.
-    pub(crate) source_modules: HashMap<String, Rc<str>>,
+    pub(crate) source_modules: HashMap<String, super::stdlib::ModuleSource>,
     /// Which of those are packages (`pkg/__init__.py`), for relative imports.
     pub(crate) packages: HashSet<String>,
     /// The ones loaded so far, by dotted name.
@@ -212,7 +222,7 @@ impl Drop for Interp {
         self.spare.clear();
         for w in self.instances.drain(..) {
             if let Some(i) = w.upgrade() {
-                i.attrs.borrow_mut().clear();
+                i.clear();
             }
         }
         for w in self.classes.drain(..) {
@@ -224,6 +234,10 @@ impl Drop for Interp {
             env.vars.borrow_mut().clear();
         }
         self.module_envs.clear();
+        self.module_overrides.clear();
+        self.globals_dicts.clear();
+        self.eq_depth = 0;
+        self.module_envs.insert("__main__".to_string(), self.globals.clone());
         self.hash_buckets.clear();
         self.exception_classes.clear();
         self.frames.clear();
@@ -243,8 +257,12 @@ pub(crate) fn err(message: impl Into<String>, kind: &str, line: u32) -> Exc {
 impl Interp {
     pub fn new(limits: Limits, modules: &[&str], clock: Rc<dyn Clock>) -> Interp {
         let enabled = modules::ALL_NAMES.iter().copied().filter(|m| modules.contains(m)).collect();
+        let globals = main_globals();
+        let mut module_envs = HashMap::new();
+        // The script itself, as `import __main__` and `sys.modules["__main__"]` reach it.
+        module_envs.insert("__main__".to_string(), globals.clone());
         Interp {
-            globals: main_globals(),
+            globals,
             max_steps: limits.steps,
             steps: 0,
             poll_at: 0,
@@ -260,6 +278,9 @@ impl Interp {
             max_string: limits.string_length,
             call_depth: 0,
             cluster_cache: None,
+            globals_dicts: Vec::new(),
+            eq_depth: 0,
+            module_overrides: HashMap::new(),
             cancel: Arc::new(AtomicBool::new(false)),
             #[cfg(not(target_arch = "wasm32"))]
             deadline: None,
@@ -274,7 +295,7 @@ impl Interp {
             frames: Vec::new(),
             source_modules: HashMap::new(),
             packages: HashSet::new(),
-            module_envs: HashMap::new(),
+            module_envs,
             current_module: Rc::from("__main__"),
             repr_depth: 0,
             plain_object: None,
@@ -530,6 +551,15 @@ impl Interp {
                 return Ok(());
             }
         }
+        // `x += y` on an object asks its `__iadd__` first, then `+`.
+        if let Value::Instance(_) = current {
+            let name = super::classes::inplace_method(op);
+            if let Some(v) = self.dunder(&current, name, vec![rhs.clone()])? {
+                if !matches!(&v, Value::Builtin(n) if n.as_ref() == "NotImplemented") {
+                    return self.assign(target, v, env);
+                }
+            }
+        }
         let v = self.binary_op(op, &current, &rhs)?;
         self.assign(target, v, env)
     }
@@ -625,25 +655,24 @@ impl Interp {
     #[inline(never)]
     fn exec_try(&mut self, stmt: &TryStmt, env: &Rc<Env>) -> R<()> {
         let mut pending: Option<Exc> = None;
-        let body = match self.exec_block(&stmt.body, env) {
-            Ok(()) => match &stmt.else_body {
-                Some(e) => self.exec_block(e, env),
-                None => Ok(()),
-            },
-            e => e,
-        };
+        let body = self.exec_block(&stmt.body, env);
         match body {
-            Ok(()) => {}
+            // `else` runs outside the handlers: what it raises they never see.
+            Ok(()) => {
+                if let Some(e) = &stmt.else_body {
+                    if let Err(x) = self.exec_block(e, env) {
+                        pending = Some(x);
+                    }
+                }
+            }
             Err(Exc::Error(error)) => {
                 if error.is_abort() {
                     pending = Some(Exc::Error(error));
                 } else {
-                    let handler = stmt
-                        .handlers
-                        .iter()
-                        .find(|h| h.types.is_empty() || h.types.iter().any(|t| self.exception_is(t, &error.kind)));
-                    match handler {
-                        Some(h) => {
+                    match self.handler_for(&stmt.handlers, &error.kind, env) {
+                        Err(e) => pending = Some(e),
+                        Ok(Some(i)) => {
+                            let h = &stmt.handlers[i];
                             let caught = self.caught_value(&error);
                             let value = match &caught {
                                 Value::Exception(e) => e.clone(),
@@ -667,7 +696,7 @@ impl Interp {
                                 self.unbind(b, env);
                             }
                         }
-                        None => pending = Some(Exc::Error(error)),
+                        Ok(None) => pending = Some(Exc::Error(error)),
                     }
                 }
             }
@@ -735,13 +764,12 @@ impl Interp {
             Value::Str(s) => err(s.to_string(), "Exception", self.current_line),
             Value::Instance(inst) => {
                 if inst.class.exception_root.is_some() {
-                    let mut attrs = inst.attrs.borrow_mut();
                     if let Some(c) = cause {
-                        attrs.insert(Rc::from("__cause__"), c);
+                        inst.insert(Rc::from("__cause__"), c);
                     }
                     if let Some(c) = context {
-                        if !attrs.contains_key("__context__") && !matches!(&c, Value::Instance(o) if Rc::ptr_eq(o, &inst)) {
-                            attrs.insert(Rc::from("__context__"), c);
+                        if !inst.has("__context__") && !matches!(&c, Value::Instance(o) if Rc::ptr_eq(o, &inst)) {
+                            inst.insert(Rc::from("__context__"), c);
                         }
                     }
                 }
@@ -750,10 +778,10 @@ impl Interp {
             Value::Class(c) if c.exception_root.is_some() => match self.construct(&c, Vec::new(), Vec::new()) {
                 Ok(Value::Instance(inst)) => {
                     if let Some(c) = cause {
-                        inst.attrs.borrow_mut().insert(Rc::from("__cause__"), c);
+                        inst.insert(Rc::from("__cause__"), c);
                     }
                     if let Some(c) = context {
-                        inst.attrs.borrow_mut().insert(Rc::from("__context__"), c);
+                        inst.insert(Rc::from("__context__"), c);
                     }
                     self.raise_instance(&inst)
                 }
@@ -883,6 +911,9 @@ impl Interp {
     /// `module.name`, looking at the host's modules, then modules written in
     /// Python, then the standard ones.
     pub fn member(&self, module: &str, name: &str) -> Option<Value> {
+        if let Some(v) = self.module_override(module, name) {
+            return Some(v);
+        }
         if module == "sys" {
             if let Some(v) = self.sys_member(name) {
                 return Some(v);
@@ -984,7 +1015,7 @@ impl Interp {
         if method.is_none() {
             return Err(self.error(format!("unhashable type: '{}'", inst.class.name), "TypeError"));
         }
-        let bound = self.bind(method, v.clone(), &inst.class);
+        let bound = self.special_bound(method, v, &inst.class)?;
         let hash = match self.call_value(&bound, Vec::new(), Vec::new())? {
             Value::Int(i) => i,
             Value::Bool(b) => b as i64,
@@ -1243,7 +1274,21 @@ impl Interp {
             }
             // A generator's own statements run these; the resolver lets them stand nowhere else.
             Expr::Yield(_) | Expr::YieldFrom(_) => Err(self.error("'yield' outside a generator", "SyntaxError")),
+            Expr::Invalid(kind, message) => Err(self.invalid_literal(kind, message)),
+            Expr::Await(e) => self.eval_await(e, env),
         }
+    }
+
+    /// Out of line, so `eval` (on the stack once per nested call) stays small.
+    #[inline(never)]
+    fn eval_await(&mut self, e: &Expr, env: &Rc<Env>) -> R<Value> {
+        let v = self.eval(e, env)?;
+        self.await_value(v)
+    }
+
+    #[inline(never)]
+    fn invalid_literal(&mut self, kind: &str, message: &str) -> Exc {
+        self.error(message.to_string(), kind)
     }
 
     #[inline(never)]
@@ -1302,10 +1347,94 @@ impl Interp {
         if let Some(v) = env.module().vars.borrow().get_hinted(&n.id, &n.hint) {
             return Ok(v.clone());
         }
+        if let Some(v) = self.globals_dict_get(env.module(), &n.id) {
+            return Ok(v);
+        }
         self.load_builtin(&n.id)
     }
 
+    /// What a script set [module].[name] to, for a module not written in Python.
+    pub(crate) fn module_override(&self, module: &str, name: &str) -> Option<Value> {
+        if self.module_overrides.is_empty() {
+            return None;
+        }
+        self.module_overrides.get(&(Rc::from(module), Rc::from(name))).cloned()
+    }
+
+    pub(crate) fn set_module_override(&mut self, module: &Rc<str>, name: &Rc<str>, value: Option<Value>) -> bool {
+        let key = (module.clone(), name.clone());
+        // Putting back the module's own function (what a patch does when it
+        // ends) drops the override, which would otherwise call itself.
+        let own = |v: &Value| matches!(v, Value::ModuleFunction(mf) if mf.0.as_ref() == module.as_ref() && mf.1.as_ref() == name.as_ref());
+        let value = value.filter(|v| !own(v) && !matches!(v, Value::Builtin(b) if module.as_ref() == "builtins" && b == name));
+        if value.is_none() && !self.module_overrides.contains_key(&key) {
+            return false;
+        }
+        match value {
+            Some(v) => {
+                self.module_overrides.insert(key, v);
+                true
+            }
+            None => self.module_overrides.remove(&key).is_some(),
+        }
+    }
+
+    /// The one `globals()` dict of the module scope [root], brought up to date.
+    pub(crate) fn globals_dict_of(&mut self, root: &Rc<Env>) -> DictRef {
+        self.globals_dicts.retain(|(w, _)| w.strong_count() > 0);
+        let dict = match self.globals_dicts.iter().find(|(w, _)| std::ptr::eq(w.as_ptr(), Rc::as_ptr(root))) {
+            Some((_, d)) => d.clone(),
+            None => {
+                let d: DictRef = Rc::new(RefCell::new(DictMap::default()));
+                self.globals_dicts.push((Rc::downgrade(root), d.clone()));
+                d
+            }
+        };
+        let module = root.vars.borrow().pairs();
+        {
+            let mut map = dict.borrow_mut();
+            for (k, v) in module {
+                map.insert(HKey::str(&k), v);
+            }
+        }
+        dict
+    }
+
+    /// `module.__dict__`: the module's globals for one written in Python,
+    /// a snapshot of its members for any other.
+    fn module_dict(&mut self, m: &Rc<str>) -> R<Value> {
+        if let Some(env) = self.module_envs.get(m.as_ref()).cloned() {
+            return Ok(Value::Dict(self.globals_dict_of(&env)));
+        }
+        let names = match self.dir_of(&Value::Module(m.clone()))? {
+            Value::List(l) => l.borrow().clone(),
+            _ => Vec::new(),
+        };
+        let mut pairs = Vec::with_capacity(names.len());
+        for n in names {
+            if let Value::Str(n) = n {
+                if let Some(v) = self.member(m, &n) {
+                    pairs.push((n, v));
+                }
+            }
+        }
+        Ok(Value::dict(pairs))
+    }
+
+    /// [name] as set through `globals()` of the module [module], if it was.
+    pub(crate) fn globals_dict_get(&self, module: &Env, name: &str) -> Option<Value> {
+        if self.globals_dicts.is_empty() {
+            return None;
+        }
+        let found = self.globals_dicts.iter().find(|(w, _)| std::ptr::eq(w.as_ptr(), module) && w.strong_count() > 0);
+        found.and_then(|(_, d)| d.borrow().get(&StrKey(name)).cloned())
+    }
+
     fn load_builtin(&mut self, n: &Rc<str>) -> R<Value> {
+        // `builtins.open = fake`, as `unittest.mock.patch("builtins.open")` does.
+        if let Some(v) = self.module_override("builtins", n) {
+            return Ok(v);
+        }
         if let Some(f) = self.host_functions.get(n.as_ref()) {
             return Ok(Value::HostFunction(f.clone()));
         }
@@ -1591,9 +1720,17 @@ impl Interp {
         self.call_value(&c, a, kw)
     }
 
-    /// `globals()`, `locals()` (and `vars()`), and `dir()` of the scope [env]:
-    /// copies, so writing to one changes no variable.
+    /// `globals()`, `locals()` (and `vars()`), and `dir()` of the scope [env].
+    /// `locals()` is a copy; `globals()` is one dict per module, brought up
+    /// to date each call, and a name set in it is a global from then on.
     pub(crate) fn scope_builtin(&mut self, name: &str, env: &Rc<Env>) -> R<Value> {
+        if name == "globals" {
+            let mut root = env.clone();
+            while let Some(p) = root.parent.clone() {
+                root = p;
+            }
+            return Ok(Value::Dict(self.globals_dict_of(&root)));
+        }
         let module = env.module().vars.borrow().pairs();
         let pairs: Vec<(Rc<str>, Value)> = match name {
             "globals" => module,
@@ -1786,6 +1923,18 @@ impl Interp {
     /// Attribute access outside a call: module members, the data attributes
     /// exceptions and matches have, and (an addition) a dict's string keys.
     pub fn attribute(&mut self, obj: &Value, name: &str) -> R<Value> {
+        // `f.__call__` of a function or method: calling it calls `f`.
+        if name == "__call__" {
+            let plain = match obj {
+                Value::Function(_) | Value::ModuleFunction(_) | Value::HostFunction(_) => true,
+                Value::Builtin(n) => !matches!(n.as_ref(), "Ellipsis" | "NotImplemented"),
+                Value::Object(o) => matches!(o.as_ref(), Object::Bound(..) | Object::StaticMethod(_) | Object::ClassMethod(_)),
+                _ => false,
+            };
+            if plain {
+                return Ok(obj.clone());
+            }
+        }
         match obj {
             Value::Instance(inst) => match self.instance_attr(inst, name)? {
                 Some(v) => Ok(v),
@@ -1793,6 +1942,13 @@ impl Interp {
             },
             Value::Class(c) => {
                 if let Some(v) = self.class_attr(c, name) {
+                    // `Cls.attr` on a descriptor: its `__get__(None, Cls)`.
+                    if let Value::Instance(di) = &v {
+                        if let Some(g) = di.class.lookup("__get__") {
+                            let bound = self.bind(g, v.clone(), &di.class.clone());
+                            return self.call_value(&bound, vec![Value::None, obj.clone()], Vec::new());
+                        }
+                    }
                     return Ok(v);
                 }
                 // Then the metaclass's, bound to the class.
@@ -1806,6 +1962,10 @@ impl Interp {
                         }
                         return Ok(self.bind(v, obj.clone(), m));
                     }
+                }
+                // `Cls.__call__`: calling it makes an instance.
+                if name == "__call__" {
+                    return Ok(obj.clone());
                 }
                 Err(self.error(format!("type object '{}' has no attribute '{name}'", c.name), "AttributeError"))
             }
@@ -1832,9 +1992,15 @@ impl Interp {
                         other => Ok(Value::str(other.to_str())),
                     },
                     _ => match f {
-                        // A method reads its function's own attributes, as Python's does.
-                        Value::Function(func) if func.attrs.borrow().contains_key(name) => {
-                            Ok(func.attrs.borrow().get(name).cloned().unwrap_or(Value::None))
+                        // A method reads its function's attributes, as Python's does.
+                        Value::Function(_) => {
+                            let f = f.clone();
+                            match self.attribute(&f, name) {
+                                Err(Exc::Error(e)) if e.kind == "AttributeError" && !e.is_abort() => {
+                                    Err(self.error(format!("'method' object has no attribute '{name}'"), "AttributeError"))
+                                }
+                                other => other,
+                            }
                         }
                         _ => Err(self.error(format!("'method' object has no attribute '{name}'"), "AttributeError")),
                     },
@@ -1852,6 +2018,17 @@ impl Interp {
                     "step" => Ok(Value::Int(*c)),
                     "index" | "count" => Ok(self.method_value(obj, name)),
                     _ => Err(self.error(format!("'range' object has no attribute '{name}'"), "AttributeError")),
+                },
+                Object::Coroutine(c) => match name {
+                    "__name__" | "__qualname__" => Ok(Value::Str(c.name.clone())),
+                    "cr_running" => Ok(Value::Bool(matches!(*c.state.borrow(), super::generators::CoState::Running))),
+                    "send" | "throw" | "close" | "__await__" | "__next__" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'coroutine' object has no attribute '{name}'"), "AttributeError")),
+                },
+                Object::AsyncGen(n, _) => match name {
+                    "__name__" | "__qualname__" => Ok(Value::Str(n.clone())),
+                    "__aiter__" | "__anext__" | "asend" | "athrow" | "aclose" => Ok(self.method_value(obj, name)),
+                    _ => Err(self.error(format!("'async_generator' object has no attribute '{name}'"), "AttributeError")),
                 },
                 Object::Generator(g) => match name {
                     "__name__" | "__qualname__" => Ok(Value::Str(g.name.clone())),
@@ -1876,7 +2053,8 @@ impl Interp {
                     return Ok(v.clone());
                 }
                 match name {
-                    "__name__" | "__qualname__" => Ok(Value::Str(f.name.clone())),
+                    "__name__" => Ok(Value::Str(f.name.clone())),
+                    "__qualname__" => Ok(Value::str(call_name(f))),
                     "__doc__" => Ok(match &f.body {
                         FnBody::Def(d) => docstring(&d.body),
                         FnBody::Lambda(..) => Value::None,
@@ -1887,6 +2065,56 @@ impl Interp {
                         let n = f.signature().positional.len();
                         let given: Vec<Value> = f.defaults[..n.min(f.defaults.len())].iter().flatten().cloned().collect();
                         Ok(if given.is_empty() { Value::None } else { Value::tuple(given) })
+                    }
+                    "__kwdefaults__" => {
+                        let sig = f.signature();
+                        let n = sig.positional.len();
+                        let pairs: Vec<(Rc<str>, Value)> = sig
+                            .keyword_only
+                            .iter()
+                            .zip(f.defaults.iter().skip(n))
+                            .filter_map(|(p, d)| d.clone().map(|d| (p.name.clone(), d)))
+                            .collect();
+                        Ok(if pairs.is_empty() { Value::None } else { Value::dict(pairs) })
+                    }
+                    "__annotations__" => Ok(Value::dict(Vec::<(Rc<str>, Value)>::new())),
+                    "__closure__" => Ok(Value::None),
+                    "__type_params__" => Ok(Value::tuple(Vec::new())),
+                    // What inspect reads: the parameters and how the function runs.
+                    "__code__" => {
+                        let sig = f.signature();
+                        let info = f.frame_info();
+                        let mut flags = 0i64;
+                        if sig.variadic.is_some() {
+                            flags |= 0x04;
+                        }
+                        if sig.kwargs.is_some() {
+                            flags |= 0x08;
+                        }
+                        flags |= match (info.generator, info.coroutine) {
+                            (true, true) => 0x200,
+                            (true, false) => 0x20,
+                            (false, true) => 0x80,
+                            _ => 0,
+                        };
+                        let mut varnames: Vec<Value> = sig.positional.iter().chain(sig.keyword_only.iter()).map(|p| Value::Str(p.name.clone())).collect();
+                        varnames.extend(sig.variadic.iter().chain(sig.kwargs.iter()).map(|n| Value::Str(n.clone())));
+                        for n in &info.names {
+                            if !varnames.iter().any(|v| v.as_str() == Some(n)) {
+                                varnames.push(Value::Str(n.clone()));
+                            }
+                        }
+                        Ok(Value::dict(vec![
+                            ("co_name", Value::Str(f.display_name())),
+                            ("co_qualname", Value::Str(f.display_name())),
+                            ("co_argcount", Value::Int(sig.positional.len() as i64)),
+                            ("co_posonlyargcount", Value::Int(sig.posonly as i64)),
+                            ("co_kwonlyargcount", Value::Int(sig.keyword_only.len() as i64)),
+                            ("co_varnames", Value::tuple(varnames)),
+                            ("co_flags", Value::Int(flags)),
+                            ("co_filename", Value::str("<plugin>")),
+                            ("co_firstlineno", Value::Int(0)),
+                        ]))
                     }
                     "__dict__" => {
                         let pairs: Vec<(Rc<str>, Value)> = f.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
@@ -1905,10 +2133,30 @@ impl Interp {
                     _ => super::classes::HIDDEN_TYPE_INIT,
                 })))
             }
+            // `Exception.__init__(self, message)` from a subclass's own `__init__`.
+            Value::Builtin(b)
+                if matches!(name, "__init__" | "__new__" | "__str__" | "__repr__" | "__setattr__" | "__delattr__" | "__getattribute__" | "__init_subclass__")
+                    && super::builtins::EXCEPTION_KINDS.contains(&b.as_ref()) =>
+            {
+                Ok(Value::Builtin(Rc::from(match name {
+                    "__init_subclass__" => super::classes::HIDDEN_OBJECT_INIT_SUBCLASS,
+                    "__setattr__" => super::classes::HIDDEN_OBJECT_SETATTR,
+                    "__delattr__" => super::classes::HIDDEN_OBJECT_DELATTR,
+                    "__getattribute__" => super::classes::HIDDEN_OBJECT_GETATTR,
+                    "__init__" => super::classes::HIDDEN_BASE_INIT,
+                    "__new__" => super::classes::HIDDEN_OBJECT_NEW,
+                    "__str__" => super::classes::HIDDEN_DEFAULT_STR,
+                    _ => super::classes::HIDDEN_DEFAULT_REPR,
+                })))
+            }
             Value::Builtin(b) if b.as_ref() == "object" => {
                 let hidden = match name {
                     "__init_subclass__" => super::classes::HIDDEN_OBJECT_INIT_SUBCLASS,
                     "__setattr__" => super::classes::HIDDEN_OBJECT_SETATTR,
+                    "__delattr__" => super::classes::HIDDEN_OBJECT_DELATTR,
+                    "__eq__" => super::classes::HIDDEN_OBJECT_EQ,
+                    "__ne__" => super::classes::HIDDEN_OBJECT_NE,
+                    "__hash__" => super::classes::HIDDEN_OBJECT_HASH,
                     "__getattribute__" | "__getattr__" => super::classes::HIDDEN_OBJECT_GETATTR,
                     "__init__" => super::classes::HIDDEN_BASE_INIT,
                     "__new__" => super::classes::HIDDEN_OBJECT_NEW,
@@ -1922,10 +2170,12 @@ impl Interp {
                 };
                 Ok(Value::Builtin(Rc::from(hidden)))
             }
+            Value::Builtin(b) if name == "__module__" && !b.starts_with(super::methods::UNBOUND_PREFIX) => Ok(Value::str("builtins")),
             Value::Builtin(b) if name == "__name__" => match b.strip_prefix(super::methods::UNBOUND_PREFIX) {
                 Some(path) => Ok(Value::str(path.rsplit('.').next().unwrap_or(path))),
                 None => Ok(Value::Str(b.clone())),
             },
+            Value::Module(m) if name == "__dict__" => self.module_dict(m),
             Value::Module(m) => self
                 .member(m, name)
                 .ok_or_else(|| self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
@@ -2045,7 +2295,7 @@ impl Interp {
             },
             Value::Instance(inst) => match inst.class.lookup("__call__") {
                 Some(m) => {
-                    let bound = self.bind(m, callee.clone(), &inst.class);
+                    let bound = self.special_bound(m, callee, &inst.class)?;
                     self.call_value(&bound, args, kwargs)
                 }
                 None => Err(self.error(format!("'{}' object is not callable", inst.class.name), "TypeError")),
@@ -2177,7 +2427,9 @@ impl Interp {
         let keyword_base = next;
         let mut extra: DictMap = DictMap::default();
         for (k, v) in kwargs {
-            let at = match params.iter().position(|q| q.name == k) {
+            // A keyword never fills a parameter before `/`; with **kwargs it lands there instead.
+            let posonly = params[..sig.posonly].iter().any(|q| q.name == k);
+            let at = match params.iter().position(|q| q.name == k).filter(|i| *i >= sig.posonly) {
                 Some(i) => Some(i),
                 None => sig.keyword_only.iter().position(|q| q.name == k).map(|j| keyword_base + j),
             };
@@ -2190,6 +2442,12 @@ impl Interp {
                 }
                 None if sig.kwargs.is_some() => {
                     extra.insert(HKey::Str(k), v);
+                }
+                None if posonly => {
+                    return Err(self.error(
+                        format!("{}() got some positional-only arguments passed as keyword arguments: '{k}'", call_name(f)),
+                        "TypeError",
+                    ));
                 }
                 None => {
                     return Err(self.error(format!("{}() got an unexpected keyword argument '{k}'", call_name(f)), "TypeError"));
@@ -2266,9 +2524,31 @@ impl Interp {
     /// Run [f]'s body in [frame], its arguments already bound. A generator
     /// function hands back a generator instead, which runs the body as it is asked.
     pub(crate) fn run_frame(&mut self, f: &Rc<Function>, frame: Rc<Env>) -> R<Value> {
-        if f.frame_info().generator {
+        let info = f.frame_info();
+        if info.coroutine {
+            return Ok(self.make_coroutine(f, frame));
+        }
+        if info.generator {
             return Ok(self.function_generator(f, frame));
         }
+        self.run_body(f, frame)
+    }
+
+    /// An `async def` called: a coroutine, or with `yield` an async generator.
+    #[inline(never)]
+    fn make_coroutine(&mut self, f: &Rc<Function>, frame: Rc<Env>) -> Value {
+        let name = f.display_name();
+        if f.frame_info().generator {
+            let g = self.function_generator(f, frame);
+            return Value::Object(Rc::new(Object::AsyncGen(name, g)));
+        }
+        super::generators::coroutine(name, super::generators::CoState::Pending(f.clone(), frame))
+    }
+
+    /// Run [f]'s body in [frame] now: what a call does, and what awaiting a
+    /// coroutine does. Inlined into each, so a call costs one native frame.
+    #[inline(always)]
+    pub(crate) fn run_body(&mut self, f: &Rc<Function>, frame: Rc<Env>) -> R<Value> {
         self.check_depth()?;
         self.call_depth += 1;
         self.frames.push((f.clone(), frame.clone()));
@@ -2456,6 +2736,11 @@ impl Interp {
                 return Ok(Value::str(self.printf_style(s, b)?));
             }
         }
+        // `int | str`, `list[int] | None`: a union of types.
+        if op == BinOp::BitOr && type_like(a) && type_like(b) {
+            let union = self.python_builtin("__union__")?;
+            return self.call_value(&union, vec![a.clone(), b.clone()], Vec::new());
+        }
         if matches!(op, BinOp::BitAnd | BinOp::BitOr | BinOp::BitXor | BinOp::LShift | BinOp::RShift) {
             let (Some(x), Some(y)) = (a.as_int(), b.as_int()) else {
                 return Err(self.error(
@@ -2481,6 +2766,12 @@ impl Interp {
                     None => Value::Float(x as f64 * 2f64.powi(y.min(2000) as i32)),
                 },
             });
+        }
+        if op == BinOp::MatMul {
+            return Err(self.error(
+                format!("unsupported operand type(s) for @: '{}' and '{}'", a.type_name(), b.type_name()),
+                "TypeError",
+            ));
         }
         // Two integers stay exact across the whole 64-bit range, as Python's
         // do; only past it does the result become a float.
@@ -2766,7 +3057,7 @@ impl Interp {
         }
         Ok(match op {
             CmpOp::Eq => self.eq(a, b)?,
-            CmpOp::Ne => !py_equals(a, b),
+            CmpOp::Ne => !self.eq(a, b)?,
             CmpOp::Is => py_identical(a, b),
             CmpOp::IsNot => !py_identical(a, b),
             CmpOp::In => self.contains(b, a)?,
@@ -2909,8 +3200,11 @@ impl Interp {
                 };
                 i.is_empty() || s.contains(i.as_ref())
             }
-            Value::List(l) => l.borrow().clone().iter().any(|v| py_equals(v, item)),
-            Value::Tuple(t) => t.iter().any(|v| py_equals(v, item)),
+            Value::List(l) => {
+                let items = l.borrow().clone();
+                self.position_eq(&items, item, 0)?.is_some()
+            }
+            Value::Tuple(t) => self.position_eq(t, item, 0)?.is_some(),
             Value::Set(_) | Value::Dict(_) => {
                 // An unhashable item is in no set or dict.
                 let key = match item {
@@ -3056,9 +3350,13 @@ impl Interp {
         // `items[slice(1, 3)]` is `items[1:3]`.
         if let (Value::Object(o), false) = (idx, matches!(base, Value::Instance(_) | Value::Dict(_))) {
             if let Object::Slice(a, b, c) = o.as_ref() {
-                let step = self.slice_step(c)?;
-                let (lo, hi) = (self.slice_bound(a)?, self.slice_bound(b)?);
-                return self.slice(base, lo.map(Value::Int).as_ref(), hi.map(Value::Int).as_ref(), Some(&Value::Int(step)));
+                return self.slice(base, Some(a), Some(b), Some(c));
+            }
+        }
+        // `items[n]` for an object with `__index__`.
+        if let (Value::Instance(_), false) = (idx, matches!(base, Value::Instance(_) | Value::Dict(_))) {
+            if let Some(i) = self.index_of_instance(idx)? {
+                return self.index(base, &Value::Int(i));
             }
         }
         match base {
@@ -3110,6 +3408,11 @@ impl Interp {
                 let c = c.clone();
                 self.class_getitem(&c, idx)
             }
+            // `list[int]`, `dict[str, int]`: a GenericAlias, as in Python 3.9 on.
+            Value::Builtin(n) if super::builtins::is_type_name(n) => {
+                let alias = self.python_builtin("GenericAlias")?;
+                self.call_value(&alias, vec![base.clone(), idx.clone()], Vec::new())
+            }
             Value::Instance(_) => match self.dunder(base, "__getitem__", vec![idx.clone()])? {
                 Some(v) => Ok(v),
                 None => Err(self.error(format!("'{}' object is not subscriptable", base.type_name()), "TypeError")),
@@ -3118,13 +3421,26 @@ impl Interp {
         }
     }
 
+    /// A slice bound: None, an int, or an object's `__index__`.
+    fn slice_arg(&mut self, v: Option<&Value>) -> R<Option<i64>> {
+        match v {
+            None | Some(Value::None) => Ok(None),
+            Some(Value::Int(i)) => Ok(Some(*i)),
+            Some(Value::Bool(b)) => Ok(Some(*b as i64)),
+            Some(other) => match self.index_of_instance(other)? {
+                Some(i) => Ok(Some(i)),
+                None => Err(self.error("slice indices must be integers or None or have an __index__ method", "TypeError")),
+            },
+        }
+    }
+
     fn slice(&mut self, base: &Value, lo: Option<&Value>, hi: Option<&Value>, st: Option<&Value>) -> R<Value> {
-        let step = st.and_then(Value::as_int).unwrap_or(1);
+        let step = self.slice_arg(st)?.unwrap_or(1);
         if step == 0 {
             return Err(self.error("slice step cannot be zero", "ValueError"));
         }
-        let l = lo.and_then(Value::as_int);
-        let h = hi.and_then(Value::as_int);
+        let l = self.slice_arg(lo)?;
+        let h = self.slice_arg(hi)?;
         let indices = |n: usize| slice_indices(n as i64, l, h, step);
         Ok(match base {
             Value::Str(s) if plain_ascii(s) => {
@@ -3326,7 +3642,7 @@ pub(crate) fn exception_matches(clause: &str, kind: &str) -> bool {
 /// class (not shadowed by an instance attribute) with only positional parameters.
 #[inline]
 fn plain_method(inst: &Rc<Instance>, name: &str) -> Option<Rc<Function>> {
-    if inst.attrs.borrow().contains_key(name) {
+    if inst.has(name) {
         return None;
     }
     match inst.class.lookup(name) {
@@ -3375,6 +3691,15 @@ fn numeric(d: f64, as_int: bool) -> Value {
     Value::Float(d)
 }
 
+/// A type, or None, as the operand of a `|` that makes a union.
+fn type_like(v: &Value) -> bool {
+    match v {
+        Value::Builtin(n) => super::builtins::is_type_name(n),
+        Value::Class(_) | Value::None => true,
+        _ => false,
+    }
+}
+
 fn op_symbol(op: BinOp) -> &'static str {
     match op {
         BinOp::Add => "+",
@@ -3389,6 +3714,7 @@ fn op_symbol(op: BinOp) -> &'static str {
         BinOp::BitXor => "^",
         BinOp::LShift => "<<",
         BinOp::RShift => ">>",
+        BinOp::MatMul => "@",
     }
 }
 

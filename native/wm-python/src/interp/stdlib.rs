@@ -16,55 +16,173 @@ use super::text::{category_abbr, decimal_value, east_asian_width, longer_than, n
 use super::error::R;
 use super::eval::Interp;
 use super::value::*;
+use std::rc::Rc;
 
-/// `(dotted name, source, is a package)` for every module written in Python.
-pub(crate) const PYTHON_MODULES: &[(&str, &str, bool)] = &[
-    ("abc", include_str!("../stdlib/abc.py"), false),
-    ("base64", include_str!("../stdlib/base64.py"), false),
-    ("bisect", include_str!("../stdlib/bisect.py"), false),
-    ("collections", include_str!("../stdlib/collections.py"), true),
-    ("collections.abc", include_str!("../stdlib/collections_abc.py"), false),
-    ("contextlib", include_str!("../stdlib/contextlib.py"), false),
-    ("copy", include_str!("../stdlib/copy.py"), false),
-    ("dataclasses", include_str!("../stdlib/dataclasses.py"), false),
-    ("datetime", include_str!("../stdlib/datetime.py"), false),
-    ("enum", include_str!("../stdlib/enum.py"), false),
-    ("fnmatch", include_str!("../stdlib/fnmatch.py"), false),
-    ("functools", include_str!("../stdlib/functools.py"), false),
-    ("hashlib", include_str!("../stdlib/hashlib.py"), false),
-    ("heapq", include_str!("../stdlib/heapq.py"), false),
-    ("hmac", include_str!("../stdlib/hmac.py"), false),
-    ("html", include_str!("../stdlib/html.py"), false),
-    ("io", include_str!("../stdlib/io.py"), false),
-    ("itertools", include_str!("../stdlib/itertools.py"), false),
-    ("keyword", include_str!("../stdlib/keyword.py"), false),
-    ("logging", include_str!("../stdlib/logging.py"), false),
-    ("numbers", include_str!("../stdlib/numbers.py"), false),
-    ("operator", include_str!("../stdlib/operator.py"), false),
-    ("os", include_str!("../stdlib/os.py"), true),
-    ("os.path", include_str!("../stdlib/os_path.py"), false),
-    ("statistics", include_str!("../stdlib/statistics.py"), false),
-    ("string", include_str!("../stdlib/string.py"), false),
-    ("textwrap", include_str!("../stdlib/textwrap.py"), false),
-    ("time", include_str!("../stdlib/time.py"), false),
-    ("traceback", include_str!("../stdlib/traceback.py"), false),
-    ("types", include_str!("../stdlib/types.py"), false),
-    ("typing", include_str!("../stdlib/typing.py"), false),
-    ("unicodedata", include_str!("../stdlib/unicodedata.py"), false),
-    ("urllib", "", true),
-    ("urllib.parse", include_str!("../stdlib/urllib_parse.py"), false),
-    ("uuid", include_str!("../stdlib/uuid.py"), false),
-    ("warnings", include_str!("../stdlib/warnings.py"), false),
+/// A bundled module's deflated source, as build.rs wrote it.
+macro_rules! packed {
+    ($path:literal) => {
+        include_bytes!(concat!(env!("OUT_DIR"), "/stdlib/", $path, ".deflate"))
+    };
+}
+
+/// `(dotted name, deflated source, is a package)` for every module written in
+/// Python. An empty source is an empty package.
+pub(crate) const PYTHON_MODULES: &[(&str, &[u8], bool)] = &[
+    ("abc", packed!("abc.py"), false),
+    ("argparse", packed!("argparse.py"), false),
+    ("array", packed!("array.py"), false),
+    ("ast", packed!("ast.py"), false),
+    ("asyncio", packed!("asyncio.py"), false),
+    ("base64", packed!("base64.py"), false),
+    ("binascii", packed!("binascii.py"), false),
+    ("bisect", packed!("bisect.py"), false),
+    ("builtins", packed!("builtins.py"), false),
+    ("calendar", packed!("calendar.py"), false),
+    ("codecs", packed!("codecs.py"), false),
+    ("collections", packed!("collections.py"), true),
+    ("collections.abc", packed!("collections_abc.py"), false),
+    ("configparser", packed!("configparser.py"), false),
+    ("contextlib", packed!("contextlib.py"), false),
+    ("contextvars", packed!("contextvars.py"), false),
+    ("copy", packed!("copy.py"), false),
+    ("csv", packed!("csv.py"), false),
+    ("dataclasses", packed!("dataclasses.py"), false),
+    ("datetime", packed!("datetime.py"), false),
+    ("difflib", packed!("difflib.py"), false),
+    ("email", packed!("email/__init__.py"), true),
+    ("email.charset", packed!("email/charset.py"), false),
+    ("email.errors", packed!("email/errors.py"), false),
+    ("email.header", packed!("email/header.py"), false),
+    ("email.message", packed!("email/message.py"), false),
+    ("email.mime", packed!("email/mime/__init__.py"), true),
+    ("email.mime.application", packed!("email/mime/application.py"), false),
+    ("email.mime.audio", packed!("email/mime/audio.py"), false),
+    ("email.mime.base", packed!("email/mime/base.py"), false),
+    ("email.mime.image", packed!("email/mime/image.py"), false),
+    ("email.mime.message", packed!("email/mime/message.py"), false),
+    ("email.mime.multipart", packed!("email/mime/multipart.py"), false),
+    ("email.mime.nonmultipart", packed!("email/mime/nonmultipart.py"), false),
+    ("email.mime.text", packed!("email/mime/text.py"), false),
+    ("email.parser", packed!("email/parser.py"), false),
+    ("email.policy", packed!("email/policy.py"), false),
+    ("email.utils", packed!("email/utils.py"), false),
+    ("enum", packed!("enum.py"), false),
+    ("errno", packed!("errno.py"), false),
+    ("fnmatch", packed!("fnmatch.py"), false),
+    ("functools", packed!("functools.py"), false),
+    ("gzip", packed!("gzip.py"), false),
+    ("hashlib", packed!("hashlib.py"), false),
+    ("heapq", packed!("heapq.py"), false),
+    ("hmac", packed!("hmac.py"), false),
+    ("html", packed!("html.py"), false),
+    ("importlib", packed!("importlib/__init__.py"), true),
+    ("importlib.metadata", packed!("importlib/metadata.py"), false),
+    ("importlib.resources", packed!("importlib/resources.py"), false),
+    ("importlib.util", packed!("importlib/util.py"), false),
+    ("inspect", packed!("inspect.py"), false),
+    ("io", packed!("io.py"), false),
+    ("itertools", packed!("itertools.py"), false),
+    ("keyword", packed!("keyword.py"), false),
+    ("logging", packed!("logging.py"), false),
+    ("mimetypes", packed!("mimetypes.py"), false),
+    ("numbers", packed!("numbers.py"), false),
+    ("operator", packed!("operator.py"), false),
+    ("os", packed!("os.py"), true),
+    ("os.path", packed!("os_path.py"), false),
+    ("pprint", packed!("pprint.py"), false),
+    ("secrets", packed!("secrets.py"), false),
+    ("shlex", packed!("shlex.py"), false),
+    ("statistics", packed!("statistics.py"), false),
+    ("string", packed!("string.py"), false),
+    ("struct", packed!("struct.py"), false),
+    ("textwrap", packed!("textwrap.py"), false),
+    ("time", packed!("time.py"), false),
+    ("traceback", packed!("traceback.py"), false),
+    ("types", packed!("types.py"), false),
+    ("typing", packed!("typing.py"), false),
+    ("unicodedata", packed!("unicodedata.py"), false),
+    ("unittest", packed!("unittest/__init__.py"), true),
+    ("unittest.mock", packed!("unittest/mock.py"), false),
+    ("urllib", b"", true),
+    ("urllib.parse", packed!("urllib_parse.py"), false),
+    ("uuid", packed!("uuid.py"), false),
+    ("warnings", packed!("warnings.py"), false),
+    ("weakref", packed!("weakref.py"), false),
+    ("zlib", packed!("zlib.py"), false),
 ];
 
 /// `frozenset` and `bytearray`, loaded when a script first names one: always
 /// there, unlike the modules above, which a host turns on.
-pub(crate) const BUILTINS_SOURCE: &str = include_str!("../stdlib/_builtins.py");
+pub(crate) const BUILTINS_SOURCE: &[u8] = packed!("_builtins.py");
+
+/// A module's source: text a host or plugin gave, or one of the bundled
+/// modules, inflated when it is first imported.
+#[derive(Clone)]
+pub(crate) enum ModuleSource {
+    Text(Rc<str>),
+    Packed(&'static [u8]),
+}
+
+impl ModuleSource {
+    pub(crate) fn text(&self) -> Rc<str> {
+        match self {
+            ModuleSource::Text(t) => t.clone(),
+            ModuleSource::Packed(b) if b.is_empty() => Rc::from(""),
+            ModuleSource::Packed(b) => {
+                let raw = miniz_oxide::inflate::decompress_to_vec(b).expect("a bundled module inflates");
+                Rc::from(String::from_utf8(raw).expect("a bundled module is UTF-8"))
+            }
+        }
+    }
+}
 
 pub(crate) const NATIVE_FUNCTIONS: &[&str] = &[
     "digest", "b64encode", "b64decode", "mktime", "quote", "unquote", "normalize", "is_normalized", "category",
-    "combining", "decimal", "east_asian_width", "mirrored",
+    "combining", "decimal", "east_asian_width", "mirrored", "char_name", "char_lookup",
+    "iscoroutinefunction", "struct_calcsize", "struct_pack", "struct_unpack", "crc32", "adler32", "deflate_raw", "inflate",
+    "urandom", "literal_check", "encoding_name",
 ];
+
+/// [n] bytes from a generator keyed by the operating system's randomness
+/// (std's per-thread hash keys), apart from `random`'s seedable one.
+/// `os.urandom` and `secrets`: SHA-256 over a secret seed and a running
+/// counter. The seed is drawn once, from the hash keys the standard library
+/// takes from the system's random source.
+fn random_bytes(n: usize) -> Vec<u8> {
+    use sha2::{Digest, Sha256};
+    use std::cell::{Cell, OnceCell};
+    use std::collections::hash_map::RandomState;
+    use std::hash::{BuildHasher, Hasher};
+    thread_local! {
+        static SEED: OnceCell<[u8; 32]> = const { OnceCell::new() };
+        static COUNTER: Cell<u64> = const { Cell::new(0) };
+    }
+    let seed = SEED.with(|s| {
+        *s.get_or_init(|| {
+            let mut seed = Sha256::new();
+            for i in 0..8u64 {
+                let mut h = RandomState::new().build_hasher();
+                h.write_u64(i);
+                seed.update(h.finish().to_le_bytes());
+            }
+            seed.finalize().into()
+        })
+    });
+    let mut out = Vec::with_capacity(n + 32);
+    while out.len() < n {
+        let counter = COUNTER.with(|c| {
+            let v = c.get();
+            c.set(v.wrapping_add(1));
+            v
+        });
+        let mut block = Sha256::new();
+        block.update(seed);
+        block.update(counter.to_le_bytes());
+        out.extend_from_slice(&block.finalize());
+    }
+    out.truncate(n);
+    out
+}
 
 fn b64(urlsafe: bool) -> GeneralPurpose {
     let config = GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent);
@@ -72,6 +190,48 @@ fn b64(urlsafe: bool) -> GeneralPurpose {
 }
 
 impl Interp {
+    fn struct_call(&mut self, name: &str, args: &[Value]) -> R<Value> {
+        let fmt = args.first().and_then(Value::as_str).ok_or_else(|| self.error("Struct() argument 1 must be a str or bytes object", "TypeError"))?;
+        let layout = super::structs::layout(fmt).map_err(|(kind, m)| self.error(m, if kind == "error" { "ValueError" } else { kind }))?;
+        match name {
+            "struct_calcsize" => Ok(Value::Int(layout.size as i64)),
+            "struct_pack" => {
+                let values = args.get(1).and_then(Value::as_items).unwrap_or_default();
+                match super::structs::pack(&layout, &values) {
+                    Ok(b) => Ok(Value::bytes(&b)),
+                    Err((kind, m)) => Err(self.error(m, if kind == "error" { "ValueError" } else { kind })),
+                }
+            }
+            _ => {
+                let data = self.bytes_arg(args, 1, "unpack")?;
+                let mut offset = args.get(2).and_then(Value::as_int).unwrap_or(0);
+                let exact = args.get(3).is_some_and(Value::truthy);
+                let size = layout.size;
+                if exact && data.len() != size {
+                    return Err(self.error(format!("unpack requires a buffer of {size} bytes"), "ValueError"));
+                }
+                if offset < 0 {
+                    if offset + (data.len() as i64) < 0 {
+                        return Err(self.error(format!("offset {offset} out of range for {}-byte buffer", data.len()), "ValueError"));
+                    }
+                    offset += data.len() as i64;
+                }
+                let offset = offset as usize;
+                if offset + size > data.len() {
+                    return Err(self.error(
+                        format!(
+                            "unpack_from requires a buffer of at least {} bytes for unpacking {size} bytes at offset {offset} (actual buffer size is {})",
+                            offset + size,
+                            data.len()
+                        ),
+                        "ValueError",
+                    ));
+                }
+                Ok(Value::tuple(super::structs::unpack(&layout, &data[offset..offset + size])))
+            }
+        }
+    }
+
     fn bytes_arg(&self, args: &[Value], i: usize, func: &str) -> R<Vec<u8>> {
         match args.get(i) {
             Some(Value::Bytes(b)) => Ok(b.to_vec()),
@@ -184,7 +344,81 @@ impl Interp {
                 }
                 Ok(Value::str(out))
             }
-            "category" | "combining" | "decimal" | "east_asian_width" | "mirrored" => {
+            "struct_calcsize" | "struct_pack" | "struct_unpack" => self.struct_call(name, args),
+            "crc32" | "adler32" => {
+                let data = self.bytes_arg(args, 0, name)?;
+                for _ in 0..data.len() / 256 {
+                    self.tick()?;
+                }
+                let start = args.get(1).and_then(Value::as_int).map(|v| v as u32);
+                Ok(Value::Int(i64::from(if name == "crc32" {
+                    super::compress::crc32(&data, start.unwrap_or(0))
+                } else {
+                    super::compress::adler32(&data, start.unwrap_or(1))
+                })))
+            }
+            "deflate_raw" => {
+                let data = self.bytes_arg(args, 0, "compress")?;
+                let level = args.get(1).and_then(Value::as_int).unwrap_or(-1);
+                if !(-1..=9).contains(&level) {
+                    return Err(self.error("Bad compression level", "ValueError"));
+                }
+                for _ in 0..data.len() / 64 {
+                    self.tick()?;
+                }
+                let last = args.get(2).is_none_or(Value::truthy);
+                Ok(Value::bytes(&super::compress::deflate_raw(&data, level as i32, last)))
+            }
+            "inflate" => {
+                let data = self.bytes_arg(args, 0, "decompress")?;
+                let wbits = args.get(1).and_then(Value::as_int).unwrap_or(15);
+                for _ in 0..data.len() / 64 {
+                    self.tick()?;
+                }
+                match super::compress::inflate_wrapped(&data, wbits, self.max_string) {
+                    Ok(r) => {
+                        for _ in 0..r.data.len() / 256 {
+                            self.tick()?;
+                        }
+                        Ok(Value::tuple(vec![Value::bytes(&r.data), Value::Int(r.consumed as i64), Value::Bool(r.finished)]))
+                    }
+                    Err(message) => Err(self.error(message, "ValueError")),
+                }
+            }
+            "urandom" => {
+                let n = args.first().and_then(Value::as_int).ok_or_else(|| self.error("urandom() needs an int", "TypeError"))?;
+                if n < 0 {
+                    return Err(self.error("negative argument not allowed", "ValueError"));
+                }
+                if n as usize > self.max_string {
+                    return Err(self.string_abort());
+                }
+                Ok(Value::bytes(&random_bytes(n as usize)))
+            }
+            "literal_check" => {
+                let source = args.first().and_then(Value::as_str).ok_or_else(|| self.error("literal_eval() needs a string", "TypeError"))?;
+                match super::parser::check_literal(source) {
+                    Ok(Ok(())) => Ok(Value::None),
+                    Ok(Err(node)) => Err(self.error(format!("malformed node or string on line 1: <{node} object>"), "ValueError")),
+                    Err(e) => Err(self.error(e.message.clone(), "SyntaxError")),
+                }
+            }
+            "encoding_name" => {
+                let n = args.first().and_then(Value::as_str).ok_or_else(|| self.error("lookup() argument must be str", "TypeError"))?;
+                match super::bytes::encoding(n) {
+                    Ok(e) => Ok(Value::str(e.name())),
+                    Err(e) => Err(self.byte_error(e)),
+                }
+            }
+            "iscoroutinefunction" => Ok(Value::Bool(matches!(args.first(), Some(Value::Function(f)) if f.frame_info().coroutine))),
+            "char_lookup" => {
+                let name = args.first().and_then(Value::as_str).ok_or_else(|| self.error("lookup() argument must be str", "TypeError"))?;
+                match super::charnames::lookup(name) {
+                    Some(c) => Ok(Value::str(&c.to_string())),
+                    None => Err(self.error(format!("undefined character name '{name}'"), "KeyError")),
+                }
+            }
+            "category" | "combining" | "decimal" | "east_asian_width" | "mirrored" | "char_name" => {
                 let c = match args.first() {
                     Some(Value::Str(s)) if s.chars().count() == 1 => s.chars().next().unwrap(),
                     Some(other) => {
@@ -200,6 +434,7 @@ impl Interp {
                     "combining" => Value::Int(unicode_normalization::char::canonical_combining_class(c) as i64),
                     "decimal" => decimal_value(c).map(|d| Value::Int(d as i64)).unwrap_or(Value::None),
                     "east_asian_width" => Value::str(east_asian_width(c)),
+                    "char_name" => super::charnames::name_of(c).map(|n| Value::str(&n)).unwrap_or(Value::None),
                     _ => Value::Int(matches!(c, '(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '«' | '»') as i64),
                 })
             }

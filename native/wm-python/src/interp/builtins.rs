@@ -6,7 +6,7 @@
 use std::rc::Rc;
 
 use super::ast::BinOp;
-use super::bytes::{encode, ByteError};
+use super::bytes::{encode_with, ByteError};
 use super::error::{Exc, R};
 use super::eval::Interp;
 use super::format::py_format;
@@ -42,6 +42,7 @@ pub(crate) const EXCEPTION_KINDS: &[&str] = &[
     "FileNotFoundError",
     "UnboundLocalError",
     "GeneratorExit",
+    "StopAsyncIteration",
     "BaseException",
     "SystemExit",
     "KeyboardInterrupt",
@@ -85,7 +86,7 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
     "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
     "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii", "UnboundLocalError", "GeneratorExit",
-    "eval", "exec", "Ellipsis", "globals", "locals", "dir",
+    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__",
 ];
 
 /// The builtins that are types: `type(x)` answers with one, and `str()` of
@@ -97,7 +98,7 @@ pub(crate) fn is_type_name(name: &str) -> bool {
             | "slice" | "NoneType" | "function" | "builtin_function_or_method" | "module" | "method" | "generator"
             | "map" | "filter" | "zip" | "enumerate" | "reversed" | "property" | "staticmethod" | "classmethod"
             | "super" | "re.Match" | "re.Pattern" | "ellipsis" | "NotImplementedType" | "dict_keys" | "dict_values"
-            | "dict_items"
+            | "dict_items" | "coroutine" | "async_generator"
     ) || name.ends_with("_iterator")
         || EXCEPTION_KINDS.contains(&name)
 }
@@ -111,11 +112,13 @@ pub(crate) fn is_builtin_name(name: &str) -> bool {
 
 /// Builtins written in Python (`src/stdlib/_builtins.py`), loaded the first
 /// time a script names one.
-pub(crate) const PYTHON_BUILTINS: &[&str] = &["frozenset", "bytearray"];
+pub(crate) const PYTHON_BUILTINS: &[&str] =
+    &["frozenset", "bytearray", "memoryview", "__type_alias__", "GenericAlias", "aiter", "anext", "__union__", "__iter_call__"];
 
 /// The builtins that take keyword arguments.
 pub(crate) const KWARG_BUILTINS: &[&str] = &[
     "sorted", "min", "max", "round", "property", "print", "enumerate", "dict", "sum", "int", "zip", "str", "bytes",
+    "__import__",
 ];
 
 /// Swift's `Unicode.Scalar(i)` succeeds for these: any code point but a surrogate.
@@ -148,6 +151,14 @@ impl Interp {
             };
             return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args: args.to_vec(), cause: None, context: None })));
         }
+        // An instance passed to a numeric builtin answers through its dunders.
+        if matches!(name, "int" | "float" | "bool" | "bytes" | "abs" | "round" | "hex" | "oct" | "bin" | "chr" | "divmod" | "pow" | "range")
+            && args.iter().any(|a| matches!(a, Value::Instance(_)))
+        {
+            if let Some(v) = self.number_protocol(name, args, kwargs)? {
+                return Ok(v);
+            }
+        }
         // The common builtins first; the ones classes brought after.
         match name {
             "len" => {
@@ -170,6 +181,22 @@ impl Interp {
             "repr" => {
                 self.arity(name, args, 1)?;
                 Ok(Value::str(self.to_repr(&args[0])?))
+            }
+            "__import__" => {
+                // `__import__(name, globals, locals, fromlist, level)`: the top
+                // package, or with a fromlist the module named itself.
+                let Some(Value::Str(module)) = args.first().or_else(|| kwarg(kwargs, "name")) else {
+                    return Err(self.error("__import__() argument 1 must be str", "TypeError"));
+                };
+                let level = args.get(4).or_else(|| kwarg(kwargs, "level")).and_then(Value::as_int).unwrap_or(0);
+                let dotted: Rc<str> = if level > 0 { Rc::from(format!("{}{module}", ".".repeat(level as usize))) } else { module.clone() };
+                let resolved = self.resolve_module(&dotted)?;
+                self.ensure_module(&resolved)?;
+                let fromlist = args.get(3).or_else(|| kwarg(kwargs, "fromlist")).is_some_and(Value::truthy);
+                if fromlist || level > 0 {
+                    return Ok(Value::Module(resolved));
+                }
+                Ok(Value::Module(Rc::from(resolved.split('.').next().unwrap_or(&resolved))))
             }
             "ascii" => {
                 self.arity(name, args, 1)?;
@@ -401,12 +428,27 @@ impl Interp {
                     let text = Value::str(self.to_str(v)?);
                     return Ok(Value::str(py_format(&text, &spec)?));
                 }
+                // A list of objects shows each through its own `__repr__`.
+                if holds_instance(v) {
+                    let text = Value::str(self.to_str(v)?);
+                    return Ok(Value::str(py_format(&text, &spec)?));
+                }
                 Ok(Value::str(py_format(v, &spec)?))
             }
             "isinstance" => {
                 self.arity(name, args, 2)?;
                 if self.is_instance(&args[0], &args[1]) {
                     return Ok(Value::Bool(true));
+                }
+                // As CPython, an object whose class says otherwise through
+                // `__class__` (a `Mock(spec=Thing)`) counts as that class.
+                if let Value::Instance(inst) = &args[0] {
+                    if inst.class.lookup("__class__").is_some() {
+                        let claimed = self.attribute(&args[0], "__class__")?;
+                        if !matches!(&claimed, Value::Class(c) if Rc::ptr_eq(c, &inst.class)) && self.type_matches(&claimed, &args[1]) {
+                            return Ok(Value::Bool(true));
+                        }
+                    }
                 }
                 Ok(Value::Bool(self.instance_hook(&args[0], &args[1])?))
             }
@@ -554,6 +596,19 @@ impl Interp {
 
     fn to_int(&self, args: &[Value]) -> R<Value> {
         let Some(a) = args.first() else { return Ok(Value::Int(0)) };
+        // `int(b"ff", 16)`: bytes read as ASCII digits, as a str would be.
+        if let Value::Bytes(b) = a {
+            let text = Value::str(String::from_utf8_lossy(b));
+            let mut rest = vec![text];
+            rest.extend(args[1..].iter().cloned());
+            return self.to_int(&rest).map_err(|e| {
+                if args.len() > 1 {
+                    e
+                } else {
+                    self.error(format!("invalid literal for int() with base 10: {}", py_repr(a)), "ValueError")
+                }
+            });
+        }
         if args.len() > 1 {
             let base = args[1].as_int().ok_or_else(|| self.error("int() base must be an integer", "TypeError"))?;
             if base != 0 && !(2..=36).contains(&base) {
@@ -593,7 +648,7 @@ impl Interp {
                 return Ok(Value::Float(d));
             }
         }
-        Err(self.error(format!("could not convert to float: {}", py_repr(a)), "ValueError"))
+        Err(self.error(format!("could not convert string to float: {}", py_repr(a)), "ValueError"))
     }
 
     fn round_builtin(&self, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
@@ -796,7 +851,7 @@ impl Interp {
     pub(crate) fn python_builtin(&mut self, name: &str) -> R<Value> {
         const MODULE: &str = "_builtins";
         if !self.source_modules.contains_key(MODULE) {
-            self.source_modules.insert(MODULE.to_string(), Rc::from(super::stdlib::BUILTINS_SOURCE));
+            self.source_modules.insert(MODULE.to_string(), super::stdlib::ModuleSource::Packed(super::stdlib::BUILTINS_SOURCE));
         }
         let saved = self.current_line;
         self.ensure_module(MODULE)?;
@@ -813,7 +868,8 @@ impl Interp {
                     return Err(self.error("string argument without an encoding", "TypeError"));
                 };
                 let enc = enc.as_str().ok_or_else(|| self.error("bytes() argument 'encoding' must be str", "TypeError"))?;
-                match encode(s, enc) {
+                let errors = args.get(2).and_then(Value::as_str).unwrap_or("strict");
+                match encode_with(s, enc, errors) {
                     Ok(b) => Ok(Value::bytes(&b)),
                     Err(e) => Err(self.byte_error(e)),
                 }
@@ -851,6 +907,10 @@ impl Interp {
             ByteError::UnknownEncoding(name) => self.error(format!("unknown encoding: {name}"), "LookupError"),
             ByteError::Decode(message) => self.error(message, "UnicodeDecodeError"),
             ByteError::Hex(message) => self.error(message, "ValueError"),
+            ByteError::Encode(message) => self.error(message, "UnicodeEncodeError"),
+            ByteError::Errors(name) if name == "surrogateescape" || name == "surrogatepass" => {
+                self.error(format!("error handler '{name}' is not supported: strings here cannot hold lone surrogates"), "LookupError")
+            }
             ByteError::Errors(name) => self.error(format!("unknown error handler name '{name}'"), "LookupError"),
         }
     }

@@ -261,7 +261,7 @@ impl Resolver {
         self.generator = saved;
         self.scopes.pop();
         r?;
-        d.frame = Frame { names, generator };
+        d.frame = Frame { names, generator, coroutine: d.frame.coroutine };
         Ok(())
     }
 
@@ -280,7 +280,7 @@ impl Resolver {
         self.generator = saved;
         self.scopes.pop();
         r?;
-        d.frame = Frame { names, generator: false };
+        d.frame = Frame { names, generator: false, coroutine: false };
         Ok(())
     }
 
@@ -332,7 +332,7 @@ impl Resolver {
         let r = self.comprehension_body(c);
         self.scopes.pop();
         r?;
-        c.frame = Frame { names, generator: false };
+        c.frame = Frame { names, generator: false, coroutine: false };
         Ok(())
     }
 
@@ -432,6 +432,9 @@ impl Resolver {
             StmtKind::Try(t) => {
                 self.block(&mut t.body)?;
                 for h in &mut t.handlers {
+                    for (e, _) in &mut h.exprs {
+                        self.expr(e)?;
+                    }
                     if let Some(b) = &mut h.binding {
                         self.set_store(b);
                     }
@@ -554,7 +557,7 @@ impl Resolver {
     fn expr(&mut self, e: &mut Expr) -> Res<()> {
         match e {
             Expr::Name(n) => self.set_load(n),
-            Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) => {}
+            Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => {}
             Expr::FString(parts) => self.fparts(parts)?,
             Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => {
                 for i in items {
@@ -567,7 +570,7 @@ impl Resolver {
                     self.expr(v)?;
                 }
             }
-            Expr::Unary(_, x) | Expr::Starred(x) | Expr::YieldFrom(x) => self.expr(x)?,
+            Expr::Unary(_, x) | Expr::Starred(x) | Expr::YieldFrom(x) | Expr::Await(x) => self.expr(x)?,
             Expr::Yield(x) => {
                 if let Some(x) = x {
                     self.expr(x)?;
@@ -711,10 +714,11 @@ fn contains_yield(e: &Expr) -> bool {
         Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Lambda(_) => {
             false
         }
+        Expr::Invalid(..) => false,
         Expr::FString(parts) => fparts_yield(parts),
         Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => items.iter().any(contains_yield),
         Expr::Dict(pairs) => pairs.iter().any(|(k, v)| contains_yield(k) || contains_yield(v)),
-        Expr::Unary(_, x) | Expr::Starred(x) => contains_yield(x),
+        Expr::Unary(_, x) | Expr::Starred(x) | Expr::Await(x) => contains_yield(x),
         Expr::Binary(_, a, b) | Expr::BoolOp(_, a, b) | Expr::Index(a, b) => contains_yield(a) || contains_yield(b),
         Expr::Compare(l, pairs) => contains_yield(l) || pairs.iter().any(|(_, r)| contains_yield(r)),
         Expr::Ternary(t) => contains_yield(&t.0) || contains_yield(&t.1) || contains_yield(&t.2),
@@ -971,7 +975,7 @@ fn collect_expr(e: &Expr, b: &mut Bindings, comp: u32) {
             }
             collect_expr(v, b, comp);
         }
-        Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) => {}
+        Expr::Name(_) | Expr::None | Expr::Bool(_) | Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bytes(_) | Expr::Invalid(..) => {}
         Expr::FString(parts) => collect_fparts(parts, b, comp),
         Expr::List(items) | Expr::Tuple(items) | Expr::Set(items) => {
             for i in items {
@@ -984,7 +988,7 @@ fn collect_expr(e: &Expr, b: &mut Bindings, comp: u32) {
                 collect_expr(v, b, comp);
             }
         }
-        Expr::Unary(_, x) | Expr::Starred(x) => collect_expr(x, b, comp),
+        Expr::Unary(_, x) | Expr::Starred(x) | Expr::Await(x) => collect_expr(x, b, comp),
         Expr::Binary(_, x, y) | Expr::BoolOp(_, x, y) | Expr::Index(x, y) => {
             collect_expr(x, b, comp);
             collect_expr(y, b, comp);

@@ -4,11 +4,12 @@
 //! spreads past its own line: the line becomes an [`StmtKind::Error`] that
 //! keeps its names, and the next line parses as if nothing had happened. A
 //! block header that does not parse still owns the lines indented under it.
-//! Python the interpreter does not run (`async`, `await`, `@`, `except*` and
-//! complex numbers) is parsed as well as it can be and listed in
-//! [`Module::unsupported`]. Classes, `with`, decorators, `nonlocal`,
-//! `assert`, annotations, `**kwargs`, spreads, generators, `match`, `:=`,
-//! `...` and `import *` run, so they parse quietly.
+//! Python the interpreter does not run (`except*` and complex numbers) is
+//! parsed as well as it can be and listed in [`Module::unsupported`].
+//! Classes, `with`, decorators, `nonlocal`, `assert`, annotations,
+//! `**kwargs`, spreads, generators, `async` and `await`, `@`, `match`, `:=`,
+//! `...`, `import *` and any expression after `except` run, so they parse
+//! quietly.
 //!
 //! Recursion is bounded: brackets nested past [`MAX_NESTING`] and blocks past
 //! [`MAX_BLOCKS`] stop parsing deeper, and long operator chains are built as
@@ -51,8 +52,7 @@ struct Parser<'a> {
     loose: Vec<Stmt>,
 }
 
-const AUG_OPS: &[&str] = &["+=", "-=", "*=", "/=", "%=", "//=", "**=", "&=", "|=", "^=", "<<=", ">>="];
-const AUG_UNSUPPORTED: &[&str] = &["@="];
+const AUG_OPS: &[&str] = &["+=", "-=", "*=", "/=", "%=", "//=", "**=", "&=", "|=", "^=", "<<=", ">>=", "@="];
 
 impl<'a> Parser<'a> {
     fn new(t: &'a Tokens, s: &'a Structure, nesting: u32) -> Parser<'a> {
@@ -214,8 +214,6 @@ impl<'a> Parser<'a> {
             "class" => Some(self.class_stmt(depth)),
             "with" => Some(self.with_stmt(depth)),
             "async" => {
-                let span = self.t.span(first);
-                self.unsupported(span, "async");
                 self.advance();
                 if self.is_kw("def") {
                     Some(self.def_stmt(depth))
@@ -235,6 +233,23 @@ impl<'a> Parser<'a> {
                 None
             }
             _ if self.t.is_op(first, "@") => Some(self.decorator()),
+            // `type Alias[T] = value` (PEP 695): `type` is a name anywhere else.
+            _ if kind == TokenKind::Name
+                && self.t.text(first) == "type"
+                && self.peek(1).is_some_and(|t| self.t.kind(t) == TokenKind::Name)
+                && (self.peek_op(2, "=") || self.peek_op(2, "[")) =>
+            {
+                let stmt = self.type_alias();
+                if !self.failed && !self.at_end() {
+                    let from = self.pos;
+                    let _ = self.fail::<()>("<end of line>");
+                    out.push(self.error_stmt(from, self.end));
+                }
+                self.failed = false;
+                self.pos = self.end;
+                self.li += 1;
+                Some(stmt)
+            }
             _ => {
                 self.simple_line(out);
                 None
@@ -462,16 +477,8 @@ impl<'a> Parser<'a> {
                 match self.test() {
                     Ok(e) => {
                         match &e.kind {
-                            ExprKind::Tuple(items) => {
-                                for item in items {
-                                    self.check_exception_type(item);
-                                }
-                                types.extend(items.iter().cloned());
-                            }
-                            _ => {
-                                self.check_exception_type(&e);
-                                types.push(e);
-                            }
+                            ExprKind::Tuple(items) => types.extend(items.iter().cloned()),
+                            _ => types.push(e),
                         }
                         if self.eat_kw("as") {
                             name = self.name().ok();
@@ -503,17 +510,52 @@ impl<'a> Parser<'a> {
         Stmt { kind: StmtKind::Try { body, handlers, orelse, finalbody }, span: self.span_from(start) }
     }
 
-    fn check_exception_type(&mut self, e: &Expr) {
-        fn dotted(e: &Expr) -> bool {
-            match &e.kind {
-                ExprKind::Name(_) => true,
-                ExprKind::Attribute { value, .. } => dotted(value),
-                _ => false,
+    /// `type Name[T] = value`: binds Name; the value reads its names, with
+    /// the type parameters defined.
+    fn type_alias(&mut self) -> Stmt {
+        let start = self.start_here();
+        self.advance();
+        let mut binds = Vec::new();
+        let mut exprs = Vec::new();
+        if let Ok((n, s)) = self.name() {
+            binds.push(Expr { kind: ExprKind::Name(n), span: s });
+            binds.extend(self.type_params());
+            if self.expect_op("=").is_ok() {
+                if let Ok(value) = self.test() {
+                    exprs.push(value);
+                }
             }
         }
-        if !dotted(e) {
-            self.unsupported(e.span, "exception types other than plain names");
+        Stmt { kind: StmtKind::Unsupported { what: "type", exprs, binds, body: Vec::new() }, span: self.span_from(start) }
+    }
+
+    /// PEP 695 type parameters, `[T, *Ts, **P, U: int = str]`: their names.
+    /// Bounds and defaults are annotations, read and ignored.
+    fn type_params(&mut self) -> Vec<Expr> {
+        let mut names = Vec::new();
+        if !self.eat_op("[") {
+            return names;
         }
+        while !self.at_end() && !self.is_op("]") {
+            if !self.eat_op("**") {
+                self.eat_op("*");
+            }
+            match self.name() {
+                Ok((n, s)) => names.push(Expr { kind: ExprKind::Name(n), span: s }),
+                Err(()) => return names,
+            }
+            if self.eat_op(":") && self.test().is_err() {
+                return names;
+            }
+            if self.eat_op("=") && self.test().is_err() {
+                return names;
+            }
+            if !self.eat_op(",") {
+                break;
+            }
+        }
+        let _ = self.expect_op("]");
+        names
     }
 
     fn def_stmt(&mut self, depth: u32) -> Stmt {
@@ -523,6 +565,9 @@ impl<'a> Parser<'a> {
             Ok(n) => n,
             Err(()) => (String::new(), Span::new(self.last_end, self.last_end)),
         };
+        if !self.failed {
+            self.type_params();
+        }
         let mut params = Params::default();
         if !self.failed {
             if self.eat_op("(") {
@@ -609,6 +654,7 @@ impl<'a> Parser<'a> {
         let mut exprs = Vec::new();
         if let Ok((n, s)) = self.name() {
             binds.push(Expr { kind: ExprKind::Name(n), span: s });
+            binds.extend(self.type_params());
             if self.eat_op("(") {
                 while !self.at_end() && !self.is_op(")") {
                     match self.argument() {
@@ -936,12 +982,6 @@ impl<'a> Parser<'a> {
                     let value = self.expr_list(true)?;
                     return Ok(Stmt { kind: StmtKind::AugAssign { target: first, op, value }, span: self.span_from(start) });
                 }
-                if let Some(op) = AUG_UNSUPPORTED.iter().find(|o| **o == op) {
-                    let s = self.t.span(self.advance());
-                    self.unsupported(s, op_name(op));
-                    let value = self.expr_list(true)?;
-                    return Ok(Stmt { kind: StmtKind::AugAssign { target: first, op, value }, span: self.span_from(start) });
-                }
                 if op == ":" {
                     self.advance();
                     let annotation = self.test()?;
@@ -1067,7 +1107,7 @@ impl<'a> Parser<'a> {
         self.cur().is_some_and(|t| {
             self.t.kind(t) == TokenKind::Operator && {
                 let s = self.t.text(t);
-                AUG_OPS.contains(&s.as_str()) || AUG_UNSUPPORTED.contains(&s.as_str())
+                AUG_OPS.contains(&s.as_str())
             }
         })
     }
@@ -1139,10 +1179,7 @@ impl<'a> Parser<'a> {
         loop {
             let found = ops.iter().find(|op| if keyword { self.is_kw(op) } else { self.is_op(op) });
             let Some(op) = found else { break };
-            let at = self.t.span(self.advance());
-            if let Some(name) = unsupported_operator(op) {
-                self.unsupported(at, name);
-            }
+            self.advance();
             joins.push(op);
             items.push(next(self)?);
         }
@@ -1263,8 +1300,7 @@ impl<'a> Parser<'a> {
     fn power(&mut self) -> P<Expr> {
         let start = self.start_here();
         if self.is_kw("await") {
-            let at = self.t.span(self.advance());
-            self.unsupported(at, "await");
+            self.advance();
             let inner = self.power()?;
             return Ok(Expr { kind: ExprKind::Prefixed { value: Some(Box::new(inner)) }, span: self.span_from(start) });
         }
@@ -1390,8 +1426,7 @@ impl<'a> Parser<'a> {
         let mut clauses = Vec::new();
         while self.is_kw("for") || self.is_kw("async") {
             if self.is_kw("async") {
-                let s = self.t.span(self.advance());
-                self.unsupported(s, "async");
+                self.advance();
             }
             self.advance();
             let target = self.targets()?;
@@ -1436,10 +1471,7 @@ impl<'a> Parser<'a> {
                     }
                     "lambda" => self.lambda(),
                     "yield" | "await" => {
-                        let at = self.t.span(self.advance());
-                        if word == "await" {
-                            self.unsupported(at, "await");
-                        }
+                        self.advance();
                         if self.is_kw("from") {
                             self.advance();
                         }
@@ -1693,17 +1725,6 @@ impl<'a> Parser<'a> {
 enum Arg {
     Positional(Expr),
     Keyword(Keyword),
-}
-
-fn unsupported_operator(op: &str) -> Option<&'static str> {
-    match op {
-        "@" => Some("@"),
-        _ => None,
-    }
-}
-
-fn op_name(_op: &str) -> &'static str {
-    "@"
 }
 
 /// Joins a chain left to right, or as a balanced tree when it is long enough

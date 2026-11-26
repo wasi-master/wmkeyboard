@@ -11,6 +11,14 @@ def _g():
     yield
 
 
+async def _co():
+    pass
+
+
+async def _ag():
+    yield
+
+
 class _C:
     def _m(self):
         pass
@@ -26,7 +34,38 @@ ModuleType = type(_sys)
 NoneType = type(None)
 EllipsisType = type(...)
 NotImplementedType = type(NotImplemented)
-del _f, _g, _C
+_c = _co()
+CoroutineType = type(_c)
+_c.close()
+AsyncGeneratorType = type(_ag())
+del _f, _g, _C, _co, _ag, _c
+
+
+GenericAlias = type(list[int])
+UnionType = type(int | str)
+
+
+class TracebackType:
+    """What a traceback would be; exceptions here carry none (__traceback__ is None)."""
+
+    def __init__(self, tb_next=None, tb_frame=None, tb_lasti=0, tb_lineno=0):
+        self.tb_next = tb_next
+        self.tb_frame = tb_frame
+        self.tb_lasti = tb_lasti
+        self.tb_lineno = tb_lineno
+
+
+class FrameType:
+    pass
+
+
+class CodeType:
+    pass
+
+
+def coroutine(func):
+    """Marks a generator function as a coroutine; here it is one already."""
+    return func
 
 
 class SimpleNamespace:
@@ -96,7 +135,3 @@ def new_class(name, bases=(), kwds=None, exec_body=None):
     kwds = dict(kwds or {})
     meta = kwds.pop("metaclass", type)
     return meta(name, tuple(bases), ns, **kwds)
-
-
-def coroutine(func):
-    return func

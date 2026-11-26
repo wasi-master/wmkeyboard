@@ -322,6 +322,34 @@ def namedtuple(typename, field_names, defaults=None):
         def __hash__(self):
             return hash(self._values)
 
+        def __lt__(self, other):
+            return self._values < tuple(other)
+
+        def __le__(self, other):
+            return self._values <= tuple(other)
+
+        def __gt__(self, other):
+            return self._values > tuple(other)
+
+        def __ge__(self, other):
+            return self._values >= tuple(other)
+
+        def __add__(self, other):
+            return self._values + tuple(other)
+
+        def __contains__(self, item):
+            return item in self._values
+
+        def count(self, value):
+            return self._values.count(value)
+
+        def index(self, value, *args):
+            return self._values.index(value, *args)
+
+        @classmethod
+        def _make(cls, iterable):
+            return cls(*iterable)
+
         def __repr__(self):
             inner = ", ".join(f"{n}={v!r}" for n, v in zip(fields, self._values))
             return f"{typename}({inner})"

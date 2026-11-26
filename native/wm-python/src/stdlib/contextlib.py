@@ -192,5 +192,114 @@ class AbstractContextManager:
         return None
 
 
-def aclosing(thing):
-    raise NotImplementedError("async context managers are not supported")
+class aclosing:
+    """Awaits thing.aclose() when the block ends."""
+
+    def __init__(self, thing):
+        self.thing = thing
+
+    async def __aenter__(self):
+        return self.thing
+
+    async def __aexit__(self, *exc_info):
+        await self.thing.aclose()
+        return False
+
+
+class AbstractAsyncContextManager:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        return None
+
+
+class _AsyncGeneratorContextManager:
+    def __init__(self, gen):
+        self.gen = gen
+
+    async def __aenter__(self):
+        try:
+            return await self.gen.__anext__()
+        except StopAsyncIteration:
+            raise RuntimeError("generator didn't yield") from None
+
+    async def __aexit__(self, typ, value, traceback):
+        if typ is None:
+            try:
+                await self.gen.__anext__()
+            except StopAsyncIteration:
+                return False
+            raise RuntimeError("generator didn't stop")
+        if value is None:
+            value = typ()
+        try:
+            await self.gen.athrow(value)
+        except StopAsyncIteration:
+            return True
+        except BaseException as exc:
+            if exc is value:
+                return False
+            raise
+        raise RuntimeError("generator didn't stop after athrow()")
+
+
+def asynccontextmanager(func):
+    """An async generator that yields once, as an `async with` manager."""
+
+    def helper(*args, **kwds):
+        return _AsyncGeneratorContextManager(func(*args, **kwds))
+
+    helper.__name__ = getattr(func, "__name__", "helper")
+    helper.__doc__ = getattr(func, "__doc__", None)
+    return helper
+
+
+class AsyncExitStack:
+    """ExitStack for async managers and callbacks, unwound in reverse."""
+
+    def __init__(self):
+        self._exits = []
+
+    async def __aenter__(self):
+        return self
+
+    async def enter_async_context(self, cm):
+        result = await cm.__aenter__()
+        self._exits.append((True, cm.__aexit__))
+        return result
+
+    def enter_context(self, cm):
+        result = cm.__enter__()
+        self._exits.append((False, cm.__exit__))
+        return result
+
+    def push_async_callback(self, callback, /, *args, **kwds):
+        async def _exit(exc_type, exc, tb):
+            await callback(*args, **kwds)
+        self._exits.append((True, _exit))
+        return callback
+
+    def callback(self, callback, /, *args, **kwds):
+        def _exit(exc_type, exc, tb):
+            callback(*args, **kwds)
+        self._exits.append((False, _exit))
+        return callback
+
+    async def aclose(self):
+        await self.__aexit__(None, None, None)
+
+    async def __aexit__(self, exc_type, exc, tb):
+        suppressed = False
+        while self._exits:
+            is_async, fn = self._exits.pop()
+            try:
+                result = (await fn(exc_type, exc, tb)) if is_async else fn(exc_type, exc, tb)
+                if result:
+                    suppressed = True
+                    exc_type = exc = tb = None
+            except BaseException as e:
+                exc_type, exc, tb = type(e), e, None
+                if not self._exits:
+                    raise
+        return suppressed

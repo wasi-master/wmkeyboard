@@ -50,7 +50,10 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
 pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
     match module {
         "math" => &["pi", "e", "tau", "inf", "nan"],
-        "re" => &["I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG"],
+        "re" => &[
+            "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG", "Pattern", "Match",
+            "error", "PatternError",
+        ],
         "sys" => &[
             "version", "version_info", "hexversion", "maxsize", "maxunicode", "byteorder", "platform", "argv", "path",
             "modules", "stdout", "stderr", "stdin", "executable",
@@ -74,6 +77,10 @@ fn constant(module: &str, name: &str) -> Option<Value> {
         ("re", "A" | "ASCII") => Value::Int(ASCII),
         ("re", "U" | "UNICODE") => Value::Int(UNICODE),
         ("re", "NOFLAG") => Value::Int(0),
+        ("re", "Pattern") => Value::Builtin(Rc::from("re.Pattern")),
+        ("re", "Match") => Value::Builtin(Rc::from("re.Match")),
+        // A bad pattern raises ValueError here, which re.error stands for.
+        ("re", "error" | "PatternError") => Value::Builtin(Rc::from("ValueError")),
         ("sys", "version") => Value::str(VERSION_LINE),
         ("sys", "hexversion") => Value::Int(0x030C_00F0),
         ("sys", "maxsize") => Value::Int(i64::MAX),
@@ -323,6 +330,9 @@ impl Interp {
 
     pub(crate) fn call_module(&mut self, module: &str, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
         self.tick()?;
+        if let Some(f) = self.module_override(module, name) {
+            return self.call_value(&f, args, kwargs);
+        }
         if let Some(host) = self.host_modules.get(module).cloned() {
             if let Some(f) = host.functions.get(name).cloned() {
                 return self.call_host(&f, args, kwargs);
@@ -348,6 +358,7 @@ impl Interp {
         }
         match module {
             "sys" => self.sys_call(name, &args),
+            "math" if args.iter().any(|a| matches!(a, Value::Instance(_))) => self.math_with_instances(name, args, kwargs),
             "math" => self.math_call(name, &args, &kwargs),
             "random" => self.random_call(name, &args),
             "time" | "_time" => self.time_call(name, &args),
@@ -361,6 +372,54 @@ impl Interp {
     // MARK: - math
 
     #[inline(never)]
+    /// `math.floor(x)` and the like for an instance: its `__floor__`,
+    /// `__ceil__` or `__trunc__`, else the number its `__float__` (or, for
+    /// the integer functions, `__index__`) gives.
+    fn math_with_instances(&mut self, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
+        let hook = match name {
+            "floor" => Some("__floor__"),
+            "ceil" => Some("__ceil__"),
+            "trunc" => Some("__trunc__"),
+            _ => None,
+        };
+        if let (Some(hook), Some(first)) = (hook, args.first()) {
+            if let Some(r) = self.dunder(first, hook, Vec::new())? {
+                return Ok(r);
+            }
+        }
+        // These take iterables, which an instance may be.
+        if matches!(name, "prod" | "fsum" | "sumprod" | "dist") {
+            return self.math_call(name, &args, &kwargs);
+        }
+        let integer = matches!(name, "isqrt" | "factorial" | "gcd" | "lcm" | "comb" | "perm");
+        let mut numbers = Vec::with_capacity(args.len());
+        for a in &args {
+            if !matches!(a, Value::Instance(_)) {
+                numbers.push(a.clone());
+                continue;
+            }
+            let n = if integer {
+                self.index_of_instance(a)?.map(Value::Int)
+            } else {
+                match self.dunder(a, "__float__", Vec::new())? {
+                    Some(f @ Value::Float(_)) => Some(f),
+                    Some(other) => {
+                        return Err(self.error(format!("{}.__float__ returned non-float (type {})", a.type_name(), other.type_name()), "TypeError"));
+                    }
+                    None => self.index_of_instance(a)?.map(Value::Int),
+                }
+            };
+            match n {
+                Some(n) => numbers.push(n),
+                None if integer => {
+                    return Err(self.error(format!("'{}' object cannot be interpreted as an integer", a.type_name()), "TypeError"));
+                }
+                None => return Err(self.error(format!("must be real number, not {}", a.type_name()), "TypeError")),
+            }
+        }
+        self.math_call(name, &numbers, &kwargs)
+    }
+
     fn math_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         let number = |me: &Interp, i: usize| -> R<f64> {
             args.get(i).and_then(Value::as_float).ok_or_else(|| me.error(format!("math.{name}() needs a number"), "TypeError"))
