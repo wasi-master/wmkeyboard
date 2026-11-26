@@ -9007,6 +9007,9 @@ fun splitDateFormats(typed: String): List<String> = typed.split('|').map { it.tr
 /** Lines of text a clip may show in the panel; 0 is the view's own (see [ClipboardSettings.previewLines]). */
 val ClipPreviewLinesRange = 0..20
 
+/** The answers Tuck the paste chip after offers (#1565), in seconds: -1 only when its time runs out, 0 at once. */
+val ClipTuckAfterChoices = listOf(-1, 0, 5, 10, 30)
+
 /**
  * The line spacing of a clip's text, in percent of its size (#612). 100 sets
  * the lines as tight as the font allows.
@@ -9420,6 +9423,13 @@ data class ClipboardSettings(
      * stack up, newest on top. Off by default.
      */
     val tuckExpiredChip: Boolean = false,
+    /**
+     * With [tuckExpiredChip] on, how soon an active paste chip tucks itself
+     * away (#1565): -1 only when its time runs out, 0 at once, otherwise
+     * after that many seconds. A tucked chip brought back stays its full time.
+     * One of [ClipTuckAfterChoices].
+     */
+    val tuckAfterSeconds: Int = -1,
     /**
      * The fragments strip over the history is folded away (#612), by the ✕ on
      * its caption; a scissors button beside the search brings it back. Kept,
@@ -14053,6 +14063,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
         private val CLIPBOARD_COMPACT_PASTE_CHIP = booleanPreferencesKey("clipboard_compact_paste_chip")
         private val CLIPBOARD_TUCK_EXPIRED_CHIP = booleanPreferencesKey("clipboard_tuck_expired_chip")
+        private val CLIPBOARD_TUCK_AFTER_SECONDS = intPreferencesKey("clipboard_tuck_after_seconds")
         private val CLIPBOARD_PANEL_EXTRA_HEIGHT_DP = intPreferencesKey("clipboard_panel_extra_height_dp")
         private val OTP_CHIP_ENABLED = booleanPreferencesKey("otp_chip_enabled")
         // Stored under its old name: the test behind it grew from "number
@@ -16457,6 +16468,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.clipboard.recentChips,
             compactPasteChip = p[CLIPBOARD_COMPACT_PASTE_CHIP] ?: defaults.clipboard.compactPasteChip,
             tuckExpiredChip = p[CLIPBOARD_TUCK_EXPIRED_CHIP] ?: defaults.clipboard.tuckExpiredChip,
+            tuckAfterSeconds = p[CLIPBOARD_TUCK_AFTER_SECONDS]?.takeIf { it in ClipTuckAfterChoices }
+                ?: defaults.clipboard.tuckAfterSeconds,
             panelExtraHeightDp = p[CLIPBOARD_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(ClipPanelExtraHeightRange)
                 ?: defaults.clipboard.panelExtraHeightDp,
         )
@@ -27432,6 +27445,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardTuckExpiredChip(value: Boolean) =
         editPrefs { it[CLIPBOARD_TUCK_EXPIRED_CHIP] = value }
+
+    suspend fun setClipboardTuckAfterSeconds(value: Int) =
+        editPrefs { it[CLIPBOARD_TUCK_AFTER_SECONDS] = value.takeIf { v -> v in ClipTuckAfterChoices } ?: -1 }
 
     suspend fun setClipboardPanelExtraHeightDp(value: Int) =
         editPrefs { it[CLIPBOARD_PANEL_EXTRA_HEIGHT_DP] = value.coerceIn(ClipPanelExtraHeightRange) }

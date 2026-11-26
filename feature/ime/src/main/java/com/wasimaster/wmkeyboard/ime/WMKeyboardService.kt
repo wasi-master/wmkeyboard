@@ -62453,14 +62453,37 @@ open class WMKeyboardService : InputMethodService() {
      * Shows [item] as the recently-copied paste chip on the suggestion strip and
      * arms its auto-hide timer, replacing any chip already up.
      */
-    private fun showClipboardSuggestion(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+    private fun showClipboardSuggestion(
+        item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem,
+        /** Brought back from the tucked stack (#1565): it stays its full time, never tucked early again. */
+        restored: Boolean = false,
+    ) {
         clipboardSuggestionJob?.cancel()
+        val clipSettings = _uiState.value.settings.clipboard
+        // Tuck it away after (#1565): a new chip shrinks to its icon at the
+        // strip's end sooner than its time, or at once, to keep the strip clear.
+        val tuckAfter = clipSettings.tuckAfterSeconds
+        val early = !restored && tuckAfter >= 0 && clipSettings.tuckExpiredChip &&
+            clipSettings.suggestRecent && !item.sensitive
+        if (early && tuckAfter == 0) {
+            if (_uiState.value.clipboardSuggestion?.id == item.id) {
+                _uiState.update { it.copy(clipboardSuggestion = null) }
+            }
+            clipboardSuggestionJob = null
+            tuckClip(item)
+            return
+        }
         _uiState.update { it.copy(clipboardSuggestion = item) }
         // 0 is "until pasted or dismissed": no timer at all rather than a very
         // long one, so the chip cannot outlive the process quietly.
-        val ttlSeconds = _uiState.value.settings.clipboard.pasteChipSeconds
-        clipboardSuggestionJob = if (ttlSeconds <= 0) null else serviceScope.launch {
-            delay(ttlSeconds * 1000L)
+        val ttlSeconds = clipSettings.pasteChipSeconds
+        val waitSeconds = when {
+            !early -> ttlSeconds
+            ttlSeconds <= 0 -> tuckAfter
+            else -> minOf(ttlSeconds, tuckAfter)
+        }
+        clipboardSuggestionJob = if (waitSeconds <= 0) null else serviceScope.launch {
+            delay(waitSeconds * 1000L)
             val expired = _uiState.value.clipboardSuggestion
             _uiState.update { it.copy(clipboardSuggestion = null) }
             // Run out rather than pasted or dismissed: tucked at the strip's
@@ -62490,7 +62513,7 @@ open class WMKeyboardService : InputMethodService() {
         val live = clipboardStore.items().firstOrNull { it.id == clip.id } ?: return
         vibrate()
         _uiState.value.clipboardSuggestion?.takeIf { it.id != live.id }?.let(::tuckClip)
-        showClipboardSuggestion(live)
+        showClipboardSuggestion(live, restored = true)
     }
 
     /**

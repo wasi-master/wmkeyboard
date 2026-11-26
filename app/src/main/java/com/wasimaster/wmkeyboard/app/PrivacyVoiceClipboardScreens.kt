@@ -1545,6 +1545,7 @@ internal fun ClipboardChipsSettings(
     // What decides which rows the groups hold; each row reads its own value.
     val historyOn = settings.watch { it.clipboard.history }
     val suggestRecent = settings.watch { it.clipboard.suggestRecent }
+    val tuckOn = settings.watch { it.clipboard.tuckExpiredChip }
     val detectEntities = settings.watch { it.clipboard.detectEntities }
     // Every row here reads a clip as it is stored, and nothing is stored with
     // history off. The banner says so and offers the switch, where the old
@@ -1625,6 +1626,24 @@ internal fun ClipboardChipsSettings(
                 info = stringResource(R.string.clipboard_tuck_expired_chip_info),
                 default = SettingsDefaults.clipboard.tuckExpiredChip,
             ) { scope.launch { repository.setClipboardTuckExpiredChip(it) } }
+        }
+        item(visible = suggestRecent && tuckOn, level = SettingLevel.STANDARD) {
+            // #1565: an active chip tucks itself away early, to keep the strip clear.
+            val secondsFormat = stringResource(R.string.clipboard_tuck_after_seconds)
+            ChoiceSetting(
+                title = R.string.clipboard_tuck_after_title,
+                subtitle = stringResource(R.string.clipboard_tuck_after_subtitle),
+                info = stringResource(R.string.clipboard_tuck_after_info),
+                options = com.wasimaster.wmkeyboard.core.settings.ClipTuckAfterChoices.map { secs ->
+                    secs to when {
+                        secs < 0 -> stringResource(R.string.clipboard_tuck_after_expired)
+                        secs == 0 -> stringResource(R.string.clipboard_tuck_after_now)
+                        else -> secondsFormat.format(secs)
+                    }
+                },
+                selected = settings.watch { it.clipboard.tuckAfterSeconds },
+                default = SettingsDefaults.clipboard.tuckAfterSeconds,
+            ) { scope.launch { repository.setClipboardTuckAfterSeconds(it) } }
         }
         item(visible = suggestRecent, level = SettingLevel.STANDARD) {
             ChoiceSetting(

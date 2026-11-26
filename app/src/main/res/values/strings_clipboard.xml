@@ -251,9 +251,16 @@
     <string name="clipboard_recent_chips_info">The strip shows one chip for the last copy, for as long as the setting above says. Set more than 1, and the chip gets a clock button that opens a row of that many of your latest text clips, newest first, which you can scroll, each one a press from pasted. The row stays until you type, press its cross, or move to another field. It never opens by itself. The Recent copies tool opens the same row, from the toolbar or from a press and hold you give it, such as the Copy tool\'s. Hidden clips never appear. The default is 1.</string>
     <string name="clipboard_compact_paste_chip_title">Compact paste chip</string>
     <string name="clipboard_compact_paste_chip_subtitle">Keep the paste chip narrow, however long the copy</string>
-    <string name="clipboard_tuck_expired_chip_title">Tuck away an expired paste chip</string>
-    <string name="clipboard_tuck_expired_chip_subtitle">When the paste chip\'s time runs out, keep it as a small icon at the end of the strip</string>
-    <string name="clipboard_tuck_expired_chip_info">Instead of disappearing when its time runs out, the paste chip shrinks to a small icon at the end of the suggestion strip, showing whether it held text, a link, a video link or a picture. Tap the icon to bring the chip back. Up to four wait there, one over the other, newest on top. Slide a finger along them to see what each one holds, and let go on the one you want. Passwords and codes are never kept there. Off by default.</string>
+    <string name="clipboard_tuck_expired_chip_title">Tuck the paste chip away</string>
+    <string name="clipboard_tuck_expired_chip_subtitle">Keep it as a small icon at the end of the strip when its time runs out, or sooner</string>
+    <string name="clipboard_tuck_expired_chip_info">Instead of disappearing when its time runs out, the paste chip shrinks to a small icon at the end of the suggestion strip, showing whether it held text, a link, a video link or a picture. Tap the icon to bring the chip back. Up to four wait there, one over the other, newest on top. Slide a finger along them to see what each one holds, and let go on the one you want. Tuck it away after, below, tucks a chip sooner to keep the strip clear. Passwords and codes are never kept there. Off by default.</string>
+    <!-- How soon an active paste chip tucks itself away (#1565). -->
+    <string name="clipboard_tuck_after_title">Tuck it away after</string>
+    <string name="clipboard_tuck_after_subtitle">How long a new paste chip stays full size before it shrinks to its icon</string>
+    <string name="clipboard_tuck_after_info">With When its time runs out, a chip stays on the strip for as long as How long the paste chip stays says, then tucks away. Pick Straight away or a few seconds and a new copy shrinks to its icon at the end of the strip that soon, so the chip never takes the room of your suggestions for long; tap the icon to open it again, and then it stays for its full time. Passwords and codes are never tucked, so they stay as they are.</string>
+    <string name="clipboard_tuck_after_expired">When its time runs out</string>
+    <string name="clipboard_tuck_after_now">Straight away</string>
+    <string name="clipboard_tuck_after_seconds">After %1$d seconds</string>
     <string name="clipboard_compact_paste_chip_info">A long copy stretches the paste chip across the strip whenever no words are showing, which hides the tools beside it. With this on the chip always keeps its narrow form, about a third of the strip, so the rest of the row stays in reach. Off by default.</string>
 
     <!-- How tightly a clip's lines are set in the panel (#612). -->

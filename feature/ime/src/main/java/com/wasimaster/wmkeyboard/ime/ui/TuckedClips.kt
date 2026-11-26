@@ -53,7 +53,9 @@ import com.wasimaster.wmkeyboard.ime.R
 
 /**
  * Paste chips whose time ran out, tucked at the end of the suggestion strip
- * (#1565) instead of gone, while [ClipboardSettings.tuckExpiredChip] is on.
+ * (#1565) instead of gone, while [ClipboardSettings.tuckExpiredChip] is on;
+ * with [ClipboardSettings.tuckAfterSeconds] set, new chips tuck sooner, or
+ * at once, and only open full size when tapped.
  *
  * Kept by the service, which tucks a chip when its timer fires and takes one
  * out when it is brought back; provided around the keyboard like
