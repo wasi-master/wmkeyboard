@@ -324,7 +324,7 @@ internal fun ExtensionsSettings(
     }
     SettingsGroup(
         stringResource(R.string.extensions_group_title),
-        info = stringResource(R.string.extensions_intro),
+        info = stringResource(R.string.extensions_intro_v2),
     ) {
         for (extension in Extension.entries) {
             item {
@@ -369,7 +369,7 @@ internal fun ExtensionDetailSettings(
     SettingsGroup {
         item {
             ToggleSetting(
-                title = R.string.extension_enabled_title,
+                title = R.string.extension_enabled_title_v2,
                 subtitle = stringResource(R.string.extension_enabled_subtitle),
                 checked = on,
                 icon = extensionIcon(extension),

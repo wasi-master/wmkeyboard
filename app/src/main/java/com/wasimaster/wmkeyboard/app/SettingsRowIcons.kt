@@ -922,7 +922,7 @@ internal object SettingsRowIcons {
 
         // ---- Extensions ----
         put(R.string.extensions_title) { Icons.Outlined.ExtensionIcon }
-        put(R.string.extension_enabled_title) { Icons.Outlined.ToggleOn }
+        put(R.string.extension_enabled_title_v2) { Icons.Outlined.ToggleOn }
         for (extension in Extension.entries) put(extensionTitle(extension)) { extensionIcon(extension) }
         put(R.string.floating_button_enable_title) { Icons.Outlined.Adjust }
         put(R.string.share_sheet_title) { Icons.Outlined.Share }

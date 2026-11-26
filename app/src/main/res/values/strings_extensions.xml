@@ -3,14 +3,16 @@
     <!-- The Extensions screen: feature bundles with one switch each (SETTINGS_REDESIGN.md §3). -->
     <string name="extensions_title">Extensions</string>
     <string name="extensions_subtitle">Extras most keyboards never had, on or off as one thing</string>
-    <string name="extensions_intro">These are the features most people never expect a keyboard to have. Each is off until you switch it on here, and off means gone: no tool, no button on the keyboard, no search result, no background work. Switch it back on and it returns with the settings it had.</string>
+    <!-- Which bundles start on follows the setup answer (#1575); the old text said all start off. -->
+    <string name="extensions_intro_v2">These are the features most people never expect a keyboard to have. Which ones start on depends on the kind of keyboard you picked when you set it up: none for Keep it simple, the ones that need no setup for A good middle, and all of them for Show me everything. Off means gone: no tool, no button on the keyboard, no search result, no background work. Switch one back on and it returns with the settings it had.</string>
     <string name="extensions_group_title">Features</string>
     <string name="extensions_count_summary">%1$d of %2$d on</string>
     <!-- Under a bundle that switches several things: the tools and screens it covers (#1067). -->
     <string name="extension_covers">Covers %1$s</string>
 
     <!-- One bundle's own page. -->
-    <string name="extension_enabled_title">Turned on</string>
+    <!-- The switch on a bundle's own page. Not "Turned on": next to a switch that is off, that read as on (#1581). -->
+    <string name="extension_enabled_title_v2">Use this feature</string>
     <string name="extension_enabled_subtitle">Show this feature everywhere and let it work in the background</string>
     <string name="extension_enabled_info">Turns this group of features on. Its tools, settings and pages show across the app, and any background work it needs can run. With this off, everything in the group is hidden and does nothing, and your settings for it are kept.</string>
     <string name="extension_tools_title">Tools</string>

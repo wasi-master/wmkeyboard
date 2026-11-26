@@ -73,9 +73,11 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.script.DeviceLocales
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.LanguageSuggestions
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -326,6 +328,15 @@ private fun finishOnboarding(
             if (!restored) {
                 toolsAfterFinish(settings, playServices, ::isSupportedTool)?.let {
                     repository.setEnabledTools(it)
+                }
+                // The depth answer lands its extensions; a run that skipped
+                // the question, or the whole wizard, never wrote any, and an
+                // empty store reads as "an install from before Extensions",
+                // which keeps every bundle on (#1575). Land the depth in
+                // force instead, so a fresh install starts where the
+                // Extensions page says it does.
+                if (settings.appUi.extensions == null) {
+                    repository.setExtensions(Extension.defaultsFor(settings.settingsDepthResolved()))
                 }
             }
             repository.setOnboardingDone(true)
