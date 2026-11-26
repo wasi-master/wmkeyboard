@@ -47,7 +47,7 @@ Each action works on the text as the last one left it, so you can translate a pa
 - **Copy** copies the result and closes the sheet. On text you cannot edit, such as a web page, there is no Replace, and Copy is the way to take the result with you.
 - The share button beside Undo hands the result to another app.
 
-Calendar opens your calendar app's editor here rather than the keyboard's own [Calendar tool](/tools/calendar/), since there is no keyboard open to show it in. The sheet leaves out the bar actions that work on the text box itself (Select all, Copy, Cut, Paste, Delete, Find, Replace, Move up, Move down), the ones that need a keyboard panel or the keyboard's loaded dictionaries (Bangla, Banglish, Hindi, Hinglish, Grammar, DeepL Write, Repeat, QR, Search, Speak, Zones, Colour, Save as note, Edit word), and chat formatting, which depends on the app you are typing in.
+Calendar opens your calendar app's editor here rather than the keyboard's own [Calendar tool](/tools/calendar/), since there is no keyboard open to show it in. The sheet leaves out the bar actions that work on the text box itself (Select all, Copy, Cut, Paste, Delete, Find, Replace, Move up, Move down), the ones that need a keyboard panel or the keyboard's loaded dictionaries (Bangla, Banglish, Hindi, Hinglish, Grammar, DeepL Write, Repeat, QR, Search, Speak, Count, Zones, Colour, Save as note, Edit word), and chat formatting, which depends on the app you are typing in.
 
 Nothing in the sheet is stored. Translate sends the text wherever the Translate tool sends it, which is nowhere when it translates on the phone. The AI actions do the same with the AI tool's provider, and [Data Saver](/privacy/data-saver/) holds them back on mobile data as it does in the keyboard: when it is set to ask, the sheet says so, and tapping the action again sends it.
 
@@ -105,7 +105,7 @@ On top of that reading, a few actions look at what the text holds: whether it ha
 
 The bar is one row of chips that scrolls sideways, in an order you control under **Actions** (see [Options](#options)). Every action is drawn only where it applies, so the row you see is shorter than the list: Call never appears on a sentence, Sort never appears on a single line.
 
-Two things sit outside the order. **Undo** is always first while there is something to undo. And the actions whose answer is a pick rather than a single result (Format on text, Fancy, Colour, Zones) open a short row of choices in place of the bar, with an arrow on the left to come back.
+Two things sit outside the order. **Undo** is always first while there is something to undo. And the actions whose answer is a pick rather than a single result (Format on text, Fancy, Colour, Zones, Count) open a short row of choices in place of the bar, with an arrow on the left to come back.
 
 | Action | Appears on | Shipped |
 |---|---|---|
@@ -144,6 +144,7 @@ Two things sit outside the order. **Undo** is always first while there is someth
 | JSON | A JSON object or array | Off |
 | Base64, Decode | Base64 text; a percent-encoded link | Off |
 | Speak | Anything | Off |
+| Count | Anything | Off |
 | Edit word | One word | On |
 | Zones | A time | Off |
 | Calendar | A date or time | Off |
@@ -247,6 +248,8 @@ Mono on several lines uses the app's fenced block where it has one. These four a
 **Edit word** appears when the selection is one word and opens that word's [word card](/smart/personal-dictionary/#from-the-suggestion-strip), the same card that holding a word on the suggestion strip reaches through **Edit**. It shows where the keyboard found the word and how often you typed it, and carries Never suggest or Suggest again, Delete, the rank controls, the spelling and **Keep these capitals**. **Add** is about the selected word: it appears while that word is not in your personal dictionary, and adds it spelled as selected. Punctuation around the word does not count, so `"Hello,"` and `(don't)` are single words; `two words`, `2026` and `e.g.` are not. The card works on your dictionary, not on the text, so the selection stays as it was. It closes when the selection moves to other text or goes away. If you have already picked your own set of actions, switch it on under Actions.
 
 **Search** opens the [web search](/tools/search/) tool with the selection as the query. **Speak** reads the selection aloud with the phone's speech engine, or with a downloaded [offline voice](/tools/read-back/#offline-voices) for that language (in Bengali for Bengali text), and turns into Stop while it does. **Zones** appears on a time and shows it in each of the zones you picked under Time zones, UTC and your own to start with; tap one to write it in place of the selection. A selected `now` or `time now` counts as a time too, the current one, so selecting it gives the time in each zone right now.
+
+**Count** gives the figures a word processor would for the selection, as a row of chips: words, characters, characters without spaces, spaces, lines, paragraphs and sentences, then the longest and shortest word, and on more than one line the longest and shortest line in characters. Tap a chip to copy its figure, or the word itself; the selection stays as it was. A character is what you see as one, so an emoji with a skin tone counts once, and words and sentences follow the language you are typing, so Thai or Japanese written without spaces still counts its words. A paragraph is a run of lines with no blank line in it. It is off until you turn it on under Actions, in the Look up group.
 
 ## Open in
 

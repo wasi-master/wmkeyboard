@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LockOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PersonAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
@@ -117,6 +118,7 @@ import com.wasimaster.wmkeyboard.core.selection.DateTimeHit
 import com.wasimaster.wmkeyboard.core.selection.DateTimes
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
+import com.wasimaster.wmkeyboard.core.selection.SelectionStats
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SelectionIconSizeRange
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
@@ -127,6 +129,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PluginMacroSpec
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.WordCardAction
+import java.util.Locale
 import java.util.TimeZone
 
 /**
@@ -160,6 +163,8 @@ private sealed interface MacroLadder {
     data class Zones(val source: String, val choices: List<Pair<String, String>>) : MacroLadder
     /** Convert script's targets: each scheme's vidyut name and the chip's label. */
     data class Scripts(val source: String, val choices: List<Pair<String, String>>) : MacroLadder
+    /** Count's figures (#1569), worked out once as the ladder opens. */
+    data class Stats(val source: String, val stats: SelectionStats) : MacroLadder
 }
 
 /** One thing on the row: a macro chip, or an AI action drawn as a chip of its own. */
@@ -275,6 +280,14 @@ internal fun SelectionMacroBar(
                 }
                 return@Row
             }
+            is MacroLadder.Stats -> {
+                // A tap copies the figure; the selection is left alone.
+                PickLadder(statsChoices(open.stats), chips, modifier = Modifier.weight(1f)) { arg ->
+                    feedback()
+                    callbacks.onPick(SelectionMacro.STATS, arg, open.source)
+                }
+                return@Row
+            }
             MacroLadder.Case, null -> {}
         }
         val items: List<BarItem> = if (open == MacroLadder.Case) {
@@ -346,6 +359,10 @@ internal fun SelectionMacroBar(
                                                 zoneChoices(hit, state.settings, DateFormat.is24HourFormat(context)),
                                             )
                                         }
+                                        macro == SelectionMacro.STATS -> ladder = MacroLadder.Stats(
+                                            offer.text,
+                                            SelectionStats.of(offer.text, Locale.forLanguageTag(state.language.localeTag)),
+                                        )
                                         macro == SelectionMacro.CONVERT_SCRIPT -> ScriptConvert.choices(
                                             offer.text,
                                             state.settings.selectionMacros.scriptLatinInput,
@@ -370,6 +387,32 @@ private fun barItems(macros: List<SelectionMacro>, aiDirect: List<AiActionSpec>)
     macros.flatMap { macro ->
         if (macro == SelectionMacro.AI) listOf(BarItem.Macro(macro)) + aiDirect.map { BarItem.Ai(it) } else listOf(BarItem.Macro(macro))
     }
+
+/**
+ * Count's chips (#1569): each one's figure as the pick (after a key that keeps
+ * two equal figures apart in the row), and its label. A word processor's
+ * order: words, characters, then the layout, then the extremes.
+ */
+@Composable
+private fun statsChoices(stats: SelectionStats): List<Pair<String, String>> = buildList {
+    add("words:${stats.words}" to pluralStringResource(R.plurals.ime_selection_stats_words, stats.words, stats.words))
+    add("chars:${stats.characters}" to pluralStringResource(R.plurals.ime_selection_count, stats.characters, stats.characters))
+    add(
+        "nospaces:${stats.charactersNoSpaces}" to
+            pluralStringResource(R.plurals.ime_selection_stats_no_spaces, stats.charactersNoSpaces, stats.charactersNoSpaces),
+    )
+    add("spaces:${stats.spaces}" to pluralStringResource(R.plurals.ime_selection_stats_spaces, stats.spaces, stats.spaces))
+    add("lines:${stats.lines}" to pluralStringResource(R.plurals.ime_selection_stats_lines, stats.lines, stats.lines))
+    add("paragraphs:${stats.paragraphs}" to pluralStringResource(R.plurals.ime_selection_stats_paragraphs, stats.paragraphs, stats.paragraphs))
+    add("sentences:${stats.sentences}" to pluralStringResource(R.plurals.ime_selection_stats_sentences, stats.sentences, stats.sentences))
+    stats.longestWord?.let { add("longword:$it" to stringResource(R.string.ime_selection_stats_longest_word, it)) }
+    stats.shortestWord?.let { add("shortword:$it" to stringResource(R.string.ime_selection_stats_shortest_word, it)) }
+    // One line has no extremes worth naming apart from the character count.
+    if (stats.lines > 1) {
+        add("longline:${stats.longestLine}" to pluralStringResource(R.plurals.ime_selection_stats_longest_line, stats.longestLine, stats.longestLine))
+        add("shortline:${stats.shortestLine}" to pluralStringResource(R.plurals.ime_selection_stats_shortest_line, stats.shortestLine, stats.shortestLine))
+    }
+}
 
 /** Each other spelling of the colour, written out, so the chip shows what it will commit. */
 private fun colourChoices(colour: Colour): List<Pair<String, String>> =
@@ -796,6 +839,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.CHAT_MONO -> Icons.Outlined.Code
     SelectionMacro.READ_ALOUD -> Icons.AutoMirrored.Outlined.VolumeUp
     SelectionMacro.TIME_ZONES -> Icons.Outlined.Public
+    SelectionMacro.STATS -> Icons.Outlined.QueryStats
     SelectionMacro.CALL -> Icons.Outlined.Call
     SelectionMacro.SMS -> Icons.Outlined.Sms
     SelectionMacro.WHATSAPP -> Icons.Outlined.Chat

@@ -148,6 +148,13 @@ enum class SelectionMacro {
     CHAT_STRIKE,
     CHAT_MONO,
     READ_ALOUD,
+    /**
+     * The selection's counts, as a word processor gives them (#1569): words,
+     * characters with and without spaces, lines, paragraphs, sentences and
+     * the longest and shortest word and line, a chip each; see [SelectionStats].
+     * A door: the bar shows them in a ladder, and a tap copies the figure.
+     */
+    STATS,
     /** The selected time shown in the user's own zones, each a chip that replaces it. */
     TIME_ZONES,
     CALL,
@@ -238,6 +245,7 @@ enum class SelectionMacro {
             CHAT_STRIKE -> R.string.core_content_selection_macro_chat_strike
             CHAT_MONO -> R.string.core_content_selection_macro_chat_mono
             READ_ALOUD -> R.string.core_content_selection_macro_read_aloud
+            STATS -> R.string.core_content_selection_macro_stats
             TIME_ZONES -> R.string.core_content_selection_macro_time_zones
             CALL -> R.string.core_content_selection_macro_call
             SMS -> R.string.core_content_selection_macro_sms
@@ -271,7 +279,7 @@ enum class SelectionMacro {
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
             DIGITS_LATIN, ZAWGYI, KOREAN_SPACING, ADD_NIKUD, ADD_TASHKEEL, ADD_FURIGANA, SWITCH_SCRIPT, CONVERT_SCRIPT, RESTORE_YO, PERSIAN_SPACING, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
             TRANSLATE, GRAMMAR_FIX, DEEPL_WRITE, AI, TO_BANGLA, TO_BANGLISH, TO_HINDI, TO_HINGLISH -> MacroCategory.LANGUAGE
-            SEARCH, READ_ALOUD, TIME_ZONES, EDIT_WORD -> MacroCategory.LOOKUP
+            SEARCH, READ_ALOUD, STATS, TIME_ZONES, EDIT_WORD -> MacroCategory.LOOKUP
             SHARE, CALL, SMS, WHATSAPP, EMAIL, OPEN, QR, ADD_CONTACT, MAP, CALENDAR -> MacroCategory.OPEN_IN
         }
 
@@ -292,7 +300,7 @@ enum class SelectionMacro {
 
     /** A door rather than an action: the bar opens a ladder for it and the service never sees the tap. */
     val opensLadder: Boolean
-        get() = this == FORMAT || this == FANCY || this == COLOUR || this == TIME_ZONES || this == CONVERT_SCRIPT
+        get() = this == FORMAT || this == FANCY || this == COLOUR || this == TIME_ZONES || this == CONVERT_SCRIPT || this == STATS
 }
 
 /**
@@ -896,7 +904,7 @@ object SelectionMacros {
         SelectionMacro.CHAT_BOLD, SelectionMacro.CHAT_ITALIC, SelectionMacro.CHAT_STRIKE, SelectionMacro.CHAT_MONO,
         SelectionMacro.JSON_FORMAT, SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE,
         SelectionMacro.TIME_ZONES, SelectionMacro.CALENDAR, SelectionMacro.MAP, SelectionMacro.READ_ALOUD,
-        SelectionMacro.SEARCH,
+        SelectionMacro.SEARCH, SelectionMacro.STATS,
     )
 
     /**
@@ -1025,7 +1033,7 @@ object SelectionMacros {
         SelectionMacro.URL_DECODE -> kind == SelectionKind.URL || kind == SelectionKind.TEXT
         SelectionMacro.UNDO, SelectionMacro.SELECT_ALL, SelectionMacro.COPY, SelectionMacro.CUT,
         SelectionMacro.PASTE, SelectionMacro.DELETE, SelectionMacro.SHARE, SelectionMacro.SAVE_NOTE, SelectionMacro.FORMAT,
-        SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.READ_ALOUD, SelectionMacro.SNIPPET -> true
+        SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.READ_ALOUD, SelectionMacro.SNIPPET, SelectionMacro.STATS -> true
         else -> kind == SelectionKind.TEXT
     }
 

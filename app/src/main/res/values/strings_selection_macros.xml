@@ -117,6 +117,7 @@
     <string name="selection_macros_desc_chat_strike">Strikethrough, in the chat app\'s own syntax</string>
     <string name="selection_macros_desc_chat_mono">Monospace, in the chat app\'s own syntax</string>
     <string name="selection_macros_desc_read_aloud">Read the selection aloud</string>
+    <string name="selection_macros_desc_stats">Words, characters, spaces, lines, paragraphs and sentences in the selection, with its longest and shortest word and line</string>
     <string name="selection_macros_desc_edit_word">Open the word card for one selected word: rank, spelling, never suggest, add and delete</string>
     <string name="selection_macros_desc_time_zones">The selected time in your other zones</string>
     <string name="selection_macros_desc_call">Dial the selected number</string>

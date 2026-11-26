@@ -394,6 +394,7 @@
     <string name="core_content_selection_macro_chat_strike">Strike</string>
     <string name="core_content_selection_macro_chat_mono">Mono</string>
     <string name="core_content_selection_macro_read_aloud">Speak</string>
+    <string name="core_content_selection_macro_stats">Count</string>
     <string name="core_content_selection_macro_edit_word">Edit word</string>
     <string name="core_content_selection_macro_time_zones">Zones</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>

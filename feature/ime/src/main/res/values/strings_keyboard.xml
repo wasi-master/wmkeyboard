@@ -467,6 +467,41 @@
         <item quantity="one">%1$d character</item>
         <item quantity="other">%1$d characters</item>
     </plurals>
+    <!-- The Count action's chips (#1569). A tap copies the figure. -->
+    <plurals name="ime_selection_stats_words">
+        <item quantity="one">%1$d word</item>
+        <item quantity="other">%1$d words</item>
+    </plurals>
+    <plurals name="ime_selection_stats_no_spaces">
+        <item quantity="one">%1$d without spaces</item>
+        <item quantity="other">%1$d without spaces</item>
+    </plurals>
+    <plurals name="ime_selection_stats_spaces">
+        <item quantity="one">%1$d space</item>
+        <item quantity="other">%1$d spaces</item>
+    </plurals>
+    <plurals name="ime_selection_stats_lines">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
+    <plurals name="ime_selection_stats_paragraphs">
+        <item quantity="one">%1$d paragraph</item>
+        <item quantity="other">%1$d paragraphs</item>
+    </plurals>
+    <plurals name="ime_selection_stats_sentences">
+        <item quantity="one">%1$d sentence</item>
+        <item quantity="other">%1$d sentences</item>
+    </plurals>
+    <string name="ime_selection_stats_longest_word">Longest word: %1$s</string>
+    <string name="ime_selection_stats_shortest_word">Shortest word: %1$s</string>
+    <plurals name="ime_selection_stats_longest_line">
+        <item quantity="one">Longest line: %1$d character</item>
+        <item quantity="other">Longest line: %1$d characters</item>
+    </plurals>
+    <plurals name="ime_selection_stats_shortest_line">
+        <item quantity="one">Shortest line: %1$d character</item>
+        <item quantity="other">Shortest line: %1$d characters</item>
+    </plurals>
     <string name="ime_resize_defaults">Back to defaults</string>
     <string name="ime_resize_defaults_confirm">Tap again to reset</string>
     <string name="ime_resize_full_width_bars">Full-width toolbar</string>
