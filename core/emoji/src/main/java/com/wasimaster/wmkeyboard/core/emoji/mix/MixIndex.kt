@@ -38,9 +38,6 @@ class MixIndex internal constructor(
         keyArray.forEachIndexed { i, k -> putIfAbsent(MixSeq.canonical(k), i) }
     }
 
-    /** Per emoji, its entries, in partner order; built the first time [partners] is asked. */
-    private val adjacency: Pair<IntArray, IntArray> by lazy(LazyThreadSafetyMode.PUBLICATION) { buildAdjacency() }
-
     /** One pair as the source has it: keys in the source's order, its date, and its own address if any. */
     data class Entry(val left: String, val right: String, val date: String, val url: String?)
 
@@ -66,13 +63,45 @@ class MixIndex internal constructor(
         return if (at < 0) null else entry(at)
     }
 
-    /** Every mix [emoji] is in, as entries, in the order of the other emoji. */
+    /**
+     * Every mix [emoji] is in, as entries, in the order of the other emoji.
+     *
+     * Read off the sorted entries rather than an index of its own: the pairs
+     * with a smaller emoji are one binary search each, at most one per emoji
+     * the source mixes (619 in the largest, a few dozen microseconds), and
+     * the pairs with a larger one are a single run. The per-emoji index this
+     * used to build held every pair twice as an int, 1.2 MB for a source of
+     * 147,000 pairs, for as long as the keyboard kept the source.
+     */
     fun partners(emoji: String, limit: Int = Int.MAX_VALUE): List<Entry> {
         val n = numberOf(emoji) ?: return emptyList()
-        val (offsets, list) = adjacency
-        val from = offsets[n]
-        val to = from + minOf(offsets[n + 1] - from, limit)
-        return (from until to).map { entry(list[it]) }
+        if (limit <= 0) return emptyList()
+        val out = ArrayList<Entry>()
+        for (m in 0 until n) {
+            val at = search(m, n)
+            if (at < 0) continue
+            out.add(entry(at))
+            if (out.size >= limit) return out
+        }
+        // Sorted by the smaller number, so every pair whose smaller one is
+        // [emoji], itself paired with itself first, follows from here.
+        var at = firstWithSmaller(n)
+        while (at < lefts.size && minOf(lefts[at].code, rights[at].code) == n) {
+            out.add(entry(at++))
+            if (out.size >= limit) break
+        }
+        return out
+    }
+
+    /** The first entry whose smaller emoji number is at least [n]. */
+    private fun firstWithSmaller(n: Int): Int {
+        var low = 0
+        var high = lefts.size
+        while (low < high) {
+            val mid = (low + high) ushr 1
+            if (minOf(lefts[mid].code, rights[mid].code) < n) low = mid + 1 else high = mid
+        }
+        return low
     }
 
     private fun numberOf(emoji: String): Int? {
@@ -103,34 +132,6 @@ class MixIndex internal constructor(
         }
         return -1
     }
-
-    private fun buildAdjacency(): Pair<IntArray, IntArray> {
-        val counts = IntArray(keyArray.size + 1)
-        for (i in lefts.indices) {
-            counts[lefts[i].code + 1]++
-            if (rights[i] != lefts[i]) counts[rights[i].code + 1]++
-        }
-        for (i in 1 until counts.size) counts[i] += counts[i - 1]
-        val offsets = counts.copyOf()
-        val fill = counts.copyOf()
-        val list = IntArray(counts.last())
-        for (i in lefts.indices) {
-            list[fill[lefts[i].code]++] = i
-            if (rights[i] != lefts[i]) list[fill[rights[i].code]++] = i
-        }
-        // Each emoji's run in the other emoji's number order, which is the source's order.
-        for (n in keyArray.indices) {
-            val from = offsets[n]
-            val to = offsets[n + 1]
-            if (to - from < 2) continue
-            val run = list.copyOfRange(from, to).sortedBy { e -> other(e, n) }
-            run.forEachIndexed { j, e -> list[from + j] = e }
-        }
-        return offsets to list
-    }
-
-    private fun other(entry: Int, n: Int): Int =
-        if (lefts[entry].code == n) rights[entry].code else lefts[entry].code
 
     /** Writes the index in the format [read] takes back. */
     fun write(out: OutputStream) {

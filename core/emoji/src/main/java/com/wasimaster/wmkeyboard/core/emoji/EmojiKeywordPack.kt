@@ -136,10 +136,15 @@ class EmojiKeywordPack(
         ): List<EmojiEntry> {
             val applicable = packs.filter { it.keywords.isNotEmpty() }
             if (applicable.isEmpty()) return catalog
+            // One string per distinct keyword across the catalog and every
+            // pack, as [EmojiCatalog.load] does for the catalog alone: a pack
+            // parses each row's words into strings of its own, and the merged
+            // catalog is held for as long as the keyboard runs.
+            val pool = EmojiCatalog.StringPool().apply { addAll(catalog) }
             return catalog.map { entry ->
                 val extra = ArrayList<String>()
                 for (pack in applicable) {
-                    pack.keywords[entry.emoji]?.let { extra.addAll(it) }
+                    pack.keywords[entry.emoji]?.let { words -> words.mapTo(extra, pool::of) }
                 }
                 if (extra.isEmpty()) {
                     entry
@@ -166,7 +171,108 @@ class EmojiKeywordPack(
                 if (pack.names.isEmpty()) continue
                 byLang.getOrPut(lang) { HashMap() }.putAll(pack.names)
             }
-            return byLang
+            return byLang.mapValues { (_, names) -> PackedNames.of(names) }
+        }
+    }
+}
+
+/**
+ * A read-only name table packed into two strings: the emoji back to back,
+ * sorted, and their names in the same order, each found by its offsets.
+ *
+ * What [EmojiKeywordPack.namesByLanguage] hands the keyboard, which holds it
+ * for as long as it runs so the long-press popup can name an emoji in the
+ * language being typed. A downloaded pack names about 3,940 emoji, skin
+ * tones included; as a `HashMap<String, String>` that was 1.37 MB for English
+ * and Bengali and 2.7 MB with Banglish and Hindi too, packed 570 KB and
+ * 1.2 MB (measured on a desktop JVM, 2026-11-26).
+ *
+ * [get] is a binary search and makes the name's string on each call, which
+ * only the popup does. Iteration builds its entries as it goes.
+ */
+internal class PackedNames private constructor(
+    private val keyText: String,
+    private val keyStart: IntArray,
+    private val valueText: String,
+    private val valueStart: IntArray,
+) : AbstractMap<String, String>() {
+
+    override val size: Int get() = keyStart.size - 1
+
+    override fun isEmpty(): Boolean = size == 0
+
+    override fun containsKey(key: String): Boolean = slot(key) >= 0
+
+    override fun get(key: String): String? {
+        val i = slot(key)
+        return if (i < 0) null else valueText.substring(valueStart[i], valueStart[i + 1])
+    }
+
+    override val entries: Set<Map.Entry<String, String>>
+        get() = object : AbstractSet<Map.Entry<String, String>>() {
+            override val size: Int get() = this@PackedNames.size
+
+            override fun iterator(): Iterator<Map.Entry<String, String>> = object : Iterator<Map.Entry<String, String>> {
+                private var next = 0
+
+                override fun hasNext(): Boolean = next < this@PackedNames.size
+
+                override fun next(): Map.Entry<String, String> {
+                    if (!hasNext()) throw NoSuchElementException()
+                    val i = next++
+                    return java.util.AbstractMap.SimpleImmutableEntry(
+                        keyText.substring(keyStart[i], keyStart[i + 1]),
+                        valueText.substring(valueStart[i], valueStart[i + 1]),
+                    )
+                }
+            }
+        }
+
+    /** [key]'s slot, or -1. */
+    private fun slot(key: String): Int {
+        var low = 0
+        var high = size - 1
+        while (low <= high) {
+            val mid = (low + high) ushr 1
+            val cmp = compareKey(mid, key)
+            when {
+                cmp < 0 -> low = mid + 1
+                cmp > 0 -> high = mid - 1
+                else -> return mid
+            }
+        }
+        return -1
+    }
+
+    /** Key [i] against [other], as [String.compareTo] would order them. */
+    private fun compareKey(i: Int, other: String): Int {
+        val from = keyStart[i]
+        val len = keyStart[i + 1] - from
+        val n = minOf(len, other.length)
+        for (k in 0 until n) {
+            val a = keyText[from + k]
+            val b = other[k]
+            if (a != b) return a - b
+        }
+        return len - other.length
+    }
+
+    companion object {
+        fun of(names: Map<String, String>): PackedNames {
+            val keys = names.keys.sorted()
+            val keyText = StringBuilder()
+            val valueText = StringBuilder()
+            val keyStart = IntArray(keys.size + 1)
+            val valueStart = IntArray(keys.size + 1)
+            for ((i, key) in keys.withIndex()) {
+                keyStart[i] = keyText.length
+                valueStart[i] = valueText.length
+                keyText.append(key)
+                valueText.append(names.getValue(key))
+            }
+            keyStart[keys.size] = keyText.length
+            valueStart[keys.size] = valueText.length
+            return PackedNames(keyText.toString(), keyStart, valueText.toString(), valueStart)
         }
     }
 }

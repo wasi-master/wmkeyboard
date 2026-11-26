@@ -10,8 +10,23 @@ package com.wasimaster.wmkeyboard.core.emoji
  */
 object EmojiNames {
 
-    private var source: List<EmojiEntry>? = null
+    /**
+     * The catalog [index] was built from, weakly: a catalog reloaded after a
+     * keyword pack download is a new list, and the old one, about 1 MB with
+     * its keywords, should not stay alive here until the next long press.
+     */
+    private var source: java.lang.ref.WeakReference<List<EmojiEntry>>? = null
     private var index: Map<String, String> = emptyMap()
+
+    /**
+     * Drops the name table, about 150 KB; the next long press builds it
+     * again from the catalog, a hash map of 1,923 names.
+     */
+    @Synchronized
+    fun release() {
+        source = null
+        index = emptyMap()
+    }
 
     private val TONES = 0x1F3FB..0x1F3FF
     private const val VS16 = '️'
@@ -46,8 +61,8 @@ object EmojiNames {
 
     @Synchronized
     private fun indexFor(catalog: List<EmojiEntry>): Map<String, String> {
-        if (source !== catalog) {
-            source = catalog
+        if (source?.get() !== catalog) {
+            source = java.lang.ref.WeakReference(catalog)
             index = buildMap {
                 for (entry in catalog) {
                     val name = entry.name ?: continue

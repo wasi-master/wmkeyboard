@@ -65,10 +65,7 @@ internal class RankFloorCache(
         if (frequency <= 0) return 0
         val counts = histogram()
         if (counts.words == 0) return 0
-        val code = FrequencyCodec.encode(frequency)
-        var above = 0
-        for (c in code + 1..FrequencyCodec.MAX_CODE) above += counts.byCode[c]
-        return above + 1
+        return counts.above(FrequencyCodec.encode(frequency)) + 1
     }
 
     /**
@@ -78,20 +75,73 @@ internal class RankFloorCache(
      */
     fun countAtRank(rank: Int): Int {
         if (rank <= 0) return 0
-        val counts = histogram()
-        if (counts.words <= rank) return 0
-        var seen = 0
-        for (code in counts.byCode.indices.reversed()) {
-            seen += counts.byCode[code]
-            if (seen >= rank) return FrequencyCodec.decode(code)
-        }
-        return 0
+        return histogram().floorAt(rank)
     }
 
     /** Words with a frequency, i.e. the size of the vocabulary being ranked. */
     fun vocabularySize(): Int = histogram().words
 
-    private class Histogram(val byCode: IntArray, val words: Int)
+    /**
+     * The words counted by code, kept as running totals from the top: entry
+     * `i` is how many words have code [codeAt]`(i)` or higher. Read that way,
+     * "how many are commoner" and "which code holds rank N" are one look-up
+     * and one binary search, where summing the counts was a walk over all
+     * 43,008 codes on every [rankOfFrequency] (the typo-shadow check asks it
+     * per keystroke).
+     *
+     * [codes] holds only the codes some word has, ascending, when that is the
+     * smaller form: a list rarely spells more than a few thousand distinct
+     * frequencies (the bundled English list 4,302, its AOSP phrase list 196),
+     * and 6 bytes for each of those is 26 KB against the dense array's 172 KB,
+     * which every ranked list kept for the life of the process. Null means
+     * dense: entry `i` is code `i`, for a list whose frequencies use so many
+     * codes that the dense array is the smaller.
+     */
+    private class Histogram(private val codes: CharArray?, private val atOrAbove: IntArray, val words: Int) {
+
+        private fun codeAt(i: Int): Int = codes?.get(i)?.code ?: i
+
+        /** Words whose code is strictly above [code]. */
+        fun above(code: Int): Int {
+            val next = if (codes == null) {
+                code + 1
+            } else {
+                // First index whose code is above [code].
+                var lo = 0
+                var hi = codes.size
+                while (lo < hi) {
+                    val mid = (lo + hi) ushr 1
+                    if (codes[mid].code <= code) lo = mid + 1 else hi = mid
+                }
+                lo
+            }
+            return if (next < atOrAbove.size) atOrAbove[next] else 0
+        }
+
+        /**
+         * The frequency of the [rank]-th commonest word, 0 when there are no
+         * more than [rank] words: the highest code whose running total
+         * reaches [rank], which is where a walk down from the top meets it.
+         */
+        fun floorAt(rank: Int): Int {
+            if (words <= rank) return 0
+            // [atOrAbove] never rises with the index, and its first entry is
+            // [words], past [rank], so there is always an answer.
+            var lo = 0
+            var hi = atOrAbove.size - 1
+            var found = 0
+            while (lo <= hi) {
+                val mid = (lo + hi) ushr 1
+                if (atOrAbove[mid] >= rank) {
+                    found = mid
+                    lo = mid + 1
+                } else {
+                    hi = mid - 1
+                }
+            }
+            return FrequencyCodec.decode(codeAt(found))
+        }
+    }
 
     @Volatile
     private var histogramCache: Histogram? = null
@@ -106,25 +156,42 @@ internal class RankFloorCache(
     private fun count(): Histogram {
         val counts = IntArray(FrequencyCodec.MAX_CODE + 1)
         var words = 0
+        var distinct = 0
         for (node in 0 until nodeCount) {
             val frequency = frequencyAt(node)
             if (frequency <= 0) continue
-            counts[FrequencyCodec.encode(frequency)]++
+            val code = FrequencyCodec.encode(frequency)
+            if (counts[code]++ == 0) distinct++
             words++
         }
-        return Histogram(counts, words)
+        if (distinct.toLong() * SPARSE_BYTES_PER_CODE < counts.size.toLong() * Int.SIZE_BYTES) {
+            val codes = CharArray(distinct)
+            val atOrAbove = IntArray(distinct)
+            var at = distinct
+            var running = 0
+            for (code in counts.indices.reversed()) {
+                if (counts[code] == 0) continue
+                running += counts[code]
+                at--
+                codes[at] = code.toChar()
+                atOrAbove[at] = running
+            }
+            return Histogram(codes, atOrAbove, words)
+        }
+        // Dense: the counts become their own running totals, in place.
+        for (code in counts.size - 2 downTo 0) counts[code] += counts[code + 1]
+        return Histogram(null, counts, words)
     }
 
     private fun compute(rank: Int): Int {
         // A retained histogram answers without another pass; otherwise one
         // pass, and the array is dropped again as it always was.
         val counts = histogramCache ?: count()
-        if (counts.words <= rank) return 0
-        var seen = 0
-        for (code in counts.byCode.indices.reversed()) {
-            seen += counts.byCode[code]
-            if (seen >= rank) return FrequencyCodec.decode(code)
-        }
-        return 0
+        return counts.floorAt(rank)
+    }
+
+    private companion object {
+        /** A sparse histogram's cost per code some word has: a `Char` code and an `Int` total. */
+        const val SPARSE_BYTES_PER_CODE = Char.SIZE_BYTES + Int.SIZE_BYTES
     }
 }

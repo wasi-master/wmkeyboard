@@ -10335,6 +10335,12 @@ open class WMKeyboardService : InputMethodService() {
         if (::settingsRepository.isInitialized) updatePrivacyShade(_uiState.value.settings)
         refreshTodoDueChip()
         refreshPassageWords()
+        // The emoji search index goes with the idle release. Built again here,
+        // off the main thread, because the suggestion pages (#970) search it
+        // on the main thread and the build takes tens of milliseconds.
+        if (_uiState.value.settings.suggestionStrip.pagesEmoji) {
+            emojiSearch?.let { search -> serviceScope.launch(Dispatchers.Default) { search.warm() } }
+        }
         // A tap in another field, or before the keyboard went away, is not the
         // tap before this one.
         multitap.end()
@@ -12689,10 +12695,15 @@ open class WMKeyboardService : InputMethodService() {
         // from the pack files by the next sticker drawn. Off the main thread:
         // the store's lock is held through a whole pack import.
         if (panel != PanelMode.STICKER) releaseDynamicStickers()
-        // The Unicode name index: tens of megabytes of character names, built
-        // the first time somebody searched the emoji panel for one. Rebuilt by
-        // the next such search.
-        if (panel != PanelMode.EMOJI) UnicodeNames.release()
+        // The Unicode name tables (about 2.3 MB packed), the emoji search
+        // index (up to 1 MB with four keyword packs merged, stems included)
+        // and the long-press name table: each rebuilt by the next search or
+        // long press that needs it.
+        if (panel != PanelMode.EMOJI) {
+            UnicodeNames.release()
+            emojiSearch?.release()
+            com.wasimaster.wmkeyboard.core.emoji.EmojiNames.release()
+        }
         // The OCR engine's loaded language pack: tens of megabytes of native
         // memory. The scanner panel frees it when it closes, so this is the
         // backstop for the panel never getting the chance — and a no-op where
@@ -12718,6 +12729,12 @@ open class WMKeyboardService : InputMethodService() {
         // Theme card pictures, kept on disk too. Not while a settings screen
         // is up: the theme gallery there may be what is showing them.
         if (!onScreen && StartedActivities.count == 0) ThemePreviewCache.trim(ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
+        // Parsed asset grids the settings app's layout cards left behind, up
+        // to 16 MB estimated; the layouts switched on and the one on screen
+        // stay parsed. Not while a settings screen is up: it may be showing them.
+        if (StartedActivities.count == 0) {
+            AssetLayouts.releaseParsed(_uiState.value.settings.enabledLayoutIds + _uiState.value.layoutId)
+        }
     }
 
     /** Pending [schedulePanelTrim]'s trim. */
@@ -12745,6 +12762,12 @@ open class WMKeyboardService : InputMethodService() {
             trimMediaImageMemory()
             com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory()
             releaseDynamicStickers()
+            // The Unicode name search's table and the long-press name table;
+            // the strip's phrase table stays, since plain typing may ask it on
+            // every word. And the GIF packs' SQLite handles and page caches.
+            UnicodeNames.releaseSearch()
+            com.wasimaster.wmkeyboard.core.emoji.EmojiNames.release()
+            com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.releaseDatabases()
         }
     }
 

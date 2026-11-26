@@ -88,6 +88,7 @@ class GlideShapeSample(val layoutKey: Long, val shape: ByteArray)
  */
 class GlideShapeStore(private val storageFile: File?) {
 
+    /** [points] is replaced, never written in place, since [publish] shares it with the decoder. */
     private class Shape(var points: ByteArray, var accepted: Int, var rejected: Int)
 
     private class Entry(var tick: Long, val shapes: ArrayList<Shape>)
@@ -453,10 +454,16 @@ class GlideShapeStore(private val storageFile: File?) {
     private fun blend(shape: Shape, drawn: ByteArray) {
         val depth = minOf(shape.accepted, BLEND_DEPTH)
         val weight = depth + 1
+        // Into a new array, never over the old one: the published snapshot
+        // shares the stored arrays rather than copying them ([publish]), so an
+        // array the decoder may be reading is never written again.
+        val old = shape.points
+        val mixedPoints = ByteArray(POINTS)
         for (i in 0 until POINTS) {
-            val mixed = (shape.points[i] * depth + drawn[i]).toFloat() / weight
-            shape.points[i] = mixed.roundToInt().coerceIn(-QUANT_LIMIT, QUANT_LIMIT).toByte()
+            val mixed = (old[i] * depth + drawn[i]).toFloat() / weight
+            mixedPoints[i] = mixed.roundToInt().coerceIn(-QUANT_LIMIT, QUANT_LIMIT).toByte()
         }
+        shape.points = mixedPoints
     }
 
     /** Past [MAX_WORDS] the word left alone longest makes room. */
@@ -499,7 +506,13 @@ class GlideShapeStore(private val storageFile: File?) {
                     for ((i, shape) in kept.withIndex()) {
                         indices[i] = shapeList.size
                         wordList.add(word)
-                        shapeList.add(shape.points.copyOf())
+                        // Shared, not copied: no stored array is written after
+                        // it is made ([blend] swaps in a new one), so the
+                        // snapshot cannot change under the decoder. A copy per
+                        // shape was 112 bytes each held twice, 3.4 MB at the
+                        // ceiling of 10,000 words of three shapes, and copied
+                        // again on every settled glide.
+                        shapeList.add(shape.points)
                     }
                     byWord[word] = indices
                 }

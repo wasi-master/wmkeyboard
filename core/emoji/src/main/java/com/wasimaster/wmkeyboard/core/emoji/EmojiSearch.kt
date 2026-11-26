@@ -32,20 +32,105 @@ class EmojiSearch(
     private val stem: ((List<String>) -> List<String>?)? = null,
 ) {
 
-    // The keyword index, packed: every term sorted in [terms], and term `t`'s
-    // catalog positions at `postings[postingStart[t] until postingStart[t + 1]]`,
-    // ascending and without repeats. As a map of sets of boxed ints it was
-    // ~6 MB of heap for the bundled catalog and the language packs merged into
-    // it, held for as long as the keyboard ran; sorted, a prefix is also a
-    // range to read rather than a scan of every term.
-    private val terms: Array<String>
-    private val postingStart: IntArray
-    private val postings: IntArray
+    /**
+     * The keyword index, packed: every term sorted in [terms], and term `t`'s
+     * catalog positions at `postings[postingStart[t] until postingStart[t + 1]]`,
+     * ascending and without repeats. As a map of sets of boxed ints it was
+     * ~6 MB of heap for the bundled catalog and the language packs merged into
+     * it, held for as long as the keyboard ran; sorted, a prefix is also a
+     * range to read rather than a scan of every term.
+     *
+     * Built on the first search rather than with the catalog, and dropped by
+     * [release]: a keyboard used for typing alone never searches its emoji,
+     * and with English, Bengali, Banglish and Hindi packs merged in this is
+     * about 1 MB with its stems (25,700 terms; measured on a desktop JVM,
+     * 2026-11-26). Rebuilt from [entries], which still carry every keyword,
+     * by the next search: one pass over them and a sort of the terms.
+     */
+    private class Index(
+        val terms: Array<String>,
+        val postingStart: IntArray,
+        val postings: IntArray,
+        /** Every catalog emoji, sorted, beside [emojiSlots]: its first catalog position. */
+        val emojiKeys: Array<String>,
+        val emojiSlots: IntArray,
+        stem: ((List<String>) -> List<String>?)?,
+    ) {
+        /**
+         * The terms grouped by stem: `stems` sorted, and the [terms] slots of
+         * stem `i` at `slots[start[i] until start[i + 1]]`. One int a term, the
+         * stem strings shared with [terms] where stemming changed nothing.
+         */
+        val stemIndex: StemIndex? by lazy {
+            val stemmed = stem?.invoke(terms.asList())?.takeIf { it.size == terms.size } ?: return@lazy null
+            val grouped = HashMap<String, MutableList<Int>>()
+            for ((t, s) in stemmed.withIndex()) {
+                if (s.isEmpty()) continue
+                grouped.getOrPut(if (s == terms[t]) terms[t] else s) { ArrayList(1) }.add(t)
+            }
+            val stems = grouped.keys.toTypedArray().also { it.sort() }
+            val start = IntArray(stems.size + 1)
+            val slots = IntArray(stemmed.size)
+            var at = 0
+            for ((i, s) in stems.withIndex()) {
+                start[i] = at
+                for (t in grouped.getValue(s)) slots[at++] = t
+            }
+            start[stems.size] = at
+            StemIndex(stems, start, slots.copyOf(at))
+        }
 
-    /** Catalog position of each emoji, for scoring a shortcode hit. */
-    private val indexByEmoji = HashMap<String, Int>()
+        /** [term]'s slot in [terms], or -1. */
+        fun termIndex(term: String): Int = terms.binarySearch(term).let { if (it < 0) -1 else it }
 
-    init {
+        /** The slots of every term starting with [prefix], [prefix] itself included. */
+        fun prefixRange(prefix: String): IntRange {
+            val low = terms.binarySearch(prefix).let { if (it < 0) -it - 1 else it }
+            var high = low
+            while (high < terms.size && terms[high].startsWith(prefix)) high++
+            return low until high
+        }
+
+        inline fun forEachPosting(t: Int, action: (Int) -> Unit) {
+            for (p in postingStart[t] until postingStart[t + 1]) action(postings[p])
+        }
+
+        fun postingCount(t: Int): Int = postingStart[t + 1] - postingStart[t]
+
+        /** Catalog position of [emoji], for scoring a shortcode hit, or null. */
+        fun positionOf(emoji: String): Int? {
+            val at = emojiKeys.binarySearch(emoji)
+            return if (at < 0) null else emojiSlots[at]
+        }
+    }
+
+    private class StemIndex(val stems: Array<String>, val start: IntArray, val slots: IntArray)
+
+    @Volatile
+    private var built: Index? = null
+
+    private fun index(): Index = built ?: synchronized(this) {
+        built ?: buildIndex().also { built = it }
+    }
+
+    /**
+     * Drops the index; the next [search] or [completions] builds it again.
+     * Safe against a search in flight, which keeps the index it started with.
+     */
+    fun release() {
+        built = null
+    }
+
+    /**
+     * Builds the index now, on the calling thread, so the next [search] is a
+     * lookup: for a caller that searches on the main thread, which would
+     * otherwise pay for the build there.
+     */
+    fun warm() {
+        index()
+    }
+
+    private fun buildIndex(): Index {
         val building = HashMap<String, MutableList<Int>>()
         fun add(term: String, index: Int) {
             val list = building.getOrPut(term) { ArrayList(2) }
@@ -53,7 +138,6 @@ class EmojiSearch(
             if (list.isEmpty() || list[list.size - 1] != index) list.add(index)
         }
         entries.forEachIndexed { index, entry ->
-            indexByEmoji.putIfAbsent(entry.emoji, index)
             for (keyword in entry.keywords) {
                 // Index both the full keyword ("heart on fire") and its tokens.
                 add(keyword, index)
@@ -62,63 +146,32 @@ class EmojiSearch(
                 }
             }
         }
-        terms = building.keys.toTypedArray().also { it.sort() }
-        postingStart = IntArray(terms.size + 1)
+        val terms = building.keys.toTypedArray().also { it.sort() }
+        val postingStart = IntArray(terms.size + 1)
         var total = 0
         for ((t, term) in terms.withIndex()) {
             postingStart[t] = total
             total += building.getValue(term).size
         }
         postingStart[terms.size] = total
-        postings = IntArray(total)
+        val postings = IntArray(total)
         for ((t, term) in terms.withIndex()) {
             var at = postingStart[t]
             for (index in building.getValue(term)) postings[at++] = index
         }
-    }
-
-    /**
-     * The terms grouped by stem: `stems` sorted, and the [terms] slots of
-     * stem `i` at `slots[start[i] until start[i + 1]]`. One int a term, the
-     * stem strings shared with [terms] where stemming changed nothing.
-     */
-    private class StemIndex(val stems: Array<String>, val start: IntArray, val slots: IntArray)
-
-    private val stemIndex: StemIndex? by lazy {
-        val stemmed = stem?.invoke(terms.asList())?.takeIf { it.size == terms.size } ?: return@lazy null
-        val grouped = HashMap<String, MutableList<Int>>()
-        for ((t, s) in stemmed.withIndex()) {
-            if (s.isEmpty()) continue
-            grouped.getOrPut(if (s == terms[t]) terms[t] else s) { ArrayList(1) }.add(t)
+        // Sorted by emoji, the catalog's order kept among equal ones, so the
+        // first of two entries for one emoji answers for it.
+        val byEmoji = entries.indices.sortedWith { a, b -> entries[a].emoji.compareTo(entries[b].emoji) }
+        val keys = ArrayList<String>(byEmoji.size)
+        val slots = IntArray(byEmoji.size)
+        for (i in byEmoji) {
+            val emoji = entries[i].emoji
+            if (keys.isNotEmpty() && keys[keys.size - 1] == emoji) continue
+            slots[keys.size] = i
+            keys.add(emoji)
         }
-        val stems = grouped.keys.toTypedArray().also { it.sort() }
-        val start = IntArray(stems.size + 1)
-        val slots = IntArray(stemmed.size)
-        var at = 0
-        for ((i, s) in stems.withIndex()) {
-            start[i] = at
-            for (t in grouped.getValue(s)) slots[at++] = t
-        }
-        start[stems.size] = at
-        StemIndex(stems, start, slots.copyOf(at))
+        return Index(terms, postingStart, postings, keys.toTypedArray(), slots.copyOf(keys.size), stem)
     }
-
-    /** [term]'s slot in [terms], or -1. */
-    private fun termIndex(term: String): Int = terms.binarySearch(term).let { if (it < 0) -1 else it }
-
-    /** The slots of every term starting with [prefix], [prefix] itself included. */
-    private fun prefixRange(prefix: String): IntRange {
-        val low = terms.binarySearch(prefix).let { if (it < 0) -it - 1 else it }
-        var high = low
-        while (high < terms.size && terms[high].startsWith(prefix)) high++
-        return low until high
-    }
-
-    private inline fun forEachPosting(t: Int, action: (Int) -> Unit) {
-        for (p in postingStart[t] until postingStart[t + 1]) action(postings[p])
-    }
-
-    private fun postingCount(t: Int): Int = postingStart[t + 1] - postingStart[t]
 
     fun search(query: String, limit: Int = 40): List<EmojiEntry> {
         val code = EmojiShortcodes.normalize(query)
@@ -128,34 +181,35 @@ class EmojiSearch(
         // leaving the shortcode table to carry only the ones that differ.
         val tokens = code.replace('_', ' ').split(Regex("\\s+")).filter { it.isNotEmpty() }
         if (tokens.isEmpty()) return emptyList()
+        val ix = index()
 
         val scores = HashMap<Int, Int>()
         // An exact `:joy:` means one emoji and nothing else; a partial one
         // still beats the keyword layers, in the order the table offers it.
         shortcodes.exact(code)?.let { emoji ->
-            indexByEmoji[emoji]?.let { scores.merge(it, 1_000, Int::plus) }
+            ix.positionOf(emoji)?.let { scores.merge(it, 1_000, Int::plus) }
         }
         if (code.length >= 2) {
             shortcodes.prefix(code, limit).forEachIndexed { rank, emoji ->
-                indexByEmoji[emoji]?.let { scores.merge(it, 500 - rank, Int::plus) }
+                ix.positionOf(emoji)?.let { scores.merge(it, 500 - rank, Int::plus) }
             }
         }
         // The query's stems, one crossing for all its words.
-        val stems = stemIndex?.let { stem?.invoke(tokens) }?.takeIf { it.size == tokens.size }
+        val stems = ix.stemIndex?.let { stem?.invoke(tokens) }?.takeIf { it.size == tokens.size }
         for ((i, token) in tokens.withIndex()) {
-            score(token, weight = 100, scores)
-            stems?.get(i)?.let { scoreStem(token, it, scores) }
+            score(ix, token, weight = 100, scores)
+            stems?.get(i)?.let { scoreStem(ix, token, it, scores) }
             for (synonym in SYNONYMS[token].orEmpty()) {
-                score(synonym, weight = 60, scores)
+                score(ix, synonym, weight = 60, scores)
             }
             if (token.length >= 2) {
-                for (t in prefixRange(token)) {
-                    if (terms[t].length > token.length) forEachPosting(t) { scores.merge(it, 40, Int::plus) }
+                for (t in ix.prefixRange(token)) {
+                    if (ix.terms[t].length > token.length) ix.forEachPosting(t) { scores.merge(it, 40, Int::plus) }
                 }
             }
             if (token.length >= 4) {
-                for (t in terms.indices) {
-                    if (isOneEditAway(token, terms[t])) forEachPosting(t) { scores.merge(it, 30, Int::plus) }
+                for (t in ix.terms.indices) {
+                    if (isOneEditAway(token, ix.terms[t])) ix.forEachPosting(t) { scores.merge(it, 30, Int::plus) }
                 }
             }
         }
@@ -188,27 +242,28 @@ class EmojiSearch(
     fun completions(typed: String, context: List<String> = emptyList(), limit: Int = 6): List<String> {
         val prefix = typed.trim().lowercase()
         if (prefix.isEmpty() || limit <= 0) return emptyList()
+        val ix = index()
         val already = context.mapTo(HashSet()) { it.trim().lowercase() }.apply { add(prefix) }
         // Which emoji the rest of the query is already about, so a completion
         // can be judged on whether it points at the same ones.
         val narrowed = HashSet<Int>()
         for (token in already) {
             if (token == prefix) continue
-            val t = termIndex(token)
-            if (t >= 0) forEachPosting(t) { narrowed.add(it) }
+            val t = ix.termIndex(token)
+            if (t >= 0) ix.forEachPosting(t) { narrowed.add(it) }
         }
 
         /** Term to the number of catalog entries it reaches. */
         val reach = HashMap<String, Int>()
         /** ...of which the rest of the query names too. */
         val shared = HashMap<String, Int>()
-        for (t in prefixRange(prefix)) {
-            val keyword = terms[t]
+        for (t in ix.prefixRange(prefix)) {
+            val keyword = ix.terms[t]
             if (keyword.length <= prefix.length || keyword in already) continue
-            reach[keyword] = postingCount(t)
+            reach[keyword] = ix.postingCount(t)
             if (narrowed.isNotEmpty()) {
                 var count = 0
-                forEachPosting(t) { if (it in narrowed) count++ }
+                ix.forEachPosting(t) { if (it in narrowed) count++ }
                 shared[keyword] = count
             }
         }
@@ -223,7 +278,7 @@ class EmojiSearch(
         for ((word, expansions) in SYNONYMS) {
             if (word.length <= prefix.length || !word.startsWith(prefix)) continue
             if (word in already || word in reach) continue
-            val expanded = expansions.sumOf { termIndex(it).let { t -> if (t < 0) 0 else postingCount(t) } }
+            val expanded = expansions.sumOf { ix.termIndex(it).let { t -> if (t < 0) 0 else ix.postingCount(t) } }
             if (expanded > 0) reach[word] = expanded
         }
 
@@ -242,23 +297,23 @@ class EmojiSearch(
      * The emoji filed under another form of [token]: every term whose stem
      * is [tokenStem], [token] itself left to the exact layer.
      */
-    private fun scoreStem(token: String, tokenStem: String, scores: HashMap<Int, Int>) {
-        val index = stemIndex ?: return
+    private fun scoreStem(ix: Index, token: String, tokenStem: String, scores: HashMap<Int, Int>) {
+        val index = ix.stemIndex ?: return
         if (tokenStem.isEmpty()) return
         val i = index.stems.binarySearch(tokenStem)
         if (i < 0) return
         val reached = HashSet<Int>()
         for (k in index.start[i] until index.start[i + 1]) {
             val t = index.slots[k]
-            if (terms[t] != token) forEachPosting(t) { reached.add(it) }
+            if (ix.terms[t] != token) ix.forEachPosting(t) { reached.add(it) }
         }
         // Once per emoji, however many forms of the word it is filed under.
         for (entry in reached) scores.merge(entry, STEM_WEIGHT, Int::plus)
     }
 
-    private fun score(token: String, weight: Int, scores: HashMap<Int, Int>) {
-        val t = termIndex(token)
-        if (t >= 0) forEachPosting(t) { scores.merge(it, weight, Int::plus) }
+    private fun score(ix: Index, token: String, weight: Int, scores: HashMap<Int, Int>) {
+        val t = ix.termIndex(token)
+        if (t >= 0) ix.forEachPosting(t) { scores.merge(it, weight, Int::plus) }
     }
 
     /** Damerau-Levenshtein distance exactly 1 (substitution, indel, swap). */

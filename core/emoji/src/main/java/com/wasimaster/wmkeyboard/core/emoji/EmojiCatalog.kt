@@ -32,8 +32,21 @@ data class EmojiEntry(
  */
 object EmojiCatalog {
 
+    /**
+     * The catalog, with every keyword and category spelled by one shared
+     * string however many entries carry it.
+     *
+     * The keyboard holds the catalog for as long as it runs. Its 1,923 rows
+     * carry 24,500 keywords but only 11,100 distinct ones ("face" alone is in
+     * hundreds of rows), and each split used to make a string of its own:
+     * about 350 KB of duplicates, and 45 KB more for ten category names
+     * spelled 1,923 times (estimated from ART object sizes, 2026-11-26). The
+     * search and suggestion indexes key on these same strings, so they share
+     * them too.
+     */
     fun load(stream: InputStream): List<EmojiEntry> {
         val entries = ArrayList<EmojiEntry>()
+        val pool = StringPool()
         stream.bufferedReader().useLines { lines ->
             for (line in lines) {
                 // "# " opens a comment, a bare "#" does not: the keycap hash
@@ -41,16 +54,36 @@ object EmojiCatalog {
                 if (line.isBlank() || line.startsWith("# ")) continue
                 val parts = line.split('\t')
                 if (parts.size < 3) continue
-                val keywords = buildList {
-                    addAll(parts[2].split(','))
-                    if (parts.size > 3) addAll(parts[3].split(','))
-                }.map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+                val keywords = ArrayList<String>()
+                for (column in 2..minOf(3, parts.size - 1)) {
+                    for (raw in parts[column].split(',')) {
+                        val word = raw.trim().lowercase()
+                        if (word.isNotEmpty()) keywords.add(pool.of(word))
+                    }
+                }
+                keywords.trimToSize()
                 val parent = parts.getOrNull(4)?.trim()?.takeIf { it.isNotEmpty() }
                 val name = parts.getOrNull(5)?.trim()?.takeIf { it.isNotEmpty() }
-                entries.add(EmojiEntry(parts[0].trim(), parts[1].trim(), keywords, parent, name))
+                entries.add(EmojiEntry(parts[0].trim(), pool.of(parts[1].trim()), keywords, parent, name))
             }
         }
+        entries.trimToSize()
         return entries
+    }
+
+    /**
+     * Hands out one instance per distinct string: the first one it was
+     * given. Only lives through a load or a merge.
+     */
+    internal class StringPool {
+        private val pool = HashMap<String, String>()
+
+        fun of(value: String): String = pool.getOrPut(value) { value }
+
+        /** Seeds the pool with what [catalog] already spells, so additions share those. */
+        fun addAll(catalog: List<EmojiEntry>) {
+            for (entry in catalog) for (keyword in entry.keywords) pool.putIfAbsent(keyword, keyword)
+        }
     }
 
     /**
@@ -87,16 +120,18 @@ object EmojiCatalog {
         val positions = HashMap<String, Int>(catalog.size)
         catalog.forEachIndexed { index, entry -> positions.putIfAbsent(matchKey(entry.emoji), index) }
         val out = catalog.toMutableList()
+        val pool = StringPool().apply { addAll(catalog) }
         for (entry in added) {
             val key = matchKey(entry.emoji)
             val at = positions[key]
+            val keywords = entry.keywords.map(pool::of)
             if (at == null) {
                 positions[key] = out.size
-                out.add(entry.copy(parent = null))
+                out.add(entry.copy(keywords = keywords, parent = null))
             } else {
                 val existing = out[at]
                 out[at] = existing.copy(
-                    keywords = (existing.keywords + entry.keywords).distinct(),
+                    keywords = (existing.keywords + keywords).distinct(),
                     name = existing.name ?: entry.name,
                 )
             }

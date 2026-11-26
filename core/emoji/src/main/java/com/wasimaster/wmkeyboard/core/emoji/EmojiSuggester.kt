@@ -26,17 +26,61 @@ class EmojiSuggester(
     private val shortcodes: EmojiShortcodes = EmojiShortcodes.EMPTY,
 ) {
 
-    private val byKeyword = HashMap<String, MutableList<String>>()
+    /**
+     * The catalog's keywords, packed: every keyword sorted in [keywords], and
+     * the emoji filed under keyword `k` at `emoji[start[k] until start[k + 1]]`,
+     * in catalog order. This rides along with plain typing, so it is always
+     * held; as a `HashMap<String, MutableList<String>>` it was 1.28 MB with
+     * the English and Bengali packs merged in and 2.46 MB with Banglish and
+     * Hindi too (10,800 and 20,900 keywords), packed 183 and 331 KB (measured
+     * on a desktop JVM, 2026-11-26). The keyword and emoji strings are the
+     * catalog's own, not copies.
+     */
+    private val keywords: Array<String>
+    private val start: IntArray
+    private val emoji: Array<String>
 
     init {
+        val words = ArrayList<String>()
+        val faces = ArrayList<String>()
         for (entry in entries) {
             // Gender/role variants would flood matches like "man"/"woman";
             // their base emoji already carries the concept.
             if (entry.parent != null) continue
             for (keyword in entry.keywords) {
-                byKeyword.getOrPut(keyword) { mutableListOf() }.add(entry.emoji)
+                words.add(keyword)
+                faces.add(entry.emoji)
             }
         }
+        // Stable, so the emoji under one keyword keep the catalog's order.
+        val order = words.indices.sortedWith { a, b -> words[a].compareTo(words[b]) }
+        val keys = ArrayList<String>()
+        val starts = IntArray(order.size + 1)
+        val filed = arrayOfNulls<String>(order.size)
+        var count = 0
+        for (i in order) {
+            val word = words[i]
+            val face = faces[i]
+            if (keys.isEmpty() || keys[keys.size - 1] != word) {
+                starts[keys.size] = count
+                keys.add(word)
+            } else if (filed[count - 1] == face) {
+                // The same keyword twice in one entry: one hit is enough.
+                continue
+            }
+            filed[count++] = face
+        }
+        starts[keys.size] = count
+        keywords = keys.toTypedArray()
+        start = starts.copyOf(keys.size + 1)
+        emoji = Array(count) { filed[it]!! }
+    }
+
+    /** Adds the emoji filed under exactly [word], in catalog order. */
+    private fun addKeywordHits(word: String, into: MutableSet<String>) {
+        val k = keywords.binarySearch(word)
+        if (k < 0) return
+        for (i in start[k] until start[k + 1]) into.add(emoji[i])
     }
 
     /**
@@ -97,7 +141,7 @@ class EmojiSuggester(
         // Two-letter codes are flags and enclosed letters (`:it:`, `:us:`,
         // `:ok:`), which is the wrong-emoji case this whole class avoids.
         if (word.length >= MIN_SHORTCODE_LENGTH) shortcodes.exact(word)?.let { into.add(it) }
-        byKeyword[word]?.let { into.addAll(it) }
+        addKeywordHits(word, into)
     }
 
     /** A character that is a word on its own: a Han ideograph, or Japanese kana. */

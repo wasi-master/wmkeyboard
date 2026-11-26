@@ -35,10 +35,14 @@ import java.nio.channels.FileChannel
  * All of it is a few dozen KB of table data even in an 11 MB colour font, and
  * it is pure byte work — no Android, so it is testable on the JVM.
  */
-class EmojiFontCoverage internal constructor(
-    private val glyphs: Map<Int, Int>,
-    private val variationSequences: Set<Long>,
-    private val ligatures: Set<String>,
+class EmojiFontCoverage private constructor(
+    /** Every code point the font maps, ascending, beside [glyphIds]: its glyph. */
+    private val codePoints: IntArray,
+    private val glyphIds: IntArray,
+    /** [sequenceKey]s of the declared variation sequences, ascending. */
+    private val variationSequences: LongArray,
+    /** Every ligature as its glyph ids spelled in chars, sorted. */
+    private val ligatures: Array<String>,
     /**
      * False when this phone draws nothing for the font's glyphs at all: its
      * pictures are in a colour format Android does not render here (OpenType
@@ -59,16 +63,44 @@ class EmojiFontCoverage internal constructor(
     val joins: Boolean = true,
 ) {
 
+    /**
+     * Sorted arrays rather than a map of boxed code points to boxed glyphs
+     * and a set of ligature strings: the shaper keeps up to four fonts' worth
+     * of these for the life of the process ([EmojiFontShaping]), and a colour
+     * emoji font maps some 1,400 code points and joins some 3,000 sequences,
+     * about 320 KB a font that way against about 100 KB (ART object sizes).
+     */
+    internal constructor(
+        glyphs: Map<Int, Int>,
+        variationSequences: Set<Long>,
+        ligatures: Set<String>,
+        drawable: Boolean = true,
+        joins: Boolean = true,
+    ) : this(
+        codePoints = glyphs.keys.toIntArray().also { it.sort() },
+        glyphIds = glyphIdsOf(glyphs),
+        variationSequences = variationSequences.toLongArray().also { it.sort() },
+        ligatures = ligatures.toTypedArray().also { it.sort() },
+        drawable = drawable,
+        joins = joins,
+    )
+
     /** True when the font declares any ligature at all — see the class note. */
     val hasLigatures: Boolean get() = ligatures.isNotEmpty()
 
     /** The same coverage, marked as drawing nothing on this phone. */
     internal fun undrawable(): EmojiFontCoverage =
-        EmojiFontCoverage(glyphs, variationSequences, ligatures, drawable = false, joins = joins)
+        EmojiFontCoverage(codePoints, glyphIds, variationSequences, ligatures, drawable = false, joins = joins)
 
     /** The same coverage, marked as drawing every sequence as its parts on this phone. */
     internal fun unjoined(): EmojiFontCoverage =
-        EmojiFontCoverage(glyphs, variationSequences, ligatures, drawable = drawable, joins = false)
+        EmojiFontCoverage(codePoints, glyphIds, variationSequences, ligatures, drawable = drawable, joins = false)
+
+    /** The glyph [codePoint] maps to, or -1 when the font does not map it. */
+    private fun glyphOf(codePoint: Int): Int {
+        val at = codePoints.binarySearch(codePoint)
+        return if (at < 0) -1 else glyphIds[at]
+    }
 
     /**
      * A sequence a join test should lay out: one whose every code point the
@@ -86,12 +118,12 @@ class EmojiFontCoverage internal constructor(
      */
     fun sampleCodePoint(): Int? {
         if (covers(GRINNING_FACE)) return GRINNING_FACE
-        return glyphs.keys.filter { it >= FIRST_PICTOGRAPH }.minOrNull()
-            ?: glyphs.keys.filter { it >= FIRST_SYMBOL }.minOrNull()
+        return codePoints.firstOrNull { it >= FIRST_PICTOGRAPH }
+            ?: codePoints.firstOrNull { it >= FIRST_SYMBOL }
     }
 
     /** True when the font maps [codePoint] to a glyph of its own. */
-    fun covers(codePoint: Int): Boolean = glyphs.containsKey(codePoint)
+    fun covers(codePoint: Int): Boolean = codePoints.binarySearch(codePoint) >= 0
 
     /**
      * True when the font's `cmap` format 14 subtable declares `base` +
@@ -99,7 +131,7 @@ class EmojiFontCoverage internal constructor(
      * `… U+FE0F` sequence to this font rather than to the system emoji font.
      */
     fun hasVariationSequence(base: Int, selector: Int): Boolean =
-        variationSequences.contains(sequenceKey(base, selector))
+        variationSequences.binarySearch(sequenceKey(base, selector)) >= 0
 
     /**
      * True when [codePoints] substitute into a single glyph — the question
@@ -109,10 +141,11 @@ class EmojiFontCoverage internal constructor(
         if (codePoints.size < 2) return false
         val key = StringBuilder(codePoints.size)
         for (cp in codePoints) {
-            val glyph = glyphs[cp] ?: return false
+            val glyph = glyphOf(cp)
+            if (glyph < 0) return false
             key.append(glyph.toChar())
         }
-        return ligatures.contains(key.toString())
+        return ligatures.binarySearch(key.toString()) >= 0
     }
 
     companion object {
@@ -135,6 +168,12 @@ class EmojiFontCoverage internal constructor(
 
         private fun sequenceKey(base: Int, selector: Int): Long =
             (base.toLong() shl 32) or (selector.toLong() and 0xFFFFFFFFL)
+
+        /** [glyphs]' values in the ascending order of their code points. */
+        private fun glyphIdsOf(glyphs: Map<Int, Int>): IntArray {
+            val keys = glyphs.keys.toIntArray().also { it.sort() }
+            return IntArray(keys.size) { glyphs.getValue(keys[it]) }
+        }
 
         /** Coverage for [file], or null when it is not a font this can read. */
         fun read(file: File): EmojiFontCoverage? = runCatching {

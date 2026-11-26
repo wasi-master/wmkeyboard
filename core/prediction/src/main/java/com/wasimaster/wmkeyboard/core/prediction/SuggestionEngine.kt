@@ -1197,6 +1197,10 @@ class SuggestionEngine(
      */
     @Volatile
     var regionalAvoid: Set<String> = emptySet()
+        set(value) {
+            // Read as a hash set of 726 spellings; packed it is a seventh.
+            field = PackedWordSet.of(value)
+        }
 
     /**
      * The languages whose word list in use was put together by hand rather
@@ -1249,9 +1253,19 @@ class SuggestionEngine(
     /**
      * The bundled set of potentially-offensive words, lowercased. Only consulted
      * when [blockOffensiveWords] is on. Empty until the service loads it.
+     *
+     * Kept packed ([PackedWordSet]) whatever set is handed in: English's list
+     * alone is 7,748 words, about 840 KB as the hash sets the service reads
+     * them into (217 KB of strings, 312 KB of nodes and table per set, and
+     * this union is a second set over the same words), and 96 KB packed.
+     * Ukrainian, Polish and Russian lists are as long again each, in two-byte
+     * letters.
      */
     @Volatile
     var offensiveWords: Set<String> = emptySet()
+        set(value) {
+            field = PackedWordSet.of(value)
+        }
 
     /**
      * The same words by the language whose list flags them, so a flag can be
@@ -1262,6 +1276,13 @@ class SuggestionEngine(
      */
     @Volatile
     var offensiveByLanguage: Map<String, Set<String>> = emptyMap()
+        set(value) {
+            // Packed like [offensiveWords], and one language's list is the
+            // union itself when that is all there is, so the words are held
+            // once rather than twice.
+            val union = offensiveWords
+            field = value.mapValues { (_, words) -> PackedWordSet.of(words).sameAs(union) }
+        }
 
     /**
      * When on, a word typed entirely in capitals (SHOUTING, or an acronym like
@@ -9148,3 +9169,90 @@ class SuggestionEngine(
 
 /** The key [SuggestionEngine.phoneticPicks] files a pick under. */
 fun phoneticPickKey(languageId: String, typed: String): String = "$languageId\u0000$typed"
+
+/**
+ * A read-only set of words packed end to end into one string and found by
+ * binary search, for the big fixed word sets the engine only ever asks
+ * `in` of ([SuggestionEngine.offensiveWords], [SuggestionEngine.regionalAvoid]).
+ *
+ * A `HashSet<String>` spends about 28 bytes on each short word's `String` and
+ * another 40 on its node and table slot; here a word costs its characters and
+ * one `Int` of [starts], so English's 7,748 offensive words are 96 KB instead
+ * of 530 KB a set. A look-up is about 13 short comparisons where the hash
+ * set made one, asked once per candidate the strip weighs.
+ */
+internal class PackedWordSet private constructor(
+    /** Every word, distinct and in [String.compareTo] order, end to end. */
+    private val text: String,
+    /** Word `i` is `text[starts[i] until starts[i + 1]]`. */
+    private val starts: IntArray,
+) : AbstractSet<String>() {
+
+    override val size: Int get() = starts.size - 1
+
+    override fun contains(element: String): Boolean {
+        var low = 0
+        var high = size - 1
+        while (low <= high) {
+            val mid = (low + high) ushr 1
+            val cmp = compareAt(mid, element)
+            when {
+                cmp < 0 -> low = mid + 1
+                cmp > 0 -> high = mid - 1
+                else -> return true
+            }
+        }
+        return false
+    }
+
+    /** Word [i] against [key], ordered as [String.compareTo] orders them, without cutting the word out. */
+    private fun compareAt(i: Int, key: String): Int {
+        val start = starts[i]
+        val length = starts[i + 1] - start
+        val shared = minOf(length, key.length)
+        for (k in 0 until shared) {
+            val diff = text[start + k] - key[k]
+            if (diff != 0) return diff
+        }
+        return length - key.length
+    }
+
+    override fun iterator(): Iterator<String> = object : Iterator<String> {
+        private var next = 0
+
+        override fun hasNext(): Boolean = next < size
+
+        override fun next(): String {
+            if (next >= size) throw NoSuchElementException()
+            val word = text.substring(starts[next], starts[next + 1])
+            next++
+            return word
+        }
+    }
+
+    /** [other] in place of this when the two hold the same words, so equal sets are kept once. */
+    fun sameAs(other: Set<String>): Set<String> =
+        if (other is PackedWordSet && other.text == text && other.starts.contentEquals(starts)) other else this
+
+    companion object {
+        private val EMPTY = PackedWordSet("", IntArray(1))
+
+        /** [words] packed; a set that already is one comes back as it is. */
+        fun of(words: Set<String>): PackedWordSet {
+            if (words is PackedWordSet) return words
+            if (words.isEmpty()) return EMPTY
+            val sorted = words.toTypedArray()
+            sorted.sort()
+            val starts = IntArray(sorted.size + 1)
+            var total = 0
+            for ((i, word) in sorted.withIndex()) {
+                starts[i] = total
+                total += word.length
+            }
+            starts[sorted.size] = total
+            val text = StringBuilder(total)
+            for (word in sorted) text.append(word)
+            return PackedWordSet(text.toString(), starts)
+        }
+    }
+}

@@ -93,19 +93,13 @@ object PackedTrieCodec {
     class Header(val wordCount: Int, val nodeCount: Int, val edgeCount: Int)
 
     fun write(trie: PackedTrie, out: OutputStream) {
-        val nodeCount = trie.freq.size
+        val nodeCount = trie.nodeCount
         val edgeCount = trie.edgeLabel.size
         val bitsetBytes = (nodeCount + 7) / 8
 
         // v2 drops the edgeChild section because BFS numbering makes it
-        // redundant. If a future builder ever numbers nodes some other way the
-        // file would be silently wrong, so refuse to write it.
-        for (edge in 0 until edgeCount) {
-            require(trie.edgeChild[edge] == edge + 1) {
-                "edgeChild[$edge] is ${trie.edgeChild[edge]}, expected ${edge + 1}: " +
-                    "the .wmdict format requires breadth-first node numbering"
-            }
-        }
+        // redundant. [PackedTrie] no longer stores it either: edge `e` leads
+        // to node `e + 1` by construction, so there is nothing left to check.
 
         val symbols = trie.edgeLabel.toSortedSet().toCharArray()
         val labelsAreBytes = symbols.size <= MAX_SYMBOLS
@@ -169,9 +163,10 @@ object PackedTrieCodec {
         }
         data.pad(pad4(labelBytes) - labelBytes)
 
-        for (value in trie.freq) data.writeShort(FrequencyCodec.encode(value))
+        // Already codes: the trie keeps its frequencies as the codec's.
+        for (code in trie.freqCode) data.writeShort(code.code)
         data.pad(pad4(nodeCount * 2) - nodeCount * 2)
-        for (value in trie.maxSubtree) data.writeShort(FrequencyCodec.encode(value))
+        for (code in trie.maxSubtreeCode) data.writeShort(code.code)
         data.pad(pad4(nodeCount * 2) - nodeCount * 2)
 
         var byte = 0

@@ -96,16 +96,21 @@ object EmojiDefaultFace {
 
     /** Parent → children, built once per catalog list (identity-cached). */
     fun children(catalog: List<EmojiEntry>): Map<String, List<String>> {
-        cache?.let { (list, map) -> if (list === catalog) return map }
+        cache?.let { (list, map) -> if (list.get() === catalog) return map }
         val map = catalog
             .mapNotNull { entry -> entry.parent?.let { it to entry.emoji } }
             .groupBy({ it.first }, { it.second })
-        cache = catalog to map
+        cache = java.lang.ref.WeakReference(catalog) to map
         return map
     }
 
+    /**
+     * The catalog the map was built from, weakly: after a keyword pack
+     * download the keyboard swaps in a new catalog, and the old one, about
+     * 1 MB with its keywords, should not stay alive here in the meantime.
+     */
     @Volatile
-    private var cache: Pair<List<EmojiEntry>, Map<String, List<String>>>? = null
+    private var cache: Pair<java.lang.ref.WeakReference<List<EmojiEntry>>, Map<String, List<String>>>? = null
 
     /** A stable index below [size] for [base] under [seed]; [salt] keeps gender and tone apart. */
     private fun pick(base: String, seed: Int, salt: Int, size: Int): Int {

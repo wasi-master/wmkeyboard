@@ -1091,8 +1091,32 @@ object AssetLayouts {
 
     @Volatile private var assets: AssetManager? = null
     @Volatile private var entries: List<Entry> = emptyList()
-    @Volatile private var entryById: Map<String, Entry> = emptyMap()
+
+    /**
+     * [entries] sorted by id, for [byIdOf]'s binary search. A map from id to
+     * entry was a 32-byte node per layout over 3,795 layouts, about 150 KB
+     * with its table, held for the life of the process to answer what twelve
+     * comparisons answer from one 15 KB array of the same entries.
+     */
+    @Volatile private var entriesById: Array<Entry> = emptyArray()
     @Volatile private var loaded = false
+
+    /** [id]'s index entry, named or not; null when the index does not list it. */
+    private fun byIdOf(id: String): Entry? {
+        val sorted = entriesById
+        var low = 0
+        var high = sorted.size - 1
+        while (low <= high) {
+            val mid = (low + high) ushr 1
+            val cmp = sorted[mid].id.compareTo(id)
+            when {
+                cmp < 0 -> low = mid + 1
+                cmp > 0 -> high = mid - 1
+                else -> return sorted[mid]
+            }
+        }
+        return null
+    }
 
     /** A parsed layout and what holding on to it is estimated to cost. */
     private class Parsed(val spec: LayoutSpec, val weightBytes: Long)
@@ -1161,17 +1185,17 @@ object AssetLayouts {
     val index: List<Entry> get() = entries
 
     /** Whether [id] names a shipped asset layout. No parse. */
-    fun isShipped(id: String): Boolean = id in entryById
+    fun isShipped(id: String): Boolean = byIdOf(id) != null
 
     /** [id]'s index entry, when the index was read and names it. No parse. */
-    fun entry(id: String): Entry? = entryById[id]?.takeIf { it.name.isNotEmpty() }
+    fun entry(id: String): Entry? = byIdOf(id)?.takeIf { it.name.isNotEmpty() }
 
     /**
      * [id]'s display name, from the index — no parse, unless the index was
      * missing. Null for an id this build does not ship.
      */
     fun nameOf(id: String): String? {
-        val entry = entryById[id] ?: return null
+        val entry = byIdOf(id) ?: return null
         return entry.name.ifEmpty { byId(id)?.name.orEmpty() }
     }
 
@@ -1184,7 +1208,7 @@ object AssetLayouts {
      * frame warm the ones they will need off the main thread ([warm]).
      */
     fun byId(id: String): LayoutSpec? {
-        if (id !in entryById) return null
+        if (byIdOf(id) == null) return null
         synchronized(parsed) { parsed[id] }?.let { return it.spec }
         val manager = assets ?: return null
         val loaded = runCatching {
@@ -1223,6 +1247,28 @@ object AssetLayouts {
         }
     }
 
+    /**
+     * Lets go of every parsed grid but those of [keep], the layouts switched
+     * on, for the keyboard to call once it is idle or short of memory.
+     *
+     * The budget above lets the settings app hold up to 16 MB of estimated
+     * grid (and the estimate is a deliberate under-count) while it walks a
+     * language's layout cards; nothing let those go again, so one visit to
+     * the layout screens left them on the heap for the life of the process.
+     * A grid dropped here is parsed again from its file by the next [byId].
+     */
+    fun releaseParsed(keep: Collection<String>) {
+        synchronized(parsed) {
+            val stale = parsed.entries.iterator()
+            while (stale.hasNext()) {
+                val entry = stale.next()
+                if (entry.key in keep) continue
+                parsedWeight -= entry.value.weightBytes
+                stale.remove()
+            }
+        }
+    }
+
     /** Parses [ids] now, on the calling thread, so a later [byId] is a lookup. */
     fun warm(ids: Iterable<String>) {
         for (id in ids) if (isShipped(id)) byId(id)
@@ -1241,6 +1287,12 @@ object AssetLayouts {
         // The typing-rule sets the layouts name: one folder listing, the
         // files themselves read when a layout first asks for one.
         SequenceRuleSets.load(assets)
+        // One instance of each repeated field: 3,795 layouts name 1,556
+        // languages, their 862 Keyman bindings 8 versions, and each line split
+        // into strings of its own held its own copy of both, about 75 KB of
+        // duplicates for the life of the process.
+        val shared = HashMap<String, String>()
+        fun share(value: String): String = shared.getOrPut(value) { value }
         val fromIndex = runCatching {
             assets.open(INDEX).bufferedReader().useLines { lines ->
                 lines.mapNotNull { line ->
@@ -1249,8 +1301,8 @@ object AssetLayouts {
                         null
                     } else {
                         val keyman = parts.getOrNull(3)?.takeIf { it.isNotEmpty() }
-                            ?.let { KeymanBinding(it, parts.getOrNull(4).orEmpty()) }
-                        Entry(parts[0], parts[1], parts[2], keyman, desktop = parts.getOrNull(5) == "1")
+                            ?.let { KeymanBinding(it, share(parts.getOrNull(4).orEmpty())) }
+                        Entry(parts[0], parts[1], share(parts[2]), keyman, desktop = parts.getOrNull(5) == "1")
                     }
                 }.toList()
             }
@@ -1262,8 +1314,13 @@ object AssetLayouts {
                 val id = ID_PREFIX + name.removeSuffix(SUFFIX)
                 Entry(id, "", "")
             }
-        // Map before list, as readers of each expect the other to be there.
-        entryById = loadedEntries.associateBy { it.id }
+        // Sorted copy before list, as readers of each expect the other to be
+        // there. Sorted here rather than trusted to the index's order: the
+        // folder listing above sorts by file name, which is not id order
+        // (`a-b.wmlayout.json` sorts before `a.wmlayout.json`). A repeated id
+        // keeps its last entry, as the map this replaces did; the build writes
+        // each id once.
+        entriesById = loadedEntries.asReversed().distinctBy { it.id }.sortedBy { it.id }.toTypedArray()
         entries = loadedEntries
         generation++
         loaded = true

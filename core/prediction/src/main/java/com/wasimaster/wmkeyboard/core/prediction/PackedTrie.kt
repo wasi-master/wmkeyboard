@@ -16,20 +16,36 @@ package com.wasimaster.wmkeyboard.core.prediction
  * Layout (indices are node ids, 0 = root):
  *  - [childStart]: CSR offsets; node `i`'s edges occupy
  *    `[childStart[i], childStart[i + 1])` in the edge arrays.
- *  - [edgeLabel] / [edgeChild]: parallel edge arrays, one entry per child,
- *    sorted by label within each node so a child lookup can binary-search.
- *  - [freq]: word frequency at a node (meaningful only where [isWord]).
- *  - [maxSubtree]: highest word frequency anywhere in the node's subtree,
- *    the branch-and-bound key that keeps completion cost near `limit`.
+ *  - [edgeLabel]: one entry per child, sorted by label within each node so
+ *    a child lookup can binary-search. Edge `e` leads to node `e + 1`: nodes
+ *    are numbered breadth-first in the same sweep that lays out the edges,
+ *    so the child ids the `.wmdict` format never stored are not stored here
+ *    either ([PackedTrieCodec], [MappedTrie]).
+ *  - [freqCode]: word frequency at a node as its [FrequencyCodec] code
+ *    (meaningful only where [isWord]).
+ *  - [maxSubtreeCode]: highest word frequency anywhere in the node's subtree,
+ *    likewise coded: the branch-and-bound key that keeps completion cost
+ *    near `limit`.
+ *
+ * Frequencies are held as 16-bit codes because they were snapped to the
+ * codec's values at build time anyway, so a code decodes back to exactly the
+ * number an `Int` held. With the child ids gone that is 11 bytes a node
+ * instead of 19. The heap tries built on the phone (a phonetic language's
+ * romanized glide spellings, the pinyin and kana glide readings, imports
+ * that could not be cached) are each also copied whole into Rust for the
+ * native walks ([NativeFuzzySearch]), so this is the half of the pair the
+ * keyboard can shrink.
  */
 class PackedTrie internal constructor(
     internal val childStart: IntArray,
     internal val edgeLabel: CharArray,
-    internal val edgeChild: IntArray,
-    internal val freq: IntArray,
+    internal val freqCode: CharArray,
     internal val isWord: BooleanArray,
-    internal val maxSubtree: IntArray,
+    internal val maxSubtreeCode: CharArray,
 ) : WordSource, TrieWalker {
+
+    /** How many nodes the trie has, the root included. */
+    internal val nodeCount: Int get() = isWord.size
 
     /**
      * Number of distinct words stored. Counted once: the glide blend asks
@@ -42,7 +58,7 @@ class PackedTrie internal constructor(
 
     override fun child(node: Int, label: Char): Int {
         val edge = childEdge(node, label)
-        return if (edge < 0) -1 else edgeChild[edge]
+        return if (edge < 0) -1 else edge + 1
     }
 
     override fun childrenInto(node: Int, out: ChildBuffer): Int {
@@ -51,18 +67,18 @@ class PackedTrie internal constructor(
         out.ensure(count)
         for (i in 0 until count) {
             out.labels[i] = edgeLabel[start + i]
-            out.nodes[i] = edgeChild[start + i]
+            out.nodes[i] = start + i + 1
         }
         return count
     }
 
     override fun isWord(node: Int): Boolean = isWord[node]
 
-    override fun frequency(node: Int): Int = if (isWord[node]) freq[node] else 0
+    override fun frequency(node: Int): Int = if (isWord[node]) FrequencyCodec.decode(freqCode[node].code) else 0
 
-    override fun maxSubtree(node: Int): Int = maxSubtree[node]
+    override fun maxSubtree(node: Int): Int = FrequencyCodec.decode(maxSubtreeCode[node].code)
 
-    private val rankFloors by lazy { RankFloorCache(freq.size) { frequency(it) } }
+    private val rankFloors by lazy { RankFloorCache(nodeCount) { frequency(it) } }
 
     override fun frequencyAtRank(rank: Int): Int = rankFloors.frequencyAtRank(rank)
 
@@ -78,7 +94,7 @@ class PackedTrie internal constructor(
         for (ch in word) {
             val edge = childEdge(node, ch)
             if (edge < 0) return -1
-            node = edgeChild[edge]
+            node = edge + 1
         }
         return node
     }
@@ -102,7 +118,7 @@ class PackedTrie internal constructor(
 
     override fun frequencyOf(word: String): Int {
         val node = nodeFor(word)
-        return if (node >= 0 && isWord[node]) freq[node] else 0
+        return if (node >= 0 && isWord[node]) FrequencyCodec.decode(freqCode[node].code) else 0
     }
 
     override fun contains(word: String): Boolean = frequencyOf(word) > 0
@@ -171,10 +187,9 @@ class PackedTrie internal constructor(
 
             val childStart = IntArray(nodeCount + 1)
             val edgeLabel = CharArray(nodeCount - 1)
-            val edgeChild = IntArray(nodeCount - 1)
-            val freq = IntArray(nodeCount)
+            val freqCode = CharArray(nodeCount)
             val isWord = BooleanArray(nodeCount)
-            val maxSubtree = IntArray(nodeCount)
+            val maxSubtreeCode = CharArray(nodeCount)
             // Node id -> the run of sorted words under it. Transient.
             val rangeStart = IntArray(nodeCount)
             val rangeEnd = IntArray(nodeCount)
@@ -207,8 +222,11 @@ class PackedTrie internal constructor(
                     // and the .wmdict written from it hold identical numbers,
                     // and so that the eval harnesses — which build straight
                     // from of(), never through a file — measure the
-                    // frequencies the keyboard will really see.
-                    freq[id] = maxOf(freq[id], FrequencyCodec.round(frequencies[i]))
+                    // frequencies the keyboard will really see. Kept as the
+                    // code: the codec is monotone, so the larger code is the
+                    // larger frequency, and it decodes to the snapped value.
+                    val code = FrequencyCodec.encode(frequencies[i]).toChar()
+                    if (code > freqCode[id]) freqCode[id] = code
                     i++
                 }
                 childStart[id] = edgeCursor
@@ -216,11 +234,12 @@ class PackedTrie internal constructor(
                     val ch = sorted[i][depth]
                     var j = i + 1
                     while (j < end && sorted[j][depth] == ch) j++
+                    // Always edgeCursor + 1: both count up from the root
+                    // together, which is what lets a reader derive it.
                     val child = nextId++
                     rangeStart[child] = i
                     rangeEnd[child] = j
                     edgeLabel[edgeCursor] = ch
-                    edgeChild[edgeCursor] = child
                     edgeCursor++
                     i = j
                 }
@@ -229,22 +248,27 @@ class PackedTrie internal constructor(
 
             // maxSubtree bottom-up: reverse id order visits every child before
             // its parent (BFS gives children strictly larger ids).
+            // Codes compare as their frequencies do, so the maximum code is
+            // the code of the maximum.
             for (id in nodeCount - 1 downTo 0) {
-                var best = if (isWord[id]) freq[id] else 0
+                var best = if (isWord[id]) freqCode[id] else NO_FREQUENCY
                 var e = childStart[id]
                 val end = childStart[id + 1]
                 while (e < end) {
-                    val childMax = maxSubtree[edgeChild[e]]
+                    val childMax = maxSubtreeCode[e + 1]
                     if (childMax > best) best = childMax
                     e++
                 }
-                maxSubtree[id] = best
+                maxSubtreeCode[id] = best
             }
 
-            return PackedTrie(childStart, edgeLabel, edgeChild, freq, isWord, maxSubtree)
+            return PackedTrie(childStart, edgeLabel, freqCode, isWord, maxSubtreeCode)
         }
 
         private const val INSERTION_SORT_MAX = 12
+
+        /** [FrequencyCodec]'s code for no frequency at all. */
+        private const val NO_FREQUENCY = '\u0000'
 
         private fun commonPrefixLength(a: String, b: String): Int {
             val limit = minOf(a.length, b.length)
