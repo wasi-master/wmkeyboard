@@ -24,6 +24,12 @@
     <string name="top_bar_whats_new_subtitle">Shows or hides the settings the latest update added</string>
     <string name="top_bar_home_title">Settings home</string>
     <string name="top_bar_home_subtitle">Back to the first page in one press</string>
+    <string name="top_bar_force_restart_title">Force restart</string>
+    <string name="top_bar_force_restart_subtitle">Saves what the keyboard learnt, then restarts it right away</string>
+    <string name="top_bar_force_restart_confirm_title">Restart the keyboard?</string>
+    <string name="top_bar_force_restart_confirm_body">The keyboard saves the words it learnt and your clipboard, then starts again the next time you type. The settings app closes too, so open it again afterwards.</string>
+    <string name="top_bar_force_restart_action">Restart</string>
+    <string name="top_bar_force_restart_not_running">The keyboard is not running, so there is nothing to restart. It starts fresh the next time you type.</string>
     <string name="top_bar_search_title">Search</string>
     <string name="top_bar_search_subtitle">Search every setting</string>
 

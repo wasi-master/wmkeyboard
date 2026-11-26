@@ -2804,6 +2804,7 @@ internal object SettingsRowIcons {
         put(R.string.top_bar_recent_pages_title) { Icons.Outlined.Schedule }
         put(R.string.top_bar_whats_new_title) { Icons.Outlined.AutoAwesome }
         put(R.string.top_bar_home_title) { Icons.Outlined.Home }
+        put(R.string.top_bar_force_restart_title) { Icons.Outlined.RestartAlt }
         put(R.string.top_bar_search_title) { Icons.Outlined.Search }
 
         // ---- Layout and keys ----

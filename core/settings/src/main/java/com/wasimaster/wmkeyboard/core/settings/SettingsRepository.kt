@@ -8640,6 +8640,9 @@ enum class TopBarButton {
     /** Goes back to the settings home in one press. */
     HOME,
 
+    /** Saves what the keyboard holds and restarts it, after asking. */
+    FORCE_RESTART,
+
     /** Settings search (#1317): the one the bar has always had. */
     SEARCH,
 }

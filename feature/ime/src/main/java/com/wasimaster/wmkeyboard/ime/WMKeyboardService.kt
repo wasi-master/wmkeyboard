@@ -8438,6 +8438,24 @@ open class WMKeyboardService : InputMethodService() {
             updateKeyboardControls(_uiState.value.settings.persistentKeyboard)
 
         override fun syncSummonButton() = this@WMKeyboardService.syncSummonButton()
+
+        // The settings bar's Force restart (#1579). What a hide and onDestroy
+        // settle and write, settled and written first and waited for, so the
+        // words learnt since the last save and the clipboard survive; then
+        // the process ends, and Android binds a fresh keyboard at the next
+        // field. The settings app shares the process and goes with it.
+        override fun restart() {
+            finishRevisionOnLeave()
+            flushLearningBuffer()
+            serviceScope.launch {
+                withContext(persistDispatcher) {
+                    saveLearningStores()
+                    clipboardStore.save()
+                }
+                DebugLog.i("ime", "restarting at the user's request")
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+        }
     }
 
     /** Whether a layout switch is announced to other apps; see [KeyboardAutomation.EVENT_LAYOUT_CHANGED]. */

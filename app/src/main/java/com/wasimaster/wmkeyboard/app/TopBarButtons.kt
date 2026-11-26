@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
@@ -44,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatListBulleted
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Replay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Restore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RestartAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -52,6 +56,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository.HistoryResult
 import com.wasimaster.wmkeyboard.core.settings.TopBarButton
 import com.wasimaster.wmkeyboard.core.settings.undoable
+import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import kotlinx.coroutines.launch
 
 /*
@@ -160,8 +165,48 @@ internal fun TopBarQuickButtons(route: String?) {
                     trail.path.firstOrNull()?.let(trail::goTo)
                 }
             }
+            TopBarButton.FORCE_RESTART -> ForceRestartButton()
             TopBarButton.SEARCH -> Unit
         }
+    }
+}
+
+/**
+ * Restarts the keyboard, after asking (#1579). The running keyboard does it
+ * itself ([KeyboardControls.Host.restart]): it saves what it has learnt and
+ * the clipboard first, then ends the process, which is also this app's, so
+ * the settings close with it. With no keyboard running there is nothing to
+ * restart, and the bar says so.
+ */
+@Composable
+private fun ForceRestartButton() {
+    val context = LocalContext.current
+    val snackbar = LocalSettingsSnackbar.current
+    var asking by remember { mutableStateOf(false) }
+    BarButton(Icons.Outlined.RestartAlt, stringResource(R.string.top_bar_force_restart_title)) {
+        val host = KeyboardControls.host
+        if (host == null) {
+            val text = context.getString(R.string.top_bar_force_restart_not_running)
+            snackbar?.say(text) ?: Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+        } else {
+            asking = true
+        }
+    }
+    if (asking) {
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text(stringResource(R.string.top_bar_force_restart_confirm_title)) },
+            text = { Text(stringResource(R.string.top_bar_force_restart_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    asking = false
+                    KeyboardControls.host?.restart()
+                }) { Text(stringResource(R.string.top_bar_force_restart_action)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { asking = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
     }
 }
 
@@ -521,5 +566,6 @@ internal fun topBarButtonText(button: TopBarButton): Pair<Int, Int> = when (butt
     TopBarButton.RECENT_PAGES -> R.string.top_bar_recent_pages_title to R.string.top_bar_recent_pages_subtitle
     TopBarButton.WHATS_NEW -> R.string.top_bar_whats_new_title to R.string.top_bar_whats_new_subtitle
     TopBarButton.HOME -> R.string.top_bar_home_title to R.string.top_bar_home_subtitle
+    TopBarButton.FORCE_RESTART -> R.string.top_bar_force_restart_title to R.string.top_bar_force_restart_subtitle
     TopBarButton.SEARCH -> R.string.top_bar_search_title to R.string.top_bar_search_subtitle
 }

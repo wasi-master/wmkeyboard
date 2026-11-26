@@ -45,6 +45,14 @@ object KeyboardControls {
          * changed. See [com.wasimaster.wmkeyboard.ime.floating.FloatingButton].
          */
         fun syncSummonButton()
+
+        /**
+         * Save what the keyboard has learnt and holds, then end the process
+         * so the next field binds a fresh keyboard (#1579): the settings
+         * bar's Force restart. Asked of the keyboard rather than done from
+         * outside it, because only the keyboard knows what is unsaved.
+         */
+        fun restart()
     }
 
     /**
