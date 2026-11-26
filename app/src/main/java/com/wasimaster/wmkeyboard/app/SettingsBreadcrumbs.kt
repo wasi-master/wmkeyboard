@@ -1,6 +1,39 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.animation.BoundsTransform
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionOnScreen
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.toSize
+import com.wasimaster.wmkeyboard.core.ui.ScrollRail
+import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
+import kotlinx.coroutines.isActive
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -901,21 +934,21 @@ private fun Crumb(
     onOpen: (() -> Unit)?,
     siblings: SiblingJump?,
 ) {
-    CrumbWithSiblings(crumb.route, siblings) { onLongClick ->
+    CrumbWithSiblings(
+        route = crumb.route,
+        siblings = siblings,
+        // A seeded step the index cannot address goes nowhere, so it is a
+        // label and not a button: it still says where the screen sits.
+        onTap = onOpen,
+        onClickLabel = stringResource(R.string.shell_breadcrumb_open_desc, crumb.title),
+    ) { press ->
         CrumbPill(
             title = crumb.title,
             route = crumb.route,
             here = here,
             accent = accent,
             flight = crumbKey(crumb.entryId),
-            // A seeded step the index cannot address goes nowhere, so it is a
-            // label and not a button: it still says where the screen sits.
-            modifier = if (onOpen == null) Modifier else Modifier.combinedClickable(
-                onClickLabel = stringResource(R.string.shell_breadcrumb_open_desc, crumb.title),
-                onClick = onOpen,
-                onLongClickLabel = onLongClick?.let { stringResource(R.string.shell_breadcrumb_siblings_desc) },
-                onLongClick = onLongClick,
-            ),
+            modifier = press,
         )
     }
 }
@@ -931,57 +964,298 @@ private class SiblingJump(
 )
 
 /**
- * A step with its sibling menu: [pill] is handed the long press, or null when
- * the step has nothing beside it to list (the home step), and the menu drops
- * from under it. The step's own page is in the list too, in bold, so the
- * list reads as the level the step is on rather than as everything but it.
+ * The sibling menu's height: seven and a half rows (#1580). A long level, the
+ * twenty-odd pages under Home, used to run the menu from the top of the
+ * window to the bottom and over the heading it hangs from. Half a row cut off
+ * says the list goes on before the rail does.
+ */
+private val SiblingMenuMaxHeight = 360.dp
+
+/** How close to the menu's top or bottom edge a sliding finger starts it scrolling. */
+private val SiblingEdgeZone = 40.dp
+
+/** How far the menu scrolls each frame while a finger holds at its edge. */
+private val SiblingEdgeStep = 6.dp
+
+/**
+ * A finger that held a step and kept going (#1580): where it is, and which
+ * page of the menu it is over. One finger can open the menu, slide down it and
+ * lift on a page, the way a long press on an overflow button works, instead
+ * of lifting first and pressing again.
+ *
+ * Everything is in screen coordinates. The finger is still the step's: the
+ * touch that began on the pill keeps arriving there while the menu is up, in
+ * a window of its own, so the two only meet on the screen.
+ */
+@Stable
+private class CrumbSlide {
+    /** The pill, for turning a touch on it into a place on the screen. */
+    var anchor: LayoutCoordinates? = null
+
+    /** The menu's visible list, and where each page's row is drawn. */
+    var viewport: Rect? = null
+    val rows = HashMap<String, Rect>()
+
+    /** The finger, once the menu is up; null when no finger is sliding. */
+    var finger: Offset? = null
+
+    /** Whether the finger has been over the list on this slide; only then does an edge scroll it. */
+    private var reached = false
+
+    /** The page under the finger, drawn lit and picked on lift. */
+    var over: String? by mutableStateOf(null)
+
+    /** -1 or 1 while the finger holds at the list's top or bottom edge, else 0. */
+    var edge: Int by mutableIntStateOf(0)
+
+    /** Works out [over] and [edge] for the finger as it is now; true when [over] changed. */
+    fun update(edgeZone: Float): Boolean {
+        val at = finger
+        val list = viewport
+        if (at == null || list == null) {
+            edge = 0
+            return false
+        }
+        val inside = at.x in list.left..list.right
+        if (inside && at.y in list.top..list.bottom) reached = true
+        edge = when {
+            !reached || !inside -> 0
+            at.y < list.top + edgeZone -> -1
+            at.y > list.bottom - edgeZone -> 1
+            else -> 0
+        }
+        val now = if (list.contains(at)) rows.entries.firstOrNull { it.value.contains(at) }?.key else null
+        if (now == over) return false
+        over = now
+        return true
+    }
+
+    fun reset() {
+        finger = null
+        reached = false
+        over = null
+        edge = 0
+    }
+}
+
+/** The node's place on the screen, as a rectangle. */
+private fun LayoutCoordinates.screenRect(): Rect = Rect(positionOnScreen(), size.toSize())
+
+/**
+ * A step with its sibling menu. [pill] is handed the modifier that makes it
+ * pressable: a tap is [onTap], and a long press, where the step has pages
+ * beside it, drops the menu from under it. The step's own page is in the list
+ * too, in bold, so the list reads as the level the step is on rather than as
+ * everything but it. A null [onTap] draws a plain label.
+ *
+ * The finger that opened the menu can stay down and slide into it (#1580):
+ * the page under it is lit, the list scrolls while the finger holds at its
+ * top or bottom edge, and lifting picks the lit page. Lifting anywhere else
+ * leaves the menu open, as it always was.
  */
 @Composable
 private fun CrumbWithSiblings(
     route: String?,
     siblings: SiblingJump?,
-    pill: @Composable (onLongClick: (() -> Unit)?) -> Unit,
+    onTap: (() -> Unit)?,
+    onClickLabel: String,
+    pill: @Composable (press: Modifier) -> Unit,
 ) {
+    if (onTap == null) {
+        pill(Modifier)
+        return
+    }
     if (siblings == null) {
-        pill(null)
+        pill(Modifier.combinedClickable(onClickLabel = onClickLabel, onClick = onTap))
         return
     }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    val edgeZone = with(density) { SiblingEdgeZone.toPx() }
+    val edgeStep = with(density) { SiblingEdgeStep.toPx() }
     var shown by remember { mutableStateOf<List<SettingsSearchEntry>?>(null) }
+    val slide = remember { CrumbSlide() }
+    val scroll = rememberScrollState()
+    val interaction = remember { MutableInteractionSource() }
+    val open: () -> Unit = {
+        scope.launch {
+            val found = siblings.load()
+            // One page alone is no choice to offer.
+            if (found.size > 1) {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                slide.reset()
+                shown = found
+            }
+        }
+    }
+    val pick: (SettingsSearchEntry) -> Unit = { entry ->
+        shown = null
+        slide.reset()
+        siblings.onPick(entry.route, entry.route == route)
+    }
+    val holdLabel = stringResource(R.string.shell_breadcrumb_siblings_desc)
+    // Held at an edge: the list runs on under a finger that is not moving, and
+    // the page under it changes as it does.
+    LaunchedEffect(slide.edge) {
+        val direction = slide.edge
+        if (direction == 0) return@LaunchedEffect
+        while (isActive) {
+            withFrameNanos { }
+            if (scroll.scrollBy(direction * edgeStep) == 0f) break
+            if (slide.update(edgeZone)) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
     Box {
-        pill {
-            scope.launch {
-                val found = siblings.load()
-                // One page alone is no choice to offer.
-                if (found.size > 1) {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    shown = found
+        pill(
+            Modifier
+                .onGloballyPositioned { slide.anchor = it }
+                .crumbPress(
+                    interaction = interaction,
+                    onClick = onTap,
+                    onHold = open,
+                    onSlide = { at ->
+                        if (shown != null) {
+                            slide.finger = slide.anchor?.takeIf { it.isAttached }?.localToScreen(at)
+                            if (slide.update(edgeZone)) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
+                    },
+                    onLift = {
+                        val lit = slide.over
+                        val entry = lit?.let { r -> shown?.firstOrNull { it.route == r } }
+                        if (entry != null) pick(entry) else slide.reset()
+                    },
+                )
+                .indication(interaction, ripple())
+                .semantics {
+                    role = Role.Button
+                    onClick(label = onClickLabel) {
+                        onTap()
+                        true
+                    }
+                    onLongClick(label = holdLabel) {
+                        open()
+                        true
+                    }
+                },
+        )
+        DropdownMenu(
+            expanded = shown != null,
+            onDismissRequest = {
+                shown = null
+                slide.reset()
+            },
+        ) {
+            val entries = shown.orEmpty()
+            val lit = MaterialTheme.colorScheme.secondaryContainer
+            ScrollRail(
+                state = rememberScrollRailState(scroll),
+                modifier = Modifier
+                    .heightIn(max = SiblingMenuMaxHeight)
+                    .onGloballyPositioned { slide.viewport = it.screenRect() },
+                fadeColor = MenuDefaults.containerColor,
+                // The finger may already be on its way down the list.
+                peek = false,
+                reserveGutter = entries.size > SiblingMenuRows,
+            ) {
+                entries.forEach { entry ->
+                    val self = entry.route == route
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                entry.title,
+                                fontWeight = if (self) FontWeight.Bold else null,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        leadingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CrumbGlyph(entry.route, MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                        onClick = { pick(entry) },
+                        modifier = Modifier
+                            .onGloballyPositioned { slide.rows[entry.route] = it.screenRect() }
+                            .background(if (slide.over == entry.route) lit else Color.Transparent)
+                            // The step's own page in view, however far down the level it sits.
+                            .then(if (self) Modifier.ownPageInView() else Modifier),
+                    )
                 }
             }
         }
-        DropdownMenu(expanded = shown != null, onDismissRequest = { shown = null }) {
-            shown.orEmpty().forEach { entry ->
-                val self = entry.route == route
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            entry.title,
-                            fontWeight = if (self) FontWeight.Bold else null,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    leadingIcon = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CrumbGlyph(entry.route, MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    },
-                    onClick = {
-                        shown = null
-                        siblings.onPick(entry.route, self)
-                    },
-                )
+    }
+}
+
+/** Rows the sibling menu shows before it scrolls; see [SiblingMenuMaxHeight]. */
+private const val SiblingMenuRows = 7
+
+/** Scrolls the menu to this row once, as it opens. */
+@Composable
+private fun Modifier.ownPageInView(): Modifier {
+    val requester = remember { BringIntoViewRequester() }
+    LaunchedEffect(requester) {
+        // A frame for the menu to be measured before it is scrolled.
+        withFrameNanos { }
+        requester.bringIntoView()
+    }
+    return bringIntoViewRequester(requester)
+}
+
+/**
+ * A step's own gestures, in one detector so a tap, a hold and the slide after
+ * it cannot fight over the same touch: up before the long-press timeout is
+ * [onClick]; reaching it is [onHold], and from then on the finger is the
+ * slide's, [onSlide] with each move (in this node's coordinates) and [onLift]
+ * when it comes up. A drag that the strip's own scroll claims first cancels
+ * the tap, so the path still scrolls sideways under a finger.
+ *
+ * The callbacks are read as they are when called, not as they were when the
+ * touch began: the menu opening recomposes the step mid-gesture, and a
+ * detector restarted then would drop the finger it was following.
+ */
+@Composable
+private fun Modifier.crumbPress(
+    interaction: MutableInteractionSource,
+    onClick: () -> Unit,
+    onHold: () -> Unit,
+    onSlide: (Offset) -> Unit,
+    onLift: () -> Unit,
+): Modifier {
+    val click by rememberUpdatedState(onClick)
+    val hold by rememberUpdatedState(onHold)
+    val slide by rememberUpdatedState(onSlide)
+    val lift by rememberUpdatedState(onLift)
+    return pointerInput(interaction) {
+        awaitEachGesture {
+            val down = awaitFirstDown()
+            val press = PressInteraction.Press(down.position)
+            interaction.tryEmit(press)
+            val up = try {
+                withTimeout(viewConfiguration.longPressTimeoutMillis) { waitForUpOrCancellation() }
+            } catch (_: PointerEventTimeoutCancellationException) {
+                interaction.tryEmit(PressInteraction.Release(press))
+                hold()
+                while (true) {
+                    val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                    if (!change.pressed) {
+                        change.consume()
+                        lift()
+                        break
+                    }
+                    if (change.positionChange() != Offset.Zero) {
+                        change.consume()
+                        slide(change.position)
+                    }
+                }
+                return@awaitEachGesture
+            }
+            if (up == null) {
+                interaction.tryEmit(PressInteraction.Cancel(press))
+            } else {
+                interaction.tryEmit(PressInteraction.Release(press))
+                up.consume()
+                click()
             }
         }
     }
@@ -1002,7 +1276,12 @@ private fun CurrentCrumb(
     onTop: () -> Unit,
     siblings: SiblingJump?,
 ) {
-    CrumbWithSiblings(route, siblings) { onLongClick ->
+    CrumbWithSiblings(
+        route = route,
+        siblings = siblings,
+        onTap = onTop,
+        onClickLabel = stringResource(R.string.shell_breadcrumb_top_desc),
+    ) { press ->
         CrumbPill(
             title = title,
             route = route,
@@ -1011,12 +1290,7 @@ private fun CurrentCrumb(
             // The same key the next screen will draw this step under, once it is a
             // step behind: that is what carries the accent off it as it goes.
             flight = crumbKey(entryId),
-            modifier = Modifier.combinedClickable(
-                onClickLabel = stringResource(R.string.shell_breadcrumb_top_desc),
-                onClick = onTop,
-                onLongClickLabel = onLongClick?.let { stringResource(R.string.shell_breadcrumb_siblings_desc) },
-                onLongClick = onLongClick,
-            ),
+            modifier = press,
         )
     }
 }
