@@ -7609,21 +7609,36 @@ internal fun ThemeFontPickerDialog(
         script == null -> KeyboardFonts.googleFonts
         else -> KeyboardFonts.scriptFontChoices(script)?.fonts.orEmpty()
     }
-    // A font from a file, without leaving the editor for the Fonts screen
-    // (#1328): into the shared library, then picked here at once.
+    // Fonts from files, without leaving the editor for the Fonts screen
+    // (#1328): into the shared library, then the last one picked here at once.
+    // Several files at a time (#1582), in one coroutine so they go in one
+    // after another (an import stages into one fixed file) and the pick waits
+    // for the last of them. Only the first failure is said, so ten bad files
+    // are one message, not ten.
     val scope = rememberCoroutineScope()
-    val importFont = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
+    val importFont = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
         scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri).use {
-                        FontFile.import(it, FontStore.get(context), name = fontFileLabel(context, uri))
-                    }
-                }.getOrElse { FontImportResult.Failed(ContentR.string.core_content_font_error_read) }
+            var picked: String? = null
+            var failure: FontImportResult? = null
+            for (uri in uris) {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            FontFile.import(it, FontStore.get(context), name = fontFileLabel(context, uri))
+                        }
+                    }.getOrElse { FontImportResult.Failed(ContentR.string.core_content_font_error_read) }
+                }
+                if (result is FontImportResult.Imported) {
+                    picked = FontStore.fontIdFor(result.font.id)
+                } else if (failure == null) {
+                    failure = result
+                }
+                // The library is full: the files after this one would only say so again.
+                if (result == FontImportResult.TooManyFonts) break
             }
-            when (result) {
-                is FontImportResult.Imported -> onPick(FontStore.fontIdFor(result.font.id))
+            when (val result = failure) {
+                null, is FontImportResult.Imported -> Unit
                 is FontImportResult.NotAFont -> Toast.makeText(context, result.messageRes, Toast.LENGTH_LONG).show()
                 FontImportResult.TooManyFonts -> Toast.makeText(
                     context,
@@ -7636,11 +7651,25 @@ internal fun ThemeFontPickerDialog(
                     Toast.LENGTH_LONG,
                 ).show()
             }
+            picked?.let(onPick)
         }
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        // Import sits by the title, not at the top of the list (#1582): the
+        // list opens scrolled to the font that is on, which is usually far
+        // down, and adding one more meant scrolling all the way back up.
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(title, modifier = Modifier.weight(1f))
+                IconButton(onClick = { importFont.launch(FONT_MIME_TYPES) }) {
+                    Icon(
+                        Icons.Outlined.Add,
+                        contentDescription = stringResource(R.string.fonts_import_files_action),
+                    )
+                }
+            }
+        },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ThemeFontChoiceRow(
@@ -7648,11 +7677,6 @@ internal fun ThemeFontPickerDialog(
                     family = null,
                     selected = current == null,
                 ) { onPick(null) }
-                ThemeFontChoiceRow(
-                    label = stringResource(R.string.fonts_import_action),
-                    family = null,
-                    selected = false,
-                ) { importFont.launch(FONT_MIME_TYPES) }
                 for (font in installed) {
                     val id = FontStore.fontIdFor(font.id)
                     ThemeFontChoiceRow(

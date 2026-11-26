@@ -29,6 +29,8 @@
     <string name="fonts_imported_label">Imported font</string>
 
     <string name="fonts_import_action">Import a font file (.ttf or .otf)</string>
+    <!-- The + by the title of the theme editor's font picker: opens a file picker that takes several .ttf or .otf files at once (#1582). -->
+    <string name="fonts_import_files_action">Import font files</string>
 
     <!-- Content description of the tick on the font the user selected. -->
     <string name="fonts_selected_desc">Selected</string>
