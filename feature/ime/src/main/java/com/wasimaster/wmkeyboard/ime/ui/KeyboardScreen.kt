@@ -19231,6 +19231,13 @@ private const val SpaceCursorHoldReach = 0.2f
  */
 private const val SpaceCursorVerticalShare = 0.75f
 
+/**
+ * On the 2-D pad, the least vertical travel that moves the caret a line
+ * (#1573), about a key row. The character step is far shorter, and a thumb
+ * dips that much on any sideways sweep.
+ */
+private const val SpaceCursorLineStepDp = 40
+
 /** How much of the board's colour dims the keys under a whole-keyboard cursor drag (#505). */
 private const val SpaceTouchpadScrimAlpha = 0.6f
 
@@ -33632,6 +33639,11 @@ private fun Modifier.pointerInputKey(
             val reachPx = AlternatesReachDp.toPx()
             val steerPx = AlternatesSteerDp.toPx()
             val cursorStepPx = textEditing.spaceCursorStepDp.dp.toPx()
+            // A line on the 2-D pad takes a key row's worth of travel, not a
+            // character's (#1573): at the character step, the dip a thumb
+            // makes sweeping sideways was a line down, which in a one-line
+            // paragraph threw the caret to the end of the text.
+            val lineStepPx = maxOf(cursorStepPx, SpaceCursorLineStepDp.dp.toPx())
             // Issue #385: with acceleration on, the step shrinks as the drag
             // runs on; a top speed of 1 is the flat step it always was.
             val cursorTopSpeed = if (textEditing.spaceCursorAccelerate) {
@@ -34257,7 +34269,7 @@ private fun Modifier.pointerInputKey(
                             lastY = change.position.y
                             cursorRampY.add(dy)
                             val stepYPx = spaceCursorStepPx(
-                                cursorStepPx, cursorRampY.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
+                                lineStepPx, cursorRampY.travel, cursorRampStartPx, cursorRampEndPx, cursorTopSpeed,
                             )
                             var movedV = false
                             while (accumulatedY > stepYPx) {
@@ -34272,6 +34284,11 @@ private fun Modifier.pointerInputKey(
                             // a drag off the spacebar is above it at once. A
                             // band the drag began in does not count, so a
                             // spacebar in the bottom band never sets it off.
+                            // Nor does a finger that only rolled into the band:
+                            // a spacebar just above it sat a few pixels from
+                            // the edge, and the thumb settling on it sent line
+                            // after line down (#1573). It has to have gone a
+                            // line's travel that way first.
                             val grid = spaceTouchpad?.gridBounds
                             val dirY = if (!padSettling && textEditing.spaceCursorEdgeRepeat && grid != null &&
                                 grid.height > 0f
@@ -34281,8 +34298,10 @@ private fun Modifier.pointerInputKey(
                                 val bottomEdge = grid.bottom - origin - touchpadEdgePx
                                 val y = change.position.y
                                 when {
-                                    y < topEdge && down.position.y >= topEdge -> -1
-                                    y > bottomEdge && down.position.y <= bottomEdge -> 1
+                                    y < topEdge && down.position.y >= topEdge &&
+                                        down.position.y - y >= lineStepPx -> -1
+                                    y > bottomEdge && down.position.y <= bottomEdge &&
+                                        y - down.position.y >= lineStepPx -> 1
                                     else -> 0
                                 }
                             } else {
