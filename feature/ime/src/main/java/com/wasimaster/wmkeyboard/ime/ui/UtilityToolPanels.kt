@@ -9,6 +9,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -45,7 +46,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
@@ -132,25 +135,34 @@ internal fun ToolPanelChip(
     // defines a "disabled" colour pair that would stay legible across all of them.
     fun Color.dim() = if (enabled) this else copy(alpha = alpha * DISABLED_ALPHA)
     val shape = kb.chipShape()
+    // A fixed height with a set line height, as the clipboard's filter chips
+    // have (#1536): sized by the text alone, a theme font with tall ascents
+    // made these the larger of the two. Smaller while the panel is short.
+    val compact = LocalCompactToolChips.current
+    val fontSize = if (compact) 11.sp else 12.sp
+    val lineHeight = if (compact) 13.sp else 14.sp
     IconHint(null, modifier, disabledReason = disabledReason.takeUnless { enabled }) {
         Box(
             modifier = Modifier
+                .height(if (compact) ToolChipCompactHeight else ToolChipHeight)
                 .clip(shape)
                 .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background((if (selected) kb.chipActive else kb.chip).dim())
                 .chipBorder(kb, shape)
                 .clickable(enabled = enabled, onClick = onClick)
-                .padding(horizontal = 10.dp, vertical = 5.dp),
+                .padding(horizontal = if (compact) 8.dp else 10.dp),
+            contentAlignment = Alignment.Center,
         ) {
             val content = (if (selected) kb.chipActiveText else kb.chipText).dim()
             if (icon != null) {
-                Icon(icon, contentDescription = label, tint = content, modifier = Modifier.size(16.dp))
+                Icon(icon, contentDescription = label, tint = content, modifier = Modifier.size(if (compact) 14.dp else 16.dp))
             } else if (mark != null) {
                 androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text(
                         label,
                         color = content,
-                        fontSize = 12.sp,
+                        fontSize = fontSize,
+                        lineHeight = lineHeight,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                     )
@@ -165,7 +177,8 @@ internal fun ToolPanelChip(
                 Text(
                     label,
                     color = content,
-                    fontSize = 12.sp,
+                    fontSize = fontSize,
+                    lineHeight = lineHeight,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                 )
@@ -176,6 +189,39 @@ internal fun ToolPanelChip(
 
 /** How far [ToolPanelChip] fades a chip that cannot be tapped. */
 private const val DISABLED_ALPHA = 0.4f
+
+/** A [ToolPanelChip]'s height: the clipboard's filter chips' (#1536). */
+private val ToolChipHeight = 28.dp
+
+/** A [ToolPanelChip]'s height in a panel short of room; see [ChipsShareTheSqueeze]. */
+private val ToolChipCompactHeight = 22.dp
+
+/** Whether [ToolPanelChip]s draw small, set by [ChipsShareTheSqueeze]. */
+internal val LocalCompactToolChips = compositionLocalOf { false }
+
+/**
+ * Lays out a panel whose chip rows sit over a keypad (#1536). The keypad
+ * takes what the rows leave, so in a short panel (the key rows back under a
+ * tool while its focus switch is on, a short keyboard, landscape) it alone
+ * shrank, down to keys too small to hit, while the chips kept their size.
+ * When [chrome], the room the rows above it take at full size, would leave
+ * the keypad's [keypadRows] less than [KeypadRowMin] each, the chips and the
+ * gaps between their rows draw compact, so the two share the squeeze.
+ */
+@Composable
+private fun ChipsShareTheSqueeze(chrome: Dp, keypadRows: Int, content: @Composable () -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val compact = maxHeight - chrome < KeypadRowMin * keypadRows
+        CompositionLocalProvider(LocalCompactToolChips provides compact) { content() }
+    }
+}
+
+/** The keypad row height below which a panel's chips go compact; see [ChipsShareTheSqueeze]. */
+private val KeypadRowMin = 36.dp
+
+/** The gap above a chip row and around the amount row, smaller while the chips are compact. */
+@Composable
+private fun chipRowGap(): Dp = if (LocalCompactToolChips.current) 1.dp else 3.dp
 
 @Composable
 private fun KeypadButton(
@@ -791,6 +837,9 @@ internal fun CalculatorPanel(
     ) { result?.getOrNull()?.let(onInsert) }
     val focusedChip = state.focusedIndex(FocusRegion.CHIPS)
 
+    // The display and the function row over four keypad rows; sideways the
+    // functions are keys beside the keypad and nothing needs to share.
+    ChipsShareTheSqueeze(chrome = CalcChrome, keypadRows = 4) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -949,7 +998,7 @@ internal fun CalculatorPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
-                    .padding(vertical = 3.dp),
+                    .padding(vertical = chipRowGap()),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 ToolPanelChip("C", modifier = Modifier.focusRing(focusedChip == 0)) {
@@ -970,7 +1019,11 @@ internal fun CalculatorPanel(
             keypad(Modifier.weight(1f))
         }
     }
+    }
 }
+
+/** The calculator's display and function row at full size, over its keypad. */
+private val CalcChrome = 88.dp
 
 /**
  * Sideways, the calculator's functions sit beside its keypad in rows of this
@@ -1167,6 +1220,7 @@ internal fun UnitConverterPanel(
     val focusedChip = state.focusedIndex(FocusRegion.CHIPS)
     val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
 
+    ChipsShareTheSqueeze(chrome = UnitChrome, keypadRows = 4) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1203,7 +1257,7 @@ internal fun UnitConverterPanel(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 3.dp),
+                .padding(vertical = chipRowGap()),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             FieldFocusSwitch(LocalCaptureCaret.current)
@@ -1248,7 +1302,14 @@ internal fun UnitConverterPanel(
             callbacks = callbacks,
         )
     }
+    }
 }
+
+/** The unit converter's category, from and to rows and its amount row at full size. */
+private val UnitChrome = 134.dp
+
+/** The currency converter's from and to rows and its amount row at full size. */
+private val CurrencyChrome = 104.dp
 
 @Composable
 private fun UnitChipRow(
@@ -1262,7 +1323,7 @@ private fun UnitChipRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 3.dp),
+            .padding(top = chipRowGap()),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, color = kb.secondaryText, fontSize = 10.sp, modifier = Modifier.width(34.dp))
@@ -1317,6 +1378,7 @@ internal fun CurrencyPanel(
     val from = state.settings.currencyFrom
     val to = state.settings.currencyTo
 
+    ChipsShareTheSqueeze(chrome = CurrencyChrome, keypadRows = 4) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1429,7 +1491,7 @@ internal fun CurrencyPanel(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 3.dp),
+                        .padding(vertical = chipRowGap()),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     FieldFocusSwitch(LocalCaptureCaret.current)
@@ -1496,6 +1558,7 @@ internal fun CurrencyPanel(
                 )
             }
         }
+    }
     }
 }
 
@@ -1565,7 +1628,7 @@ private fun CurrencyChipRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 3.dp),
+            .padding(top = chipRowGap()),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, color = kb.secondaryText, fontSize = 10.sp, modifier = Modifier.width(34.dp))
