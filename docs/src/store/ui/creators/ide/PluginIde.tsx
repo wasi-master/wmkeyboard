@@ -428,6 +428,8 @@ function IdeScreen({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: 
 }
 
 const isPythonPath = (path: string) => path === ENTRY || path.endsWith('.py');
+/** What a session calls the entry in errors and tracebacks, whatever plugin.json names it. */
+const SESSION_ENTRY = 'main.py';
 
 type FileDialogState = { kind: 'new' } | { kind: 'rename'; path: string };
 
@@ -588,6 +590,28 @@ function IdeBody({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: ()
 		}
 		switchTo(path, true);
 	}, [switchTo, showToast]);
+	/** The editor's path for a file an error names. A session calls the entry main.py whatever plugin.json names it. */
+	const errorPath = useCallback((file: string | null | undefined) => (!file || file === entryRef.current || (file === SESSION_ENTRY && !(SESSION_ENTRY in filesRef.current)) ? ENTRY : file), []);
+	const pendingJump = useRef<{ path: string; line: number } | null>(null);
+	/** Shows [line] of the file an error or one of its calls names, opening that file first. */
+	const jumpTo = useCallback((file: string | null | undefined, line: number) => {
+		const path = errorPath(file);
+		const ed = controller.value;
+		if (path === openRef.current) {
+			ed?.moveTo(E.offsetOfLine(ed.text, line - 1));
+			return;
+		}
+		pendingJump.current = { path, line };
+		openFile(path);
+	}, [errorPath, openFile, controller]);
+	// The file opened for a jump has its field now: go to the line.
+	useEffect(() => {
+		const jump = pendingJump.current;
+		const ed = controller.value;
+		if (!jump || !ed || jump.path !== openPath) return;
+		pendingJump.current = null;
+		ed.moveTo(E.offsetOfLine(ed.text, jump.line - 1));
+	});
 	/** The folder's copy of the open file came in: the field shows it. */
 	const reloadOpen = useCallback((body: string, path: string) => {
 		eolRef.current = eolOf(body);
@@ -813,7 +837,8 @@ function IdeBody({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: ()
 		const t = setTimeout(() => setMatches(E.findMatches(text, find.query, find.options)), FIND_DELAY_MS);
 		return () => clearTimeout(t);
 	}, [text, find.query, find.options, findOpen]);
-	const failureLine = isEntry && previewState.failure?.line ? previewState.failure.line - 1 : null;
+	const failure = previewState.failure;
+	const failureLine = failure?.line && errorPath(failure.file) === openPath ? failure.line - 1 : null;
 	const diagnostics = inspection.diagnostics;
 	const fixable = useMemo(() => (c ? fixableAt(diagnostics, caret) : null), [c, diagnostics, caret]);
 	// A fix changes the script, or plugin.json, never both.
@@ -1082,7 +1107,7 @@ function IdeBody({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: ()
 	const pane = (
 		<>
 			{panel === 'PREVIEW' && previewPane}
-			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onJump={(line) => { if (isEntry) controller.value?.moveTo(E.offsetOfLine(controller.value.text, line - 1)); }} />}
+			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onJump={(line, file) => jumpTo(file, line)} entryFile={(file) => errorPath(file) === ENTRY} />}
 			{panel === 'PROBLEMS' && <ProblemsPane diagnostics={diagnostics} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} onFix={applyFix} />}
 			{panel === 'OUTLINE' && <OutlinePane outline={inspection.outline} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} />}
 			{panel === 'FILES' && files !== null && (
@@ -1355,7 +1380,7 @@ function BudgetMeter({ usage, history }: { usage: Usage; history: number[] }) {
 	);
 }
 
-function ConsolePane({ preview, revision, onJump }: { preview: PluginPreviewSession; revision: number; onJump: (line: number) => void }) {
+function ConsolePane({ preview, revision, onJump, entryFile }: { preview: PluginPreviewSession; revision: number; onJump: (line: number, file: string | null) => void; entryFile: (file: string | null) => boolean }) {
 	const entries = useMemo(() => preview.console(), [preview, revision]);
 	const list = useRef<HTMLDivElement>(null);
 	useEffect(() => {
@@ -1369,22 +1394,37 @@ function ConsolePane({ preview, revision, onJump }: { preview: PluginPreviewSess
 				<TextButton onClick={() => preview.clearConsole()}>{S.consoleClear}</TextButton>
 			</div>
 			<div ref={list} class="wm-pane" style="padding:4px 12px">
-				{entries.map((entry, i) => <ConsoleLine key={i} entry={entry} onJump={onJump} />)}
+				{entries.map((entry, i) => <ConsoleLine key={i} entry={entry} onJump={onJump} entryFile={entryFile} />)}
 			</div>
 		</div>
 	);
 }
 
-function ConsoleLine({ entry, onJump }: { entry: ConsoleEntry; onJump: (line: number) => void }) {
+function ConsoleLine({ entry, onJump, entryFile }: { entry: ConsoleEntry; onJump: (line: number, file: string | null) => void; entryFile: (file: string | null) => boolean }) {
 	const words = entry.kind === 'STARTED' ? S.consoleStarted : entry.kind === 'CANCELLED' ? S.consoleCancelled : entry.text || entry.message || '';
 	const colour = entry.kind === 'ERROR' || entry.kind === 'STOPPED' ? 'wm-console-error' : entry.kind === 'PRINT' ? '' : 'wm-console-muted';
 	const line = entry.line ?? null;
-	const click = line !== null ? () => onJump(line) : undefined;
+	const file = entry.file ?? null;
+	const click = line !== null ? () => onJump(line, file) : undefined;
+	const where = (f: string | null, l: number) => (f === null || entryFile(f) ? S.lineLabel(l) : S.fileLineLabel(f, l));
+	// The calls that led to it, outermost first as Python lists them; one call is the line above.
+	const frames = entry.frames && entry.frames.length > 1 ? entry.frames : [];
 	return (
-		<div class={`wm-console-line ${colour} ${click ? 'wm-clickable' : ''}`} onClick={click}>
-			<span style="flex:1 1 auto;min-width:0">{words}</span>
-			{line !== null && <span class="wm-line-chip">{S.lineLabel(line)}</span>}
-		</div>
+		<>
+			<div class={`wm-console-line ${colour} ${click ? 'wm-clickable' : ''}`} onClick={click}>
+				<span style="flex:1 1 auto;min-width:0">{words}</span>
+				{line !== null && <span class="wm-line-chip">{where(file, line)}</span>}
+			</div>
+			{frames.map((f, i) => {
+				const at = f.line;
+				return (
+					<div key={i} class={`wm-console-line wm-console-muted wm-console-frame ${at !== null ? 'wm-clickable' : ''}`} onClick={at !== null ? () => onJump(at, f.file) : undefined}>
+						<span style="flex:1 1 auto;min-width:0">{S.frameIn(f.function)}</span>
+						{at !== null && <span class="wm-line-chip">{where(f.file, at)}</span>}
+					</div>
+				);
+			})}
+		</>
 	);
 }
 

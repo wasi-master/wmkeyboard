@@ -217,7 +217,7 @@ function PreviewTry({ target, identity, script, storage }: { target: Extract<Try
 				{!file && <span class="wm-caption">{S.tryNoFile}</span>}
 				{result && <span class="wm-caption">{S.tryTook(result.millis)}</span>}
 			</div>
-			{result?.error && <div class="wm-error-text">{result.line ? `${result.error} (line ${result.line})` : result.error}</div>}
+			{result?.error && <div class="wm-error-text">{result.line ? `${result.error} (${S.errorAt(result.file, result.line)})` : result.error}</div>}
 			{result?.ui && (
 				<div class="wm-w-column" style={{ fontFamily: undefined, ['--wm-preview-font' as string]: FONT_FAMILY }}>
 					{result.ui.repairs.map((r, i) => <div key={i} class="wm-caption">{r}</div>)}
@@ -319,7 +319,7 @@ export function TryPane({ manifest, script, identity, storage }: { manifest: Plu
 				const parsed: unknown = JSON.parse(input);
 				if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
 			} catch {
-				return setOutcome({ key: chosen.key, result: { value: null, error: S.tryBadJson, line: null, log: [], millis: 0 } });
+				return setOutcome({ key: chosen.key, result: { value: null, error: S.tryBadJson, line: null, file: null, log: [], millis: 0 } });
 			}
 		}
 		setOutcome({ key: chosen.key, result: tryOnce(identity(), script(), chosen.key, input, storage()) });
@@ -337,7 +337,7 @@ export function TryPane({ manifest, script, identity, storage }: { manifest: Plu
 				<button type="button" class="st-btn st-btn-sm st-btn-primary" onClick={run}>{S.tryRun}</button>
 				{result && <span class="wm-caption">{S.tryTook(result.millis)}</span>}
 			</div>
-			{result?.error && <div class="wm-error-text">{result.line ? `${result.error} (line ${result.line})` : result.error}</div>}
+			{result?.error && <div class="wm-error-text">{result.line ? `${result.error} (${S.errorAt(result.file, result.line)})` : result.error}</div>}
 			{result && !result.error && (
 				<>
 					{chosen.kind === 'provider' && <div class="wm-label">{verdictOf(chosen.tool, reply, input)}</div>}

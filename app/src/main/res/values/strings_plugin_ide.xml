@@ -118,6 +118,8 @@
     <string name="plugin_ide_console_cancelled">A newer run replaced this run</string>
     <!-- %1$d is a line number in the code. Press it to go to that line. -->
     <string name="plugin_ide_console_line_label">Line %1$d</string>
+    <!-- An error's place in another of the plugin's files than the one open: "helpers.py, line 3". -->
+    <string name="plugin_ide_console_file_line_label">%1$s, line %2$d</string>
     <string name="plugin_ide_copied_message">Copied</string>
 
     <!-- ================================================================== -->

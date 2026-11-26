@@ -38,7 +38,7 @@ use std::time::{Duration, Instant, SystemTime};
 use serde_json::{json, Map, Value as Json};
 use wm_python::host::Session;
 
-use crate::diag::{folder_source, Diag, Severity};
+use crate::diag::{folder_source, Diag};
 use crate::mock::Mock;
 use bridge::{CallRecord, HttpDone, World};
 use plugin::{PluginFacts, Secrets, SettingValues};
@@ -565,6 +565,12 @@ impl DevHost {
 
     fn diag_of(&self, e: &Json, result: &Json) -> Diag {
         let entry = crate::project::manifest(&self.opts.dir).map(|m| m.entry).unwrap_or_else(|_| "main.py".into());
+        let mut d = self.diag_of_kind(e, result, &entry);
+        d.name_entry(&entry, &self.opts.dir);
+        d
+    }
+
+    fn diag_of_kind(&self, e: &Json, result: &Json, entry: &str) -> Diag {
         let kind = e["kind"].as_str().unwrap_or("");
         let phase = result["phases"].as_array().and_then(|p| p.last()).and_then(|p| p["phase"].as_str()).unwrap_or("").to_string();
         match kind {
@@ -580,7 +586,7 @@ impl DevHost {
                 d
             }
             "abort" => {
-                let mut d = Diag::from_session_error(e, &entry);
+                let mut d = Diag::from_session_error(e, entry);
                 let abort = e["abort"].as_str().unwrap_or("");
                 d.code = Some(abort.to_string());
                 let (steps, millis) = match phase.as_str() {
@@ -600,7 +606,7 @@ impl DevHost {
                 }
                 d
             }
-            _ => Diag::from_session_error(e, &entry),
+            _ => Diag::from_session_error(e, entry),
         }
     }
 
@@ -865,12 +871,7 @@ fn repair_words(code: &str) -> &'static str {
 
 /// A [Diag] in the shape every wmpy tool shares.
 pub fn diag_json(d: &Diag) -> Json {
-    json!({
-        "severity": match d.severity { Severity::Error => "error", Severity::Warning => "warning", Severity::Info => "info" },
-        "code": d.code, "message": d.message, "file": d.file, "line": d.line, "col": d.col, "endCol": d.end_col,
-        "traceback": d.traceback.iter().map(|f| json!({"file": f.file, "line": f.line, "function": f.function})).collect::<Vec<_>>(),
-        "notes": d.notes, "help": d.help,
-    })
+    d.to_json()
 }
 
 #[cfg(test)]

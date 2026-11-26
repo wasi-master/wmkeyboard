@@ -359,6 +359,7 @@ html[data-theme='dark'] {
 .wm-console-line.wm-clickable { cursor: pointer; }
 .wm-console-error { color: var(--wmc-problem); }
 .wm-console-muted { color: var(--st-muted); }
+.wm-console-frame { padding-left: 16px; font-size: 0.85em; }
 .wm-line-chip { font-size: 0.72rem; color: var(--st-accent); white-space: nowrap; flex: none; font-family: inherit; }
 .wm-problem {
 	display: flex;

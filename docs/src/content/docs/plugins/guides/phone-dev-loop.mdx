@@ -150,7 +150,9 @@ wmpy logs --since 10m
 ```
 
 `wmpy logs` shows what the plugin prints and the errors it hits, with errors
-in red. It reads the plugin in the current folder, or the folder or plugin id
+in red. An error names its file and line, as in `error: fares.py:3: negative
+fare`, and the calls in your files that led there follow it, one line each,
+such as `at fares.py:8 in total`. It reads the plugin in the current folder, or the folder or plugin id
 you give. Outside a plugin folder and with no id, it shows every plugin's
 lines, each with its id. It keeps following the log until you press Ctrl-C.
 

@@ -328,11 +328,60 @@ const isV5 = (plugin: PluginIdentity) => (plugin.apiVersion ?? 0) >= 5;
 
 type AbortWire = 'steps' | 'deadline' | 'cancelled' | 'recursion' | 'container' | 'string';
 
+/** One call of a traceback as the session writes it: no file for the modules that come with the keyboard. */
+interface WireFrame {
+	file: string | null;
+	line: number | null;
+	function: string;
+}
+
+interface WireError {
+	kind: 'compile' | 'runtime' | 'abort' | 'no_render' | 'no_transform' | 'no_preview' | 'internal';
+	message: string;
+	line: number | null;
+	abort: AbortWire | null;
+	exception: string | null;
+	/** The file [line] is in; null for the entry (older sessions) or a module that comes with the keyboard. */
+	file?: string | null;
+	/** Outermost call first, the one that raised last. */
+	traceback?: WireFrame[];
+}
+
+/** One call in one of the plugin's own files. */
+export interface TraceFrame {
+	file: string;
+	line: number | null;
+	function: string;
+}
+
+/** Where an error points: the file (null: the entry) and line, and the plugin's own calls that led there. */
+export interface ErrorPlace {
+	file: string | null;
+	line: number | null;
+	frames: TraceFrame[];
+}
+
+/**
+ * Where [error] points. A module that comes with the keyboard (requests'
+ * raise_for_status, json.loads) raising has no file and its line is that
+ * module's: the innermost call in one of the plugin's files is the line its
+ * author can change. Calls in those modules are left out of the frames.
+ */
+export function placeOf(error: Pick<WireError, 'file' | 'line' | 'traceback'>): ErrorPlace {
+	const frames = (error.traceback ?? []).filter((f): f is TraceFrame => f.file !== null);
+	const inner = frames[frames.length - 1];
+	// A native function (json.loads) raising leaves no line; the call to it has one.
+	if (error.file) return { file: error.file, line: error.line ?? (inner?.file === error.file ? inner.line : null), frames };
+	if (inner) return { file: inner.file, line: inner.line, frames };
+	// No frames at all: a session from before tracebacks, which only knew the entry.
+	return { file: null, line: error.traceback?.length ? null : error.line, frames };
+}
+
 interface WireResult {
 	ok: boolean;
 	ui?: { root: WireWidget[]; repairs: { code: RepairCode; arg: string | null }[] };
 	host?: HostMeta;
-	error?: { kind: 'compile' | 'runtime' | 'abort' | 'no_render' | 'no_transform' | 'no_preview' | 'internal'; message: string; line: number | null; abort: AbortWire | null; exception: string | null };
+	error?: WireError;
 	log: string[];
 	inputs: [string, string][];
 	remindersChanged: boolean;
@@ -366,6 +415,8 @@ export interface Failure {
 	kind: FailureKind;
 	text: string;
 	line: number | null;
+	/** The file [line] is in, as the session names it (`main.py`, `helpers.py`); null when it does not say. */
+	file: string | null;
 	phase: Phase;
 }
 
@@ -380,6 +431,10 @@ export interface ConsoleEntry {
 	message?: string;
 	/** The script's line (1-based) the entry points at. */
 	line?: number | null;
+	/** The file [line] is in (null or absent: the entry). */
+	file?: string | null;
+	/** An error's calls in the plugin's own files, outermost first. */
+	frames?: TraceFrame[];
 	failure?: FailureKind;
 	repair?: RepairCode;
 }
@@ -556,7 +611,7 @@ export class PluginPreviewSession {
 			// The module trapped: the session may be half way through a change, so it goes.
 			const name = (e as Error)?.constructor?.name ?? 'Error';
 			const message = (e as Error)?.message;
-			this.update({ failure: { kind: 'UNEXPECTED', text: message ? `${name}: ${message}` : name, line: null, phase }, busy: false });
+			this.update({ failure: { kind: 'UNEXPECTED', text: message ? `${name}: ${message}` : name, line: null, file: null, phase }, busy: false });
 			this.stopSession(session, S.stoppedUnexpected);
 			return;
 		}
@@ -587,7 +642,7 @@ export class PluginPreviewSession {
 		switch (error.kind) {
 			case 'compile':
 			case 'runtime':
-				this.scriptFailed(error.kind === 'compile' ? 'COMPILE' : 'RUNTIME', error.message, error.line, failedIn);
+				this.scriptFailed(error.kind === 'compile' ? 'COMPILE' : 'RUNTIME', error.message, placeOf(error), failedIn);
 				return;
 			case 'no_render':
 				this.append({ at: this.elapsed(), kind: 'ERROR', text: '', message: S.errorNoRender });
@@ -595,13 +650,14 @@ export class PluginPreviewSession {
 				return;
 			case 'abort': {
 				const [kind, message] = abortOf(error.abort);
-				this.update({ failure: { kind, text: error.message, line: error.line, phase: failedIn } });
+				const at = placeOf(error);
+				this.update({ failure: { kind, text: error.message, line: at.line, file: at.file, phase: failedIn } });
 				if (kind === 'CANCELLED') this.append({ at: this.elapsed(), kind: 'CANCELLED', text: '', failure: kind });
 				else this.stopSession(session, message);
 				return;
 			}
 			default:
-				this.update({ failure: { kind: 'UNEXPECTED', text: error.message, line: null, phase: failedIn } });
+				this.update({ failure: { kind: 'UNEXPECTED', text: error.message, line: null, file: null, phase: failedIn } });
 				this.stopSession(session, S.stoppedUnexpected);
 		}
 	}
@@ -636,10 +692,10 @@ export class PluginPreviewSession {
 		}
 	}
 
-	private scriptFailed(kind: FailureKind, message: string, line: number | null, phase: Phase) {
+	private scriptFailed(kind: FailureKind, message: string, at: ErrorPlace, phase: Phase) {
 		const text = message.substring(0, MAX_ERROR_TEXT);
-		this.append({ at: this.elapsed(), kind: 'ERROR', text, line, failure: kind });
-		this.update({ failure: { kind, text, line, phase }, status: 'FAILED' });
+		this.append({ at: this.elapsed(), kind: 'ERROR', text, line: at.line, file: at.file, frames: at.frames, failure: kind });
+		this.update({ failure: { kind, text, line: at.line, file: at.file, phase }, status: 'FAILED' });
 	}
 
 	/** Ends the session for a reason the user should see. */
@@ -693,6 +749,8 @@ export interface TryOutcome {
 	value: string | null;
 	error: string | null;
 	line: number | null;
+	/** The file [line] is in; null for the entry. */
+	file: string | null;
 	log: string[];
 	millis: number;
 }
@@ -704,6 +762,8 @@ export interface PreviewOutcome {
 	picture: string | null;
 	error: string | null;
 	line: number | null;
+	/** The file [line] is in; null for the entry. */
+	file: string | null;
 	log: string[];
 	millis: number;
 }
@@ -718,7 +778,7 @@ export function tryPreview(plugin: PluginIdentity, script: string, previewId: st
 	const started = performance.now();
 	const log: string[] = [];
 	let py: PySession | null = null;
-	const done = (ui: RenderedUi | null, picture: string | null, error: string | null, line: number | null = null): PreviewOutcome => ({ ui, picture, error, line, log, millis: Math.round(performance.now() - started) });
+	const done = (ui: RenderedUi | null, picture: string | null, error: string | null, at: ErrorPlace | null = null): PreviewOutcome => ({ ui, picture, error, line: at?.line ?? null, file: at?.file ?? null, log, millis: Math.round(performance.now() - started) });
 	try {
 		py = new PySession(configOf(plugin, storage, 'action'));
 		const base = makeBridge({ hosts: plugin.hosts ?? [], settings: plugin.settingSpecs ?? [], deliver: () => {}, log: (text) => log.push(text) });
@@ -733,7 +793,7 @@ export function tryPreview(plugin: PluginIdentity, script: string, previewId: st
 		});
 		const loaded = JSON.parse(py.load(script)) as WireResult;
 		log.push(...loaded.log);
-		if (loaded.error) return done(null, null, loaded.error.message || loaded.error.kind, loaded.error.line);
+		if (loaded.error) return done(null, null, loaded.error.message || loaded.error.kind, placeOf(loaded.error));
 		const head = file.bytes.subarray(0, Math.min(file.bytes.length, maxBytes));
 		const dot = file.name.lastIndexOf('.');
 		const request = JSON.stringify({
@@ -745,7 +805,7 @@ export function tryPreview(plugin: PluginIdentity, script: string, previewId: st
 		log.push(...result.log);
 		if (result.error) {
 			const message = result.error.kind === 'no_preview' ? `No @plugin.${thumbnail ? 'thumbnail' : 'preview'}("${previewId}") in the script.` : result.error.message || result.error.kind;
-			return done(null, null, message, result.error.line);
+			return done(null, null, message, placeOf(result.error));
 		}
 		if (thumbnail) return done(null, result.value ? `data:image/*;base64,${result.value}` : null, null);
 		return done(result.ui ? uiOf(result.ui, true) : null, null, null);
@@ -771,7 +831,7 @@ export function tryOnce(plugin: PluginIdentity, script: string, actionId: string
 	const started = performance.now();
 	const log: string[] = [];
 	let py: PySession | null = null;
-	const done = (value: string | null, error: string | null, line: number | null = null): TryOutcome => ({ value, error, line, log, millis: Math.round(performance.now() - started) });
+	const done = (value: string | null, error: string | null, at: ErrorPlace | null = null): TryOutcome => ({ value, error, line: at?.line ?? null, file: at?.file ?? null, log, millis: Math.round(performance.now() - started) });
 	try {
 		py = new PySession(configOf(plugin, storage, 'action'));
 		if (isV5(plugin)) {
@@ -784,10 +844,10 @@ export function tryOnce(plugin: PluginIdentity, script: string, actionId: string
 		}
 		const loaded = JSON.parse(py.load(script)) as WireResult;
 		log.push(...loaded.log);
-		if (loaded.error) return done(null, loaded.error.message || loaded.error.kind, loaded.error.line);
+		if (loaded.error) return done(null, loaded.error.message || loaded.error.kind, placeOf(loaded.error));
 		const result = JSON.parse(py.transform(input, actionId)) as WireResult & { value?: string | null };
 		log.push(...result.log);
-		if (result.error) return done(null, result.error.message || result.error.kind, result.error.line);
+		if (result.error) return done(null, result.error.message || result.error.kind, placeOf(result.error));
 		return done(result.value ?? null, null);
 	} catch (e) {
 		return done(null, String((e as Error)?.message ?? e));

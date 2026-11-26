@@ -36,12 +36,20 @@ impl Severity {
     }
 }
 
-/// One frame of a traceback, innermost last.
-#[derive(Clone, Debug, Default)]
+/// One frame of a traceback, outermost first and innermost last. [file] is
+/// None for the modules that come with the keyboard (the standard library,
+/// the `wm` package and its host side).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Frame {
     pub file: Option<String>,
     pub line: Option<u32>,
     pub function: Option<String>,
+}
+
+impl Frame {
+    fn of(f: &wm_python::interp::Frame) -> Frame {
+        Frame { file: f.file.clone(), line: f.line, function: Some(f.function.clone()) }
+    }
 }
 
 /// One problem, wherever it came from: the checker, the manifest, or a run.
@@ -88,7 +96,7 @@ impl Diag {
         }
         d.line = err.get("line").and_then(|v| v.as_u64()).map(|l| l as u32);
         d.col = err.get("col").and_then(|v| v.as_u64()).map(|c| c as u32);
-        d.file = s("file").or_else(|| d.line.map(|_| default_file.to_string()));
+        d.file = s("file");
         if let Some(frames) = err.get("traceback").and_then(|v| v.as_array()) {
             d.traceback = frames
                 .iter()
@@ -99,20 +107,79 @@ impl Diag {
                 })
                 .collect();
         }
+        d.line_from_frame();
+        if d.file.is_none() && !d.blame_own_frame() && d.traceback.is_empty() {
+            d.file = d.line.map(|_| default_file.to_string());
+        }
         d.help = hint(d.code.as_deref().unwrap_or(""), &d.message);
         d
     }
 
     /// An error the interpreter raised while running [file] (the file whose
     /// code was running at the top: a test, or the entry script), with a hint
-    /// when the error is a common one.
+    /// when the error is a common one. The error's own file and frames win
+    /// when the runtime named its modules' files.
     pub fn from_py_error(e: &PyError, file: &str) -> Diag {
         let mut d = Diag::error(e.message.clone());
         d.code = Some(e.kind.clone()).filter(|k| !k.is_empty());
         d.line = e.line;
-        d.file = Some(file.to_string());
+        d.file = e.file.clone();
+        d.traceback = e.frames.iter().map(Frame::of).collect();
+        d.line_from_frame();
+        if d.file.is_none() && !d.blame_own_frame() {
+            if !d.traceback.is_empty() {
+                // Frames, none in a file of the plugin's: the line is in a
+                // module that came with the keyboard, not in [file].
+                d.line = None;
+            }
+            d.file = Some(file.to_string());
+        }
         d.help = hint(&e.kind, &e.message);
         d
+    }
+
+    /// A session runs the entry as `main.py` whatever plugin.json calls it:
+    /// give its frames the entry's name, unless the plugin has a real
+    /// main.py of its own beside another entry.
+    pub fn name_entry(&mut self, entry: &str, dir: &std::path::Path) {
+        const SESSION_ENTRY: &str = "main.py";
+        if entry == SESSION_ENTRY || dir.join(SESSION_ENTRY).exists() {
+            return;
+        }
+        let rename = |f: &mut Option<String>| {
+            if f.as_deref() == Some(SESSION_ENTRY) {
+                *f = Some(entry.to_string());
+            }
+        };
+        rename(&mut self.file);
+        self.traceback.iter_mut().for_each(|f| rename(&mut f.file));
+    }
+
+    /// A native function (json.loads) raising leaves the error without a
+    /// line; the innermost frame, the call to it, has one.
+    fn line_from_frame(&mut self) {
+        if self.line.is_some() || self.file.is_none() {
+            return;
+        }
+        if let Some(last) = self.traceback.last().filter(|f| f.file == self.file) {
+            self.line = last.line;
+        }
+    }
+
+    /// An error raised inside a module that comes with the keyboard has no
+    /// file: point at the innermost call in one of the plugin's own files
+    /// instead, which is the line its author can change, and say where it
+    /// came out. False when there is no such frame.
+    fn blame_own_frame(&mut self) -> bool {
+        let Some(own) = self.traceback.iter().rev().find(|f| f.file.is_some()).cloned() else { return false };
+        self.file = own.file;
+        self.line = own.line;
+        self.col = None;
+        self.end_col = None;
+        if let Some(function) = self.traceback.last().filter(|f| f.file.is_none()).and_then(|f| f.function.as_deref()).filter(|f| *f != "<module>") {
+            self.notes.push(format!("raised inside {function}(), in a module that comes with the keyboard"));
+        }
+        true
     }
 
     /// A problem the language service found in [file], whose text is [source].
@@ -209,18 +276,7 @@ impl Diag {
                 }
             }
         }
-        if self.traceback.len() > 1 {
-            let _ = writeln!(out, "{}", paint("1", "traceback (most recent call last):"));
-            for f in &self.traceback {
-                let place = match (&f.file, f.line) {
-                    (Some(file), Some(l)) => format!("{file}:{l}"),
-                    (Some(file), None) => file.clone(),
-                    (None, Some(l)) => format!("line {l}"),
-                    (None, None) => "?".into(),
-                };
-                let _ = writeln!(out, "  {place} in {}", f.function.as_deref().unwrap_or("<module>"));
-            }
-        }
+        self.render_traceback(&mut out, source, &paint);
         for note in &self.notes {
             let _ = writeln!(out, "  {} note: {note}", paint("1;34", "="));
         }
@@ -228,6 +284,43 @@ impl Diag {
             let _ = writeln!(out, "  {} help: {help}", paint("1;34", "="));
         }
         out
+    }
+
+    /// The calls that led to the error, as Python lists them, in the plugin's
+    /// own files only: the frames of the modules that come with the keyboard
+    /// (the `wm` host calling `render`, a standard module raising) are not
+    /// its author's to read. Nothing when the one frame is the headline's.
+    /// A call repeated in a row (runaway recursion) shows once with a count.
+    fn render_traceback(&self, out: &mut String, source: &dyn Fn(&str) -> Option<String>, paint: &dyn Fn(&str, &str) -> String) {
+        let own: Vec<&Frame> = self.traceback.iter().filter(|f| f.file.is_some()).collect();
+        let at_headline = |f: &Frame| f.file == self.file && f.line == self.line;
+        if own.is_empty() || (own.len() == 1 && at_headline(own[0])) {
+            return;
+        }
+        let _ = writeln!(out, "{}", paint("1", "traceback (most recent call last):"));
+        if self.traceback.len() >= wm_python::interp::MAX_FRAMES {
+            let _ = writeln!(out, "  … the calls before these are left out");
+        }
+        let mut texts: std::collections::HashMap<&str, Option<String>> = std::collections::HashMap::new();
+        let mut i = 0;
+        while i < own.len() {
+            let f = own[i];
+            let repeats = own[i..].iter().take_while(|g| **g == f).count();
+            let file = f.file.as_deref().unwrap_or("");
+            let place = f.line.map_or_else(|| file.to_string(), |l| format!("{file}:{l}"));
+            let _ = writeln!(out, "  {place} in {}", f.function.as_deref().unwrap_or("<module>"));
+            let last = i + repeats == own.len();
+            if !(last && at_headline(f)) {
+                let text = texts.entry(file).or_insert_with(|| source(file));
+                if let Some(code) = f.line.and_then(|l| text.as_deref()?.lines().nth(l.saturating_sub(1) as usize)).map(str::trim).filter(|t| !t.is_empty()) {
+                    let _ = writeln!(out, "      {code}");
+                }
+            }
+            if repeats > 1 {
+                let _ = writeln!(out, "  … the same call {} more time{}", repeats - 1, if repeats == 2 { "" } else { "s" });
+            }
+            i += repeats;
+        }
     }
 }
 
@@ -337,6 +430,53 @@ mod tests {
         assert_eq!(j["traceback"][1]["function"], "total");
         assert_eq!(j["severity"], "error");
         assert_eq!(j["code"], "ValueError");
+    }
+
+    #[test]
+    fn an_error_raised_in_a_bundled_module_points_at_the_plugins_call() {
+        // requests' raise_for_status raised: its frame has no file, and the
+        // session's line is the prelude's.
+        let err = serde_json::json!({
+            "kind": "runtime", "exception": "HTTPError", "message": "HTTPError: 404 Client Error", "line": 120, "file": null,
+            "traceback": [
+                {"file": null, "line": 40, "function": "_render"},
+                {"file": "main.py", "line": 5, "function": "render"},
+                {"file": null, "line": 120, "function": "Response.raise_for_status"},
+            ],
+        });
+        let d = Diag::from_session_error(&err, "main.py");
+        assert_eq!((d.file.as_deref(), d.line, d.message.as_str()), (Some("main.py"), Some(5), "404 Client Error"));
+        assert!(d.notes.iter().any(|n| n.contains("Response.raise_for_status()")), "{:?}", d.notes);
+        let text = d.render(&|_| Some("import requests\n\n\ndef render():\n    requests.get(URL).raise_for_status()\n".into()), false);
+        assert!(text.contains("--> main.py:5") && !text.contains("traceback"), "one frame of the plugin's, the headline's: {text}");
+        assert!(!text.contains("_render"), "the host's frames stay out: {text}");
+    }
+
+    #[test]
+    fn a_test_failure_names_the_module_it_came_from_and_folds_recursion() {
+        use wm_python::interp::Frame as F;
+        let frame = |file: &str, line: u32, function: &str| F { file: Some(file.into()), line: Some(line), function: function.into() };
+        let mut e = PyError::new("n went below zero", "ValueError");
+        e.file = Some("helpers.py".into());
+        e.line = Some(3);
+        e.frames = vec![frame("test_count.py", 4, "test_down")];
+        e.frames.extend(std::iter::repeat_n(frame("helpers.py", 4, "down"), 5));
+        e.frames.push(frame("helpers.py", 3, "down"));
+        let d = Diag::from_py_error(&e, "test_count.py");
+        assert_eq!((d.file.as_deref(), d.line), (Some("helpers.py"), Some(3)));
+        let helpers = "def down(n):\n    if n < 0:\n        raise ValueError('n went below zero')\n    return down(n - 1)\n";
+        let tests = "import helpers\n\ndef test_down():\n    helpers.down(4)\n";
+        let text = d.render(&|f| match f { "helpers.py" => Some(helpers.into()), "test_count.py" => Some(tests.into()), _ => None }, false);
+        let want = "traceback (most recent call last):\n  test_count.py:4 in test_down\n      helpers.down(4)\n  helpers.py:4 in down\n      return down(n - 1)\n  … the same call 4 more times\n  helpers.py:3 in down\n";
+        assert!(text.contains(want), "{text}");
+    }
+
+    #[test]
+    fn an_error_without_frames_keeps_the_file_it_was_run_as() {
+        let mut e = PyError::new("expected ':'", "SyntaxError");
+        e.line = Some(2);
+        let d = Diag::from_py_error(&e, "test_x.py");
+        assert_eq!((d.file.as_deref(), d.line), (Some("test_x.py"), Some(2)));
     }
 
     #[test]

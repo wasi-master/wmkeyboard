@@ -102,6 +102,11 @@ export const S = {
 	consoleStarted: 'The plugin started',
 	consoleCancelled: 'A newer run replaced this run',
 	lineLabel: (line: number) => `Line ${line}`,
+	fileLineLabel: (file: string, line: number) => `${file}, line ${line}`,
+	/** A call under an error in the console: the function it was in. */
+	frameIn: (fn: string) => (fn === '<module>' ? 'at the top of the file' : `in ${fn}()`),
+	/** Where a tried provider, action or preview failed: the file only when it is not the entry. */
+	errorAt: (file: string | null, line: number) => (file && file !== 'main.py' ? `${file}, line ${line}` : `line ${line}`),
 	copied: 'Copied',
 	autoRunLabel: 'Run as you type',
 	budgetHistoryDesc: 'How many instructions the last draws used',

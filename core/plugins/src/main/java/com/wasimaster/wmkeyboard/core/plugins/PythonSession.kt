@@ -109,8 +109,22 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
         }
     }
 
-    /** Why a call failed. [abort] is set when the interpreter stopped the script rather than the script failing. */
-    data class Error(val kind: String, val message: String, val line: Int?, val abort: String?) {
+    /**
+     * Why a call failed. [abort] is set when the interpreter stopped the script rather than the script failing.
+     * [file] is the plugin file [line] is in (`main.py`, `helpers.py`), null when the library does not say;
+     * [traceback] is the calls in the plugin's own files that led there, outermost first.
+     */
+    data class Error(
+        val kind: String,
+        val message: String,
+        val line: Int?,
+        val abort: String?,
+        val file: String? = null,
+        val traceback: List<Frame> = emptyList(),
+    ) {
+        /** One call of a traceback, in one of the plugin's files. */
+        data class Frame(val file: String, val line: Int?, val function: String)
+
         companion object {
             const val COMPILE = "compile"
             const val RUNTIME = "runtime"
@@ -357,14 +371,7 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
                 ok = root.bool("ok") ?: false,
                 ui = (root["ui"] as? JsonObject)?.let { if (preview) PluginUiCodec.fromPreviewJson(it) else PluginUiCodec.fromJson(it) },
                 value = (root["value"] as? JsonPrimitive)?.takeIf { it.isString }?.content,
-                error = (root["error"] as? JsonObject)?.let { error ->
-                    Error(
-                        kind = error.string("kind") ?: Error.INTERNAL,
-                        message = error.string("message").orEmpty(),
-                        line = (error["line"] as? JsonPrimitive)?.intOrNull,
-                        abort = error.string("abort"),
-                    )
-                },
+                error = (root["error"] as? JsonObject)?.let(::error),
                 log = (root["log"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty(),
                 inputs = (root["inputs"] as? JsonArray)?.mapNotNull { pair ->
                     val items = pair as? JsonArray ?: return@mapNotNull null
@@ -377,6 +384,38 @@ class PythonSession private constructor(@Volatile private var handle: Long, priv
                 host = (root["host"] as? JsonObject)?.let(::hostState),
                 needs = (root["needs"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty(),
                 exception = (root["error"] as? JsonObject)?.string("exception"),
+            )
+        }
+
+        /**
+         * An error as the library wrote it. A module that comes with the keyboard (a standard one, `requests`)
+         * raising has no file and its line is that module's: the error then points at the innermost call in one
+         * of the plugin's files, which is the line its author can change.
+         */
+        private fun error(o: JsonObject): Error {
+            val all = (o["traceback"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }
+            val own = all.mapNotNull { f ->
+                val file = f.string("file") ?: return@mapNotNull null
+                Error.Frame(file, (f["line"] as? JsonPrimitive)?.intOrNull, f.string("function").orEmpty())
+            }
+            var file = o.string("file")
+            var line = (o["line"] as? JsonPrimitive)?.intOrNull
+            if (file == null && own.isNotEmpty()) {
+                file = own.last().file
+                line = own.last().line
+            } else if (file == null && all.isNotEmpty()) {
+                line = null
+            } else if (line == null && file != null && own.lastOrNull()?.file == file) {
+                // A native function (json.loads) raised: the call to it has the line.
+                line = own.last().line
+            }
+            return Error(
+                kind = o.string("kind") ?: Error.INTERNAL,
+                message = o.string("message").orEmpty(),
+                line = line,
+                abort = o.string("abort"),
+                file = file,
+                traceback = own,
             )
         }
 

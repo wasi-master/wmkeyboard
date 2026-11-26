@@ -254,6 +254,8 @@ fn run_file(dir: &Path, file: &str, filter: Option<&str>, style: Style) -> Vec<T
             return vec![finished_or_legacy(r, &e, dir, style)];
         }
     };
+    // The test file runs as the script: its errors and frames name it.
+    rt.set_module_file("__main__", file);
     rt.set_deadline(Some(Instant::now() + Duration::from_secs(600)));
     if let Err(e) = rt.load(&source) {
         let r = TestResult { file: file.into(), name: MODULE.into(), ok: false, duration: started.elapsed(), output: take(&output), error: Some(Diag::from_py_error(&e, file)) };
@@ -349,6 +351,7 @@ fn runtime(dir: &Path, output: Rc<RefCell<String>>, echo: bool) -> Result<Runtim
         if let (Some(stem), Ok(text)) = (m.entry.strip_suffix(".py"), std::fs::read_to_string(dir.join(&m.entry))) {
             if !stem.contains('/') {
                 rt.add_source_module(stem, &text, false);
+                rt.set_module_file(stem, &m.entry);
             }
         }
         // `wm` and `ui` as globals too, as the API 4 runner gave them, so a

@@ -316,8 +316,31 @@ and raises; test those through `plugin_test.session(mock=...)`.
 ## Reading an error
 
 When your code raises an error nothing catches, the run stops and the console
-or the panel shows the error and its line. The [Help](/plugins/help/#error-messages)
-page explains the common ones.
+or the panel shows the error, the file it was raised in and the line. The
+[Help](/plugins/help/#error-messages) page explains the common ones.
+
+`wmpy test`, `wmpy run`, `wmpy preview` and the web editor also list the
+calls that led there, outermost first, as Python's own traceback does:
+
+```text
+error[ValueError]: negative fare
+ --> fares.py:3
+  |
+3 |         raise ValueError("negative fare")
+traceback (most recent call last):
+  test.py:5 in test_total
+      assert fares.total([1, -1]) == 0
+  fares.py:8 in total
+      return sum(fare(n) for n in ns)
+  fares.py:3 in fare
+```
+
+The list holds only the calls in your plugin's files. When the error comes out
+of a module that comes with the keyboard, such as `statistics` or `requests`,
+it points at the line of yours that called that module, and a note names the
+function the error came out of. A function that calls itself without end
+shows its repeated call once, with a count. In the web editor, tap a call to
+open its file at that line.
 
 Two kinds of stop come from the keyboard, not from Python:
 

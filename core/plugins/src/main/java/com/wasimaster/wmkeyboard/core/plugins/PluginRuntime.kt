@@ -99,8 +99,9 @@ class PluginRuntime(
 
     /**
      * Why a call failed, told the way an author needs it. Unlike the [Listener]'s
-     * message, [text] is not cut short. [line] is the line of `main.py` the
-     * interpreter named, when it named one; [chunk] is then [SCRIPT_CHUNK].
+     * message, [text] is not cut short. [line] is the line the interpreter
+     * named, when it named one; [chunk] is then the file it is in:
+     * [SCRIPT_CHUNK] for the entry, or one of the plugin's modules.
      */
     data class Failure(
         val kind: Kind,
@@ -534,19 +535,20 @@ class PluginRuntime(
 
             PythonSession.Error.COMPILE, PythonSession.Error.RUNTIME -> {
                 val raw = error.message.take(MAX_ERROR)
-                current.log.add("error: ${raw.ifEmpty { "the script failed" }}")
+                current.log.add("error: ${locatedText(raw.ifEmpty { "the script failed" }, error.line, error.file)}")
+                tracebackLines(error).forEach(current.log::add)
                 val kind = if (error.kind == PythonSession.Error.COMPILE) Failure.Kind.COMPILE else Failure.Kind.RUNTIME
-                observe(current, kind, error.message, error.line, phase)
+                observe(current, kind, error.message, error.line, phase, error.file)
                 // The interpreter wrote this, so it goes to the panel as it
                 // arrived. Only the stand-in for a missing message is ours.
-                val message = raw.takeIf { it.isNotEmpty() }?.let { PluginText.Script(locatedText(it, error.line)) }
+                val message = raw.takeIf { it.isNotEmpty() }?.let { PluginText.Script(locatedText(it, error.line, error.file)) }
                     ?: PluginText.of(R.string.core_plugins_error_script_failed)
                 deliver(current) { listener.onError(current.plugin.id, message) }
             }
 
             else -> {
                 current.log.add("error: ${error.kind}: ${error.message.take(MAX_ERROR)}")
-                observe(current, Failure.Kind.UNEXPECTED, error.message, error.line, phase)
+                observe(current, Failure.Kind.UNEXPECTED, error.message, error.line, phase, error.file)
                 stop(current, PluginText.of(R.string.core_plugins_stopped_unexpected), strike = false)
             }
         }
@@ -561,9 +563,9 @@ class PluginRuntime(
         stop(current, PluginText.of(R.string.core_plugins_stopped_unexpected), strike = false)
     }
 
-    private fun observe(current: Session, kind: Failure.Kind, text: String, line: Int?, phase: Phase) {
+    private fun observe(current: Session, kind: Failure.Kind, text: String, line: Int?, phase: Phase, file: String? = null) {
         val watcher = observer ?: return
-        watcher.onFailure(current.plugin.id, Failure(kind, text, line?.let { SCRIPT_CHUNK }, line, phase))
+        watcher.onFailure(current.plugin.id, Failure(kind, text, line?.let { file ?: SCRIPT_CHUNK }, line, phase))
     }
 
     private fun abortKind(reason: PluginAbortReason): Failure.Kind = when (reason) {
@@ -739,9 +741,13 @@ class PluginRuntime(
         /** The file a [Failure]'s line is in. */
         const val SCRIPT_CHUNK = PluginStore.SCRIPT_FILE
 
-        /** `main.py:12: message`, the shape the keyboard's panel shows an error in. */
-        fun locatedText(message: String, line: Int?): String =
-            if (line == null) message else "$SCRIPT_CHUNK:$line: $message"
+        /** `main.py:12: message`, the shape the keyboard's panel shows an error in: [file] when the interpreter named one other than the entry. */
+        fun locatedText(message: String, line: Int?, file: String? = null): String =
+            if (line == null) message else "${file ?: SCRIPT_CHUNK}:$line: $message"
+
+        /** An error's calls in the plugin's own files, for the plugin's log, when there is more than the one it names. */
+        fun tracebackLines(error: PythonSession.Error): List<String> =
+            if (error.traceback.size < 2) emptyList() else error.traceback.map { f -> "  at ${f.file}${f.line?.let { ":$it" }.orEmpty()} in ${f.function}" }
     }
 }
 

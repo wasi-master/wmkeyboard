@@ -270,6 +270,35 @@ fn each_test_function_runs_on_its_own() {
 }
 
 #[test]
+fn a_failure_in_a_helper_module_points_into_it_with_the_calls_that_led_there() {
+    let fares = "def fare(n):\n    if n < 0:\n        raise ValueError('negative fare')\n    return n\n\n\ndef total(ns):\n    return sum(fare(n) for n in ns)\n";
+    let tests = "import json\nimport statistics\nimport fares\n\n\ndef test_total():\n    assert fares.total([1, -1]) == 0\n\n\ndef test_mean():\n    statistics.mean([])\n\n\ndef test_parse():\n    json.loads('{')\n";
+    let dir = plugin("traceback", &[("plugin.json", MANIFEST), ("main.py", MAIN), ("helpers.py", HELPERS), ("fares.py", fares), ("test.py", tests)]);
+    let (code, out, _) = cli(&["test", s(&dir), "--json"]);
+    assert_eq!(code, 1);
+    let r = json(&out);
+    let error = &r["tests"][0]["error"];
+    assert_eq!((error["file"].as_str(), error["line"].as_u64()), (Some("fares.py"), Some(3)), "{error:#}");
+    let own: Vec<String> = error["traceback"].as_array().unwrap().iter().filter(|f| f["file"].is_string()).map(|f| format!("{}:{} {}", f["file"].as_str().unwrap(), f["line"], f["function"].as_str().unwrap())).collect();
+    assert_eq!(own.first().map(String::as_str), Some("test.py:7 test_total"), "{own:?}");
+    assert_eq!(own.last().map(String::as_str), Some("fares.py:3 fare"), "{own:?}");
+    assert!(own.iter().any(|f| f.starts_with("fares.py:8 ")), "{own:?}");
+
+    // Raised inside statistics, a Python module that comes with the keyboard:
+    // the headline is the test's call, and a note says where it came out.
+    let error = &r["tests"][1]["error"];
+    assert_eq!((error["file"].as_str(), error["line"].as_u64()), (Some("test.py"), Some(11)), "{error:#}");
+    assert!(error["notes"].as_array().unwrap().iter().any(|n| n.as_str().unwrap().contains("comes with the keyboard")), "{error:#}");
+    // Raised by a native function (json's): no frame of its own, the call's line.
+    let error = &r["tests"][2]["error"];
+    assert_eq!((error["file"].as_str(), error["line"].as_u64()), (Some("test.py"), Some(15)), "{error:#}");
+
+    let (_, _, err) = cli(&["test", s(&dir), "-k", "total"]);
+    assert!(err.contains("--> fares.py:3") && err.contains("raise ValueError('negative fare')"), "{err}");
+    assert!(err.contains("traceback (most recent call last):\n  test.py:7 in test_total\n      assert fares.total([1, -1]) == 0\n"), "{err}");
+}
+
+#[test]
 fn a_failing_top_level_fails_the_file_and_hints_at_the_fix() {
     let dir = plugin("toplevel", &[("plugin.json", MANIFEST), ("main.py", MAIN), ("helpers.py", HELPERS), ("test.py", "s = plugin_test.session()\nraise PermissionError(\"http.request needs the 'network' permission, which this plugin's manifest does not list\")\n\ndef test_never():\n    pass\n")]);
     let (code, out, _) = cli(&["test", s(&dir), "--json"]);

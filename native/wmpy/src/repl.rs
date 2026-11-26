@@ -554,6 +554,8 @@ impl Repl {
     }
 
     fn execute(&mut self, src: &str, label: &str) {
+        // What is typed (or :load-ed) runs as the script: its frames name it.
+        self.rt.set_module_file("__main__", label);
         self.rt.set_deadline(Some(Instant::now() + DEADLINE));
         let result = self.rt.run(src);
         if wm_python::interp::check(src).is_ok() {
@@ -599,13 +601,14 @@ impl Repl {
             Some(AbortKind::Deadline) => d.help = Some(format!("an input may run {} minutes; Ctrl-C stops it sooner", DEADLINE.as_secs() / 60)),
             _ => {}
         }
-        // A line past the input is in a module the input called.
-        if let Some(line) = d.line.filter(|l| *l as usize > src.lines().count()) {
-            d.file = None;
-            d.notes.push(format!("raised at line {line} of a module the input called"));
-        }
         let text = src.to_string();
-        let lookup = move |f: &str| (f == label).then(|| text.clone());
+        let dir = self.plugin.as_ref().map(|p| p.dir.clone());
+        let lookup = move |f: &str| {
+            if f == label {
+                return Some(text.clone());
+            }
+            dir.as_deref().and_then(|d| crate::project::inside(d, f).ok()).and_then(|p| std::fs::read_to_string(p).ok())
+        };
         eprint!("{}", d.render(&lookup, color_stderr()));
     }
 
@@ -956,6 +959,7 @@ fn build(plugin: Option<&Plugin>, facts: &PluginFacts, mock: Option<&Path>, scra
         if let (Some(stem), Ok(text)) = (p.manifest.entry.strip_suffix(".py"), std::fs::read_to_string(p.dir.join(&p.manifest.entry))) {
             if !stem.contains('/') {
                 rt.add_source_module(stem, &text, false);
+                rt.set_module_file(stem, &p.manifest.entry);
             }
         }
     }

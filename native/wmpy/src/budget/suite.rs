@@ -81,6 +81,7 @@ pub fn run(
         if let Some(p) = prepare {
             p(&mut rt);
         }
+        rt.set_module_file("__main__", file);
         rt.set_deadline(Some(Instant::now() + Duration::from_secs(600)));
         if let Err(e) = rt.load(&source) {
             count += 1;
@@ -150,6 +151,7 @@ fn runtime(ctx: &Ctx) -> Result<Runtime, String> {
         if let (Some(stem), Ok(text)) = (m.entry.strip_suffix(".py"), std::fs::read_to_string(ctx.dir.join(&m.entry))) {
             if !stem.contains('/') {
                 rt.add_source_module(stem, &text, false);
+                rt.set_module_file(stem, &m.entry);
             }
         }
         rt.load("import wm\nfrom wm import ui\n").map_err(|e| e.message)?;

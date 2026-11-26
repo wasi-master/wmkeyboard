@@ -531,7 +531,9 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
         }
     }
     val diagnostics = inspection.diagnostics
-    val failureLine = previewState.failure?.takeIf { ide.onEntry && it.chunk == PluginRuntime.SCRIPT_CHUNK }?.line?.minus(1)
+    // The file an error names: the entry as SCRIPT_CHUNK, a module by its path.
+    val openChunk = if (ide.onEntry) PluginRuntime.SCRIPT_CHUNK else ide.file
+    val failureLine = previewState.failure?.takeIf { it.chunk == openChunk }?.line?.minus(1)
     val matches by produceState(emptyList<TextRange>(), text, find.query, find.options, findOpen) {
         if (!findOpen || find.query.isEmpty()) {
             value = emptyList()
@@ -1045,9 +1047,9 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
                 Box(Modifier.fillMaxWidth().fillMaxHeight(PANEL_FRACTION)) {
                     when (panel) {
                         IdePanel.PREVIEW -> PreviewPane(preview, previewState, autoRun, { autoRun = it }, renderHistory)
-                        IdePanel.CONSOLE -> ConsolePane(preview, previewState.consoleRevision) { line ->
-                            // Lines the console names are the entry script's.
-                            if (ide.onEntry) editor.moveTo(offsetOfLine(editor.text, line - 1))
+                        IdePanel.CONSOLE -> ConsolePane(preview, previewState.consoleRevision, openChunk) { line ->
+                            // Only a line in the open file is offered as a jump.
+                            editor.moveTo(offsetOfLine(editor.text, line - 1))
                         }
                         IdePanel.PROBLEMS -> ProblemsPane(diagnostics, lineStarts, onFix = applyFix) { range -> editor.select(range) }
                         IdePanel.OUTLINE -> OutlinePane(inspection.outline, lineStarts) { range -> editor.select(range) }
@@ -1412,7 +1414,7 @@ private fun PreviewPane(
 
 /** What the plugin printed, where it failed and when it stopped, oldest first. */
 @Composable
-private fun ConsolePane(preview: PluginPreviewSession, revision: Int, onJump: (Int) -> Unit) {
+private fun ConsolePane(preview: PluginPreviewSession, revision: Int, openChunk: String, onJump: (Int) -> Unit) {
     val entries = remember(revision) { preview.console() }
     val list = rememberLazyListState()
     LaunchedEffect(entries.size) {
@@ -1436,13 +1438,13 @@ private fun ConsolePane(preview: PluginPreviewSession, revision: Int, onJump: (I
             modifier = Modifier.fillMaxWidth().weight(1f),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         ) {
-            items(entries) { entry -> ConsoleLine(entry, onJump) }
+            items(entries) { entry -> ConsoleLine(entry, openChunk, onJump) }
         }
     }
 }
 
 @Composable
-private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onJump: (Int) -> Unit) {
+private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, openChunk: String, onJump: (Int) -> Unit) {
     val context = LocalContext.current
     val words = when (entry.kind) {
         PluginPreviewSession.ConsoleEntry.Kind.STARTED -> stringResource(R.string.plugin_ide_console_started)
@@ -1454,7 +1456,9 @@ private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onJump: (Int) 
         PluginPreviewSession.ConsoleEntry.Kind.PRINT -> MaterialTheme.colorScheme.onSurface
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val line = entry.line?.takeIf { entry.chunk == PluginRuntime.SCRIPT_CHUNK }
+    val line = entry.line?.takeIf { entry.chunk == openChunk }
+    // A line in another of the plugin's files: named, not a jump.
+    val elsewhere = entry.chunk?.takeIf { it != openChunk && entry.line != null }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1476,6 +1480,13 @@ private fun ConsoleLine(entry: PluginPreviewSession.ConsoleEntry, onJump: (Int) 
                 stringResource(R.string.plugin_ide_console_line_label, line),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        } else if (elsewhere != null) {
+            Text(
+                stringResource(R.string.plugin_ide_console_file_line_label, elsewhere, entry.line ?: 0),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 8.dp),
             )
         }

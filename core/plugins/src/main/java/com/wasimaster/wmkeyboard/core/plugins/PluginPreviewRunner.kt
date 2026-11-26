@@ -278,9 +278,10 @@ class PluginPreviewRunner(
             return PluginPreviewResult.Stopped(PluginText.of(reason.messageRes), disabled)
         }
         val text = error.message.take(MAX_ERROR)
-        log.add("error: ${text.ifEmpty { "the script failed" }}")
+        log.add("error: ${PluginRuntime.locatedText(text.ifEmpty { "the script failed" }, error.line, error.file)}")
+        PluginRuntime.tracebackLines(error).forEach(log::add)
         return PluginPreviewResult.Failed(
-            text.takeIf { it.isNotEmpty() }?.let { PluginText.Script(PluginRuntime.locatedText(it, error.line)) }
+            text.takeIf { it.isNotEmpty() }?.let { PluginText.Script(PluginRuntime.locatedText(it, error.line, error.file)) }
                 ?: PluginText.of(R.string.core_plugins_error_script_failed),
         )
     }
