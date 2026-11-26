@@ -385,6 +385,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "wm-python-pip"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "wm-python",
+ "wm-python-tooling",
+]
+
+[[package]]
 name = "wm-python-tooling"
 version = "0.1.0"
 dependencies = [
@@ -399,6 +408,7 @@ dependencies = [
  "serde_json",
  "wasm-bindgen",
  "wm-python",
+ "wm-python-pip",
  "wm-python-tooling",
 ]
 

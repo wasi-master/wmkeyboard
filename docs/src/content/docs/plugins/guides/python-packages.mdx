@@ -1,0 +1,287 @@
+---
+title: "Python packages"
+description: "Add pure-Python packages from PyPI to a plugin with wmpy pip or the web editor, read the compatibility verdict, and keep the plugin small with tree shaking."
+sidebar:
+  label: "Python packages"
+  order: 5.11
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+
+A plugin can carry other people's Python code: a package from
+[PyPI](https://pypi.org) copied into the plugin folder, beside your own
+modules. This is called vendoring. `wmpy pip` does it from the command line,
+and the web editor does it from its menu. Both check the package first and
+tell you whether it can run in the keyboard.
+
+## What can be vendored
+
+Only pure Python. The keyboard runs plugins in its own small Python
+interpreter (see [The Python you get](/plugins/wm-package/#the-python-you-get)),
+so a package qualifies when:
+
+- it is plain `.py` files, with no compiled C, Cython or Rust parts
+- it imports only modules the keyboard has, the `wm` package, itself, and
+  other vendored packages
+- it does not reach the file system, the network, threads or other
+  processes directly
+- its files fit the keyboard's [size limits](#size-limits)
+
+Many PyPI packages are written for full CPython and fail one of these:
+`requests` needs sockets, `numpy` is compiled code, and plenty of others
+read `sys.version_info` or use `os`. Small, self-contained packages have the
+best chance. The check tells you, file by file and line by line, and it asks
+the interpreter in your copy of wmpy rather than a fixed list, so its answer
+follows the keyboard as its Python grows.
+
+## Add a package
+
+```bash
+cd my-plugin
+wmpy pip install humanize
+wmpy pip install "tabulate>=0.9" "attrs[tests]"
+```
+
+For each package, `wmpy pip install`:
+
+1. Looks it up on PyPI and takes the newest release that fits the version you
+   asked for.
+2. Downloads its pure-Python wheel (`py3-none-any`), or its source archive
+   when there is no wheel and nothing in it needs building. A package that
+   only ships compiled wheels is refused, with the reason.
+3. Checks the download against the SHA-256 that PyPI lists.
+4. Reads its dependencies and installs those the same way. Markers such as
+   `python_version < "3.9"` are read as CPython 3.12 on Linux (aarch64) would
+   read them, and extras only when you ask for them: `attrs[tests]`.
+5. Analyses every package and refuses those that will not work.
+6. Copies the importable `.py` files to the top of the plugin folder, the
+   licence files to `licenses/<name>/`, and records it all in `wmpy.lock`.
+
+It prints a table of what it did, the problems it found, and how close the
+plugin is to the keyboard's limits.
+
+<FileTree>
+
+- my-plugin/
+  - plugin.json
+  - main.py
+  - humanize/ the package, as `import humanize` finds it
+    - \_\_init\_\_.py
+    - number.py
+    - time.py
+  - six.py a single-module package
+  - licenses/
+    - humanize/
+      - LICENCE
+  - wmpy.lock what was installed, from where
+
+</FileTree>
+
+Your code then imports it as usual: `import humanize`. Data files that came
+with a package (translations, JSON tables) are left out, because a plugin
+cannot open files beside its code. So are the package's tests and any `.py`
+file whose path is not a module name.
+
+| Option | Does |
+|---|---|
+| `--dir FOLDER` | The plugin folder. The default is the folder you are in. |
+| `--no-deps` | Installs only the packages you name. |
+| `--allow-warnings` | Installs packages whose verdict is `warnings`. |
+| `--force` | Installs even `incompatible` packages, and downloads again what is already installed. |
+| `--json` | Prints the result as JSON. |
+
+A package never replaces your own files. If the plugin already has a
+`helpers.py` and a package brings a `helpers` module, the package is refused.
+
+## The verdicts
+
+Every package gets one of three verdicts, and every problem names its file,
+line and column.
+
+- `ok`: nothing found that would stop it.
+- `warnings`: it loads, but something may fail or act differently. Usually a
+  function that uses what plugins do not have (`open()`, `os`), which only
+  fails when that function runs, or Python the keyboard runs differently,
+  such as a number too big for 64 bits.
+- `incompatible`: it will not load, or the keyboard refuses the plugin. A
+  missing module imported at the top of a file, syntax the keyboard's parser
+  rejects, compiled code, or a file over the limits.
+
+An import inside `try: ... except ImportError:` is noted but does not count,
+since the package already copes without it. So is anything under
+`if TYPE_CHECKING:` or `if __name__ == "__main__":`, which never runs in a
+plugin.
+
+By default `install` takes only `ok` packages. `--allow-warnings` takes
+`warnings` too, and `--force` takes anything. A package whose dependency was
+refused is refused with it.
+
+## Check before you install
+
+```bash
+wmpy pip check emoji
+wmpy pip check ./downloads/tidy-1.0-py3-none-any.whl
+wmpy pip check ./my-package-source/
+wmpy pip check python-dateutil --json
+```
+
+`check` downloads and analyses, writes nothing, and exits with 1 when a
+package is incompatible. It takes a PyPI name, a wheel, a source archive, or a
+folder of Python files. With `--json` it prints
+`{"packages": [{"name", "version", "verdict", "problems": [...]}]}`, where each
+problem has `severity`, `code`, `message`, `file`, `line`, `col` and `help`.
+[wmpy's MCP server](/plugins/ai-agents/) gives AI agents the same check as
+its `pip_check` tool.
+
+Problems carry a short code. The common ones:
+
+| Code | Means |
+|---|---|
+| `syntax` | The keyboard's parser rejects the file, and says why. |
+| `missing-import` | Nothing provides this module. `help` says which package to install when it is not a standard one. |
+| `sandbox-import` | A module plugins go without on purpose: `os`, `socket`, `threading`, `subprocess`. `help` names what to use instead, such as `wm.http`. |
+| `missing-attribute` | The keyboard's version of a standard module lacks this, such as `sys.platform`. |
+| `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or keeps from plugins: `open`, `eval`, `exec`. |
+| `missing-name` | `from x import y` where `x` has no `y`. |
+| `c-extension`, `c-source`, `needs-build` | Compiled code, its sources, or a source archive that would have to be built. |
+| `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 256 KB, more than four folders deep, or a path that is not a module name. |
+| `multiple-inheritance`, `metaclass`, `big-int` | Python the parser takes but the interpreter runs differently or not at all. |
+
+## Keep track
+
+```bash
+wmpy pip list
+wmpy pip why six
+wmpy pip update
+wmpy pip update humanize
+wmpy pip remove tabulate
+```
+
+- `list` shows every vendored package with its version, verdict, size,
+  licence and what needs it.
+- `why` says why a package is there: you installed it, or another package
+  needs it.
+- `update` moves packages to their newest releases and analyses them again.
+  With a name it updates that package alone.
+- `remove` takes a package out: its files, its licences and its line in
+  `wmpy.lock`. It refuses a package another one needs, unless you add
+  `--force`, and tells you when a dependency is no longer needed by anything.
+
+## wmpy.lock
+
+`wmpy.lock` records what each package put in the folder, so `remove`,
+`update` and tree shaking know which files are vendored. The web editor reads
+and writes the same file.
+
+```json
+{
+  "version": 1,
+  "packages": {
+    "humanize": {
+      "version": "4.17.0",
+      "roots": ["humanize"],
+      "files": ["humanize/__init__.py", "humanize/number.py", "licenses/humanize/LICENCE"],
+      "source": "https://files.pythonhosted.org/packages/.../humanize-4.17.0-py3-none-any.whl",
+      "sha256": "02d08995...",
+      "license": "MIT",
+      "requires": [],
+      "verdict": "ok",
+      "problems": 0
+    }
+  }
+}
+```
+
+Keys are package names in PyPI's normalized form (`python-dateutil`).
+`roots` are the top-level modules the package adds, and `requires` the
+normalized names of the packages it needs. `wmpy pack` leaves `wmpy.lock`
+out of the `.wmplugin`. Keep it with your plugin's source.
+
+## Licences
+
+Vendoring copies someone else's code into your plugin, so their licence
+comes with it. wmpy copies each package's licence files to
+`licenses/<name>/`, records the licence name in `wmpy.lock`, and warns when a
+package names none. Check that a package's licence lets you share it before
+you publish the plugin. The `licenses/` folder goes into the `.wmplugin`
+with the code.
+
+## Size limits
+
+The keyboard refuses a plugin over these limits:
+
+| | |
+|---|---|
+| Files in the `.wmplugin` | 64, `plugin.json` and licence files included |
+| All files together | 4 MB |
+| One `.py` file | 256 KB |
+| Module paths | four parts at most: `a/b/c/d.py` |
+
+Packages add up fast. `install` and `update` count the files after each run
+and warn when the plugin is over. `wmpy pack` usually brings it back under,
+because it leaves out what the plugin never uses.
+
+## Tree shaking
+
+`wmpy pack` shakes the vendored packages before it writes the `.wmplugin`.
+Starting from your entry script and your own modules, it follows every
+import, and leaves out the vendored modules nothing reaches. A package you
+installed but never import goes entirely. Your own files are never touched.
+
+```bash
+wmpy pack                  # leave out unused modules
+wmpy pack --shake-symbols  # also unused functions, classes and assignments
+wmpy pack --no-shake       # keep every vendored file whole
+```
+
+With `--shake-symbols` it also removes, inside the vendored modules that stay,
+the top-level definitions nothing uses, and the imports of modules that would
+then load for nothing. For a plugin that calls one function of `humanize`,
+this cuts its Python from 50 KB to 18 KB. The removed lines are left blank,
+so line numbers in error messages still match the package's source.
+
+Shaking only removes what cannot matter. A module keeps everything when it
+looks itself up by name (`globals()`, a module `__getattr__`), when it is
+star-imported, or when code passes the module around as a value instead of
+calling `module.name`. A string that is exactly a name, as in
+`getattr(obj, "name")`, counts as a use of that name. Statements that do
+something when the module loads, such as a call or a registration, always
+stay, with everything they use. `pack` prints a note for each package or
+module it kept whole, and why.
+
+## In the web editor
+
+The [plugin editor](/addons/new?type=plugin) can add packages too.
+
+1. In the editor's menu, or under **Files**, press **Add a Python package**.
+2. Type the name as `pip` takes it, such as `requests[socks]`, and press **Find**.
+3. Pick a version and press **Check**.
+4. Read the result for each package, then press **Add** (**Add anyway** when it won't run).
+
+**Check** downloads each package from PyPI in your browser and compares it
+with the sha256 PyPI lists. It runs the same check as `wmpy pip`, and shows
+the verdict and the lines that won't run before it adds anything. Only
+pure-Python wheels work here. For a package that comes only as source, try
+`wmpy pip install` on a computer.
+
+The editor writes the same files and the same `wmpy.lock` as `wmpy pip`, so a
+plugin can move between the web editor and `wmpy` freely. **Remove** keeps
+any file another package needs. When it saves the `.wmplugin`, the editor
+shakes the packages as `wmpy pack` does, and **Details** says how much it
+removed.
+
+## Downloads and the cache
+
+wmpy reads the package list from `pypi.org` and downloads files only from
+`files.pythonhosted.org`. It sends nothing about you or your plugin. Each
+download is checked against PyPI's SHA-256 and kept in a cache folder, so
+installing the same release again needs no network:
+
+| System | Cache folder |
+|---|---|
+| macOS | `~/Library/Caches/wmpy` |
+| Linux | `$XDG_CACHE_HOME/wmpy`, or `~/.cache/wmpy` |
+| Windows | `%LOCALAPPDATA%\wmpy\cache` |
+
+Set `WMPY_CACHE_DIR` to use another folder. When PyPI cannot be reached,
+wmpy uses the release list it saved last time and says so.

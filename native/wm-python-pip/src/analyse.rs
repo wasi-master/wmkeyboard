@@ -1,0 +1,697 @@
+//! [analyse]: will a package's files run in a plugin?
+
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+
+use wm_python_tooling::analysis::{Access, ScopeKind, Target};
+use wm_python_tooling::ast::{walk_expr, walk_stmts, stmt_exprs, ExprKind, Stmt, StmtKind};
+use wm_python_tooling::lexer::TokenKind;
+use wm_python_tooling::text::Span;
+
+use crate::probe::{features, Probe, Support};
+use crate::program::{module_of, root_of, Guard, ImportKind, ModFile, Program};
+use crate::source::attribute_chain;
+use crate::{limits, AnalyseOptions, FileReport, Imports, Problem, Report, Severity, Verdict};
+
+/// Problems shown for one file before the rest are summed up in a note.
+const MAX_PER_FILE: usize = 60;
+/// Places shown for one missing builtin in one file.
+const MAX_PER_NAME: usize = 3;
+
+/// CPython 3.12's builtins, for telling a missing builtin from a name the
+/// package defines some way the tooling cannot follow. Whether the keyboard
+/// has each one is asked of the interpreter.
+const CPYTHON_BUILTINS: &[&str] = &[
+    "abs", "aiter", "all", "anext", "any", "ascii", "bin", "bool", "breakpoint", "bytearray", "bytes", "callable",
+    "chr", "classmethod", "compile", "complex", "copyright", "credits", "delattr", "dict", "dir", "divmod",
+    "enumerate", "eval", "exec", "exit", "filter", "float", "format", "frozenset", "getattr", "globals", "hasattr",
+    "hash", "help", "hex", "id", "input", "int", "isinstance", "issubclass", "iter", "len", "license", "list",
+    "locals", "map", "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print", "property",
+    "quit", "range", "repr", "reversed", "round", "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum",
+    "super", "tuple", "type", "vars", "zip", "__import__", "__build_class__", "__debug__", "NotImplemented",
+    "Ellipsis", "BaseException", "BaseExceptionGroup", "Exception", "ExceptionGroup", "ArithmeticError",
+    "AssertionError", "AttributeError", "BlockingIOError", "BrokenPipeError", "BufferError", "ChildProcessError",
+    "ConnectionAbortedError", "ConnectionError", "ConnectionRefusedError", "ConnectionResetError", "EOFError",
+    "EnvironmentError", "FileExistsError", "FileNotFoundError", "FloatingPointError", "GeneratorExit", "IOError",
+    "ImportError", "IndentationError", "IndexError", "InterruptedError", "IsADirectoryError", "KeyError",
+    "KeyboardInterrupt", "LookupError", "MemoryError", "ModuleNotFoundError", "NameError", "NotADirectoryError",
+    "NotImplementedError", "OSError", "OverflowError", "PermissionError", "ProcessLookupError", "RecursionError",
+    "ReferenceError", "RuntimeError", "StopAsyncIteration", "StopIteration", "SyntaxError", "SystemError",
+    "SystemExit", "TabError", "TimeoutError", "TypeError", "UnboundLocalError", "UnicodeDecodeError",
+    "UnicodeEncodeError", "UnicodeError", "UnicodeTranslateError", "ValueError", "ZeroDivisionError", "Warning",
+    "BytesWarning", "DeprecationWarning", "EncodingWarning", "FutureWarning", "ImportWarning",
+    "PendingDeprecationWarning", "ResourceWarning", "RuntimeWarning", "SyntaxWarning", "UnicodeWarning",
+    "UserWarning",
+];
+
+/// Names every CPython module has.
+const MODULE_DUNDERS: &[&str] = &[
+    "__file__", "__spec__", "__loader__", "__package__", "__path__", "__builtins__", "__cached__", "__doc__",
+    "__name__", "__annotations__", "__dict__",
+];
+
+/// Builtins taken out of plugins because they reach outside the script, and why.
+fn sandbox_builtin(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "open" => "plugins have no file system",
+        "input" => "plugins cannot read the terminal",
+        "eval" | "exec" | "compile" | "__import__" => "plugins cannot run code made at run time",
+        "globals" | "locals" | "vars" => "plugins cannot reach a module's namespace as a dict",
+        "breakpoint" | "exit" | "quit" | "help" | "copyright" | "credits" | "license" => "it belongs to the interactive prompt",
+        "memoryview" => "plugins have no raw memory",
+        "__file__" | "__spec__" | "__loader__" | "__cached__" | "__path__" => "plugin modules are not files on disk",
+        _ => return None,
+    })
+}
+
+/// CPython 3.12's standard library, top-level names, for wording: a module
+/// in here that the keyboard lacks is "not in the keyboard's Python", one
+/// outside it is a package to install.
+const CPYTHON_STDLIB: &[&str] = &[
+    "__future__", "_thread", "abc", "aifc", "argparse", "array", "ast", "asynchat", "asyncio", "asyncore", "atexit",
+    "audioop", "base64", "bdb", "binascii", "bisect", "builtins", "bz2", "cProfile", "calendar", "cgi", "cgitb",
+    "chunk", "cmath", "cmd", "code", "codecs", "codeop", "collections", "colorsys", "compileall", "concurrent",
+    "configparser", "contextlib", "contextvars", "copy", "copyreg", "crypt", "csv", "ctypes", "curses",
+    "dataclasses", "datetime", "dbm", "decimal", "difflib", "dis", "doctest", "email", "encodings", "ensurepip",
+    "enum", "errno", "faulthandler", "fcntl", "filecmp", "fileinput", "fnmatch", "fractions", "ftplib",
+    "functools", "gc", "getopt", "getpass", "gettext", "glob", "graphlib", "grp", "gzip", "hashlib", "heapq",
+    "hmac", "html", "http", "idlelib", "imaplib", "imghdr", "importlib", "inspect", "io", "ipaddress", "itertools",
+    "json", "keyword", "lib2to3", "linecache", "locale", "logging", "lzma", "mailbox", "mailcap", "marshal", "math",
+    "mimetypes", "mmap", "modulefinder", "msilib", "msvcrt", "multiprocessing", "netrc", "nis", "nntplib", "nt",
+    "ntpath", "nturl2path", "numbers", "opcode", "operator", "optparse", "os", "ossaudiodev", "pathlib", "pdb",
+    "pickle", "pickletools", "pipes", "pkgutil", "platform", "plistlib", "poplib", "posix", "posixpath", "pprint",
+    "profile", "pstats", "pty", "pwd", "py_compile", "pyclbr", "pydoc", "queue", "quopri", "random", "re",
+    "readline", "reprlib", "resource", "rlcompleter", "runpy", "sched", "secrets", "select", "selectors",
+    "shelve", "shlex", "shutil", "signal", "site", "smtplib", "sndhdr", "socket", "socketserver", "spwd",
+    "sqlite3", "sre_compile", "sre_constants", "sre_parse", "ssl", "stat", "statistics", "string", "stringprep",
+    "struct", "subprocess", "sunau", "symtable", "sys", "sysconfig", "syslog", "tabnanny", "tarfile", "telnetlib",
+    "tempfile", "termios", "textwrap", "threading", "time", "timeit", "tkinter", "token", "tokenize", "tomllib",
+    "trace", "traceback", "tracemalloc", "tty", "turtle", "types", "typing", "unicodedata", "unittest", "urllib",
+    "uu", "uuid", "venv", "warnings", "wave", "weakref", "webbrowser", "winreg", "winsound", "wsgiref", "xdrlib",
+    "xml", "xmlrpc", "zipapp", "zipfile", "zipimport", "zlib", "zoneinfo",
+];
+
+/// Modules plugins go without on purpose: why, and what to use instead.
+fn sandbox_module(name: &str) -> Option<(&'static str, Option<&'static str>)> {
+    let top = name.split('.').next().unwrap_or(name);
+    let files = ("plugins have no file system", Some("wm.files asks the user for a file to open or a place to save one"));
+    let network = ("plugins cannot open connections themselves", Some("use wm.http for web requests: from wm import http"));
+    let threads = ("plugins run on one thread, with no other processes", None);
+    let code = ("plugins cannot load code at run time or call into C", None);
+    Some(match top {
+        "os" | "io" | "pathlib" | "shutil" | "tempfile" | "glob" | "fileinput" | "filecmp" | "stat" | "mmap" | "fcntl" | "posix" | "nt"
+        | "pwd" | "grp" | "sqlite3" | "dbm" | "shelve" | "linecache" | "zipfile" | "tarfile" | "posixpath" | "ntpath" => files,
+        "socket" | "ssl" | "http" | "ftplib" | "smtplib" | "poplib" | "imaplib" | "socketserver" | "xmlrpc" | "telnetlib" | "nntplib"
+        | "webbrowser" => network,
+        "urllib" if name.starts_with("urllib.request") || name.starts_with("urllib.error") => network,
+        "subprocess" | "multiprocessing" | "threading" | "_thread" | "concurrent" | "signal" | "asyncio" | "selectors" | "select"
+        | "resource" | "pty" | "tty" | "termios" | "sched" | "queue" | "atexit" => threads,
+        "importlib" | "imp" | "pkgutil" | "runpy" | "zipimport" | "code" | "codeop" | "ctypes" | "marshal" | "gc" | "inspect" | "dis"
+        | "site" | "sysconfig" | "platform" | "faulthandler" | "tracemalloc" | "cffi" | "_cffi_backend" => code,
+        _ => return None,
+    })
+}
+
+/// Imports that mean compiled C code.
+fn c_module(name: &str) -> bool {
+    matches!(name.split('.').next().unwrap_or(name), "ctypes" | "cffi" | "_cffi_backend")
+}
+
+fn has_ext(path: &str, exts: &[&str]) -> bool {
+    let lower = path.to_ascii_lowercase();
+    exts.iter().any(|e| lower.ends_with(e)) || (exts.contains(&".so") && lower.contains(".so."))
+}
+
+/// Where an imported module comes from.
+enum Origin {
+    Stdlib,
+    Wm,
+    Internal,
+    Available,
+    Missing,
+}
+
+struct Ctx<'a> {
+    program: &'a Program,
+    /// The package's own top-level names.
+    roots: HashSet<String>,
+    available: HashSet<String>,
+    probe: Probe,
+    wm_modules: HashSet<&'static str>,
+}
+
+impl Ctx<'_> {
+    fn classify(&mut self, name: &str) -> Origin {
+        let top = name.split('.').next().unwrap_or(name);
+        if top == "wm" {
+            return if self.wm_modules.contains(name) { Origin::Wm } else { Origin::Missing };
+        }
+        if self.roots.contains(top) {
+            return if self.program.exists(name) { Origin::Internal } else { Origin::Missing };
+        }
+        if self.available.contains(top) {
+            return Origin::Available;
+        }
+        if self.probe.module_exists(name) {
+            return Origin::Stdlib;
+        }
+        Origin::Missing
+    }
+}
+
+/// Analyses a package: [files] maps each path (relative to the plugin
+/// folder, such as `humanize/__init__.py`) to its text. Files that are not
+/// `.py` may map to anything, `""` included: only their names are read.
+pub fn analyse(files: &BTreeMap<String, String>, opts: &AnalyseOptions) -> Report {
+    let program = Program::new(files, None);
+    let roots: BTreeSet<String> = files.keys().filter(|p| p.ends_with(".py") && module_of(p).is_some()).map(|p| root_of(p)).collect();
+    let mut ctx = Ctx {
+        program: &program,
+        roots: roots.iter().cloned().collect(),
+        available: opts.available.iter().map(|s| s.split('.').next().unwrap_or(s).to_string()).collect(),
+        probe: Probe::new(),
+        wm_modules: wm_python::host::v5::PRELUDE.iter().map(|(n, _, _)| *n).collect(),
+    };
+    let mut imports = Imports::default();
+    let mut reports = Vec::new();
+    for (path, text) in files {
+        let mut problems = Vec::new();
+        let mut module = None;
+        if has_ext(path, &[".so", ".pyd", ".dylib", ".dll"]) {
+            problems.push(file_problem(path, Severity::Error, "c-extension", "this is compiled code, and plugins cannot load it".into(), None));
+        } else if has_ext(path, &[".c", ".cc", ".cpp", ".cxx", ".h", ".pyx", ".pxd"]) {
+            problems.push(file_problem(
+                path,
+                Severity::Warning,
+                "c-source",
+                "this is the source of a C extension; if the package needs it built, that part will not work".into(),
+                None,
+            ));
+        } else if path.ends_with(".py") {
+            if let Some(file) = program.files.iter().find(|f| &f.path == path) {
+                module = Some(file.name.clone());
+                check_file(&mut ctx, file, text, &mut problems, &mut imports);
+            } else {
+                problems.push(file_problem(
+                    path,
+                    Severity::Error,
+                    "module-name",
+                    "this path is not a module name, and the keyboard refuses a plugin holding such a .py file".into(),
+                    Some("leave the file out: Python could not import it either".into()),
+                ));
+            }
+        }
+        if problems.len() > MAX_PER_FILE {
+            let rest = problems.len() - MAX_PER_FILE;
+            problems.truncate(MAX_PER_FILE);
+            problems.push(file_problem(path, Severity::Info, "more", format!("{rest} more problems in this file are not shown"), None));
+        }
+        reports.push(FileReport { path: path.clone(), module, bytes: text.len(), problems });
+    }
+    let all: Vec<&Problem> = reports.iter().flat_map(|r| r.problems.iter()).collect();
+    let verdict = if all.iter().any(|p| p.severity == Severity::Error) {
+        Verdict::Incompatible
+    } else if all.iter().any(|p| p.severity == Severity::Warning) {
+        Verdict::Warnings
+    } else {
+        Verdict::Ok
+    };
+    Report { verdict, files: reports, imports, roots: roots.into_iter().collect() }
+}
+
+fn file_problem(path: &str, severity: Severity, code: &'static str, message: String, help: Option<String>) -> Problem {
+    Problem { severity, code, message, file: path.to_string(), line: None, col: None, end_col: None, help }
+}
+
+fn at(file: &ModFile, span: Span, severity: Severity, code: &'static str, message: String, help: Option<String>) -> Problem {
+    let (line, col, end_col) = file.source.range(span);
+    Problem { severity, code, message, file: file.path.clone(), line: Some(line), col: Some(col), end_col: Some(end_col), help }
+}
+
+/// How bad a failure is, from where it happens: at import time it stops the
+/// package loading, in a function only when that runs, and under a `try`
+/// that catches it not at all.
+fn severity_for(in_function: bool, caught: bool) -> Severity {
+    if caught {
+        Severity::Info
+    } else if in_function {
+        Severity::Warning
+    } else {
+        Severity::Error
+    }
+}
+
+fn check_file(ctx: &mut Ctx, file: &ModFile, text: &str, out: &mut Vec<Problem>, imports: &mut Imports) {
+    let path = &file.path;
+    // ---- what the keyboard does with the file itself ------------------------
+    let parts = path.trim_end_matches(".py").split('/').count();
+    if parts > limits::MAX_MODULE_PARTS {
+        out.push(file_problem(
+            path,
+            Severity::Error,
+            "too-deep",
+            format!("the keyboard refuses a plugin with a .py file more than {} folders deep", limits::MAX_MODULE_PARTS - 1),
+            None,
+        ));
+    } else if path.trim_end_matches(".py").split('/').any(|p| p.chars().count() > limits::MAX_PART_CHARS) {
+        out.push(file_problem(path, Severity::Error, "module-name", format!("a folder or file name here is over {} characters", limits::MAX_PART_CHARS), None));
+    } else if wm_python::host::v5::module_name(path).is_none() {
+        let top = root_of(path);
+        if wm_python::interp::Runtime::python_stdlib_names().iter().any(|s| s.split('.').next() == Some(top.as_str())) {
+            out.push(file_problem(
+                path,
+                Severity::Warning,
+                "shadowed",
+                format!("the keyboard has its own '{top}' module, so it uses that and never loads this file"),
+                None,
+            ));
+        } else {
+            out.push(file_problem(path, Severity::Error, "reserved-name", format!("the keyboard keeps the module name '{top}' for itself"), None));
+        }
+    }
+    if text.len() > limits::MAX_SCRIPT_BYTES {
+        out.push(file_problem(
+            path,
+            Severity::Error,
+            "file-too-big",
+            format!("{} KB: the keyboard refuses a plugin with a .py file over {} KB", text.len() / 1024, limits::MAX_SCRIPT_BYTES / 1024),
+            None,
+        ));
+    }
+    // ---- the interpreter's own parser ---------------------------------------
+    let mut syntax_line = None;
+    if let Err(e) = wm_python::interp::check(text) {
+        syntax_line = e.line;
+        let mut p = file_problem(path, Severity::Error, "syntax", format!("the keyboard's Python cannot run this file: {}: {}", e.kind, e.message), None);
+        if let Some(line) = e.line {
+            p.line = Some(line);
+            let span = file.source.doc.lines.trimmed(file.source.units(), line as usize);
+            let (_, col, end_col) = file.source.range(span);
+            p.col = Some(col);
+            p.end_col = Some(end_col);
+        }
+        out.push(p);
+    }
+    check_imports(ctx, file, out, imports);
+    check_names(ctx, file, out);
+    check_attributes(ctx, file, out);
+    check_features(file, syntax_line, out);
+}
+
+fn missing_import(ctx: &Ctx, file: &ModFile, name: &str, span: Span, severity: Severity) -> Problem {
+    let top = name.split('.').next().unwrap_or(name);
+    if ctx.roots.contains(top) {
+        return at(file, span, severity, "missing-import", format!("the package has no module '{name}'"), None);
+    }
+    if top == "wm" {
+        return at(file, span, severity, "missing-import", format!("the wm package has no module '{name}'"), None);
+    }
+    if c_module(name) {
+        return at(file, span, severity, "c-extension", format!("'{name}' loads compiled C code, which plugins cannot run"), None);
+    }
+    if let Some((why, help)) = sandbox_module(name) {
+        return at(file, span, severity, "sandbox-import", format!("'{name}' is not available to plugins: {why}"), help.map(String::from));
+    }
+    if top == "__future__" {
+        return at(
+            file,
+            span,
+            severity,
+            "missing-import",
+            "the keyboard's Python has no '__future__' module".into(),
+            Some("`from __future__ import annotations` can be deleted: the keyboard's Python reads annotations and ignores them".into()),
+        );
+    }
+    if CPYTHON_STDLIB.contains(&top) {
+        return at(file, span, severity, "missing-import", format!("the keyboard's Python has no '{name}' module"), None);
+    }
+    at(
+        file,
+        span,
+        severity,
+        "missing-import",
+        format!("'{top}' is not installed in this plugin"),
+        Some(format!("wmpy pip install {}", top.replace('_', "-"))),
+    )
+}
+
+/// Files [name] under where it comes from; false when nothing provides it.
+fn record(ctx: &mut Ctx, name: &str, imports: &mut Imports) -> bool {
+    let set = match ctx.classify(name) {
+        Origin::Stdlib => &mut imports.stdlib,
+        Origin::Wm => &mut imports.wm,
+        Origin::Internal => &mut imports.internal,
+        Origin::Available => &mut imports.available,
+        Origin::Missing => {
+            imports.missing.insert(name.to_string());
+            return false;
+        }
+    };
+    set.insert(name.to_string());
+    true
+}
+
+fn check_imports(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>, imports: &mut Imports) {
+    for imp in &file.imports {
+        if imp.type_checking || imp.main_only {
+            continue;
+        }
+        let severity = severity_for(imp.in_function, imp.guard.import_error);
+        match &imp.kind {
+            ImportKind::Plain(names) => {
+                for b in names {
+                    if !record(ctx, &b.name, imports) {
+                        out.push(missing_import(ctx, file, &b.name, b.span, severity));
+                    }
+                }
+            }
+            ImportKind::From { module: None, raw, module_span, .. } => {
+                out.push(at(file, *module_span, severity, "missing-import", format!("'{raw}' climbs above the top of the package"), None));
+            }
+            ImportKind::From { module: Some(m), module_span, names, .. } => {
+                if !record(ctx, m, imports) {
+                    out.push(missing_import(ctx, file, m, *module_span, severity));
+                    continue;
+                }
+                for b in names {
+                    let sub = format!("{m}.{}", b.name);
+                    let top = m.split('.').next().unwrap_or(m);
+                    if ctx.roots.contains(top) {
+                        if ctx.program.exists(&sub) {
+                            imports.internal.insert(sub);
+                            continue;
+                        }
+                        match ctx.program.get(m) {
+                            Some(target) => {
+                                let scope = &target.source.doc.analysis.scopes[0];
+                                let dynamic = scope.names.contains_key("__getattr__");
+                                if !scope.names.contains_key(&b.name) && !dynamic {
+                                    out.push(at(file, b.span, severity, "missing-name", format!("'{m}' has no '{}'", b.name), None));
+                                }
+                            }
+                            None => out.push(at(file, b.span, severity, "missing-import", format!("the package has no module '{sub}'"), None)),
+                        }
+                    } else if matches!(ctx.classify(m), Origin::Stdlib) {
+                        if ctx.probe.module_exists(&sub) {
+                            imports.stdlib.insert(sub);
+                        } else if !ctx.probe.member_exists(m, &b.name) {
+                            out.push(at(file, b.span, severity, "missing-name", format!("the keyboard's '{m}' has no '{}'", b.name), None));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Spans at the top level (outside functions) covered by a `try` body, with
+/// what it catches, and the bodies of `if TYPE_CHECKING:`, which never run.
+fn top_regions(body: &[Stmt], guards: &mut Vec<(Span, Guard)>, skipped: &mut Vec<Span>) {
+    for s in body {
+        match &s.kind {
+            StmtKind::Try { body, handlers, orelse, finalbody } => {
+                let mut g = Guard::default();
+                g.add(handlers);
+                if let (Some(first), Some(last)) = (body.first(), body.last()) {
+                    guards.push((Span::new(first.span.start, last.span.end), g));
+                }
+                top_regions(body, guards, skipped);
+                for h in handlers {
+                    top_regions(&h.body, guards, skipped);
+                }
+                top_regions(orelse, guards, skipped);
+                top_regions(finalbody, guards, skipped);
+            }
+            StmtKind::If { test, body, orelse, .. } => {
+                if crate::program::is_type_checking(test) || crate::program::is_main_test(test) {
+                    if let (Some(first), Some(last)) = (body.first(), body.last()) {
+                        skipped.push(Span::new(first.span.start, last.span.end));
+                    }
+                } else {
+                    top_regions(body, guards, skipped);
+                }
+                top_regions(orelse, guards, skipped);
+            }
+            StmtKind::For { body, orelse, .. } | StmtKind::While { body, orelse, .. } => {
+                top_regions(body, guards, skipped);
+                top_regions(orelse, guards, skipped);
+            }
+            StmtKind::Unsupported { what, body, .. } if *what != "def" => top_regions(body, guards, skipped),
+            _ => {}
+        }
+    }
+}
+
+fn check_names(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>) {
+    let a = &file.source.doc.analysis;
+    let mut guards = Vec::new();
+    let mut skipped = Vec::new();
+    top_regions(file.source.body(), &mut guards, &mut skipped);
+    let mut shown: HashMap<String, usize> = HashMap::new();
+    let mut hidden: BTreeMap<String, usize> = BTreeMap::new();
+    for o in &a.occurrences {
+        if o.access != Access::Read || !matches!(o.target, Target::Unresolved | Target::Builtin) {
+            continue;
+        }
+        let name = file.source.text(o.span);
+        if !CPYTHON_BUILTINS.contains(&name.as_str()) && !MODULE_DUNDERS.contains(&name.as_str()) {
+            continue;
+        }
+        if skipped.iter().any(|s| s.contains(o.span.start)) || ctx.probe.name_exists(&name) {
+            continue;
+        }
+        let mut in_function = false;
+        let mut scope = Some(o.scope);
+        while let Some(s) = scope {
+            if matches!(a.scopes[s].kind, ScopeKind::Function | ScopeKind::Lambda) {
+                in_function = true;
+            }
+            scope = a.scopes[s].parent;
+        }
+        let caught = !in_function && guards.iter().any(|(span, g)| span.contains(o.span.start) && g.name_error);
+        // An `except X:` clause is passed over by name; it fails only if an exception reaches it.
+        let severity = if o.except_type { Severity::Info } else { severity_for(in_function, caught) };
+        let count = shown.entry(name.clone()).or_default();
+        if *count >= MAX_PER_NAME {
+            *hidden.entry(name).or_default() += 1;
+            continue;
+        }
+        *count += 1;
+        let p = match sandbox_builtin(&name) {
+            Some(why) => at(file, o.span, severity, "sandbox-builtin", format!("'{name}' is not available to plugins: {why}"), None),
+            None => at(file, o.span, severity, "missing-builtin", format!("the keyboard's Python has no '{name}'"), None),
+        };
+        out.push(p);
+    }
+    for (name, n) in hidden {
+        out.push(file_problem(&file.path, Severity::Info, "more", format!("'{name}' is used {n} more times in this file"), None));
+    }
+}
+
+fn check_attributes(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>) {
+    let a = &file.source.doc.analysis;
+    let mut guards = Vec::new();
+    let mut skipped = Vec::new();
+    top_regions(file.source.body(), &mut guards, &mut skipped);
+    let mut found = Vec::new();
+    walk_stmts(file.source.body(), &mut |s| {
+        for e in stmt_exprs(s) {
+            walk_expr(e, &mut |x| {
+                if let ExprKind::Attribute { attr_span, .. } = &x.kind {
+                    if let Some(chain) = attribute_chain(x) {
+                        found.push((chain, *attr_span));
+                    }
+                }
+            });
+        }
+    });
+    let mut seen = HashSet::new();
+    for ((_, chain, base_span), attr_span) in found {
+        if skipped.iter().any(|s| s.contains(base_span.start)) {
+            continue;
+        }
+        let Some(symbol) = a.symbol_at(base_span.start) else { continue };
+        let Some((module, member)) = &symbol.import else { continue };
+        if !symbol.writes.is_empty() || module.starts_with('.') {
+            continue;
+        }
+        let mut current = match member {
+            None => module.clone(),
+            Some(m) => format!("{module}.{m}"),
+        };
+        if !matches!(ctx.classify(&current), Origin::Stdlib) || !ctx.probe.module_exists(&current) {
+            continue;
+        }
+        for (i, attr) in chain.iter().enumerate() {
+            let sub = format!("{current}.{attr}");
+            if ctx.probe.module_exists(&sub) {
+                current = sub;
+                continue;
+            }
+            if ctx.probe.member_exists(&current, attr) || i + 1 != chain.len() || !seen.insert((current.clone(), attr.clone(), attr_span)) {
+                break;
+            }
+            let scope_in_function = {
+                let mut s = Some(a.scope_at(attr_span.start));
+                let mut f = false;
+                while let Some(x) = s {
+                    if matches!(a.scopes[x].kind, ScopeKind::Function | ScopeKind::Lambda) {
+                        f = true;
+                    }
+                    s = a.scopes[x].parent;
+                }
+                f
+            };
+            let caught = !scope_in_function && guards.iter().any(|(span, g)| span.contains(attr_span.start) && g.attribute_error);
+            let severity = severity_for(scope_in_function, caught);
+            let help = (current == "sys").then(|| "the keyboard's sys has only sys.version".to_string());
+            out.push(at(file, attr_span, severity, "missing-attribute", format!("the keyboard's '{current}' has no '{attr}'"), help));
+            break;
+        }
+    }
+}
+
+/// `class C(A, B, metaclass=M):` as the positional bases and the keyword names.
+pub(crate) fn class_header(file: &ModFile, span: Span) -> (Vec<String>, Vec<String>) {
+    let t = &file.source.doc.tokens;
+    let mut bases = Vec::new();
+    let mut keywords = Vec::new();
+    let Some(mut i) = t.index_at(span.start) else { return (bases, keywords) };
+    // To the `(` after the name, unless the header ends first.
+    while i < t.len() && t.start(i) < span.end {
+        if t.is_op(i, "(") {
+            break;
+        }
+        if t.is_op(i, ":") {
+            return (bases, keywords);
+        }
+        i += 1;
+    }
+    let mut depth = 0;
+    let mut entry = String::new();
+    let mut entry_keyword: Option<String> = None;
+    let mut last_name: Option<String> = None;
+    while i < t.len() && t.start(i) < span.end {
+        if !t.is_code(i) {
+            i += 1;
+            continue;
+        }
+        let text = t.text(i);
+        if t.kind(i) == TokenKind::Operator && matches!(text.as_str(), "(" | "[" | "{") {
+            depth += 1;
+            if depth == 1 {
+                i += 1;
+                continue;
+            }
+        }
+        if t.kind(i) == TokenKind::Operator && matches!(text.as_str(), ")" | "]" | "}") {
+            depth -= 1;
+            if depth == 0 {
+                break;
+            }
+        }
+        if depth == 1 && t.is_op(i, ",") {
+            match entry_keyword.take() {
+                Some(k) => keywords.push(k),
+                None if !entry.trim().is_empty() => bases.push(entry.trim().to_string()),
+                None => {}
+            }
+            entry.clear();
+            last_name = None;
+        } else if depth == 1 && t.is_op(i, "=") && entry_keyword.is_none() {
+            entry_keyword = last_name.clone().or(Some(String::new()));
+        } else {
+            if t.kind(i) == TokenKind::Name {
+                last_name = Some(text.clone());
+            }
+            entry.push_str(&text);
+        }
+        i += 1;
+    }
+    match entry_keyword {
+        Some(k) => keywords.push(k),
+        None if !entry.trim().is_empty() => bases.push(entry.trim().to_string()),
+        None => {}
+    }
+    (bases, keywords)
+}
+
+/// Python the parser takes but the interpreter may not run as CPython does,
+/// each checked against the interpreter in [features].
+fn check_features(file: &ModFile, syntax_line: Option<u32>, out: &mut Vec<Problem>) {
+    let f = features();
+    fn classes(body: &[Stmt], in_function: bool, out: &mut Vec<(Span, bool)>) {
+        for s in body {
+            match &s.kind {
+                StmtKind::Unsupported { what: "class", body, .. } => {
+                    out.push((s.span, in_function));
+                    classes(body, in_function, out);
+                }
+                StmtKind::Def { body, .. } => classes(body, true, out),
+                _ => {
+                    for b in wm_python_tooling::ast::stmt_blocks(s) {
+                        classes(b, in_function, out);
+                    }
+                }
+            }
+        }
+    }
+    let mut found = Vec::new();
+    classes(file.source.body(), false, &mut found);
+    for (span, in_function) in found {
+        // A header the parser already refused needs no second problem.
+        if syntax_line == Some(file.source.place(span.start).0) {
+            continue;
+        }
+        let (bases, keywords) = class_header(file, span);
+        let header = Span::new(span.start, file.source.doc.lines.end(file.source.units(), file.source.doc.lines.line_of(span.start)));
+        let real: Vec<&String> = bases.iter().filter(|b| b.as_str() != "object" && !b.starts_with('*')).collect();
+        if real.len() > 1 && f.multiple_inheritance != Support::Yes {
+            let how = if f.multiple_inheritance == Support::Fails { "raises an error" } else { "does not follow Python's rules" };
+            let severity = if f.multiple_inheritance == Support::Fails { severity_for(in_function, false) } else { Severity::Warning };
+            out.push(at(
+                file,
+                header,
+                severity,
+                "multiple-inheritance",
+                format!("a class with {} base classes: the keyboard's Python {how} for more than one", real.len()),
+                None,
+            ));
+        }
+        if keywords.iter().any(|k| k == "metaclass") && f.metaclass != Support::Yes {
+            let how = if f.metaclass == Support::Fails { "raises an error" } else { "ignores it" };
+            let severity = if f.metaclass == Support::Fails { severity_for(in_function, false) } else { Severity::Warning };
+            out.push(at(file, header, severity, "metaclass", format!("a metaclass: the keyboard's Python {how}"), None));
+        }
+    }
+    if f.big_ints != Support::Yes {
+        let t = &file.source.doc.tokens;
+        for i in 0..t.len() {
+            if t.kind(i) != TokenKind::Number {
+                continue;
+            }
+            let text = t.text(i).replace('_', "").to_ascii_lowercase();
+            let value = if let Some(h) = text.strip_prefix("0x") {
+                u128::from_str_radix(h, 16).ok()
+            } else if let Some(o) = text.strip_prefix("0o") {
+                u128::from_str_radix(o, 8).ok()
+            } else if let Some(b) = text.strip_prefix("0b") {
+                u128::from_str_radix(b, 2).ok()
+            } else if text.chars().all(|c| c.is_ascii_digit()) {
+                text.parse::<u128>().ok().or(Some(u128::MAX))
+            } else {
+                None
+            };
+            // A literal the parser already refused needs no second problem.
+            if value.is_some_and(|v| v > i64::MAX as u128) && syntax_line != Some(file.source.place(t.start(i)).0) {
+                out.push(at(
+                    file,
+                    t.span(i),
+                    Severity::Warning,
+                    "big-int",
+                    "this number does not fit in 64 bits, and the keyboard's Python has no big integers".into(),
+                    Some("past 64 bits a result becomes a float".into()),
+                ));
+            }
+        }
+    }
+}

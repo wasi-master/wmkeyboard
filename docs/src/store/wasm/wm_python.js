@@ -486,6 +486,82 @@ export function opensBlock(line) {
 }
 
 /**
+ * Whether a package can run in a plugin. [files_json] is `{"path": "source"}`
+ * for the package's files (non-`.py` files may map to ""), [options_json]
+ * `{"package": name, "available": [top-level names beside it]}`. Answers
+ * `{"verdict": "ok"|"warnings"|"incompatible", "problems": [{"severity",
+ * "file", "line", "col", "code", "message", "endCol"?, "help"?}], "imports":
+ * {"stdlib", "internal", "missing", "wm", "available"}, "roots", "files"}`,
+ * or `{"error"}` for arguments it cannot read.
+ * @param {string} files_json
+ * @param {string} options_json
+ * @returns {string}
+ */
+export function pip_analyse(files_json, options_json) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(files_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.pip_analyse(ptr0, len0, ptr1, len1);
+        deferred3_0 = ret[0];
+        deferred3_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Tree-shakes the vendored packages ([roots_json], their top-level names)
+ * among [files_json] (every `.py` file of the plugin), reached from [entry]
+ * and the plugin's own modules; [symbols] also drops unused top-level
+ * definitions. Answers `{"files", "removedFiles", "removedSymbols": [[file,
+ * name]], "bytesBefore", "bytesAfter", "notes"}`, or `{"error"}`.
+ * @param {string} files_json
+ * @param {string} entry
+ * @param {string} roots_json
+ * @param {boolean} symbols
+ * @returns {string}
+ */
+export function pip_shake(files_json, entry, roots_json, symbols) {
+    let deferred5_0;
+    let deferred5_1;
+    try {
+        const val4 = +symbols;
+        let ptr0, len0, ptr1, len1, ptr2, len2;
+        try {
+            ptr0 = passStringToWasm0(files_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(entry, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+            ptr2 = passStringToWasm0(roots_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len2 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr2) { wasm.__wbindgen_free(ptr2, len2 * 1, 1); }
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.pip_shake(ptr0, len0, ptr1, len1, ptr2, len2, val4);
+        deferred5_0 = ret[0];
+        deferred5_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred5_0, deferred5_1, 1);
+    }
+}
+
+/**
  * The provider lists a plugin can answer, with a sample request each.
  * @returns {string}
  */

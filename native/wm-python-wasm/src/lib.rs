@@ -244,3 +244,48 @@ pub fn opens_block(line: &str) -> bool {
 pub fn diagnostic_codes() -> String {
     wm_python_tooling::api_json::diagnostic_codes()
 }
+
+// ---- vendored packages (wm-python-pip) ---------------------------------------
+
+/// `{"path": "source"}` as a map; a value that is not a string counts as an empty file.
+fn files_arg(files_json: &str) -> Result<std::collections::BTreeMap<String, String>, String> {
+    let v: Json = serde_json::from_str(files_json).map_err(|e| format!("files are not JSON: {e}"))?;
+    let map = v.as_object().ok_or("files must be a JSON object of path to source")?;
+    Ok(map.iter().map(|(k, v)| (k.clone(), v.as_str().unwrap_or("").to_string())).collect())
+}
+
+/// Whether a package can run in a plugin. [files_json] is `{"path": "source"}`
+/// for the package's files (non-`.py` files may map to ""), [options_json]
+/// `{"package": name, "available": [top-level names beside it]}`. Answers
+/// `{"verdict": "ok"|"warnings"|"incompatible", "problems": [{"severity",
+/// "file", "line", "col", "code", "message", "endCol"?, "help"?}], "imports":
+/// {"stdlib", "internal", "missing", "wm", "available"}, "roots", "files"}`,
+/// or `{"error"}` for arguments it cannot read.
+#[wasm_bindgen]
+pub fn pip_analyse(files_json: &str, options_json: &str) -> String {
+    let files = match files_arg(files_json) {
+        Ok(f) => f,
+        Err(e) => return json!({ "error": e }).to_string(),
+    };
+    let o: Json = serde_json::from_str(options_json).unwrap_or(Json::Null);
+    let opts = wm_python_pip::AnalyseOptions {
+        package: o.get("package").and_then(Json::as_str).unwrap_or("").to_string(),
+        available: o.get("available").and_then(Json::as_array).map(|a| a.iter().filter_map(Json::as_str).map(String::from).collect()).unwrap_or_default(),
+    };
+    wm_python_pip::analyse(&files, &opts).to_json().to_string()
+}
+
+/// Tree-shakes the vendored packages ([roots_json], their top-level names)
+/// among [files_json] (every `.py` file of the plugin), reached from [entry]
+/// and the plugin's own modules; [symbols] also drops unused top-level
+/// definitions. Answers `{"files", "removedFiles", "removedSymbols": [[file,
+/// name]], "bytesBefore", "bytesAfter", "notes"}`, or `{"error"}`.
+#[wasm_bindgen]
+pub fn pip_shake(files_json: &str, entry: &str, roots_json: &str, symbols: bool) -> String {
+    let files = match files_arg(files_json) {
+        Ok(f) => f,
+        Err(e) => return json!({ "error": e }).to_string(),
+    };
+    let roots: Vec<String> = serde_json::from_str(roots_json).unwrap_or_default();
+    wm_python_pip::shake(&files, entry, &roots, &wm_python_pip::ShakeOptions { symbols }).to_json().to_string()
+}

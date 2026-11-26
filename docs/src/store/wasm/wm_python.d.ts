@@ -90,6 +90,26 @@ export function inInert(source: string, offset: number): boolean;
 export function opensBlock(line: string): boolean;
 
 /**
+ * Whether a package can run in a plugin. [files_json] is `{"path": "source"}`
+ * for the package's files (non-`.py` files may map to ""), [options_json]
+ * `{"package": name, "available": [top-level names beside it]}`. Answers
+ * `{"verdict": "ok"|"warnings"|"incompatible", "problems": [{"severity",
+ * "file", "line", "col", "code", "message", "endCol"?, "help"?}], "imports":
+ * {"stdlib", "internal", "missing", "wm", "available"}, "roots", "files"}`,
+ * or `{"error"}` for arguments it cannot read.
+ */
+export function pip_analyse(files_json: string, options_json: string): string;
+
+/**
+ * Tree-shakes the vendored packages ([roots_json], their top-level names)
+ * among [files_json] (every `.py` file of the plugin), reached from [entry]
+ * and the plugin's own modules; [symbols] also drops unused top-level
+ * definitions. Answers `{"files", "removedFiles", "removedSymbols": [[file,
+ * name]], "bytesBefore", "bytesAfter", "notes"}`, or `{"error"}`.
+ */
+export function pip_shake(files_json: string, entry: string, roots_json: string, symbols: boolean): string;
+
+/**
  * The provider lists a plugin can answer, with a sample request each.
  */
 export function providerTools(): string;
@@ -124,6 +144,8 @@ export interface InitOutput {
     readonly hover: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly inInert: (a: number, b: number, c: number) => number;
     readonly opensBlock: (a: number, b: number) => number;
+    readonly pip_analyse: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly pip_shake: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
     readonly providerTools: () => [number, number];
     readonly pysession_cancel: (a: number) => void;
     readonly pysession_event: (a: number, b: number, c: number) => [number, number];

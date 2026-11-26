@@ -1,0 +1,12 @@
+[package]
+name = "wm-python-pip"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Whether a pure-Python package can run in WM Keyboard's plugins, and tree shaking of vendored packages. No network: wmpy (CLI) and the web editor (wasm) fetch the files and hand them in."
+license = "MIT"
+
+[dependencies]
+wm-python = { path = "../wm-python" }
+wm-python-tooling = { path = "../wm-python-tooling" }
+serde_json = { version = "1.0", features = ["preserve_order"] }
