@@ -16589,10 +16589,13 @@ open class WMKeyboardService : InputMethodService() {
                     // the letter below it ("as3" → "ase"). Word-initial digits
                     // still commit literally ("3pm"), and without the number
                     // row on screen a digit was a long-press or symbols-layer
-                    // choice — deliberate, never buffered.
+                    // choice — deliberate, never buffered. Wherever a word
+                    // can be corrected, a browser's address bar with its
+                    // autocorrect on included (#970): there the digit used to
+                    // end the word, so `ma8n` committed `ma8` and composed `n`.
                     text[0].isDigit() && composing.isNotEmpty() &&
                         digitSlipsOn(state.settings) &&
-                        state.allowsTypingIntelligence
+                        state.correctsWords
                     ) ||
                 (
                     // A hyphen after a letter joins the word: "well-pai"
@@ -27806,7 +27809,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun reclaimLooseDigit(ic: InputConnection, loose: LooseDigit?, text: String, state: KeyboardUiState) {
         loose ?: return
         if (text.length != 1 || !text[0].isLetter()) return
-        if (!digitSlipsOn(state.settings) || !state.allowsTypingIntelligence) return
+        if (!digitSlipsOn(state.settings) || !state.correctsWords) return
         if (state.composer.isTransliterating || state.composer.bufferDigits) return
         val now = SystemClock.uptimeMillis()
         if (now - loose.atMs > LOOSE_DIGIT_WINDOW_MS) return
