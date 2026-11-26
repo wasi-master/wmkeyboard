@@ -1,12 +1,11 @@
 ---
 title: "Testing and debugging"
-description: "Run a plugin in the web editor, read its console and events, test it on the phone, and write automatic tests with the command-line runner."
+description: "Run a plugin in the web editor, read its console and events, test it on the phone, and write automatic tests with wmpy."
 sidebar:
   label: "Testing and debugging"
   order: 5.09
 ---
 
-import { Steps } from '@astrojs/starlight/components';
 import SettingsPath from '@components/SettingsPath.astro';
 
 There are three places to run a plugin while you build it: the web editor,
@@ -28,6 +27,29 @@ stop typing. The tabs under the code show what is going on:
 | **Storage** | What the plugin saved, which you can edit or delete |
 | **Try** | Calls one of your providers or selection actions the way the keyboard would, and shows the reply |
 | **Details** | The name, permissions and hosts, providers, selection actions and the settings page, the whole `plugin.json`, and the file's size |
+| **Files** | The plugin's modules, assets, translations and Python packages, and the files beside it. New file, rename and delete are here |
+
+### Editing a folder on your computer
+
+In Chrome, Edge and other Chromium browsers, the editor can work on a plugin
+folder. Firefox and Safari can't open folders; use **Open a plugin file**
+there.
+
+1. Press **Open a folder** in the [plugin editor](/addons/new?type=plugin).
+2. Pick the folder that holds `plugin.json`, and let the browser edit its files.
+3. The folder opens as a draft, with its name under the plugin's name.
+
+Your edits are saved to the files when you stop typing. When another
+program, such as VS Code, saves a file, the editor picks it up within a
+second or two. If you changed that file here too, it asks which copy to keep.
+
+`tests/`, `test.py` and `wmpy.lock` show under **Files**, but they stay out
+of the plugin. Hidden files, `.git`, `.wmpy`, `node_modules` and
+`__pycache__` are not read.
+
+After a reload, press **Reconnect** to let the editor change the folder
+again. **Unlink the folder** in the menu makes it a normal draft. The files
+stay where they are.
 
 ### What the editor knows about your plugin
 
@@ -102,25 +124,15 @@ installed plugin also keeps a log of what it printed, on its page:
 
 ## Automatic tests
 
-`wm-python-cli` runs a plugin with no phone and no browser. It is for tests
-you run again and again, and for checking plugins in an addon repository's CI.
-
-<Steps>
-
-1. Install [Rust](https://rustup.rs/).
-
-2. Get the WM Keyboard source: `git clone https://github.com/wasi-master/wmkeyboard`
-
-3. Build the runner: `cd wmkeyboard/native/wm-python-cli && cargo build --release`
-
-4. The program is `target/release/wm-python-cli`.
-
-</Steps>
+[wmpy](/plugins/wmpy/) runs a plugin with no phone and no browser. It is for
+tests you run again and again, and for checking plugins in an addon
+repository's CI. Install it as that page says, with Homebrew, Scoop, pipx,
+npx or Cargo, then check it with `wmpy --version`.
 
 ### Run once
 
 ```bash
-wm-python-cli run my-plugin/ --mock mock.json
+wmpy render my-plugin/ --mock mock.json
 ```
 
 This loads the plugin in `my-plugin/` and prints the first draw as JSON. The
@@ -142,21 +154,57 @@ is only an error raises that error, so you can test the unhappy paths:
 
 ### Write tests
 
-Put a `test.py` beside `main.py` and run `wm-python-cli test my-plugin/`. A
-test fails by raising, so plain `assert` works:
+Put a `test.py` beside `main.py` and run `wmpy test my-plugin/`. Each
+function whose name starts with `test_` is one test. It runs on its own, and
+fails by raising, so plain `assert` works:
 
 ```python title="test.py"
 import json
 
 mock = {"http.request": {"status": 200, "text": json.dumps({"temp": 21}), "headers": {}}}
 
-s = plugin_test.session(mock=mock, settings={"units": "metric"})
-r = s["load"]()
-assert r["ok"], r
 
-r = s["event"]({"type": "click", "id": "button:Refresh"})
-assert "21" in json.dumps(r["ui"]), r["ui"]
+def test_it_loads():
+    s = plugin_test.session(mock=mock, settings={"units": "metric"})
+    r = s["load"]()
+    assert r["ok"], r
+
+
+def test_refresh_shows_the_temperature():
+    s = plugin_test.session(mock=mock, settings={"units": "metric"})
+    s["load"]()
+    r = s["event"]({"type": "click", "id": "button:Refresh"})
+    assert "21" in json.dumps(r["ui"]), r["ui"]
 ```
+
+The file's top level runs first, so the `mock` above is there for every
+test. A `test.py` with no test functions is one test, its whole file, as it
+was before wmpy had test functions.
+
+For more than one file, put them in a `tests/` folder as `tests/test_*.py`.
+wmpy runs `test.py` and each of those, every file in a fresh interpreter. It
+prints each result as it finishes, each failure with the line it stopped on,
+and then the count:
+
+```text
+ok   test.py::test_it_loads (4 ms)
+FAIL test.py::test_refresh_shows_the_temperature (6 ms)
+error[AssertionError]: {'root': [...]}
+  --> test.py:16
+   |
+16 |     assert "21" in json.dumps(r["ui"]), r["ui"]
+
+1 passed, 1 failed in 0.03 s
+```
+
+| Option | Does |
+|---|---|
+| `-k TEXT` | Runs only the tests whose `file::name` contains the text: `wmpy test -k refresh`. |
+| `--json` | Prints the results as JSON, each test with what it printed and its error. |
+| `--junit FILE` | Also writes JUnit XML, for a CI service's test table. |
+| `--watch` | Runs the tests again each time you save a file. |
+
+The exit code is 1 when a test failed, so a CI step fails with it.
 
 `plugin_test.session(mock=, settings=)` gives you the plugin as the keyboard
 runs it:

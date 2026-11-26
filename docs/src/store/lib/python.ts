@@ -115,6 +115,8 @@ export interface PyHost {
 	selection?: boolean;
 	panel?: boolean;
 	actions?: string[];
+	/** The plugin's other modules by dotted name (`pkg/util.py` as `pkg.util`), so `import util` is known to be its own. */
+	modules?: string[];
 	/** The whole plugin.json: its permissions, hosts, providers, settings and keyword feed the API 5 checks and suggestions. */
 	manifest?: object;
 }
@@ -371,4 +373,103 @@ export function inInert(source: string, offset: number): boolean {
 /** Whether `line` ends a block header: its last code token is a `:` outside brackets. */
 export function opensBlock(line: string): boolean {
 	return loaded && wasm.opensBlock(line);
+}
+
+// ---------------------------------------------------------------------------
+// Python packages (wm-python-pip): the compatibility check and tree shaking
+// ---------------------------------------------------------------------------
+
+export type PipVerdict = 'ok' | 'warnings' | 'incompatible';
+
+export interface PipProblem {
+	severity: 'error' | 'warning' | 'info';
+	file: string;
+	line: number;
+	col: number;
+	code: string;
+	message: string;
+}
+
+/** What `pip_analyse` finds in one package. */
+export interface PipAnalysis {
+	verdict: PipVerdict;
+	problems: PipProblem[];
+	imports: { stdlib: string[]; internal: string[]; missing: string[] };
+	roots: string[];
+}
+
+/** What `pip_shake` kept and removed. */
+export interface PipShake {
+	files: Record<string, string>;
+	removedFiles: string[];
+	/** `[file, name]` of each top-level function or class it dropped. */
+	removedSymbols: [string, string][];
+	bytesBefore: number;
+	bytesAfter: number;
+	notes: string[];
+}
+
+/**
+ * One of the pip exports, or null when the wasm in this build predates it.
+ * Looked up by name, as wasm-bindgen names it or under its JS name.
+ */
+function pipExport(snake: string, camel: string): ((...args: unknown[]) => string) | null {
+	if (!loaded) return null;
+	const exports = wasm as unknown as Record<string, unknown>;
+	const f = exports[snake] ?? exports[camel];
+	return typeof f === 'function' ? (f as (...args: unknown[]) => string) : null;
+}
+
+/** Whether this build has the compatibility check and tree shaking. */
+export function pipAvailable(): { analyse: boolean; shake: boolean } {
+	return { analyse: pipExport('pip_analyse', 'pipAnalyse') !== null, shake: pipExport('pip_shake', 'pipShake') !== null };
+}
+
+/**
+ * Whether a package can run in a plugin: [files] are its modules (path to
+ * source), [available] the top-level names importable beside it (other
+ * vendored packages, the plugin's own modules). Null when this build has no
+ * `pip_analyse`, or when the check failed; the editor then says so.
+ */
+export function pipAnalyse(files: Record<string, string>, options: { package: string; available: string[] }): PipAnalysis | null {
+	const f = pipExport('pip_analyse', 'pipAnalyse');
+	if (!f) return null;
+	try {
+		const raw = JSON.parse(f(JSON.stringify(files), JSON.stringify(options))) as Partial<PipAnalysis> & { problems?: Partial<PipProblem>[] };
+		const verdict: PipVerdict = raw.verdict === 'ok' || raw.verdict === 'incompatible' ? raw.verdict : 'warnings';
+		const sev = (s: unknown): PipProblem['severity'] => { const v = String(s ?? '').toLowerCase(); return v === 'error' || v === 'info' ? v : 'warning'; };
+		return {
+			verdict,
+			problems: (raw.problems ?? []).map((p) => ({ severity: sev(p.severity), file: String(p.file ?? ''), line: Number(p.line ?? 0), col: Number(p.col ?? 0), code: String(p.code ?? ''), message: String(p.message ?? '') })),
+			imports: { stdlib: raw.imports?.stdlib ?? [], internal: raw.imports?.internal ?? [], missing: raw.imports?.missing ?? [] },
+			roots: raw.roots ?? [],
+		};
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Tree-shakes the vendored packages ([roots]) among [files] (every `.py`
+ * file of the plugin), reached from [entry] and the plugin's own modules.
+ * [symbols] also drops unused top-level functions and classes. Null when this
+ * build has no `pip_shake` or it failed; the file then goes out unshaken.
+ */
+export function pipShake(files: Record<string, string>, entry: string, roots: string[], symbols: boolean): PipShake | null {
+	const f = pipExport('pip_shake', 'pipShake');
+	if (!f) return null;
+	try {
+		const raw = JSON.parse(f(JSON.stringify(files), entry, JSON.stringify(roots), symbols)) as Partial<PipShake>;
+		if (!raw.files || typeof raw.files !== 'object') return null;
+		return {
+			files: raw.files,
+			removedFiles: raw.removedFiles ?? [],
+			removedSymbols: raw.removedSymbols ?? [],
+			bytesBefore: Number(raw.bytesBefore ?? 0),
+			bytesAfter: Number(raw.bytesAfter ?? 0),
+			notes: raw.notes ?? [],
+		};
+	} catch {
+		return null;
+	}
 }

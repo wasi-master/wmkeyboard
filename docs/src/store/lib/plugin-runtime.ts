@@ -318,6 +318,10 @@ export interface PluginIdentity {
 	settings?: Record<string, unknown>;
 	/** API 5: the manifest's settings rows, which `plugin.settings.set` checks against. */
 	settingSpecs?: SettingSpec[];
+	/** API 5: the plugin's other modules, `{"helpers.py": source, "pkg/__init__.py": source}` (PythonSession `files`). */
+	files?: Record<string, string>;
+	/** API 5: the translations for the user's language, as `_()` reads them (PythonSession `strings`). */
+	strings?: Record<string, unknown>;
 }
 
 const isV5 = (plugin: PluginIdentity) => (plugin.apiVersion ?? 0) >= 5;
@@ -344,7 +348,9 @@ function configOf(plugin: PluginIdentity, storage: Record<string, string> | null
 		id: plugin.id, version: plugin.version, permissions, mode, storage: storage ?? {},
 		...(plugin.apiVersion ? { apiVersion: plugin.apiVersion } : {}),
 		...(isV5(plugin) ? {
+			files: plugin.files ?? {},
 			settings: plugin.settings ?? {},
+			strings: plugin.strings ?? {},
 			context: { locale: typeof navigator !== 'undefined' ? navigator.language : 'en', theme: dark ? 'dark' : 'light', surface: mode },
 		} : {}),
 	});

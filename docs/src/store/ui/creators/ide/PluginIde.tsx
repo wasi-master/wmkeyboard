@@ -6,8 +6,7 @@
 import { signal, useSignal } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import { PLUGIN_ICON_PATTERN, pluginPreviewProblems, readPlugin } from '../../../lib/payloads';
-import { writeZip } from '../../../lib/zip';
+import { PLUGIN_ICON_PATTERN, pluginPreviewProblems } from '../../../lib/payloads';
 import { CopyButton } from '../../common';
 import { fmtBytes } from '../../../lib/net';
 import { sha256Hex, slugify } from '../../../lib/util';
@@ -19,11 +18,19 @@ import type { PyCompletionItem, PyCompletions, PyDiagnostic, PyHost, PyOutlineIt
 import { E, CodeSurface, SHORTCUT, type CodeDecorations, type CodeEditorController, type ScreenCommand, type Severity, NO_DECORATIONS } from './CodeSurface';
 import { CodeFindBar, initialFind, type CodeFindState } from './CodeFindBar';
 import { CodeAccessoryRow, PYTHON_ACCESSORY_KEYS, arrangeKeys } from './CodeAccessoryRow';
-import { API4_PERMISSIONS, ID_PATTERN, MAX_HOSTS, MAX_NAME, MAX_SCRIPT_BYTES, PACKAGE_API, PERMISSIONS, REMINDERS_PERMISSION, RISKY_PERMISSIONS, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
+import { API4_PERMISSIONS, ID_PATTERN, MAX_HOSTS, MAX_NAME, MAX_SCRIPT_BYTES, PACKAGE_API, PERMISSIONS, REMINDERS_PERMISSION, RISKY_PERMISSIONS, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, shakePrefs, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
 import { TEMPLATES, type PluginTemplate } from './templates';
 import { S, relativeTime } from './strings';
 import { V5Widget } from './V5Widgets';
 import { FixStrip, HelpStrip, ManifestRows, TryPane, fixEdit, fixLabel, fixableAt, helpAt, manifestWith } from './PluginIdeSmart';
+import { buildArchive, canName, draftFiles, eolOf, fileDataOf, folderLinks, isPluginFile, isTestFile, lf, localeTag, manifestText, MANIFEST_FILE, MAX_FILES, moduleNames, newFilePath, readLock, runInputs, textOf, withEol, type ArchiveResult, type DraftFiles } from './draft-files';
+import { folderSupported, listFolder, pickFolder } from './folder';
+import { FolderLink, type DraftSide, type LinkState } from './folder-link';
+import { ConflictDialog, ENTRY, FileNameDialog, FileStrip, FilesPane, FolderBanner, importPluginFile, isSidePath, linkedDraftOf, manifestOfText, openFolderDraft, PlainTextSurface, startPluginInFolder, writeDraftIntoFolder, type FolderOpen } from './IdeFiles';
+import { PackageDialog } from './PackageDialog';
+import { PluginSubmit } from './PluginSubmit';
+import type { Changes } from './packages';
+import { Dialog, IconButton, IconDeleteSvg, IconFileSvg, IconFolderSvg, IconPackageSvg, IconRenameSvg, IconShareSvg, IconUnlinkSvg, TextButton, svg, useToast } from './parts';
 import './ide.css';
 
 const AUTOSAVE_MS = 400;
@@ -38,7 +45,7 @@ const MAX_BUDGET_HISTORY = 20;
 const WARN_SHARE = 0.8;
 const PANEL_FRACTION = 0.42;
 
-type IdePanel = 'CLOSED' | 'PREVIEW' | 'CONSOLE' | 'PROBLEMS' | 'OUTLINE' | 'EVENTS' | 'STORAGE' | 'TRY' | 'DETAILS';
+type IdePanel = 'CLOSED' | 'PREVIEW' | 'CONSOLE' | 'PROBLEMS' | 'OUTLINE' | 'FILES' | 'EVENTS' | 'STORAGE' | 'TRY' | 'DETAILS';
 
 /** Wide enough for the desktop layout: the code on the left, the live preview and a docked pane on the right. */
 const DESKTOP_QUERY = '(min-width: 1024px)';
@@ -175,12 +182,6 @@ function ManifestJson({ manifest, onChange }: { manifest: PluginManifest; onChan
 
 const utf8 = new TextEncoder();
 
-/** The .wmplugin file for a draft, as PluginFile.write makes it. */
-function pluginFile(manifest: PluginManifest, script: string): Uint8Array {
-	const m = sanitised(manifest);
-	return writeZip([{ name: 'plugin.json', data: JSON.stringify(m, null, 2) + '\n' }, { name: m.entry, data: script }]);
-}
-
 // ---------------------------------------------------------------------------
 // The entry: drafts list or one draft
 // ---------------------------------------------------------------------------
@@ -204,7 +205,7 @@ export function PluginIde() {
 		}
 		setOpen(draftId);
 	};
-	if (open) return <IdeScreen key={open} draftId={open} onBack={() => navigate(null)} />;
+	if (open) return <IdeScreen key={open} draftId={open} onBack={() => navigate(null)} onOpenDraft={navigate} />;
 	return <ProjectsScreen onOpen={navigate} />;
 }
 
@@ -215,8 +216,19 @@ export function PluginIde() {
 function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 	const [revision, setRevision] = useState(0);
 	const drafts = useMemo(() => workspace.drafts().map((d) => [d, workspace.manifest(d.draftId)] as const), [revision]);
+	// The folder each linked draft edits, by draft id, for its line in the list.
+	const [folders, setFolders] = useState<Map<string, string>>(() => new Map());
+	useEffect(() => {
+		let live = true;
+		void folderLinks.all().then((all) => live && setFolders(new Map([...all].map(([id, r]) => [id, r.name]))));
+		return () => {
+			live = false;
+		};
+	}, [revision]);
 	const [creating, setCreating] = useState<PluginTemplate | null>(null);
 	const [deleting, setDeleting] = useState<PluginDraft | null>(null);
+	const [folderNote, setFolderNote] = useState(false);
+	const [startIn, setStartIn] = useState<FileSystemDirectoryHandle | null>(null);
 	const [toast, showToast] = useToast();
 	const file = useRef<HTMLInputElement>(null);
 	const now = Date.now();
@@ -235,18 +247,37 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 	};
 
 	const importFile = async (f: File) => {
+		const result = await importPluginFile(new Uint8Array(await f.arrayBuffer()));
+		if ('error' in result) return showToast(result.error);
+		onOpen(result.draftId);
+	};
+
+	const opened = (result: FolderOpen) => {
+		if (result.kind === 'no-manifest') return;
+		if (result.kind === 'refused') return showToast(result.message);
+		if (result.tooBig.length) showToast(S.folderTooBig(result.tooBig.join(', ')));
+		onOpen(result.draftId);
+	};
+
+	const openFolder = async () => {
+		if (!folderSupported()) return setFolderNote(true);
 		try {
-			const read = readPlugin(new Uint8Array(await f.arrayBuffer()));
-			const refusal = read.problems.find((p) => /"id"|"name"|"pluginVersion"|apiVersion|Permission|"language"|no longer runs/.test(p));
-			if (refusal) return showToast(refusal);
-			const script = read.files.find((x) => x.name === read.manifest.entry)?.text;
-			if (script === null || script === undefined) return showToast(S.importNotAPlugin);
-			const draft = workspace.create({ ...blankManifest(), ...read.manifest }, script, 'import');
-			if (!draft) return showToast(S.newError);
-			workspace.snapshot(draft.draftId, 'import');
-			onOpen(draft.draftId);
-		} catch (e) {
-			showToast(/plugin\.json|zip/i.test(String((e as Error).message)) ? S.importNotAPlugin : S.importFailed);
+			const handle = await pickFolder();
+			if (!handle) return;
+			const result = await openFolderDraft(handle);
+			if (result.kind === 'no-manifest') return setStartIn(handle);
+			opened(result);
+		} catch {
+			showToast(S.folderFailed);
+		}
+	};
+
+	const startHere = async (handle: FileSystemDirectoryHandle) => {
+		setStartIn(null);
+		try {
+			opened(await startPluginInFolder(handle, uniquePluginId(handle.name, takenIds())));
+		} catch {
+			showToast(S.folderFailed);
 		}
 	};
 
@@ -258,6 +289,7 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 			</div>
 			<div class="wm-group">
 				<RowItem title={S.newTitle} subtitle={S.newSubtitle} onClick={() => setCreating(TEMPLATES[0]!)} />
+				<RowItem title={S.folderOpenTitle} subtitle={S.folderOpenSubtitle} onClick={() => void openFolder()} trailing={<IconFolderSvg />} />
 			</div>
 			<div class="wm-group">
 				<h2 class="wm-group-title">{S.templatesTitle}</h2>
@@ -274,15 +306,16 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 				{drafts.length === 0 && <div class="wm-caption" style="padding:0.4rem 0.2rem">{S.draftsEmpty}</div>}
 				{drafts.map(([draft, manifest]) => {
 					const edited = relativeTime(draft.updatedAt, now);
+					const folder = folders.get(draft.draftId);
 					return (
 						<RowItem
 							key={draft.draftId}
 							title={manifest?.name?.trim() || S.draftUntitled}
-							subtitle={draft.publishedVersion ? S.draftPublished(draft.publishedVersion, edited) : S.draftEdited(edited)}
+							subtitle={folder ? S.draftInFolder(folder, edited) : draft.publishedVersion ? S.draftPublished(draft.publishedVersion, edited) : S.draftEdited(edited)}
 							onClick={() => onOpen(draft.draftId)}
 							trailing={
 								<>
-									<IconButton label={S.duplicateDraftDesc} onClick={(e) => { e.stopPropagation(); if (!workspace.duplicate(draft.draftId)) showToast(S.newError); setRevision((n) => n + 1); }}><IconCopySvg /></IconButton>
+									<IconButton label={S.duplicateDraftDesc} onClick={(e) => { e.stopPropagation(); const copy = workspace.duplicate(draft.draftId); if (!copy) showToast(S.newError); else void draftFiles.copy(draft.draftId, copy.draftId); setRevision((n) => n + 1); }}><IconCopySvg /></IconButton>
 									<IconButton label={S.deleteDraftDesc} onClick={(e) => { e.stopPropagation(); setDeleting(draft); }}><IconDeleteSvg /></IconButton>
 								</>
 							}
@@ -292,8 +325,18 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 			</div>
 			{creating && <NewPluginDialog initialName={creating.id === 'BLANK' ? null : creating.name} onDismiss={() => setCreating(null)} onCreate={(name) => create(creating, name)} />}
 			{deleting && (
-				<Dialog title={S.deleteDraftTitle} onDismiss={() => setDeleting(null)} actions={<><TextButton onClick={() => setDeleting(null)}>{S.cancel}</TextButton><TextButton onClick={() => { workspace.delete(deleting.draftId); setDeleting(null); setRevision((n) => n + 1); }}>{S.delete}</TextButton></>}>
+				<Dialog title={S.deleteDraftTitle} onDismiss={() => setDeleting(null)} actions={<><TextButton onClick={() => setDeleting(null)}>{S.cancel}</TextButton><TextButton onClick={() => { workspace.delete(deleting.draftId); void draftFiles.remove(deleting.draftId); setDeleting(null); setRevision((n) => n + 1); }}>{S.delete}</TextButton></>}>
 					<p>{S.deleteDraftBody}</p>
+				</Dialog>
+			)}
+			{folderNote && (
+				<Dialog title={S.folderUnsupportedTitle} onDismiss={() => setFolderNote(false)} actions={<><TextButton onClick={() => setFolderNote(false)}>{S.cancel}</TextButton><TextButton onClick={() => { setFolderNote(false); file.current?.click(); }}>{S.importTitle}</TextButton></>}>
+					<p>{S.folderUnsupportedBody}</p>
+				</Dialog>
+			)}
+			{startIn && (
+				<Dialog title={S.folderNoManifestTitle(startIn.name)} onDismiss={() => setStartIn(null)} actions={<><TextButton onClick={() => setStartIn(null)}>{S.cancel}</TextButton><TextButton onClick={() => void startHere(startIn)}>{S.folderStart}</TextButton></>}>
+					<p>{S.folderNoManifestBody}</p>
 				</Dialog>
 			)}
 			{toast}
@@ -371,7 +414,7 @@ interface RenamePlan {
 	caret: number;
 }
 
-function IdeScreen({ draftId, onBack }: { draftId: string; onBack: () => void }) {
+function IdeScreen({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: () => void; onOpenDraft: (draftId: string) => void }) {
 	const draft = useMemo(() => workspace.draft(draftId), [draftId]);
 	if (!draft) {
 		return (
@@ -381,12 +424,39 @@ function IdeScreen({ draftId, onBack }: { draftId: string; onBack: () => void })
 			</div>
 		);
 	}
-	return <IdeBody draftId={draftId} onBack={onBack} />;
+	return <IdeBody draftId={draftId} onBack={onBack} onOpenDraft={onOpenDraft} />;
 }
 
-function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
+const isPythonPath = (path: string) => path === ENTRY || path.endsWith('.py');
+
+type FileDialogState = { kind: 'new' } | { kind: 'rename'; path: string };
+
+function IdeBody({ draftId, onBack, onOpenDraft }: { draftId: string; onBack: () => void; onOpenDraft: (draftId: string) => void }) {
 	const [manifest, setManifest] = useState<PluginManifest>(() => workspace.manifest(draftId) ?? blankManifest());
-	const savedText = useRef(workspace.script(draftId) ?? '');
+	const manifestRef = useRef(manifest);
+	manifestRef.current = manifest;
+	const entryName = sanitise(manifest.entry, 'ENTRY');
+	const entryRef = useRef(entryName);
+	entryRef.current = entryName;
+	// The draft's other files, read from IndexedDB once the screen opens; null until then.
+	const [files, setFiles] = useState<DraftFiles | null>(null);
+	const filesRef = useRef<DraftFiles>({});
+	// The file open in the editor: ENTRY, or a path from files.
+	const [openPath, setOpenPath] = useState<string>(ENTRY);
+	const openRef = useRef<string>(ENTRY);
+	// The editor works in \n; a file that came with \r\n is saved with \r\n.
+	const eolRef = useRef<'\n' | '\r\n'>('\n');
+	const savedText = useRef<string>('');
+	const initialised = useRef(false);
+	if (!initialised.current) {
+		initialised.current = true;
+		const stored = workspace.script(draftId) ?? '';
+		eolRef.current = eolOf(stored);
+		savedText.current = lf(stored);
+	}
+	// A file that is not Python is edited in a plain field.
+	const [plainText, setPlainText] = useState('');
+	const plainRef = useRef('');
 	const controller = useSignal<CodeEditorController | null>(null);
 	const preview = useMemo(() => new PluginPreviewSession((id) => workspace.storageKey(id)), []);
 	const previewState = preview.state.value;
@@ -395,6 +465,8 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const [wrap, setWrap] = useState(prefs.wrap);
 	const [autoRun, setAutoRun] = useState(prefs.autoRun);
 	useEffect(() => editorPrefs.write({ textSize, wrap, autoRun }), [textSize, wrap, autoRun]);
+	const [shakeSymbols, setShakeSymbols] = useState(() => shakePrefs.read());
+	useEffect(() => shakePrefs.write(shakeSymbols), [shakeSymbols]);
 	const desktop = useMedia(DESKTOP_QUERY);
 	const [panel, setPanel] = useState<IdePanel>(() => (typeof window !== 'undefined' && window.matchMedia(DESKTOP_QUERY).matches ? 'CONSOLE' : 'CLOSED'));
 	const [menuOpen, setMenuOpen] = useState(false);
@@ -409,15 +481,31 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const [versions, setVersions] = useState<PluginSnapshot[] | null>(null);
 	const [comparing, setComparing] = useState<PluginSnapshot | null>(null);
 	const [comparison, setComparison] = useState<E.DiffRow[] | null>(null);
+	const [fileDialog, setFileDialog] = useState<FileDialogState | null>(null);
+	const [fileError, setFileError] = useState<string | null>(null);
+	const [deletingFile, setDeletingFile] = useState<string | null>(null);
+	const [packagesOpen, setPackagesOpen] = useState(false);
+	const [submitOpen, setSubmitOpen] = useState(false);
+	const [folderNote, setFolderNote] = useState(false);
+	const [saveHere, setSaveHere] = useState<FileSystemDirectoryHandle | null>(null);
+	const [link, setLink] = useState<FolderLink | null>(null);
+	const linkRef = useRef<FolderLink | null>(null);
+	const [linkState, setLinkState] = useState<{ state: LinkState; detail?: string }>({ state: 'connecting' });
+	const [conflicts, setConflicts] = useState<string[]>([]);
+	const manifestPush = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const [toast, showToast] = useToast();
 	const lastRun = useRef<string | null>(null);
 	const [renderHistory, setRenderHistory] = useState<number[]>([]);
 	const [inspection, setInspection] = useState<Inspection>({ diagnostics: [], outline: [] });
 	const [matches, setMatches] = useState<E.Range[]>([]);
-const keyboard = useMemo(hardwareKeyboardAttached, []);
+	const keyboard = useMemo(hardwareKeyboardAttached, []);
 	const suggestionBar = useMemo(() => ({ shown: signal(null as PyCompletions | null), choose: (item: PyCompletionItem) => controller.value?.choose(item) }), [controller]);
 	const storage = manifest.permissions.includes(STORAGE_PERMISSION);
 	const reminders = manifest.permissions.includes(REMINDERS_PERMISSION);
+	const isEntry = openPath === ENTRY;
+	const isPython = isPythonPath(openPath);
+	const lock = useMemo(() => (files ? readLock(files) : null), [files]);
+	const modules = useMemo(() => moduleNames(Object.keys(files ?? {}), entryName), [files, entryName]);
 	// The checks and suggestions read plugin.json as it is now: permissions, hosts, providers, actions, settings, keyword.
 	const host = useMemo<PyHost>(() => ({
 		storage,
@@ -425,78 +513,298 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 		panel: manifest.panel !== false,
 		selection: manifest.permissions.includes('selection'),
 		actions: (manifest.actions ?? []).map((a) => a.id),
+		modules,
 		manifest: sanitised(manifest),
-	}), [manifest, storage, reminders]);
+	}), [manifest, storage, reminders, modules]);
+	// Another module of the plugin: Python checks and the plugin's own imports, nothing that needs a render().
+	const moduleHost = useMemo<PyHost>(() => ({ storage, reminders, selection: manifest.permissions.includes('selection'), panel: false, modules }), [manifest, storage, reminders, modules]);
+	const checkHost = isEntry ? host : moduleHost;
+	const checkHostRef = useRef(checkHost);
+	checkHostRef.current = checkHost;
 
-	const c = controller.value;
+	const c = isPython ? controller.value : null;
 	// Read for its subscription: the screen re-renders on every change of the text or the caret.
 	void c?.revision.value;
-	const text = c?.text ?? savedText.current;
+	const text = isPython ? (c?.text ?? savedText.current) : plainText;
 	const caret = c ? Math.min(Math.max(c.selection.end, 0), text.length) : 0;
 	const lineStarts = useMemo(() => E.lineStartOffsets(text), [text]);
 	const positionLine = E.lineOf(lineStarts, caret);
 	const positionColumn = caret - lineStarts[positionLine]!;
-	const help = useMemo(() => (c ? helpAt(text, caret, host) : null), [c, text, caret, host]);
+	const help = useMemo(() => (c ? helpAt(text, caret, checkHost) : null), [c, text, caret, checkHost]);
 
-	// ---- saving, versions, running ----------------------------------------------------
-	const save = useCallback((current: string) => {
+	// ---- the open file and the draft's files ----------------------------------------------
+	/** The open file as typed, saved or not. */
+	const currentText = useCallback(() => (isPythonPath(openRef.current) ? controller.value?.text ?? savedText.current : plainRef.current), [controller]);
+	/** Changes the draft's other files: in memory, in IndexedDB, and in the folder when [push]. */
+	const writeFiles = useCallback((changes: Changes, push: boolean) => {
+		const next = { ...filesRef.current };
+		for (const [p, v] of Object.entries(changes)) {
+			if (v === null) delete next[p];
+			else next[p] = v;
+		}
+		filesRef.current = next;
+		setFiles(next);
+		void draftFiles.write(draftId, changes);
+		workspace.touch(draftId);
+		if (push) void linkRef.current?.push(Object.keys(changes));
+	}, [draftId]);
+	/** Writes [current] as the open file when it differs from what is there. A save for a file no longer open writes nothing. */
+	const save = useCallback((current: string, path: string) => {
+		if (path !== openRef.current) return true;
 		if (current === savedText.current) return true;
-		if (!workspace.writeScript(draftId, current)) return false;
+		const stored = withEol(current, eolRef.current);
+		if (path === ENTRY) {
+			if (!workspace.writeScript(draftId, stored)) return false;
+			void linkRef.current?.push([entryRef.current]);
+		} else writeFiles({ [path]: stored }, true);
 		savedText.current = current;
 		return true;
-	}, [draftId]);
+	}, [draftId, writeFiles]);
+	const saveOpen = useCallback(() => save(currentText(), openRef.current), [save, currentText]);
+	/** Moves the editor to [path], saving the file it leaves first unless [saveFirst] is false (that file is gone). */
+	const switchTo = useCallback((path: string, saveFirst: boolean) => {
+		if (saveFirst && !save(currentText(), openRef.current)) {
+			showToast(S.filesFailed);
+			return false;
+		}
+		const body = path === ENTRY ? workspace.script(draftId) ?? '' : textOf(filesRef.current[path]) ?? '';
+		eolRef.current = eolOf(body);
+		savedText.current = lf(body);
+		plainRef.current = savedText.current;
+		setPlainText(savedText.current);
+		// The field of the file being left goes; nothing reads its text as the new file's.
+		controller.value = null;
+		openRef.current = path;
+		setOpenPath(path);
+		setFindOpen(false);
+		return true;
+	}, [save, currentText, draftId, controller, showToast]);
+	const openFile = useCallback((path: string) => {
+		if (path === openRef.current) return;
+		if (path !== ENTRY) {
+			const data = filesRef.current[path];
+			if (data === undefined) return showToast(S.filesOpenFailed(path));
+			if (typeof data !== 'string') return showToast(path.startsWith('assets/') ? S.filesPicture(path) : S.filesBinary(path));
+		}
+		switchTo(path, true);
+	}, [switchTo, showToast]);
+	/** The folder's copy of the open file came in: the field shows it. */
+	const reloadOpen = useCallback((body: string, path: string) => {
+		eolRef.current = eolOf(body);
+		savedText.current = lf(body);
+		if (isPythonPath(openRef.current)) controller.value?.replace(savedText.current);
+		else {
+			plainRef.current = savedText.current;
+			setPlainText(savedText.current);
+		}
+		showToast(S.folderReloaded(path));
+	}, [controller, showToast]);
+	/** The entry and the other files as they are now, with the open file as typed. */
+	const liveSources = useCallback(() => {
+		const open = openRef.current;
+		const now = withEol(currentText(), eolRef.current);
+		if (open === ENTRY) return { entryText: now, files: filesRef.current };
+		return { entryText: workspace.script(draftId) ?? '', files: { ...filesRef.current, [open]: now } };
+	}, [currentText, draftId]);
+	const archiveOf = useCallback((m: PluginManifest): ArchiveResult => {
+		const s = liveSources();
+		return buildArchive(m, s.entryText, s.files, shakeSymbols);
+	}, [liveSources, shakeSymbols]);
+
+	// ---- the folder ----------------------------------------------------------------------
+	// What the link asks of the editor goes through a ref, so it always reaches this render's functions.
+	const sideRef = useRef({ reloadOpen, switchTo, writeFiles, showToast, currentText });
+	sideRef.current = { reloadOpen, switchTo, writeFiles, showToast, currentText };
+	const draftSide = useMemo<DraftSide>(() => ({
+		paths: () => [MANIFEST_FILE, entryRef.current, ...Object.keys(filesRef.current)],
+		content: (path) => {
+			if (path === MANIFEST_FILE) return manifestText(manifestRef.current);
+			const entry = entryRef.current;
+			const open = openRef.current === ENTRY ? entry : openRef.current;
+			if (path === open) return withEol(sideRef.current.currentText(), eolRef.current);
+			if (path === entry) return workspace.script(draftId) ?? '';
+			return filesRef.current[path] ?? null;
+		},
+		take: (path, bytes) => {
+			const side = sideRef.current;
+			if (path === MANIFEST_FILE) {
+				if (!bytes) return 'refused';
+				const read = manifestOfText(new TextDecoder().decode(bytes));
+				if ('error' in read) {
+					side.showToast(S.folderBadManifest(read.error));
+					return 'refused';
+				}
+				workspace.writeManifest(draftId, read.manifest);
+				manifestRef.current = read.manifest;
+				setManifest(read.manifest);
+				return manifestText(read.manifest);
+			}
+			const entry = entryRef.current;
+			const open = openRef.current === ENTRY ? entry : openRef.current;
+			if (path === entry) {
+				const data = bytes ? fileDataOf(path, bytes) : null;
+				// The entry is never deleted from the draft, and never holds anything but text.
+				if (typeof data !== 'string') return 'refused';
+				workspace.writeScript(draftId, data);
+				if (open === entry) side.reloadOpen(data, path);
+				return data;
+			}
+			if (bytes === null) {
+				if (open === path) side.switchTo(ENTRY, false);
+				side.writeFiles({ [path]: null }, false);
+				return null;
+			}
+			const data = fileDataOf(path, bytes);
+			side.writeFiles({ [path]: data }, false);
+			if (open === path && typeof data === 'string') side.reloadOpen(data, path);
+			return data;
+		},
+		conflicts: (paths) => setConflicts((held) => [...new Set([...held, ...paths])]),
+		state: (state, detail) => setLinkState({ state, detail }),
+	}), [draftId]);
+	// The files load first; a linked draft then connects to its folder.
 	useEffect(() => {
-		const t = setTimeout(() => save(text), AUTOSAVE_MS);
+		let live = true;
+		void (async () => {
+			const loaded = await draftFiles.load(draftId);
+			if (!live) return;
+			filesRef.current = loaded;
+			setFiles(loaded);
+			const record = await folderLinks.get(draftId);
+			if (!live || !record) return;
+			const l = new FolderLink(draftId, record, draftSide);
+			linkRef.current = l;
+			setLink(l);
+			void l.start(false);
+		})();
+		return () => {
+			live = false;
+			// The last edit reaches the folder before the link stops.
+			saveOpen();
+			linkRef.current?.stop();
+			linkRef.current = null;
+		};
+	}, [draftId, draftSide, saveOpen]);
+	const unlink = () => {
+		linkRef.current?.stop(false);
+		linkRef.current = null;
+		setLink(null);
+		setConflicts([]);
+		void folderLinks.remove(draftId);
+		showToast(S.folderUnlinked);
+	};
+	const resolveConflicts = (keep: 'draft' | 'folder') => {
+		const paths = conflicts;
+		setConflicts([]);
+		saveOpen();
+		void linkRef.current?.resolve(paths, keep);
+	};
+	const openFolder = async () => {
+		if (!folderSupported()) return setFolderNote(true);
+		try {
+			const handle = await pickFolder();
+			if (!handle) return;
+			const linked = await linkedDraftOf(handle);
+			if (linked === draftId) return;
+			if (linked) return onOpenDraft(linked);
+			const listing = await listFolder(handle);
+			if (!listing.entries.has(MANIFEST_FILE)) return setSaveHere(handle);
+			// A plugin folder of its own opens as its own draft.
+			const result = await openFolderDraft(handle);
+			if (result.kind === 'opened') onOpenDraft(result.draftId);
+			else if (result.kind === 'refused') showToast(result.message);
+		} catch {
+			showToast(S.folderFailed);
+		}
+	};
+	// Where folders cannot open, a .wmplugin opens as a new draft instead.
+	const importInput = useRef<HTMLInputElement>(null);
+	const importAsDraft = async (f: File) => {
+		const result = await importPluginFile(new Uint8Array(await f.arrayBuffer()));
+		if ('error' in result) return showToast(result.error);
+		onOpenDraft(result.draftId);
+	};
+	const saveIntoFolder = async (handle: FileSystemDirectoryHandle) => {
+		setSaveHere(null);
+		saveOpen();
+		try {
+			const synced = await writeDraftIntoFolder(handle, manifestRef.current, workspace.script(draftId) ?? '', filesRef.current);
+			const record = { handle, name: handle.name, synced };
+			await folderLinks.put(draftId, record);
+			linkRef.current?.stop(false);
+			const l = new FolderLink(draftId, record, draftSide);
+			linkRef.current = l;
+			setLink(l);
+			await l.start(false);
+			showToast(S.folderSaved(handle.name));
+		} catch {
+			showToast(S.folderFailed);
+		}
+	};
+
+	// ---- saving, versions, running ----------------------------------------------------
+	useEffect(() => {
+		const t = setTimeout(() => save(text, openPath), AUTOSAVE_MS);
 		return () => clearTimeout(t);
-	}, [text, save]);
+	}, [text, openPath, save]);
 	useEffect(() => {
 		const t = setInterval(() => {
-			const current = controller.value?.text;
-			if (current !== undefined && save(current)) workspace.snapshot(draftId, 'periodic');
+			if (saveOpen()) workspace.snapshot(draftId, 'periodic');
 		}, PERIODIC_VERSION_MS);
 		return () => clearInterval(t);
-	}, [draftId, save, controller]);
-	const identity = useCallback(() => ({
-		id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders,
-		apiVersion: manifest.apiVersion, permissions: manifest.permissions, hosts: manifest.hosts ?? [], settings: settingDefaults(manifest),
-		settingSpecs: (manifest.settings ?? []).map((s) => ({ key: s.key, type: s.type?.trim() ?? 'text', default: s.default, options: s.options })),
-	}), [manifest, draftId, storage, reminders]);
+	}, [draftId, saveOpen]);
+	const identity = useCallback(() => {
+		const s = liveSources();
+		// API 5: the other modules and the translation for the browser's languages (PluginIdeState.runInputs).
+		const inputs = runInputs(s.files, entryRef.current, typeof navigator !== 'undefined' ? navigator.languages ?? [navigator.language] : ['en']);
+		return {
+			id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders,
+			apiVersion: manifest.apiVersion, permissions: manifest.permissions, hosts: manifest.hosts ?? [], settings: settingDefaults(manifest),
+			settingSpecs: (manifest.settings ?? []).map((s) => ({ key: s.key, type: s.type?.trim() ?? 'text', default: s.default, options: s.options })),
+			files: inputs.files,
+			strings: inputs.strings,
+		};
+	}, [manifest, draftId, storage, reminders, liveSources]);
+	const entryForRun = useCallback(() => lf(liveSources().entryText), [liveSources]);
 	const runPlugin = useCallback(() => {
-		const current = controller.value?.text ?? savedText.current;
-		lastRun.current = current;
-		preview.run(draftId, current, identity());
+		lastRun.current = `${openRef.current}\n${currentText()}`;
+		preview.run(draftId, entryForRun(), identity());
 		setPanel((p) => (p === 'CLOSED' ? 'PREVIEW' : p));
-	}, [controller, preview, draftId, identity]);
+	}, [preview, draftId, identity, entryForRun, currentText]);
 	useEffect(() => {
-		if (!autoRun) return;
+		if (!autoRun || files === null) return;
 		const t = setTimeout(() => {
-			if (autoRun && Py.check(text) === null && text !== lastRun.current) {
-				lastRun.current = text;
-				preview.run(draftId, text, identity());
-			}
+			if (isPython && Py.check(text) !== null) return;
+			const key = `${openPath}\n${text}`;
+			if (key === lastRun.current) return;
+			lastRun.current = key;
+			preview.run(draftId, entryForRun(), identity());
 		}, AUTO_RUN_MS);
 		return () => clearTimeout(t);
-	}, [text, autoRun, preview, draftId, identity]);
+	}, [text, openPath, isPython, autoRun, files === null, preview, draftId, identity, entryForRun]);
 	const renderUsage = previewState.usage.RENDER;
 	useEffect(() => {
 		if (!renderUsage || renderUsage.running) return;
 		setRenderHistory((h) => [...h, renderUsage.steps].slice(-MAX_BUDGET_HISTORY));
 	}, [renderUsage]);
 	useEffect(() => () => {
-		const current = controller.value?.text;
-		if (current !== undefined) save(current);
+		saveOpen();
 		preview.shutdown();
-	}, [preview, save, controller]);
+	}, [preview, saveOpen]);
 
 	// ---- the checks --------------------------------------------------------------------
 	useEffect(() => {
+		if (!isPython) {
+			setInspection({ diagnostics: [], outline: [] });
+			return;
+		}
 		const t = setTimeout(() => {
-			const found = Py.analyse(text, host);
+			const found = Py.analyse(text, checkHost);
 			// A file that stops parsing keeps the outline it had.
 			setInspection((previous) => ({ diagnostics: found.diagnostics, outline: found.outline.length || Py.check(text) === null ? found.outline : previous.outline }));
 		}, DIAGNOSTICS_MS);
 		return () => clearTimeout(t);
-	}, [text, host]);
+	}, [text, checkHost, isPython]);
 	useEffect(() => {
 		if (!findOpen || !find.query) {
 			setMatches([]);
@@ -505,9 +813,9 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 		const t = setTimeout(() => setMatches(E.findMatches(text, find.query, find.options)), FIND_DELAY_MS);
 		return () => clearTimeout(t);
 	}, [text, find.query, find.options, findOpen]);
-	const failureLine = previewState.failure?.line ? previewState.failure.line - 1 : null;
+	const failureLine = isEntry && previewState.failure?.line ? previewState.failure.line - 1 : null;
 	const diagnostics = inspection.diagnostics;
-	const fixable = useMemo(() => fixableAt(diagnostics, caret), [diagnostics, caret]);
+	const fixable = useMemo(() => (c ? fixableAt(diagnostics, caret) : null), [c, diagnostics, caret]);
 	// A fix changes the script, or plugin.json, never both.
 	const applyFix = (d: PyDiagnostic) => {
 		const ed = controller.value;
@@ -516,11 +824,21 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 		if (edit) return ed.applyEdit(edit);
 		const updated = manifestWith(manifest, d.fix);
 		if (!updated) return;
-		const withFormat = sanitised(updated);
-		if (workspace.writeManifest(draftId, withFormat)) {
-			setManifest(withFormat);
-			showToast(S.fixManifestSaved);
-		}
+		commitManifest(updated);
+		showToast(S.fixManifestSaved);
+	};
+	/** plugin.json changed here: the draft keeps it, and the folder gets it. */
+	const commitManifest = (m: PluginManifest) => {
+		const withFormat = sanitised(m);
+		if (!workspace.writeManifest(draftId, withFormat)) return;
+		manifestRef.current = withFormat;
+		setManifest(withFormat);
+		// The Details form commits on every key: the folder gets plugin.json once typing stops.
+		if (manifestPush.current) clearTimeout(manifestPush.current);
+		manifestPush.current = setTimeout(() => {
+			manifestPush.current = null;
+			void linkRef.current?.push([MANIFEST_FILE]);
+		}, AUTOSAVE_MS);
 	};
 	useEffect(() => {
 		if (!c) return;
@@ -536,6 +854,57 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 		const decorations: CodeDecorations = marks.size === 0 && matches.length === 0 ? NO_DECORATIONS : { matches, activeMatch: matches.length ? Math.min(Math.max(find.active, 0), matches.length - 1) : -1, squiggles: diagnostics.map((d) => ({ start: d.start, end: d.end, severity: d.severity })), gutterMarks: marks };
 		c.setDecorations(decorations);
 	}, [c, diagnostics, lineStarts, failureLine, matches, find.active]);
+
+	// ---- files ------------------------------------------------------------------------------
+	const addFile = (name: string) => {
+		const path = newFilePath(name);
+		const entry = entryRef.current;
+		const all = filesRef.current;
+		if (path === entry || path === MANIFEST_FILE || path in all) return setFileError(S.filesNameTaken(path));
+		// A test beside the plugin is fine too; it never goes in the plugin.
+		const test = isTestFile(path) && path.endsWith('.py') && isSidePath(path);
+		if (!test && !canName(path, entry)) return setFileError(S.filesNameInvalid);
+		if (!test && manifestRef.current.apiVersion < PACKAGE_API) return setFileError(S.filesNeedsApi(entry, PACKAGE_API));
+		if (!test && Object.keys(all).filter((p) => isPluginFile(p, entry)).length >= MAX_FILES) return setFileError(S.filesTooMany(MAX_FILES));
+		if (!saveOpen()) return setFileError(S.filesFailed);
+		writeFiles({ [path]: localeTag(path) ? '{\n}\n' : '' }, true);
+		setFileDialog(null);
+		switchTo(path, false);
+	};
+	const renameFile = (from: string, name: string) => {
+		const entry = entryRef.current;
+		const own = isPluginFile(from, entry);
+		const path = own ? newFilePath(name) : name.trim();
+		if (path === from) return setFileDialog(null);
+		if (path === entry || path === MANIFEST_FILE || path in filesRef.current) return setFileError(S.filesNameTaken(path));
+		const allowed = own ? canName(path, entry) || (isTestFile(path) && isSidePath(path)) : isSidePath(path);
+		if (!allowed) return setFileError(S.filesNameInvalid);
+		if (!saveOpen()) return setFileError(S.filesFailed);
+		writeFiles({ [from]: null, [path]: filesRef.current[from]! }, true);
+		setFileDialog(null);
+		if (openRef.current === from) {
+			controller.value = null;
+			openRef.current = path;
+			setOpenPath(path);
+		}
+	};
+	const deleteFile = (path: string) => {
+		setDeletingFile(null);
+		if (openRef.current === path) switchTo(ENTRY, false);
+		writeFiles({ [path]: null }, true);
+	};
+	const applyPackages = (changes: Changes, message: string) => {
+		saveOpen();
+		const open = openRef.current;
+		writeFiles(changes, true);
+		if (open !== ENTRY && open in changes) {
+			const now = changes[open];
+			if (now === null || now === undefined) switchTo(ENTRY, false);
+			else if (typeof now === 'string') reloadOpen(now, open);
+		}
+		setPackagesOpen(false);
+		showToast(message);
+	};
 
 	// ---- commands ---------------------------------------------------------------------------
 	const openFind = (replace: boolean) => {
@@ -600,7 +969,7 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 			case 'ZOOM_OUT': setTextSize((s) => Math.max(s - 1, MIN_TEXT_SIZE)); break;
 			case 'ZOOM_RESET': setTextSize(DEFAULT_TEXT_SIZE); break;
 			case 'SAVE':
-				if (ed) save(ed.text);
+				saveOpen();
 				showToast(S.saved);
 				break;
 			case 'RUN': runPlugin(); break;
@@ -619,42 +988,51 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 		}
 		return true;
 	};
+	/** The file Install and Save as a file write, with what the importer would refuse first; null while the files load. */
+	const archiveNow = (): ArchiveResult | null => {
+		if (files === null) return null;
+		saveOpen();
+		return buildArchive(manifestRef.current, workspace.script(draftId) ?? '', filesRef.current, shakeSymbols);
+	};
 	const publish = () => {
-		const ed = controller.value;
-		if (!ed) return;
-		save(ed.text);
-		const problem = manifestProblems(manifest)[0];
+		const m = manifestRef.current;
+		const archive = archiveNow();
+		if (!archive) return;
+		const problem = manifestProblems(m)[0];
 		if (problem) return showToast(problem);
-		if (utf8.encode(ed.text).byteLength > MAX_SCRIPT_BYTES) return showToast(S.rejectScriptTooLarge(manifest.name, MAX_SCRIPT_BYTES / 1024));
+		if (utf8.encode(workspace.script(draftId) ?? '').byteLength > MAX_SCRIPT_BYTES) return showToast(S.rejectScriptTooLarge(m.name, MAX_SCRIPT_BYTES / 1024));
+		if (archive.problems[0]) return showToast(archive.problems[0]);
 		workspace.snapshot(draftId, 'publish');
 		try {
-			saveBytes(fileNameOf(manifest), pluginFile(manifest, ed.text));
-			workspace.markPublished(draftId, sanitise(manifest.pluginVersion, 'VERSION'));
+			saveBytes(fileNameOf(m), archive.bytes);
+			workspace.markPublished(draftId, sanitise(m.pluginVersion, 'VERSION'));
 			showToast(S.exportSaved);
 		} catch {
 			showToast(S.exportFailed);
 		}
 	};
 	const exportFile = () => {
-		const ed = controller.value;
-		if (!ed) return;
-		if (manifestProblems(manifest).length) return showToast(S.exportProblems);
+		const m = manifestRef.current;
+		const archive = archiveNow();
+		if (!archive) return;
+		if (manifestProblems(m).length) return showToast(S.exportProblems);
+		if (archive.problems[0]) return showToast(archive.problems[0]);
 		try {
-			saveBytes(fileNameOf(manifest), pluginFile(manifest, ed.text));
+			saveBytes(fileNameOf(m), archive.bytes);
 			showToast(S.exportSaved);
 		} catch {
 			showToast(S.exportFailed);
 		}
 	};
+	// Versions keep the entry script, so they are offered while it is open.
 	const saveVersion = () => {
-		const ed = controller.value;
-		if (!ed) return;
-		save(ed.text);
+		if (!isEntry) return;
+		saveOpen();
 		showToast(workspace.snapshot(draftId, 'manual') ? S.versionSaved : S.versionSame);
 	};
 	const openVersions = () => {
-		const ed = controller.value;
-		if (ed) save(ed.text);
+		if (!isEntry) return;
+		saveOpen();
 		setVersions(workspace.snapshots(draftId));
 	};
 	const compare = (version: PluginSnapshot) => {
@@ -667,18 +1045,20 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 			showToast(S.restoreFailed);
 			return;
 		}
-		setTimeout(() => setComparison(E.collapseDiff(E.lineDiff(current, body))), 0);
+		setTimeout(() => setComparison(E.collapseDiff(E.lineDiff(current, lf(body)))), 0);
 	};
 	const restore = (version: PluginSnapshot) => {
 		setComparing(null);
 		setVersions(null);
 		const ed = controller.value;
-		if (!ed) return;
-		if (!save(ed.text) || !workspace.restore(draftId, version.snapshotId)) return showToast(S.restoreFailed);
+		if (!ed || !isEntry) return;
+		if (!save(ed.text, ENTRY) || !workspace.restore(draftId, version.snapshotId)) return showToast(S.restoreFailed);
 		const body = workspace.script(draftId);
 		if (body === null) return showToast(S.restoreFailed);
-		savedText.current = body;
-		ed.replace(body);
+		eolRef.current = eolOf(body);
+		savedText.current = lf(body);
+		ed.replace(savedText.current);
+		void linkRef.current?.push([entryRef.current]);
 		showToast(S.restored);
 	};
 	const replayable = useMemo(() => preview.recordedEvents(), [preview, previewState.runs]);
@@ -691,27 +1071,50 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 			{keyboard && command && SHORTCUT[command] && <kbd>{SHORTCUT[command]}</kbd>}
 		</button>
 	);
-	const surfaceOptions = useMemo(() => ({ onCommand, onGutterPress: (line: number) => { setPanel('PROBLEMS'); controller.value?.moveTo(E.offsetOfLine(controller.value.text, line)); }, host: () => host, suggestionBar, completions: true }), [host, suggestionBar]);
+	const surfaceOptions = useMemo(() => ({ onCommand, onGutterPress: (line: number) => { setPanel('PROBLEMS'); controller.value?.moveTo(E.offsetOfLine(controller.value.text, line)); }, host: () => checkHostRef.current, suggestionBar, completions: true }), [suggestionBar]);
 	const arrangedKeys = useMemo(() => arrangeKeys(PYTHON_ACCESSORY_KEYS, keys.order, new Set(keys.hidden)), [keys]);
+	const hasFiles = files !== null && Object.keys(files).length > 0;
+	const hasPackages = !!lock && Object.keys(lock.packages).length > 0;
+	const entrySize = useMemo(() => utf8.encode(isEntry ? text : workspace.script(draftId) ?? '').byteLength, [isEntry, text, draftId, files]);
 
 	const previewPane = <PreviewPane preview={preview} state={previewState} autoRun={autoRun} onAutoRun={setAutoRun} history={renderHistory} onCopied={() => showToast(S.copied)} />;
+	const PANES = { CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, FILES: S.filesLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, TRY: S.tryLabel, DETAILS: S.detailsLabel };
 	const pane = (
 		<>
 			{panel === 'PREVIEW' && previewPane}
-			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onJump={(line) => controller.value?.moveTo(E.offsetOfLine(controller.value.text, line - 1))} />}
+			{panel === 'CONSOLE' && <ConsolePane preview={preview} revision={previewState.consoleRevision} onJump={(line) => { if (isEntry) controller.value?.moveTo(E.offsetOfLine(controller.value.text, line - 1)); }} />}
 			{panel === 'PROBLEMS' && <ProblemsPane diagnostics={diagnostics} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} onFix={applyFix} />}
 			{panel === 'OUTLINE' && <OutlinePane outline={inspection.outline} lineStarts={lineStarts} onJump={(r) => controller.value?.select(r)} />}
+			{panel === 'FILES' && files !== null && (
+				<FilesPane
+					entry={entryName}
+					entrySize={entrySize}
+					files={files}
+					lock={lock}
+					open={openPath}
+					folder={link?.name ?? null}
+					onOpen={openFile}
+					onManifest={() => setPanel('DETAILS')}
+					onNew={() => { setFileError(null); setFileDialog({ kind: 'new' }); }}
+					onRename={(path) => { setFileError(null); setFileDialog({ kind: 'rename', path }); }}
+					onDelete={setDeletingFile}
+					onPackages={() => setPackagesOpen(true)}
+				/>
+			)}
 			{panel === 'EVENTS' && <EventsPane targets={previewState.targets} earlier={replayable} onSend={(e) => preview.send(e)} />}
 			{panel === 'STORAGE' && <StoragePane storage={preview.storageOf(draftId)} declared={storage} busy={previewState.busy} />}
-			{panel === 'TRY' && <TryPane manifest={manifest} script={() => controller.value?.text ?? savedText.current} identity={identity} storage={() => (storage ? preview.storageOf(draftId).entries() : null)} />}
-			{panel === 'DETAILS' && <DetailsPane manifest={manifest} script={text} onManifest={(m) => { const withFormat = sanitised(m); setManifest(withFormat); workspace.writeManifest(draftId, withFormat); }} onExport={exportFile} />}
+			{panel === 'TRY' && <TryPane manifest={manifest} script={entryForRun} identity={identity} storage={() => (storage ? preview.storageOf(draftId).entries() : null)} />}
+			{panel === 'DETAILS' && <DetailsPane manifest={manifest} script={text} filesKey={files} build={archiveOf} hasPackages={hasPackages} shakeSymbols={shakeSymbols} onShakeSymbols={setShakeSymbols} onManifest={commitManifest} onExport={exportFile} />}
 		</>
 	);
 	return (
 		<div class={`wm-ide ${desktop ? 'wm-ide-desktop' : ''}`} onClickCapture={() => menuOpen && setMenuOpen(false)}>
 			<div class="wm-ide-bar">
 				<IconButton label={S.back} onClick={onBack}><IconBackSvg /></IconButton>
-				<div class="wm-ide-title" title={title}>{title}</div>
+				<div class="wm-ide-titles">
+					<div class="wm-ide-title" title={title}>{title}</div>
+					{link && <div class="wm-ide-folder" title={S.folderLinked(link.name)}><IconFolderSvg /> {link.name}</div>}
+				</div>
 				<IconButton label={S.undoDesc} disabled={!(c?.canUndo.value ?? false)} onClick={() => c?.undo()}><IconUndoSvg /></IconButton>
 				<IconButton label={S.redoDesc} disabled={!(c?.canRedo.value ?? false)} onClick={() => c?.redo()}><IconRedoSvg /></IconButton>
 				<IconButton label={running ? S.stopDesc : S.runDesc} onClick={() => (running ? preview.stop() : runPlugin())}>{running ? <IconStopSvg /> : <IconPlaySvg />}</IconButton>
@@ -720,30 +1123,38 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 					<IconButton label={S.moreDesc} expanded={menuOpen} onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}><IconMoreSvg /></IconButton>
 					{menuOpen && (
 						<div class="wm-menu" role="menu" onClick={(e) => e.stopPropagation()}>
-							{menuItem(S.findAction, () => openFind(false), 'FIND', false, <IconFindSvg />)}
-							{menuItem(S.goToLineAction, () => setLineOpen(true), 'GO_TO_LINE', false, <IconListSvg />)}
-							{menuItem(S.definitionAction, goToDefinition, 'GO_TO_DEFINITION', false, <IconBracesSvg />)}
-							{menuItem(S.renameAction, startRename, 'RENAME', false, <IconRenameSvg />)}
-							{menuItem(S.exportAction, exportFile, undefined, false, <IconSaveSvg />)}
-							{menuItem(S.versionsAction, openVersions, undefined, false, <IconHistorySvg />)}
+							{menuItem(S.findAction, () => openFind(false), 'FIND', !c, <IconFindSvg />)}
+							{menuItem(S.goToLineAction, () => setLineOpen(true), 'GO_TO_LINE', !c, <IconListSvg />)}
+							{menuItem(S.definitionAction, goToDefinition, 'GO_TO_DEFINITION', !c, <IconBracesSvg />)}
+							{menuItem(S.renameAction, startRename, 'RENAME', !c, <IconRenameSvg />)}
+							{menuItem(S.exportAction, exportFile, undefined, files === null, <IconSaveSvg />)}
+							{menuItem(S.filesNewAction, () => { setFileError(null); setFileDialog({ kind: 'new' }); }, undefined, files === null, <IconFileSvg />)}
+							{!isEntry && menuItem(S.filesRenameAction, () => { setFileError(null); setFileDialog({ kind: 'rename', path: openPath }); }, undefined, false, <IconRenameSvg />)}
+							{!isEntry && menuItem(S.filesDeleteAction, () => setDeletingFile(openPath), undefined, false, <IconDeleteSvg />)}
+							{link ? menuItem(S.folderUnlinkAction, unlink, undefined, false, <IconUnlinkSvg />) : menuItem(S.folderOpenTitle, () => void openFolder(), undefined, files === null, <IconFolderSvg />)}
+							{menuItem(S.packagesAction, () => setPackagesOpen(true), undefined, files === null, <IconPackageSvg />)}
+							{menuItem(S.submitAction, () => setSubmitOpen(true), undefined, files === null, <IconShareSvg />)}
+							{menuItem(S.versionsAction, openVersions, undefined, !isEntry, <IconHistorySvg />)}
 							{menuItem(S.textLarger, () => setTextSize((s) => Math.min(s + 1, MAX_TEXT_SIZE)), 'ZOOM_IN', textSize >= MAX_TEXT_SIZE, <IconTextIncreaseSvg />)}
 							{menuItem(S.textSmaller, () => setTextSize((s) => Math.max(s - 1, MIN_TEXT_SIZE)), 'ZOOM_OUT', textSize <= MIN_TEXT_SIZE, <IconTextDecreaseSvg />)}
 							{menuItem(wrap ? S.wrapOffDesc : S.wrapOnDesc, () => setWrap((w) => !w), 'TOGGLE_WRAP', false, <IconWrapSvg />)}
-							{menuItem(S.foldAll, () => c?.foldAll(), 'FOLD_ALL', false, <IconFoldSvg />)}
+							{menuItem(S.foldAll, () => c?.foldAll(), 'FOLD_ALL', !c, <IconFoldSvg />)}
 							{menuItem(S.unfoldAll, () => c?.unfoldAll(), 'UNFOLD_ALL', !(c && c.foldStarts.length > 0), <IconUnfoldSvg />)}
 							{menuItem(S.codeKeysAction, () => setKeysOpen(true), undefined, false, <IconKeyboardSvg />)}
-							{menuItem(S.formatAction, format, 'FORMAT', false, <IconWandSvg />)}
+							{menuItem(S.formatAction, format, 'FORMAT', !c, <IconWandSvg />)}
 							{menuItem(S.detailsAction, () => setDetailsOpen(true), undefined, false, <IconTuneSvg />)}
-							{menuItem(S.versionAction, saveVersion, undefined, false, <IconBookmarkSvg />)}
-							{menuItem(S.copy, () => { if (c) void navigator.clipboard?.writeText(c.text).catch(() => {}); }, undefined, false, <IconCopySvg />)}
-							{menuItem(S.paste, () => { navigator.clipboard?.readText().then((t) => { if (t && t.trim()) c?.replace(t); }).catch(() => {}); }, undefined, false, <IconPasteSvg />)}
+							{menuItem(S.versionAction, saveVersion, undefined, !isEntry, <IconBookmarkSvg />)}
+							{menuItem(S.copy, () => void navigator.clipboard?.writeText(currentText()).catch(() => {}), undefined, false, <IconCopySvg />)}
+							{menuItem(S.paste, () => { navigator.clipboard?.readText().then((t) => { if (!t || !t.trim()) return; if (c) c.replace(t); else { plainRef.current = t; setPlainText(t); } }).catch(() => {}); }, undefined, false, <IconPasteSvg />)}
 						</div>
 					)}
 				</div>
 			</div>
+			{link && <FolderBanner state={linkState.state} detail={linkState.detail} name={link.name} onReconnect={() => void link.start(true)} onUnlink={unlink} />}
 			<div class="wm-ide-columns">
 			<div class="wm-ide-body">
-				{findOpen && (
+				{hasFiles && <FileStrip entry={entryName} files={files!} lock={lock} open={openPath} onOpen={openFile} onAdd={() => { setFileError(null); setFileDialog({ kind: 'new' }); }} />}
+				{findOpen && c && (
 					<CodeFindBar
 						find={find}
 						setFind={setFind}
@@ -771,19 +1182,21 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 						focusRequests={findFocusRequests}
 					/>
 				)}
-				<CodeSurface controller={controller} initial={savedText.current} options={surfaceOptions} wrap={wrap} fontSize={textSize} />
+				{isPython
+					? <CodeSurface key={openPath} controller={controller} initial={savedText.current} options={surfaceOptions} wrap={wrap} fontSize={textSize} />
+					: <PlainTextSurface key={openPath} value={plainText} onInput={(t) => { plainRef.current = t; setPlainText(t); }} fontSize={textSize} wrap={wrap} />}
 				{fixable && <FixStrip diagnostic={fixable} onFix={() => applyFix(fixable)} />}
 				{help && <HelpStrip help={help} />}
 				<div class="wm-chipbar">
 					<div class="wm-chipbar-scroll">
-						{(desktop ? (['CONSOLE', 'PROBLEMS', 'OUTLINE', 'EVENTS', 'STORAGE', 'TRY', 'DETAILS'] as const) : (['PREVIEW', 'CONSOLE', 'PROBLEMS', 'OUTLINE', 'EVENTS', 'STORAGE', 'TRY', 'DETAILS'] as const)).map((p) => (
+						{(desktop ? (['CONSOLE', 'PROBLEMS', 'OUTLINE', 'FILES', 'EVENTS', 'STORAGE', 'TRY', 'DETAILS'] as const) : (['PREVIEW', 'CONSOLE', 'PROBLEMS', 'OUTLINE', 'FILES', 'EVENTS', 'STORAGE', 'TRY', 'DETAILS'] as const)).map((p) => (
 							<button key={p} type="button" class={`st-chip ${panel === p ? 'st-chip-on' : ''}`} aria-pressed={panel === p} onClick={() => setPanel(panel === p ? 'CLOSED' : p)}>
-								{{ PREVIEW: S.previewLabel, CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, TRY: S.tryLabel, DETAILS: S.detailsLabel }[p]}
+								{p === 'PREVIEW' ? S.previewLabel : PANES[p]}
 								{p === 'PROBLEMS' && diagnostics.length > 0 && <span class="wm-badge">{numbers.format(diagnostics.length)}</span>}
 							</button>
 						))}
 					</div>
-					<span class="wm-position">{S.position(positionLine + 1, positionColumn + 1)}</span>
+					{c && <span class="wm-position">{S.position(positionLine + 1, positionColumn + 1)}</span>}
 				</div>
 				{!desktop && panel !== 'CLOSED' && (
 					<div class="wm-panel" style={{ height: `${PANEL_FRACTION * 100}%` }}>
@@ -802,7 +1215,7 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 					</section>
 					{panel !== 'CLOSED' && panel !== 'PREVIEW' && (
 						<section class="wm-dock-pane">
-							<h2 class="wm-dock-title">{{ CONSOLE: S.consoleLabel, PROBLEMS: S.problemsLabel, OUTLINE: S.outlineLabel, EVENTS: S.eventsLabel, STORAGE: S.storageLabel, TRY: S.tryLabel, DETAILS: S.detailsLabel }[panel]}</h2>
+							<h2 class="wm-dock-title">{PANES[panel]}</h2>
 							{pane}
 						</section>
 					)}
@@ -849,11 +1262,43 @@ const keyboard = useMemo(hardwareKeyboardAttached, []);
 					onDismiss={() => setDetailsOpen(false)}
 					onSave={(updated) => {
 						setDetailsOpen(false);
-						const withFormat = sanitised(updated);
-						if (workspace.writeManifest(draftId, withFormat)) setManifest(withFormat);
+						commitManifest(updated);
 					}}
 				/>
 			)}
+			{fileDialog && (
+				<FileNameDialog
+					title={fileDialog.kind === 'new' ? S.filesNewAction : S.filesRenameTitle}
+					initial={fileDialog.kind === 'new' ? '' : fileDialog.path}
+					confirm={fileDialog.kind === 'new' ? S.newAction : S.renameAction}
+					error={fileError}
+					onDismiss={() => setFileDialog(null)}
+					onConfirm={(name) => (fileDialog.kind === 'new' ? addFile(name) : renameFile(fileDialog.path, name))}
+				/>
+			)}
+			{deletingFile && (
+				<Dialog title={S.filesDeleteTitle(deletingFile)} onDismiss={() => setDeletingFile(null)} actions={<><TextButton onClick={() => setDeletingFile(null)}>{S.cancel}</TextButton><TextButton onClick={() => deleteFile(deletingFile)}>{S.delete}</TextButton></>}>
+					<p>{S.filesDeleteBody}</p>
+				</Dialog>
+			)}
+			{packagesOpen && files !== null && <PackageDialog files={files} entry={entryName} lock={lock ?? { version: 1, packages: {} }} onApply={applyPackages} onDismiss={() => setPackagesOpen(false)} />}
+			{submitOpen && (
+				<Dialog title={S.submitAction} onDismiss={() => setSubmitOpen(false)} actions={<TextButton onClick={() => setSubmitOpen(false)}>{S.close}</TextButton>}>
+					<PluginSubmit manifest={manifest} build={() => archiveOf(manifestRef.current)} problems={manifestProblems(manifest)} />
+				</Dialog>
+			)}
+			{folderNote && (
+				<Dialog title={S.folderUnsupportedTitle} onDismiss={() => setFolderNote(false)} actions={<><TextButton onClick={() => setFolderNote(false)}>{S.cancel}</TextButton><TextButton onClick={() => { setFolderNote(false); importInput.current?.click(); }}>{S.importTitle}</TextButton></>}>
+					<p>{S.folderUnsupportedBody}</p>
+				</Dialog>
+			)}
+			<input ref={importInput} type="file" accept=".wmplugin,.zip,application/zip" hidden onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void importAsDraft(f); (e.target as HTMLInputElement).value = ''; }} />
+			{saveHere && (
+				<Dialog title={S.folderSaveHereTitle(saveHere.name)} onDismiss={() => setSaveHere(null)} actions={<><TextButton onClick={() => setSaveHere(null)}>{S.cancel}</TextButton><TextButton onClick={() => void saveIntoFolder(saveHere)}>{S.folderSaveHere}</TextButton></>}>
+					<p>{S.folderSaveHereBody}</p>
+				</Dialog>
+			)}
+			{conflicts.length > 0 && <ConflictDialog paths={conflicts} onKeep={resolveConflicts} />}
 			{toast}
 		</div>
 	);
@@ -1101,7 +1546,19 @@ function StoragePane({ storage, declared, busy }: { storage: PreviewStorage; dec
  * store would list it: its size, a download, and a repository entry with the
  * sha256 the app insists on for plugins.
  */
-function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: PluginManifest; script: string; onManifest: (m: PluginManifest) => void; onExport: () => void }) {
+function DetailsPane({ manifest, script, filesKey, build, hasPackages, shakeSymbols, onShakeSymbols, onManifest, onExport }: {
+	manifest: PluginManifest;
+	/** The open file's text: the file is made again when it changes. */
+	script: string;
+	/** The draft's other files: likewise. */
+	filesKey: unknown;
+	build: (m: PluginManifest) => ArchiveResult;
+	hasPackages: boolean;
+	shakeSymbols: boolean;
+	onShakeSymbols: (v: boolean) => void;
+	onManifest: (m: PluginManifest) => void;
+	onExport: () => void;
+}) {
 	const [draft, setDraft] = useState(manifest);
 	useEffect(() => setDraft(manifest), [manifest]);
 	const problems = manifestProblems(draft);
@@ -1109,22 +1566,28 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 		setDraft(next);
 		onManifest(next);
 	};
-	const zip = useMemo(() => pluginFile(draft, script), [draft, script]);
+	// The file is made after typing stops: with packages, tree shaking runs each time.
+	const [archive, setArchive] = useState<ArchiveResult | null>(null);
 	const [sha, setSha] = useState<string | null>(null);
 	useEffect(() => {
 		let live = true;
 		setSha(null);
-		const t = setTimeout(() => void sha256Hex(zip).then((h) => live && setSha(h)), 300);
+		const t = setTimeout(() => {
+			const made = build(draft);
+			if (!live) return;
+			setArchive(made);
+			void sha256Hex(made.bytes).then((h) => live && setSha(h));
+		}, 300);
 		return () => {
 			live = false;
 			clearTimeout(t);
 		};
-	}, [zip]);
-	const scriptBytes = utf8.encode(script).byteLength;
+	}, [draft, script, filesKey, build]);
 	const slug = slugify(draft.id.split('.').pop() || draft.name) || 'plugin';
 	const field = (label: string, key: 'name' | 'id' | 'pluginVersion' | 'author', mono = false) => (
 		<label class="st-field"><span>{label}</span><input class="st-input" style={mono ? 'font-family:var(--wmc-mono)' : undefined} value={draft[key]} onInput={(e) => commit({ ...draft, [key]: (e.target as HTMLInputElement).value })} /></label>
 	);
+	const shake = archive?.shake ?? null;
 	return (
 		<div class="wm-pane" style="display:flex;flex-direction:column;gap:8px">
 			<div class="wm-details-grid">
@@ -1149,12 +1612,28 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 			<ManifestJson manifest={draft} onChange={commit} />
 			<hr class="wm-w-divider" />
-			<div class="wm-caption">{fmtBytes(zip.byteLength)} · 2 entries · Python {fmtBytes(scriptBytes)}{scriptBytes > MAX_SCRIPT_BYTES ? ` · ${S.rejectScriptTooLarge(draft.name, MAX_SCRIPT_BYTES / 1024)}` : ''}</div>
+			{archive && <div class="wm-caption">{S.archiveSummary(fmtBytes(archive.bytes.byteLength), archive.entries, fmtBytes(archive.pythonBytes))}{archive.entries === 2 && archive.pythonBytes > MAX_SCRIPT_BYTES ? ` · ${S.rejectScriptTooLarge(draft.name, MAX_SCRIPT_BYTES / 1024)}` : ''}</div>}
+			{hasPackages && shake && <div class="wm-caption">{shake.removedFiles.length || shake.removedSymbols.length ? S.shakeLine(shake.removedFiles.length, shake.removedSymbols.length, fmtBytes(shake.bytesBefore), fmtBytes(shake.bytesAfter)) : S.shakeNothing}</div>}
+			{hasPackages && archive?.shakeMissing && <div class="wm-caption">{S.shakeMissing}</div>}
+			{hasPackages && (
+				<label class="wm-w-toggle">
+					<input type="checkbox" checked={shakeSymbols} onChange={(e) => onShakeSymbols((e.target as HTMLInputElement).checked)} />
+					<span>{S.shakeSymbols}</span>
+				</label>
+			)}
+			{archive && archive.leftOut.length > 0 && <div class="wm-caption" title={archive.leftOut.join('\n')}>{S.leftOut(archive.leftOut.length)}</div>}
+			{archive?.problems.map((p, i) => <div key={`a${i}`} class="wm-error-text">{p}</div>)}
 			<div class="wm-w-row">
-				<button type="button" class="st-btn st-btn-sm st-btn-primary" disabled={problems.length > 0} onClick={onExport}>{S.exportAction}</button>
-				{sha && <CopyButton text={JSON.stringify({ id: slug, type: 'plugin', name: sanitise(draft.name, 'NAME'), version: sanitise(draft.pluginVersion, 'VERSION'), author: sanitise(draft.author, 'AUTHOR'), description: sanitise(draft.description, 'DESCRIPTION'), path: `plugins/${slug}.wmplugin`, sha256: sha, sizeBytes: zip.byteLength }, null, 2)} label="Copy repository entry (with sha256)" class="st-btn st-btn-sm" />}
+				<button type="button" class="st-btn st-btn-sm st-btn-primary" disabled={problems.length > 0 || (archive?.problems.length ?? 0) > 0} onClick={onExport}>{S.exportAction}</button>
+				{sha && archive && <CopyButton text={JSON.stringify({ id: slug, type: 'plugin', name: sanitise(draft.name, 'NAME'), version: sanitise(draft.pluginVersion, 'VERSION'), author: sanitise(draft.author, 'AUTHOR'), description: sanitise(draft.description, 'DESCRIPTION'), path: `plugins/${slug}.wmplugin`, sha256: sha, sizeBytes: archive.bytes.byteLength }, null, 2)} label="Copy repository entry (with sha256)" class="st-btn st-btn-sm" />}
 			</div>
 			<div class="wm-caption">A repository lists a plugin with its sha256, and the app refuses one without it. Guides, examples and the API reference: <a href="/plugins/overview/">/plugins</a>.</div>
+			<details class="st-panel">
+				<summary style="cursor:pointer"><b>{S.submitAction}</b></summary>
+				<div style="margin-top:0.5rem">
+					<PluginSubmit manifest={draft} build={() => build(draft)} problems={problems} />
+				</div>
+			</details>
 		</div>
 	);
 }
@@ -1270,36 +1749,6 @@ function DateWidget({ w, onEvent }: { w: Extract<PluginWidget, { kind: 'date' }>
 // ---------------------------------------------------------------------------
 // Dialogs
 // ---------------------------------------------------------------------------
-
-function Dialog({ title, children, actions, onDismiss }: { title: string; children: ComponentChildren; actions: ComponentChildren; onDismiss: () => void }) {
-	useEffect(() => {
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				e.stopPropagation();
-				onDismiss();
-			}
-		};
-		window.addEventListener('keydown', onKey, true);
-		return () => window.removeEventListener('keydown', onKey, true);
-	}, [onDismiss]);
-	return (
-		<div class="wm-dialog-backdrop" onClick={onDismiss}>
-			<div class="wm-dialog" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
-				<h2>{title}</h2>
-				<div class="wm-dialog-body">{children}</div>
-				<div class="wm-dialog-actions">{actions}</div>
-			</div>
-		</div>
-	);
-}
-
-function TextButton({ children, onClick, disabled }: { children: ComponentChildren; onClick: () => void; disabled?: boolean }) {
-	return <button type="button" class="st-btn st-btn-sm st-btn-ghost" disabled={disabled} onClick={onClick}>{children}</button>;
-}
-
-function IconButton({ label, onClick, disabled, expanded, children }: { label: string; onClick: (e: MouseEvent) => void; disabled?: boolean; expanded?: boolean; children: ComponentChildren }) {
-	return <button type="button" class="st-icon-btn" aria-label={label} title={label} disabled={disabled} aria-expanded={expanded} onClick={onClick}>{children}</button>;
-}
 
 function GoToLineDialog({ lines, onDismiss, onGo }: { lines: number; onDismiss: () => void; onGo: (line: number) => void }) {
 	const [input, setInput] = useState('');
@@ -1453,18 +1902,6 @@ function PluginDetailsDialog({ manifest, onDismiss, onSave }: { manifest: Plugin
 // Small parts
 // ---------------------------------------------------------------------------
 
-function useToast(): [ComponentChildren, (text: string) => void] {
-	const [text, setText] = useState<string | null>(null);
-	const timer = useRef<number | null>(null);
-	const show = useCallback((t: string) => {
-		setText(t);
-		if (timer.current !== null) window.clearTimeout(timer.current);
-		timer.current = window.setTimeout(() => setText(null), 4000);
-	}, []);
-	return [text ? <div class="wm-snackbar" role="status">{text}</div> : null, show];
-}
-
-const svg = (d: string) => () => <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>;
 const IconBackSvg = svg('M19 12H5 M12 19l-7-7 7-7');
 const IconForwardSvg = svg('M5 12h14 M12 5l7 7-7 7');
 const IconUndoSvg = svg('M9 14 4 9l5-5 M4 9h10a6 6 0 0 1 0 12h-3');
@@ -1476,7 +1913,6 @@ const IconMoreSvg = () => <svg viewBox="0 0 24 24" width="22" height="22" aria-h
 const IconFindSvg = svg('M21 21l-4.35-4.35 M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z');
 const IconListSvg = svg('M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01');
 const IconBracesSvg = svg('M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1 M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1');
-const IconRenameSvg = svg('M4 20h4l10-10-4-4L4 16z m13 7 4 4');
 const IconSaveSvg = svg('M12 3v12 m7 10 5 5 5-5 M4 19h16');
 const IconHistorySvg = svg('M3 12a9 9 0 1 0 3-6.7L3 8 M3 3v5h5 M12 7v5l3 2');
 const IconTextIncreaseSvg = svg('M3 18 8 6l5 12 M5 14h6 M17 9v6 M14 12h6');
@@ -1490,4 +1926,3 @@ const IconTuneSvg = svg('M4 6h10 M18 6h2 M4 12h2 M10 12h10 M4 18h12 M20 18h0 M14
 const IconBookmarkSvg = svg('M6 3h12v18l-6-4-6 4z M12 8v6 M9 11h6');
 const IconCopySvg = svg('M9 9h10v10H9z M5 15V5h10');
 const IconPasteSvg = svg('M8 4h8v3H8z M6 6H5v15h14V6h-1 M9 12h6 M9 16h6');
-const IconDeleteSvg = svg('M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6');

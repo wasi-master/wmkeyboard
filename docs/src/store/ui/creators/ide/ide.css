@@ -531,7 +531,7 @@ html[data-theme='dark'] {
 	transform: translateX(-50%);
 	z-index: 70;
 	background: var(--st-text);
-	color: var(--st-bg, #fff);
+	color: var(--sl-color-bg);
 	padding: 12px 16px;
 	border-radius: 8px;
 	font-size: 0.88rem;
@@ -608,3 +608,57 @@ html[data-theme='dark'] {
 	.wm-templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0 1rem; align-items: start; }
 	.wm-thumb { max-height: 240px; }
 }
+
+/* a draft's files, its folder and its packages */
+.wm-ide-titles { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.wm-ide-folder { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--st-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wm-ide-folder svg, .wm-banner svg, .wm-file-package svg, .wm-filestrip svg, .wm-pane .wm-caption svg { width: 16px; height: 16px; flex: none; }
+.wm-banner {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 8px 4px;
+	padding: 6px 10px;
+	border: 1px solid var(--st-card-border);
+	border-radius: 10px;
+	font-size: 0.82rem;
+}
+.wm-banner-warn { border-color: color-mix(in oklab, var(--wmc-warning) 60%, transparent); background: color-mix(in oklab, var(--wmc-warning) 10%, transparent); }
+.wm-filestrip { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 2px; scrollbar-width: none; }
+.wm-filestrip::-webkit-scrollbar { display: none; }
+.wm-filestrip .st-chip { font-family: var(--wmc-mono); font-size: 0.78rem; height: 28px; }
+.wm-file-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 8px; cursor: pointer; min-height: 36px; }
+.wm-file-row:hover { background: color-mix(in oklab, var(--st-text) 5%, transparent); }
+.wm-file-row-open { background: color-mix(in oklab, var(--st-accent) 12%, transparent); }
+.wm-file-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.82rem; }
+.wm-file-actions { display: flex; flex: none; }
+.wm-file-actions .st-icon-btn svg { width: 18px; height: 18px; }
+.wm-file-package > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 6px; font-size: 0.85rem; }
+.wm-file-package > .wm-file-row { padding-left: 24px; }
+.wm-plain-surface { display: flex; }
+.wm-plaintext {
+	flex: 1 1 auto;
+	width: 100%;
+	min-height: 0;
+	resize: none;
+	border: 0;
+	outline: none;
+	padding: 8px 12px;
+	background: transparent;
+	color: var(--wmc-text, var(--st-text));
+	font-family: var(--wmc-mono);
+	line-height: 1.5;
+	tab-size: 4;
+	overflow: auto;
+}
+.wm-dialog.wm-dialog-wide { width: min(720px, 100%); }
+.wm-pkg { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--st-card-border); font-size: 0.88rem; }
+.wm-pkg:last-child { border-bottom: 0; }
+.wm-pkg-planned { border: 1px solid var(--st-card-border); border-radius: 10px; padding: 8px 10px; }
+.wm-pkg-problems { margin: 4px 0 0; padding-left: 1rem; max-height: 180px; overflow-y: auto; }
+.wm-pkg-problems li { margin: 2px 0; }
+.wm-verdict { display: inline-block; font-size: 0.72rem; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; margin-left: 4px; white-space: nowrap; }
+.wm-verdict-ok { color: var(--st-accent); }
+.wm-verdict-warnings { color: var(--wmc-warning); }
+.wm-verdict-incompatible { color: var(--wmc-problem); }
+.wm-conflicts { margin: 0; padding-left: 1.2rem; max-height: 240px; overflow-y: auto; font-size: 0.85rem; }

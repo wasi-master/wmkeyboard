@@ -222,6 +222,15 @@ export const workspace = {
 		return write(s);
 	},
 
+	/** Marks the draft changed now: one of its other files was written (draft-files.ts). */
+	touch(draftId: string) {
+		const s = read();
+		const d = s.drafts.find((x) => x.draftId === draftId);
+		if (!d) return;
+		d.updatedAt = Date.now();
+		write(s);
+	},
+
 	markPublished(draftId: string, version: string) {
 		const s = read();
 		const d = s.drafts.find((x) => x.draftId === draftId);
@@ -369,6 +378,18 @@ export const keyPrefs = {
 	},
 	reset() {
 		removeItem(this.key);
+	},
+};
+
+/** Whether tree shaking at export also drops unused functions and classes from vendored packages. */
+export const shakePrefs = {
+	key: 'wm.ide.shake',
+	read(): boolean {
+		return getItem(this.key) === 'symbols';
+	},
+	write(symbols: boolean) {
+		if (symbols) setItem(this.key, 'symbols');
+		else removeItem(this.key);
 	},
 };
 
