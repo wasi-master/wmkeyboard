@@ -879,7 +879,9 @@ private fun PassageRow(hit: NotePassageHit, index: Int, callbacks: NotesCallback
 
 /**
  * [PassageRow]'s card, which the clipboard's search lists too (#1104): a tap
- * hands [onInsert] the passage, a hold hands it to [onOpen].
+ * hands [onInsert] the passage, a hold hands it to [onOpen]. [trailing] sits
+ * at the end of the line with the note's title: the clipboard puts the
+ * passage's links there, as a clip's card has them (#612).
  */
 @Composable
 internal fun NotePassageCard(
@@ -889,6 +891,7 @@ internal fun NotePassageCard(
     onOpen: (NotePassageHit) -> Unit,
     modifier: Modifier = Modifier,
     focused: Boolean = false,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
@@ -922,7 +925,21 @@ internal fun NotePassageCard(
     ) {
         Text(shown, color = kb.modifierKeyText, fontSize = 12.sp, lineHeight = 16.sp, maxLines = PASSAGE_LINES, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(3.dp))
-        Text(title, color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (trailing == null) {
+            Text(title, color = kb.secondaryText, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    title,
+                    color = kb.secondaryText,
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                trailing()
+            }
+        }
     }
 }
 

@@ -298,6 +298,26 @@
     <string name="copy_rules_test_field_label">Text as copied</string>
     <string name="copy_rules_test_result">Kept as: %1$s</string>
     <string name="copy_rules_test_unchanged">No rule changes this text</string>
+
+    <!-- The user's own detects (#612): patterns whose matches the clipboard offers as parts of a clip. -->
+    <string name="clipboard_detects_title">Your own detects</string>
+    <string name="clipboard_detects_subtitle">Patterns whose matches show up as parts of a clip, like links</string>
+    <plurals name="clipboard_detects_count_subtitle">
+        <item quantity="one">%1$d detect</item>
+        <item quantity="other">%1$d detects</item>
+    </plurals>
+    <string name="clip_detects_info">Each detect has a name and a pattern. Every match of the pattern in a clip is offered on its own, under the detect\'s name, beside the links and numbers the clipboard finds.</string>
+    <string name="clip_detects_add_action">Add a detect</string>
+    <string name="clip_detects_empty">There are no detects of your own yet.</string>
+    <string name="clip_detects_add_title">Add a detect</string>
+    <string name="clip_detects_edit_title">Edit the detect</string>
+    <string name="clip_detects_add_body">The pattern is a regular expression, and case does not matter. #\\d+ finds issue numbers such as #612, and @\\w+ finds names such as @calc. The name heads the list of what it finds.</string>
+    <string name="clip_detects_name_label">Name</string>
+    <string name="clip_detects_delete_desc">Delete the detect %1$s</string>
+    <string name="clip_detects_test_title">Try the detects</string>
+    <string name="clip_detects_test_field_label">Text of a clip</string>
+    <string name="clip_detects_test_result">Found:\n%1$s</string>
+    <string name="clip_detects_test_none">No detect finds anything in this text</string>
     <string name="clipboard_plain_letters_title">Plain letters</string>
     <string name="clipboard_plain_letters_subtitle">Keep copies in fancy fonts as the plain letters they stand for</string>
     <string name="clipboard_plain_letters_info">Some apps and websites write in decorated letters: bold or italic letters from the math alphabets, script and double-struck letters, full-width letters, circled and squared letters, small capitals, and lines drawn through or under each letter. Copied, they paste the same way, and a search box or a screen reader cannot read them. With this setting on, the clipboard keeps the plain letters instead, before any rule runs. Symbols such as ™ and ℃ stay as they are. To tidy clips that are already in the history, select them in the clipboard and press Tidy. This setting is off by default.</string>

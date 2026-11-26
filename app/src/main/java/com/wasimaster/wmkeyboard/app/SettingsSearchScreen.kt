@@ -966,6 +966,7 @@ internal object SettingsRouteIcons {
         "learnedcorrections" to { Icons.Outlined.Spellcheck },
         "phoneformats" to { Icons.Outlined.Phone },
         "cliprules" to { Icons.AutoMirrored.Outlined.Rule },
+        "clipdetects" to { Icons.Outlined.Tag },
         "hwshortcuts" to { SymbolIcons.KeyboardExternalInput },
         "musicapps" to { Icons.Outlined.MusicNote },
         "launchercombos" to { Icons.Outlined.VerticalSplit },

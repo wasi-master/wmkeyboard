@@ -121,6 +121,7 @@ internal object SettingsRoutes {
         "files/servers",
         "phoneformats",
         "cliprules",
+        "clipdetects",
         "hwshortcuts",
         "appearance",
         "appearance/keys",

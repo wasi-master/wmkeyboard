@@ -32,6 +32,10 @@ import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
+import com.wasimaster.wmkeyboard.core.clipboard.ClipDetect
+import com.wasimaster.wmkeyboard.core.clipboard.ClipDetects
+import com.wasimaster.wmkeyboard.core.clipboard.ClipEntities
+import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.selection.LinkCleaning
 import com.wasimaster.wmkeyboard.core.selection.LinkRewrite
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
@@ -41,6 +45,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -2213,6 +2218,156 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
                     onClick = {
                         val rule = ClipCopyRule(pattern, replacement, existing?.enabled ?: true)
                         save(if (existing == null) rules + rule else rules.mapIndexed { i, r -> if (i == index) rule else r })
+                        editing = null
+                    },
+                ) { Text(stringResource(if (existing == null) CommonR.string.common_add else CommonR.string.common_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { editing = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
+// ---- clipboard detects ----
+
+/**
+ * The user's own detects (#612): a name and a pattern, whose matches the
+ * clipboard offers as parts of a clip, the way it offers the links in one.
+ * `#\d+` turns `active issues: #612 #1354 #1099` into three. A detect can be
+ * switched off without losing it, and the box at the bottom shows what a
+ * sample clip would offer.
+ */
+@Composable
+internal fun ClipDetectSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val detects = settings.watch { it.clipboard.detects }
+    // The detect being edited by its index, or -1 for a new one; null while no dialog is up.
+    var editing by remember { mutableStateOf<Int?>(null) }
+    var sample by remember { mutableStateOf("") }
+    val save: (List<ClipDetect>) -> Unit = { next -> scope.launch { repository.setClipboardDetects(next) } }
+
+    RegisterAddFab(stringResource(R.string.clip_detects_add_action)) { editing = -1 }
+    if (detects.isEmpty()) {
+        CaptionText(stringResource(R.string.clip_detects_empty))
+    }
+    SettingsGroup {
+        for ((index, detect) in detects.withIndex()) {
+            item(key = "detect-$index-${detect.pattern}") {
+                val broken = ClipDetects.compile(detect) == null
+                WmRow(
+                    title = detect.name.ifBlank { detect.pattern },
+                    subtitle = if (broken) stringResource(R.string.copy_rules_bad_pattern) else detect.pattern,
+                    icon = Icons.Outlined.Tag,
+                    onClick = { editing = index },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            editing = index
+                        },
+                        deleteSwipeAction(stringResource(R.string.clip_detects_delete_desc, detect.name.ifBlank { detect.pattern })) {
+                            save(detects.filterIndexed { i, _ -> i != index })
+                        },
+                    ),
+                    trailing = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Switch(
+                                checked = detect.enabled,
+                                onCheckedChange = { on ->
+                                    save(detects.mapIndexed { i, d -> if (i == index) d.copy(enabled = on) else d })
+                                },
+                            )
+                            IconButton(onClick = { save(detects.filterIndexed { i, _ -> i != index }) }) {
+                                Icon(
+                                    Icons.Outlined.Delete,
+                                    contentDescription = stringResource(
+                                        R.string.clip_detects_delete_desc,
+                                        detect.name.ifBlank { detect.pattern },
+                                    ),
+                                )
+                            }
+                        }
+                    },
+                )
+            }
+        }
+    }
+    // As the copy rules do: a sample clip in, and what the detects find in it.
+    Text(
+        stringResource(R.string.clip_detects_test_title),
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp),
+    )
+    OutlinedTextField(
+        value = sample,
+        onValueChange = { sample = it },
+        label = { Text(stringResource(R.string.clip_detects_test_field_label)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
+    if (sample.isNotBlank()) {
+        val found = remember(sample, detects) {
+            ClipEntities.extract(sample, detects = ClipDetects.compileAll(detects))
+                .filter { it.kind == ClipEntityKind.CUSTOM }
+                .map { "${it.label.orEmpty()}: ${it.value}" }
+        }
+        Text(
+            if (found.isEmpty()) {
+                stringResource(R.string.clip_detects_test_none)
+            } else {
+                stringResource(R.string.clip_detects_test_result, found.joinToString("\n"))
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+    }
+    Spacer(Modifier.height(16.dp))
+
+    editing?.let { index ->
+        val existing = detects.getOrNull(index)
+        var name by remember(index) { mutableStateOf(existing?.name.orEmpty()) }
+        var pattern by remember(index) { mutableStateOf(existing?.pattern.orEmpty()) }
+        val valid = pattern.isNotEmpty() && ClipDetects.compile(ClipDetect(name, pattern)) != null
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = {
+                Text(stringResource(if (existing == null) R.string.clip_detects_add_title else R.string.clip_detects_edit_title))
+            },
+            text = {
+                Column {
+                    Text(
+                        stringResource(R.string.clip_detects_add_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text(stringResource(R.string.clip_detects_name_label)) },
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = pattern,
+                        onValueChange = { pattern = it },
+                        label = { Text(stringResource(R.string.copy_rules_pattern_label)) },
+                        singleLine = true,
+                        isError = pattern.isNotEmpty() && !valid,
+                        supportingText = if (pattern.isNotEmpty() && !valid) {
+                            { Text(stringResource(R.string.copy_rules_bad_pattern)) }
+                        } else null,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = valid,
+                    onClick = {
+                        val detect = ClipDetect(name.trim(), pattern, existing?.enabled ?: true)
+                        save(if (existing == null) detects + detect else detects.mapIndexed { i, d -> if (i == index) detect else d })
                         editing = null
                     },
                 ) { Text(stringResource(if (existing == null) CommonR.string.common_add else CommonR.string.common_save)) }

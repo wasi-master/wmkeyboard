@@ -37,6 +37,9 @@
     <string name="core_content_clip_entity_place_label">Place</string>
     <!-- Tag drawn on the chip. The app prints it in capital letters. -->
     <string name="core_content_clip_entity_place_tag">PLACE</string>
+    <!-- A part of a clip one of the user's own detects found (#612). -->
+    <string name="core_content_clip_entity_custom_label">Your detect</string>
+    <string name="core_content_clip_entity_custom_tag">MATCH</string>
 
     <!-- ================================================================== -->
     <!-- Snippet variables.                                                 -->

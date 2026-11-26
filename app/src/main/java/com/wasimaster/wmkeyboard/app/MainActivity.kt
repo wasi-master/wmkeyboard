@@ -1736,6 +1736,16 @@ private fun SettingsNavGraph(
                 CopyRuleSettings(repository, settings)
             }
         }
+        composable("clipdetects") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_detects_title),
+                { navController.popBackStack() },
+                route = "clipdetects",
+                subtitle = stringResource(R.string.clip_detects_info),
+            ) {
+                ClipDetectSettings(repository, settings)
+            }
+        }
         composable("phoneformats") {
             SettingsScreen(
                 stringResource(R.string.home_screen_phoneformats_title),

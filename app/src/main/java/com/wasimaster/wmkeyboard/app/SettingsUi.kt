@@ -506,6 +506,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     // A child of Clipboard, so it keeps the parent's blue.
     "phoneformats" to Color(0xFF42A5F5),
     "cliprules" to Color(0xFF42A5F5),
+    "clipdetects" to Color(0xFF42A5F5),
     "hwshortcuts" to Color(0xFF5C6BC0),
     "emojikeywords" to Color(0xFFFFB300),
     // A child of the emoji panel, so it keeps the emoji amber. The

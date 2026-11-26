@@ -196,7 +196,7 @@ object NoteHighlights {
                 ClipEntityKind.EMAIL -> NoteHighlightKind.EMAIL
                 ClipEntityKind.PLACE -> NoteHighlightKind.PLACE
                 // A note is not where codes arrive; a six-digit number there is an order or a room.
-                ClipEntityKind.OTP, ClipEntityKind.PHONE -> continue
+                ClipEntityKind.OTP, ClipEntityKind.PHONE, ClipEntityKind.CUSTOM -> continue
             }
             claim(NoteHighlight(kind, entity.value, entity.start, entity.end, lineAt(scanned, entity.start)))
         }

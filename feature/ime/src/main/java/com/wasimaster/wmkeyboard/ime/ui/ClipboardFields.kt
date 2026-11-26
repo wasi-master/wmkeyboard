@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -154,6 +155,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.layout.onSizeChanged
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.clipboard.ClipDetects
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntities
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntity
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
@@ -168,6 +170,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
@@ -1045,10 +1048,13 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // per history change rather than on every recomposition.
     val phoneFormats = state.settings.clipboard.phoneFormats
     val phoneMasks = remember(phoneFormats) { PhoneFormats.parseAll(phoneFormats) }
+    // The user's own detects (#612), compiled once a change rather than per clip.
+    val userDetects = state.settings.clipboard.detects
+    val detects = remember(userDetects) { ClipDetects.compileAll(userDetects) }
     val detect = state.settings.clipboard.detectEntities
     val entityIcons = detect && state.settings.clipboard.entityIcons
     val allEntities = if (detect && !entityIcons) {
-        remember(clipItems, phoneMasks) { ClipEntities.entitiesIn(clipItems, phoneMasks) }
+        remember(clipItems, phoneMasks, detects) { ClipEntities.entitiesIn(clipItems, phoneMasks, detects) }
     } else {
         emptyList()
     }
@@ -1057,7 +1063,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val stripHidden = state.settings.clipboard.entityStripHidden
     val hiddenFragments = if (stripHidden) allEntities.size else 0
     val perClip = if (detect) {
-        remember(clipItems, phoneMasks) { ClipEntities.byClip(clipItems, phoneMasks) }
+        remember(clipItems, phoneMasks, detects) { ClipEntities.byClip(clipItems, phoneMasks, detects) }
     } else {
         emptyMap()
     }
@@ -2699,6 +2705,24 @@ private fun ClipboardHistory(
     }
     // The notes' passages a search found (#1104) come first in the ring, one a row.
     val passages = session.notePassages
+    // Each passage gets the buttons a clip's card has for the links and the
+    // user's detects in it (#612): from the passage the search shows, never
+    // the rest of its note. No codes: a note is not where codes arrive.
+    val passageParts = if (clipboard.detectEntities && passages.isNotEmpty()) {
+        remember(passages, clipboard.phoneFormats, clipboard.detects) {
+            val masks = PhoneFormats.parseAll(clipboard.phoneFormats)
+            val detects = ClipDetects.compileAll(clipboard.detects)
+            passages.map { hit ->
+                val text = hit.text.take(PASSAGE_SCAN_CHARS)
+                ClipEntities.extract(text, 0L, masks, detects)
+                    .filter { it.kind != ClipEntityKind.OTP && it.value != text.trim() }
+                    .distinctBy { it.key }
+                    .sortedWith(compareBy({ it.kind.ordinal }, { it.start }))
+            }
+        }
+    } else {
+        emptyList()
+    }
     PanelFocusTarget(
         panel = PanelMode.CLIPBOARD,
         count = passages.size + gridItems.size,
@@ -2869,12 +2893,19 @@ private fun ClipboardHistory(
                 span = { _, _ -> StaggeredGridItemSpan.FullLine },
             ) { index, hit ->
                 Box(Modifier.padding(bottom = ClipItemGap)) {
+                    val parts = passageParts.getOrNull(index).orEmpty()
+                    val partButtons: (@Composable RowScope.() -> Unit)? = if (parts.isEmpty()) {
+                        null
+                    } else {
+                        { ClipEntityIcons(parts, callbacks) }
+                    }
                     NotePassageCard(
                         hit,
                         index,
                         onInsert = callbacks.actions.onNotePassage,
                         onOpen = callbacks.actions.onNotePassageOpen,
                         focused = index == focused,
+                        trailing = partButtons,
                     )
                 }
             }
@@ -4202,6 +4233,9 @@ private fun ClipSourceIcon(icon: ImageBitmap, label: String?) {
 
 private const val ClipSourceIconDp = 14
 
+/** How much of a note's passage is read for its links (#612), as a clip's first 4,000 characters are. */
+private const val PASSAGE_SCAN_CHARS = 4000
+
 /**
  * What was found in one clip, as an icon per kind with a count once there is
  * more than one (#472): the strip's chips folded onto the card they came from.
@@ -4213,8 +4247,10 @@ private fun ClipEntityIcons(entities: List<ClipEntity>, callbacks: ClipboardFiel
     picking?.let { shown ->
         ClipExtractPopup(shown, onPick = { picking = null; callbacks.onEntity(it) }, onDismiss = { picking = null })
     }
-    for ((kind, ofKind) in entities.groupBy { it.kind }) {
-        val label = stringResource(kind.labelRes)
+    // One button a kind, and one a detect of the user's (#612), named after it.
+    for ((group, ofKind) in entities.groupBy { it.kind to it.label }) {
+        val kind = group.first
+        val label = group.second ?: stringResource(kind.labelRes)
         Box {
             ClipActionCircle(
                 icon = clipEntityIcon(kind),
@@ -4254,6 +4290,7 @@ internal fun clipEntityIcon(kind: ClipEntityKind): ImageVector = when (kind) {
     ClipEntityKind.EMAIL -> Icons.Outlined.Mail
     ClipEntityKind.URL -> Icons.Outlined.Link
     ClipEntityKind.PLACE -> Icons.Outlined.Place
+    ClipEntityKind.CUSTOM -> Icons.Outlined.Tag
 }
 
 /**
@@ -4284,12 +4321,17 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
             ) {
                 // Links first, then numbers, then codes: the order the request
                 // names them in, and the order they are looked at.
-                val sections = listOf(ClipEntityKind.URL, ClipEntityKind.EMAIL, ClipEntityKind.PLACE, ClipEntityKind.PHONE, ClipEntityKind.OTP)
-                    .mapNotNull { kind -> entities.filter { it.kind == kind }.takeIf { it.isNotEmpty() }?.let { kind to it } }
-                for ((kind, ofKind) in sections) {
-                    item(key = "header-${kind.name}") {
+                // The user's own detects last, a section each under its name (#612).
+                val sections = listOf(
+                    ClipEntityKind.URL, ClipEntityKind.EMAIL, ClipEntityKind.PLACE,
+                    ClipEntityKind.PHONE, ClipEntityKind.OTP, ClipEntityKind.CUSTOM,
+                ).flatMap { kind ->
+                    entities.filter { it.kind == kind }.groupBy { it.label }.map { (label, ofLabel) -> Triple(kind, label, ofLabel) }
+                }
+                for ((kind, label, ofKind) in sections) {
+                    item(key = "header-${kind.name}-${label.orEmpty()}") {
                         Text(
-                            stringResource(kind.sectionRes),
+                            label ?: stringResource(kind.sectionRes),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = kb.popupText.copy(alpha = 0.6f),
@@ -4334,6 +4376,7 @@ private val ClipEntityKind.sectionRes: Int
         ClipEntityKind.EMAIL -> R.string.ime_clip_extract_emails
         ClipEntityKind.OTP -> R.string.ime_clip_extract_codes
         ClipEntityKind.PLACE -> R.string.ime_clip_extract_places
+        ClipEntityKind.CUSTOM -> R.string.ime_clip_extract_custom
     }
 
 /**

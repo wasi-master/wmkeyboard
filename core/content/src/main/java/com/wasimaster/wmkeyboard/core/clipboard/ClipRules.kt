@@ -78,6 +78,53 @@ object ClipPlainLetters {
     }
 }
 
+/**
+ * One of the user's own detects (#612): every match of [pattern], a
+ * case-insensitive regular expression, is a part of a clip the panel offers
+ * on its own, like a link or a phone number, under [name]. `#\d+` lifts the
+ * issue numbers out of `active issues: #612 #1354`, `@\w+` the handles out of
+ * `shortcuts @gif_3, @calc`.
+ */
+@Serializable
+data class ClipDetect(
+    val name: String,
+    val pattern: String,
+    val enabled: Boolean = true,
+)
+
+/** A [ClipDetect] that is on, with its pattern compiled once. */
+class CompiledClipDetect(val name: String, val regex: Regex)
+
+/** Compiles and stores the user's [ClipDetect]s. */
+object ClipDetects {
+
+    private val json = Json { ignoreUnknownKeys = true }
+    private val serializer = ListSerializer(ClipDetect.serializer())
+
+    /** [detect]'s pattern compiled, or null while it does not compile, is empty, or matches nothing at all. */
+    fun compile(detect: ClipDetect): Regex? =
+        detect.pattern.takeIf { it.isNotEmpty() }
+            ?.let { runCatching { Regex(it, RegexOption.IGNORE_CASE) }.getOrNull() }
+            // A pattern that matches the empty string would mark every gap between letters.
+            ?.takeIf { !it.matches("") }
+
+    /** The detects that are on and compile, in the order listed. */
+    fun compileAll(detects: List<ClipDetect>): List<CompiledClipDetect> =
+        detects.mapNotNull { detect ->
+            if (!detect.enabled) return@mapNotNull null
+            val regex = compile(detect) ?: return@mapNotNull null
+            CompiledClipDetect(detect.name.ifBlank { detect.pattern }, regex)
+        }
+
+    fun encode(detects: List<ClipDetect>): String = json.encodeToString(serializer, detects)
+
+    /** The detects [stored] holds; empty for nothing stored or a string that does not parse. */
+    fun decode(stored: String?): List<ClipDetect> =
+        stored?.takeIf { it.isNotBlank() }
+            ?.let { runCatching { json.decodeFromString(serializer, it) }.getOrNull() }
+            .orEmpty()
+}
+
 /** Applies [ClipCopyRule]s to copied text, and stores them as one string. */
 object ClipCopyRules {
 

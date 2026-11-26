@@ -1096,6 +1096,8 @@
     <string name="ime_clip_extract_parts">Extract</string>
     <string name="ime_clip_extract_links">Links</string>
     <string name="ime_clip_extract_places">Places</string>
+    <!-- Section in a clip's Extract list for the parts the user's own detects found, when one has no name (#612). -->
+    <string name="ime_clip_extract_custom">Your detects</string>
     <string name="ime_clip_extract_phones">Phone numbers</string>
     <string name="ime_clip_extract_emails">Email addresses</string>
     <string name="ime_clip_extract_codes">One-time codes</string>

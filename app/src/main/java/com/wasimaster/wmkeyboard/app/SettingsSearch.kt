@@ -3826,6 +3826,15 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.search_kw_cliprules,
             parent = R.string.home_clipboard_title,
         ),
+        // The same again for the user's own detects (#612).
+        under(
+            R.string.clipboard_detects_title,
+            R.string.clipboard_detects_subtitle,
+            R.string.clipboard_page_rules_title,
+            "clipdetects",
+            R.string.search_kw_clipdetects,
+            parent = R.string.home_clipboard_title,
+        ),
         under(
             R.string.typing_hw_shortcuts_list_title,
             R.string.typing_hw_shortcuts_list_subtitle,

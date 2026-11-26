@@ -24,7 +24,10 @@ enum class ClipEntityKind {
      * Coordinates, a Plus code or a `geo:` link (#350). A map link stays a
      * [URL]: it is one, and the Location tool's Found tab reads both.
      */
-    PLACE;
+    PLACE,
+
+    /** A match of one of the user's own detects (#612); [ClipEntity.label] names which. */
+    CUSTOM;
 
     /** Two-word noun for the info popup and the chip's accessibility label. */
     @get:StringRes
@@ -35,6 +38,7 @@ enum class ClipEntityKind {
             EMAIL -> R.string.core_content_clip_entity_email_label
             URL -> R.string.core_content_clip_entity_url_label
             PLACE -> R.string.core_content_clip_entity_place_label
+            CUSTOM -> R.string.core_content_clip_entity_custom_label
         }
 
     /** All-caps tag printed on the chip itself. */
@@ -46,6 +50,7 @@ enum class ClipEntityKind {
             EMAIL -> R.string.core_content_clip_entity_email_tag
             URL -> R.string.core_content_clip_entity_url_tag
             PLACE -> R.string.core_content_clip_entity_place_tag
+            CUSTOM -> R.string.core_content_clip_entity_custom_tag
         }
 }
 
@@ -72,6 +77,8 @@ data class ClipEntity(
      * clip actually holds.
      */
     val display: String = value,
+    /** For a [ClipEntityKind.CUSTOM] part, the name of the user's detect that found it (#612). */
+    val label: String? = null,
 ) {
     /** Identity for de-duplicating the same fragment found in several clips. */
     val key: String get() = "${kind.name}:$value"
@@ -101,6 +108,9 @@ object ClipEntities {
 
     /** Chips the panel will show at once. */
     private const val MAX_ENTITIES = 12
+
+    /** Matches one detect of the user's may take from one clip (#612), so a loose pattern cannot flood the panel. */
+    private const val MAX_DETECT_MATCHES = 50
 
     /** How far from its keyword a code may sit and still count as that code. */
     private const val OTP_KEYWORD_RANGE = 40
@@ -229,6 +239,8 @@ object ClipEntities {
         text: String,
         sourceId: Long = 0L,
         phoneFormats: List<PhoneMask> = emptyList(),
+        /** The user's own detects (#612), already compiled; see [ClipDetects.compileAll]. */
+        detects: List<CompiledClipDetect> = emptyList(),
     ): List<ClipEntity> {
         // Half-open [start, end) spans already spoken for by an earlier, more
         // certain kind.
@@ -243,11 +255,12 @@ object ClipEntities {
             start: Int,
             end: Int = start + value.length,
             display: String = value,
+            label: String? = null,
         ): Boolean {
             if (value.isEmpty()) return false
             if (claimed.any { (from, to) -> start < to && from < end }) return false
             claimed += start to end
-            found += ClipEntity(kind, value, sourceId, text, start, end, display)
+            found += ClipEntity(kind, value, sourceId, text, start, end, display, label)
             return true
         }
 
@@ -280,6 +293,19 @@ object ClipEntities {
                 val anchor = found.filter { it.kind == ClipEntityKind.URL && it.end <= start }.maxByOrNull { it.end } ?: continue
                 val resolved = ClipLinkChain.resolve(anchor.value, token) ?: continue
                 claim(ClipEntityKind.URL, resolved, start, end)
+            }
+        }
+
+        // The user's own detects (#612), after the links, which a `#…` or an
+        // `@…` inside an address must not split, and before the guesses at
+        // places, codes and numbers: what the user named outranks a guess.
+        for (detect in detects) {
+            for ((count, match) in detect.regex.findAll(text).withIndex()) {
+                if (count >= MAX_DETECT_MATCHES) break
+                val value = match.value.trim()
+                if (value.isEmpty()) continue
+                val start = match.range.first + match.value.indexOf(value)
+                claim(ClipEntityKind.CUSTOM, value, start, label = detect.name)
             }
         }
 
@@ -317,6 +343,7 @@ object ClipEntities {
     fun entitiesIn(
         items: List<ClipItem>,
         phoneFormats: List<PhoneMask> = emptyList(),
+        detects: List<CompiledClipDetect> = emptyList(),
     ): List<ClipEntity> {
         val seen = HashSet<String>()
         val found = ArrayList<ClipEntity>()
@@ -327,7 +354,7 @@ object ClipEntities {
             if (item.sensitive) continue
             val text = item.text.take(MAX_SCANNED_CHARS)
             val whole = text.trim()
-            for (entity in extract(text, item.id, phoneFormats)) {
+            for (entity in extract(text, item.id, phoneFormats, detects)) {
                 if (entity.value == whole) continue
                 if (seen.add(sameKey(entity))) found += entity
             }
@@ -369,13 +396,14 @@ object ClipEntities {
     fun byClip(
         items: List<ClipItem>,
         phoneFormats: List<PhoneMask> = emptyList(),
+        detects: List<CompiledClipDetect> = emptyList(),
     ): Map<Long, List<ClipEntity>> {
         val out = HashMap<Long, List<ClipEntity>>()
         for (item in items) {
             if (!item.kind.isTextual || item.sensitive) continue
             val text = item.text.take(MAX_SCANNED_CHARS)
             val whole = text.trim()
-            val found = extract(text, item.id, phoneFormats)
+            val found = extract(text, item.id, phoneFormats, detects)
                 .filter { it.value != whole }
                 .distinctBy(::sameKey)
                 // By kind, then where in the clip, so a run of links lists in the order written (#612).

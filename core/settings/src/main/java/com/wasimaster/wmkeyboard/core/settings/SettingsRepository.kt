@@ -9467,6 +9467,12 @@ data class ClipboardSettings(
      */
     val copyRules: List<ClipCopyRule> = emptyList(),
     /**
+     * The user's own detects (#612): patterns whose matches the panel offers
+     * as parts of a clip, like links; see [com.wasimaster.wmkeyboard.core.clipboard.ClipDetect].
+     * Empty by default.
+     */
+    val detects: List<com.wasimaster.wmkeyboard.core.clipboard.ClipDetect> = emptyList(),
+    /**
      * A copy a rule changed is put back on the system clipboard as changed
      * (#612), so the app's own paste gets the tidy text too. Off by default:
      * the rules then change only what the history keeps.
@@ -14052,6 +14058,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_LINE_SPACING = intPreferencesKey("clipboard_line_spacing")
         private val CLIPBOARD_PRIVATE_COPIES = booleanPreferencesKey("clipboard_private_copies")
         private val CLIPBOARD_COPY_RULES = stringPreferencesKey("clipboard_copy_rules")
+        private val CLIPBOARD_DETECTS = stringPreferencesKey("clipboard_detects")
         private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
         private val CLIPBOARD_REGEX_WHOLE = booleanPreferencesKey("clipboard_regex_whole")
         private val CLIPBOARD_SAVED_PATTERNS = stringPreferencesKey("clipboard_saved_patterns")
@@ -16450,6 +16457,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.clipboard.lineSpacing,
             privateCopies = p[CLIPBOARD_PRIVATE_COPIES] ?: defaults.clipboard.privateCopies,
             copyRules = p[CLIPBOARD_COPY_RULES]?.let(ClipCopyRules::decode) ?: defaults.clipboard.copyRules,
+            detects = p[CLIPBOARD_DETECTS]?.let(com.wasimaster.wmkeyboard.core.clipboard.ClipDetects::decode)
+                ?: defaults.clipboard.detects,
             copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
             cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
             extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
@@ -27403,6 +27412,9 @@ class SettingsRepository(private val context: Context) {
     /** Replaces the copy rules (#612), in the order they run. */
     suspend fun setClipboardCopyRules(rules: List<ClipCopyRule>) =
         editPrefs { it[CLIPBOARD_COPY_RULES] = ClipCopyRules.encode(rules) }
+
+    suspend fun setClipboardDetects(detects: List<com.wasimaster.wmkeyboard.core.clipboard.ClipDetect>) =
+        editPrefs { it[CLIPBOARD_DETECTS] = com.wasimaster.wmkeyboard.core.clipboard.ClipDetects.encode(detects) }
 
     suspend fun setClipboardCopyRulesToSystem(value: Boolean) =
         editPrefs { it[CLIPBOARD_COPY_RULES_TO_SYSTEM] = value }

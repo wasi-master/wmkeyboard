@@ -1773,6 +1773,20 @@ internal fun ClipboardRulesSettings(
                 onClick = { onNavigate("phoneformats") },
             )
         }
+        // The user's own detects (#612): their matches offered as parts of a clip, like links.
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
+            val count = settings.watch { it.clipboard.detects.size }
+            NavRow(
+                R.string.clipboard_detects_title,
+                subtitle = if (count == 0) {
+                    stringResource(R.string.clipboard_detects_subtitle)
+                } else {
+                    pluralStringResource(R.plurals.clipboard_detects_count_subtitle, count, count)
+                },
+                route = "clipdetects",
+                onClick = { onNavigate("clipdetects") },
+            )
+        }
     }
     SettingsGroup(stringResource(R.string.clipboard_sensitive_group)) {
         item {

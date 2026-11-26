@@ -37580,13 +37580,14 @@ private fun ClipEntityChip(
         }
         Icon(
             clipEntityIcon(entity.kind),
-            contentDescription = stringResource(entity.kind.labelRes),
+            // A part one of the user's own detects found goes by that detect's name (#612).
+            contentDescription = entity.label ?: stringResource(entity.kind.labelRes),
             modifier = Modifier.size(15.dp),
             tint = accent,
         )
         Spacer(Modifier.width(6.dp))
         Text(
-            stringResource(entity.kind.tagRes),
+            entity.label?.uppercase() ?: stringResource(entity.kind.tagRes),
             fontSize = 8.sp,
             lineHeight = 10.sp,
             letterSpacing = 0.8.sp,
