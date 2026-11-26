@@ -73,12 +73,23 @@ pub fn type_of(e: &Expr) -> Option<&'static str> {
     }
 }
 
-/// For each variable bound by `name = value` exactly once, the type of that value, by symbol.
+/// For each variable bound by `name = value` (or `with value as name:`)
+/// exactly once, the type of that value, by symbol.
 pub fn symbol_types(module: &Module, analysis: &Analysis) -> HashMap<usize, &'static str> {
+    let first = types_with(module, analysis, &HashMap::new());
+    // Once more, for values made by a typed one: `r = s.get(url)` after `s = requests.Session()`.
+    if first.values().any(|t| matches!(*t, SESSION | CLIENT)) {
+        return types_with(module, analysis, &first);
+    }
+    first
+}
+
+fn types_with(module: &Module, analysis: &Analysis, known: &HashMap<usize, &'static str>) -> HashMap<usize, &'static str> {
     let mut by_span: HashMap<Span, &'static str> = HashMap::new();
-    walk_stmts(&module.body, &mut |stmt| {
-        if let StmtKind::Assign { targets, value } = &stmt.kind {
-            if let Some(ty) = type_of(value).or_else(|| package_type(analysis, value)) {
+    let of = |value: &Expr| type_of(value).or_else(|| package_type(analysis, value)).or_else(|| method_type(analysis, known, value));
+    walk_stmts(&module.body, &mut |stmt| match &stmt.kind {
+        StmtKind::Assign { targets, value } => {
+            if let Some(ty) = of(value) {
                 for t in targets {
                     if let ExprKind::Name(_) = t.kind {
                         by_span.insert(t.span, ty);
@@ -86,6 +97,13 @@ pub fn symbol_types(module: &Module, analysis: &Analysis) -> HashMap<usize, &'st
                 }
             }
         }
+        // `with requests.Session() as s:`
+        StmtKind::Unsupported { what: "with", exprs, binds, .. } if exprs.len() == 1 && binds.len() == 1 => {
+            if let (Some(ty), ExprKind::Name(_)) = (of(&exprs[0]), &binds[0].kind) {
+                by_span.insert(binds[0].span, ty);
+            }
+        }
+        _ => {}
     });
     let mut out = HashMap::new();
     for s in &analysis.symbols {
@@ -99,6 +117,28 @@ pub fn symbol_types(module: &Module, analysis: &Analysis) -> HashMap<usize, &'st
         }
     }
     out
+}
+
+/// The type a method of a typed variable returns: a Response for `s.get(url)`.
+fn method_type(analysis: &Analysis, known: &HashMap<usize, &'static str>, e: &Expr) -> Option<&'static str> {
+    let ExprKind::Call { func, keywords, .. } = &e.kind else { return None };
+    let ExprKind::Attribute { value, attr, .. } = &func.kind else { return None };
+    if keywords.iter().any(|k| k.name == "then") {
+        return None;
+    }
+    let receiver = type_at(analysis, known, value.span)?;
+    method_result(receiver, attr)
+}
+
+/// What [method] of a value of [receiver] returns, when the libraries say.
+pub fn method_result(receiver: &str, method: &str) -> Option<&'static str> {
+    let request = matches!(method, "get" | "post" | "put" | "patch" | "delete" | "head" | "options" | "request" | "send");
+    match receiver {
+        SESSION if request => Some(REQUESTS_RESPONSE),
+        CLIENT if request => Some(HTTPX_RESPONSE),
+        HTTPX_RESPONSE if method == "raise_for_status" => Some(HTTPX_RESPONSE),
+        _ => None,
+    }
 }
 
 /// The type of the name read at [span], when its symbol has one.
@@ -121,6 +161,12 @@ pub fn package_type(analysis: &Analysis, e: &Expr) -> Option<&'static str> {
         if attr == "raise_for_status" && package_type(analysis, value) == Some(RESPONSE) {
             return Some(RESPONSE);
         }
+        // `requests.Session().get(url)`, `httpx.get(url).raise_for_status()`.
+        if let ExprKind::Call { .. } = &value.kind {
+            if let Some(ty) = package_type(analysis, value).and_then(|t| method_result(t, attr)) {
+                return Some(ty);
+            }
+        }
     }
     let path = crate::keyboard::api_path(analysis, func)?;
     Some(match crate::keyboard::short(&path) {
@@ -128,8 +174,22 @@ pub fn package_type(analysis: &Analysis, e: &Expr) -> Option<&'static str> {
         "plugin.state" => "wm5.plugin.State",
         "location.get" => "dict",
         "sensors.available" | "reminders.list" => "list",
+        "requests.get" | "requests.post" | "requests.put" | "requests.patch" | "requests.delete" | "requests.head" | "requests.options"
+        | "requests.request" | "requests.api.get" | "requests.api.post" | "requests.api.put" | "requests.api.patch"
+        | "requests.api.delete" | "requests.api.head" | "requests.api.options" | "requests.api.request" => REQUESTS_RESPONSE,
+        "requests.Session" | "requests.session" | "requests.sessions.Session" | "requests.sessions.session" => SESSION,
+        "httpx.get" | "httpx.post" | "httpx.put" | "httpx.patch" | "httpx.delete" | "httpx.head" | "httpx.options" | "httpx.request" => HTTPX_RESPONSE,
+        "httpx.Client" => CLIENT,
+        "urllib.request.urlopen" => "urllib.request.HTTPResponse",
+        "urllib.request.Request" => "urllib.request.Request",
         _ => return None,
     })
 }
 
 pub const RESPONSE: &str = "wm5.http.Response";
+pub const REQUESTS_RESPONSE: &str = "requests.Response";
+pub const HTTPX_RESPONSE: &str = "httpx.Response";
+/// A `requests.Session()`.
+pub const SESSION: &str = "requests.Session";
+/// An `httpx.Client()`.
+pub const CLIENT: &str = "httpx.Client";

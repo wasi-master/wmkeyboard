@@ -311,12 +311,14 @@ pub fn api_path(a: &Analysis, e: &Expr) -> Option<String> {
             Some(Target::Symbol(id)) => {
                 let s = &a.symbols[id];
                 match &s.import {
-                    Some((module, None)) if api::MODULES.contains(&module.as_str()) => Some(module.clone()),
+                    Some((module, None)) if api::MODULES.contains(&module.as_str()) || library_root(module) => Some(module.clone()),
                     Some((module, member)) if module == "wm" || module.starts_with("wm.") => {
                         let path = api::import_path(module, member.as_deref());
                         path.starts_with(crate::package::ROOT).then_some(path)
                     }
-                    Some((module, Some(member))) if api::MODULES.contains(&module.as_str()) => Some(format!("{module}.{member}")),
+                    Some((module, Some(member))) if api::MODULES.contains(&module.as_str()) || crate::package::is_library(module) => {
+                        Some(format!("{module}.{member}"))
+                    }
                     _ => None,
                 }
             }
@@ -329,6 +331,12 @@ pub fn api_path(a: &Analysis, e: &Expr) -> Option<String> {
         }
         _ => None,
     }
+}
+
+/// Whether `import [module]` names one of the libraries beside the package, or
+/// `urllib`, whose `urllib.request` is one: the start of a path into them.
+pub fn library_root(module: &str) -> bool {
+    crate::package::is_library(module) || module == "urllib"
 }
 
 /// [path] without the package root: `plugin.provider` for `wm5.plugin.provider`.

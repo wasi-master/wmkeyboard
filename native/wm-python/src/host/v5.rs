@@ -5,6 +5,12 @@
 //! and then handed to the [`Bridge`] the front end attached. The keyboard
 //! checks the user's grants and the field's state again before acting.
 //!
+//! Beside `wm`, the prelude gives plugins `requests`, `httpx`,
+//! `urllib.request` and `urllib.error` under their usual names
+//! ([library_modules]). They build requests the way those libraries do and
+//! send each as one `http.request` (through `wm._net`), so they need nothing
+//! of their own here.
+//!
 //! # Bridge
 //!
 //! `bridge(op, args_json) -> reply_json`, synchronous. `args` is a JSON
@@ -98,7 +104,31 @@ pub const PRELUDE: &[(&str, &str, bool)] = &[
     ("wm.share", include_str!("prelude/share.py"), false),
     ("wm.todo", include_str!("prelude/todo.py"), false),
     ("wm.ui", include_str!("prelude/ui.py"), false),
+    // What requests, httpx and urllib.request share: one `http.request` call.
+    ("wm._net", include_str!("prelude/_net.py"), false),
+    // Libraries plugins import by their usual names, sent through `http.request`.
+    ("requests", include_str!("prelude/requests/__init__.py"), true),
+    ("requests.adapters", include_str!("prelude/requests/adapters.py"), false),
+    ("requests.api", include_str!("prelude/requests/api.py"), false),
+    ("requests.auth", include_str!("prelude/requests/auth.py"), false),
+    ("requests.cookies", include_str!("prelude/requests/cookies.py"), false),
+    ("requests.exceptions", include_str!("prelude/requests/exceptions.py"), false),
+    ("requests.models", include_str!("prelude/requests/models.py"), false),
+    ("requests.sessions", include_str!("prelude/requests/sessions.py"), false),
+    ("requests.status_codes", include_str!("prelude/requests/status_codes.py"), false),
+    ("requests.structures", include_str!("prelude/requests/structures.py"), false),
+    ("requests.utils", include_str!("prelude/requests/utils.py"), false),
+    ("httpx", include_str!("prelude/httpx.py"), false),
+    ("urllib.error", include_str!("prelude/urllib/error.py"), false),
+    ("urllib.request", include_str!("prelude/urllib/request.py"), false),
 ];
+
+/// The top-level modules [PRELUDE] gives plugins besides `wm`, by the names
+/// they are imported as: `requests`, `httpx`, and `urllib.request` and
+/// `urllib.error` inside the standard library's `urllib`.
+pub fn library_modules() -> impl Iterator<Item = &'static str> {
+    PRELUDE.iter().map(|(name, _, _)| *name).filter(|name| !name.starts_with("wm.") && *name != "wm")
+}
 
 /// Event types that count as the user acting in the panel.
 pub const USER_EVENTS: &[&str] = &["click", "change", "submit", "select", "tap", "drag", "hold", "press", "item_action", "keyword", "command"];

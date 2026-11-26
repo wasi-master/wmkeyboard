@@ -77,8 +77,143 @@ const OPEN_OBJECTS: &[&str] = &["plugin.State", "plugin.settings"];
 /// `with ui.column():` and the other containers.
 const CONTEXT_MANAGERS: &[&str] = &["ui.Container"];
 
-/// Every stub file of the `wm` package: `wm/__init__.pyi` and one per module.
+/// Classes of the libraries that work in a `with` block.
+const LIBRARY_CONTEXT_MANAGERS: &[&str] = &["Session", "Response", "Client"];
+
+/// Every stub file of the `wm` package (`wm/__init__.pyi` and one per
+/// module), and of the libraries the host gives plugins beside it
+/// ([library_stubs]).
 pub fn wm_package() -> Vec<(String, String)> {
+    let mut out = package_stubs();
+    out.extend(library_stubs());
+    out
+}
+
+/// `requests/__init__.pyi`, `requests/<module>.pyi` and `httpx.pyi`: the
+/// libraries as the host has them, `then=` and all. urllib.request has
+/// none: the checker's own stubs for the standard library describe it, and
+/// a `urllib` folder here would hide the rest of `urllib` from them.
+pub fn library_stubs() -> Vec<(String, String)> {
+    let model = api::model();
+    let mut out = Vec::new();
+    for module in crate::package::library_modules().filter(|m| !m.starts_with("urllib")) {
+        let Some(entry) = model.find(module) else { continue };
+        let mut text = header(entry.doc);
+        let mut children: Vec<&ApiEntry> = model.children(module).into_iter().filter(|e| e.kind != ApiKind::Module).collect();
+        // A class after the class it derives from.
+        let mut ordered: Vec<&ApiEntry> = Vec::new();
+        while !children.is_empty() {
+            let before = children.len();
+            let mut k = 0;
+            while k < children.len() {
+                let e = children[k];
+                let waits = crate::package::library_base(e.path).is_some_and(|b| children.iter().any(|c| c.name() == b && c.path != e.path));
+                if waits {
+                    k += 1;
+                } else {
+                    ordered.push(children.remove(k));
+                }
+            }
+            if children.len() == before {
+                ordered.append(&mut children);
+            }
+        }
+        for e in ordered {
+            library_member(&mut text, module, e);
+        }
+        let path = match module.split_once('.') {
+            Some((top, sub)) => format!("{top}/{sub}.pyi"),
+            None if model.children(module).iter().any(|e| e.kind == ApiKind::Module) => format!("{module}/__init__.pyi"),
+            None => format!("{module}.pyi"),
+        };
+        out.push((path, text));
+    }
+    out
+}
+
+/// One top-level name of library [module] in its stub.
+fn library_member(out: &mut String, module: &str, e: &ApiEntry) {
+    let model = api::model();
+    match e.kind {
+        ApiKind::Type | ApiKind::Exception => {
+            let base = crate::package::library_base(e.path)
+                .filter(|b| api::EXCEPTIONS.contains(b) || *b == "Exception" || model.find(&format!("{module}.{b}")).is_some())
+                .unwrap_or(if e.kind == ApiKind::Exception { "Exception" } else { "" });
+            let bases = if base.is_empty() { String::new() } else { format!("({base})") };
+            let _ = writeln!(out, "class {}{bases}:", e.name());
+            docstring(out, e.doc, 1);
+            if let Some(sig) = e.signature {
+                let params = sig.find('(').map(|at| &sig[at + 1..sig.len().saturating_sub(1)]).unwrap_or("");
+                let mut list = vec!["self".to_string()];
+                list.extend(split_params(params).iter().map(|p| param(p, "")));
+                let _ = writeln!(out, "    def __init__({}) -> None: ...", list.join(", "));
+            }
+            if LIBRARY_CONTEXT_MANAGERS.contains(&e.name()) {
+                let _ = writeln!(out, "    def __enter__(self) -> {}: ...", e.name());
+                let _ = writeln!(out, "    def __exit__(self, *args) -> None: ...");
+            }
+            for m in model.children(e.path) {
+                match m.kind {
+                    ApiKind::Function | ApiKind::Method => {
+                        let ret = library_return(module, e.name(), m.name());
+                        library_function(out, "    ", m, ret, true);
+                    }
+                    _ => {
+                        let _ = writeln!(out, "    {}: Any", m.name());
+                        docstring(out, m.doc, 1);
+                    }
+                }
+            }
+            if !out.ends_with("\n\n") {
+                out.push('\n');
+            }
+        }
+        ApiKind::Function | ApiKind::Method | ApiKind::Builtin => {
+            let ret = library_return(module, "", e.name());
+            library_function(out, "", e, ret, false);
+        }
+        _ => {
+            let _ = writeln!(out, "{}: Any", e.name());
+            docstring(out, e.doc, 0);
+            out.push('\n');
+        }
+    }
+}
+
+/// The class a library function returns, when [module] has it: `Response` for `requests.get`.
+fn library_return(module: &str, class: &str, name: &str) -> Option<String> {
+    let request = matches!(name, "get" | "post" | "put" | "patch" | "delete" | "head" | "options" | "request" | "send");
+    let ty = match (class, name) {
+        ("" | "Session" | "Client", _) if request => "Response",
+        ("", "session") => "Session",
+        ("", "urlopen") => "HTTPResponse",
+        ("Response", "raise_for_status") if module == "httpx" => "Response",
+        ("Request", "prepare") | ("Session", "prepare_request") => "PreparedRequest",
+        _ => return None,
+    };
+    api::model().find(&format!("{module}.{ty}")).map(|_| ty.to_string())
+}
+
+fn library_function(out: &mut String, pad: &str, e: &ApiEntry, ret: Option<String>, method: bool) {
+    let sig = e.signature.unwrap_or("");
+    let params = match sig.find('(') {
+        Some(at) if sig.ends_with(')') => &sig[at + 1..sig.len() - 1],
+        _ => "*args, **kwargs",
+    };
+    let mut list: Vec<String> = Vec::new();
+    if method {
+        list.push("self".into());
+    }
+    list.extend(split_params(params).iter().map(|p| param(p, "")));
+    let ret = ret.map(|r| format!(" -> {r}")).unwrap_or_default();
+    let _ = writeln!(out, "{pad}def {}({}){ret}:", e.name(), list.join(", "));
+    docstring(out, e.doc, if method { 2 } else { 1 });
+    let _ = writeln!(out, "{pad}    ...");
+    out.push('\n');
+}
+
+/// The `wm` package's stub files.
+fn package_stubs() -> Vec<(String, String)> {
     let model = api::model();
     let mut out = Vec::new();
     let modules: Vec<&ApiEntry> = model.children(ROOT).into_iter().filter(|e| e.kind == ApiKind::Module).collect();

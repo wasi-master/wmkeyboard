@@ -754,6 +754,8 @@ fn build() -> Model {
     }
 
     entries.extend(crate::package::entries(&leak));
+    // requests, httpx and urllib.request, which the host gives plugins beside the package.
+    entries.extend(crate::package::library_entries(&leak));
 
     let mut by_path = HashMap::new();
     let mut by_parent: HashMap<&'static str, Vec<usize>> = HashMap::new();

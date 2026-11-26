@@ -397,6 +397,8 @@ impl<'a> Context<'a> {
         items.extend(api::MODULES.iter().map(|m| Item::new(m, ItemKind::Module, m, 2).doc(m)));
         if self.api5() {
             items.extend(api::LIBRARY.iter().map(|m| Item::new(m, ItemKind::Module, m, 3)));
+            // requests, httpx, urllib.request: built in, with their docs.
+            items.extend(crate::package::library_modules().map(|m| Item::new(m, ItemKind::Module, m, 2).doc(m)));
         }
         for m in self.host.modules.iter().flatten() {
             items.push(Item::new(m, ItemKind::Module, m, 1).detail(Some("your module")));

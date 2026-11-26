@@ -19,6 +19,39 @@ const WM_MODULES: &[&str] = &[
     "secrets", "reminders", "storage", "calendar", "todo", "keyboard", "clock",
 ];
 
+/// Libraries a plugin imports by their usual names, and uses by those names.
+const LIBRARY_ROOTS: &[&str] = &["requests", "httpx"];
+
+/// The parameter that holds the address, for calls into the libraries that send a request.
+fn library_url_arg(path: &str) -> Option<usize> {
+    let (module, name) = path.rsplit_once('.')?;
+    match (module, name) {
+        ("requests" | "requests.api" | "httpx", "get" | "post" | "put" | "patch" | "delete" | "head" | "options") => Some(0),
+        ("requests" | "requests.api" | "httpx", "request") => Some(1),
+        ("urllib.request", "urlopen" | "Request") => Some(0),
+        _ => None,
+    }
+}
+
+/// The parameter that holds the address, for a method of a session or client.
+fn session_url_arg(method: &str) -> Option<usize> {
+    match method {
+        "get" | "post" | "put" | "patch" | "delete" | "head" | "options" => Some(0),
+        "request" => Some(1),
+        _ => None,
+    }
+}
+
+/// The text of an f-string up to its first replacement field, when it starts with an address:
+/// `https://api.example.com/items/` for `f"https://api.example.com/items/{id}"`.
+fn fstring_head(source: &str) -> Option<String> {
+    let rest = source.trim_start_matches(|c: char| matches!(c, 'f' | 'F' | 'r' | 'R' | 'b' | 'B'));
+    let quote = rest.chars().next().filter(|c| *c == '"' || *c == '\'')?;
+    let body = rest.trim_start_matches(quote);
+    let head: String = body.chars().take_while(|c| *c != '{' && *c != quote).collect();
+    (head.starts_with("https://") || head.starts_with("http://")).then_some(head)
+}
+
 /// The permission a package name needs, beyond what its module's entry says.
 fn permission_of(short: &str) -> Option<&'static str> {
     Some(match short {
@@ -99,7 +132,7 @@ impl<'a> Checks<'a> {
                 self.add(Code::RemovedBuiltin, o.span, &[name]);
             } else if api::MISSING_BUILTINS.contains(&name) {
                 self.add(Code::MissingBuiltin, o.span, &[name]);
-            } else if api::MODULES.contains(&name) {
+            } else if api::MODULES.contains(&name) || (LIBRARY_ROOTS.contains(&name) && self.host.api != Some(4)) {
                 self.add(Code::ModuleNotImported, o.span, &[name]);
             } else if WM_MODULES.contains(&name) && self.host.api != Some(4) {
                 self.add(Code::WmNotImported, o.span, &[name]);
@@ -193,6 +226,17 @@ impl<'a> Checks<'a> {
                 }
             }
             StmtKind::ImportFrom { module, module_span, names, .. } => {
+                let own = self.host.modules.as_ref().is_some_and(|m| m.iter().any(|x| x == module));
+                if crate::package::is_library(module) && !own {
+                    // requests, httpx, urllib.request: modelled, so each name is checked.
+                    for n in names {
+                        let full = format!("{module}.{}", n.name);
+                        if api::model().find(&full).is_none() {
+                            self.member(module, &n.name, &full, n.span);
+                        }
+                    }
+                    return;
+                }
                 if module.starts_with('.') || self.importable(module) {
                     return;
                 }
@@ -224,7 +268,7 @@ impl<'a> Checks<'a> {
 
     /// A standard library module written in Python, or one of the plugin's own.
     fn importable(&self, module: &str) -> bool {
-        api::LIBRARY.contains(&module) || self.host.modules.as_ref().is_some_and(|m| m.iter().any(|x| x == module))
+        api::LIBRARY.contains(&module) || crate::package::is_library(module) || self.host.modules.as_ref().is_some_and(|m| m.iter().any(|x| x == module))
     }
 
     // ---- members of the API ------------------------------------------------
@@ -237,13 +281,13 @@ impl<'a> Checks<'a> {
                 Some(Target::Symbol(id)) => {
                     let s = &self.a.symbols[id];
                     match &s.import {
-                        Some((module, None)) if api::MODULES.contains(&module.as_str()) => Some(module.clone()),
+                        Some((module, None)) if api::MODULES.contains(&module.as_str()) || keyboard::library_root(module) => Some(module.clone()),
                         // The API 5 package, modelled from its own source.
                         Some((module, member)) if module == "wm" || module.starts_with("wm.") => {
                             let path = api::import_path(module, member.as_deref());
                             path.starts_with(crate::package::ROOT).then_some(path)
                         }
-                        Some((module, Some(member))) if api::MODULES.contains(&module.as_str()) || module == "wm" => {
+                        Some((module, Some(member))) if api::MODULES.contains(&module.as_str()) || module == "wm" || crate::package::is_library(module) => {
                             Some(format!("{module}.{member}"))
                         }
                         _ => None,
@@ -507,6 +551,7 @@ impl<'a> Checks<'a> {
         let decorated = keyboard::decorated(&self.doc.module, a);
         self.permissions();
         self.package_calls();
+        self.library_calls();
         for d in &decorated {
             self.decorator(d);
         }
@@ -557,8 +602,20 @@ impl<'a> Checks<'a> {
         let mut found: Vec<(String, &'static str, Span)> = Vec::new();
         let mut seen: HashSet<&'static str> = HashSet::new();
         let missing = |perm: &str| h.has_permission(perm) == Some(false);
+        let own = |module: &str| h.modules.as_ref().is_some_and(|m| m.iter().any(|x| x == module));
         walk_stmts(&self.doc.module.body, &mut |stmt| {
+            // import requests, import httpx, import urllib.request
+            if let StmtKind::Import(names) = &stmt.kind {
+                for n in names {
+                    if let Some(p) = crate::package::library_permission(&n.name).filter(|p| missing(p) && !own(&n.name)) {
+                        found.push((n.name.clone(), p, n.span));
+                    }
+                }
+            }
             if let StmtKind::ImportFrom { module, module_span, names, .. } = &stmt.kind {
+                if let Some(p) = crate::package::library_permission(module).filter(|p| missing(p) && !own(module)) {
+                    found.push((module.clone(), p, *module_span));
+                }
                 if module == "wm" {
                     for n in names {
                         if let Some(p) = permission_of(&n.name).filter(|p| missing(p)) {
@@ -670,6 +727,57 @@ impl<'a> Checks<'a> {
         for (code, span, args) in found {
             let args: Vec<&str> = args.iter().map(String::as_str).collect();
             self.add(code, span, &args);
+        }
+    }
+
+    /// requests, httpx and urllib.request calls whose address is on a host
+    /// plugin.json does not list: `requests.get("https://...")`, a session's
+    /// or client's own `get`, `httpx.Client(base_url="https://...")`.
+    fn library_calls(&mut self) {
+        let h = self.host;
+        if h.hosts.is_none() {
+            return;
+        }
+        let types = crate::infer::symbol_types(&self.doc.module, self.a);
+        let mut urls: Vec<&Expr> = Vec::new();
+        all_exprs(&self.doc.module.body, &mut |e| {
+            let ExprKind::Call { func, args, keywords, .. } = &e.kind else { return };
+            let given = |index: usize, keyword: &str| keywords.iter().find(|k| k.name == keyword).map(|k| &k.value).or_else(|| args.get(index));
+            if let Some(path) = keyboard::api_path(self.a, func) {
+                if let Some(index) = library_url_arg(&path) {
+                    urls.extend(given(index, "url"));
+                }
+                if path == "httpx.Client" {
+                    urls.extend(keywords.iter().find(|k| k.name == "base_url").map(|k| &k.value));
+                }
+                return;
+            }
+            let ExprKind::Attribute { value, attr, .. } = &func.kind else { return };
+            let receiver = match &value.kind {
+                ExprKind::Name(_) => crate::infer::type_at(self.a, &types, value.span),
+                ExprKind::Call { .. } => crate::infer::package_type(self.a, value),
+                _ => None,
+            };
+            if matches!(receiver, Some(crate::infer::SESSION | crate::infer::CLIENT)) {
+                if let Some(index) = session_url_arg(attr) {
+                    urls.extend(given(index, "url"));
+                }
+            }
+        });
+        let mut found: Vec<(Span, String)> = Vec::new();
+        for url in urls {
+            let text = match &url.kind {
+                ExprKind::Str { fstring: true, .. } => fstring_head(&crate::text::slice(self.doc.units(), url.span)),
+                _ => str_value(url).map(str::to_string).or_else(|| self.constant_str(url)),
+            };
+            if let Some(host) = text.as_deref().and_then(host_of) {
+                if h.allows_host(&host) == Some(false) {
+                    found.push((url.span, host));
+                }
+            }
+        }
+        for (span, host) in found {
+            self.add(Code::HostMissing, span, &[&host]);
         }
     }
 

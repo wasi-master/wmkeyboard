@@ -22,6 +22,26 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde_json::{json, Value as Json};
 
 pub use analyse::analyse;
+
+/// The PyPI projects the keyboard gives every plugin already, by their
+/// normalized names (`requests`, `httpx`): read from the host's prelude, so
+/// a library added there is known here the day it exists.
+pub fn built_in_projects() -> Vec<&'static str> {
+    let mut out: Vec<&'static str> = wm_python::host::v5::library_modules()
+        .filter_map(|m| m.split('.').next())
+        .filter(|top| analyse::library_root(top))
+        .collect();
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
+/// Whether [project] (any spelling: `Requests`, `requests`) is one the
+/// keyboard gives plugins already, so there is nothing to install.
+pub fn is_built_in(project: &str) -> bool {
+    let key: String = project.trim().to_ascii_lowercase().chars().map(|c| if c == '_' || c == '.' { '-' } else { c }).collect();
+    built_in_projects().iter().any(|p| *p == key)
+}
 pub use shake::shake;
 
 /// The keyboard's caps on a plugin archive (`PluginFile.kt` in core/plugins).
@@ -159,7 +179,8 @@ pub struct FileReport {
 pub struct Imports {
     /// The interpreter's own modules: `math`, `re`, `collections`, ...
     pub stdlib: BTreeSet<String>,
-    /// The keyboard's `wm` package.
+    /// The keyboard's own modules: the `wm` package, and the libraries it
+    /// gives plugins under their usual names (requests, httpx, urllib.request).
     pub wm: BTreeSet<String>,
     /// The package's own modules.
     pub internal: BTreeSet<String>,

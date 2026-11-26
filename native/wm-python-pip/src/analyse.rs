@@ -111,6 +111,13 @@ fn sandbox_module(name: &str) -> Option<(&'static str, Option<&'static str>)> {
     })
 }
 
+/// Whether [top] is a library the keyboard gives plugins under its own name
+/// (requests, httpx), read from the host's prelude. `urllib` is the
+/// standard library's, with `urllib.request` and `urllib.error` added.
+pub(crate) fn library_root(top: &str) -> bool {
+    top != "urllib" && wm_python::host::v5::library_modules().any(|m| m.split('.').next() == Some(top))
+}
+
 /// Imports that mean compiled C code.
 fn c_module(name: &str) -> bool {
     matches!(name.split('.').next().unwrap_or(name), "ctypes" | "cffi" | "_cffi_backend")
@@ -147,6 +154,13 @@ impl Ctx<'_> {
         }
         if self.roots.contains(top) {
             return if self.program.exists(name) { Origin::Internal } else { Origin::Missing };
+        }
+        // requests, httpx, urllib.request: the keyboard's own, beside `wm`.
+        if self.wm_modules.contains(name) {
+            return Origin::Wm;
+        }
+        if library_root(top) {
+            return Origin::Missing;
         }
         if self.available.contains(top) {
             return Origin::Available;
@@ -305,6 +319,9 @@ fn missing_import(ctx: &Ctx, file: &ModFile, name: &str, span: Span, severity: S
     if top == "wm" {
         return at(file, span, severity, "missing-import", format!("the wm package has no module '{name}'"), None);
     }
+    if library_root(top) {
+        return at(file, span, severity, "missing-import", format!("the keyboard's built-in {top} has no module '{name}'"), None);
+    }
     if c_module(name) {
         return at(file, span, severity, "c-extension", format!("'{name}' loads compiled C code, which plugins cannot run"), None);
     }
@@ -366,6 +383,14 @@ fn check_imports(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>, imports:
             }
             ImportKind::From { module: None, raw, module_span, .. } => {
                 out.push(at(file, *module_span, severity, "missing-import", format!("'{raw}' climbs above the top of the package"), None));
+            }
+            // The interpreter may take `from __future__ import x` as a
+            // statement of its own while `import __future__` still fails.
+            ImportKind::From { module: Some(m), module_span, names, .. } if m.as_str() == "__future__" => {
+                let list: Vec<&str> = names.iter().map(|b| b.name.as_str()).collect();
+                if !ctx.probe.source_runs(&format!("from __future__ import {}\n", list.join(", "))) {
+                    out.push(missing_import(ctx, file, m, *module_span, severity));
+                }
             }
             ImportKind::From { module: Some(m), module_span, names, .. } => {
                 if !record(ctx, m, imports) {

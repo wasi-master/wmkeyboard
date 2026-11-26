@@ -1,0 +1,211 @@
+---
+title: "requests, httpx and urllib"
+description: "import requests works in a plugin as it does on a computer. What plugin.json needs, how to keep the panel moving, where it differs, and what its errors mean."
+sidebar:
+  label: "requests and httpx"
+  order: 5.041
+---
+
+`import requests` works in a plugin. You do not install it: the keyboard has
+it built in, along with a synchronous `httpx` and `urllib.request`. All three
+send their requests through the keyboard, the same way
+[`wm.http`](/plugins/guides/internet-and-ai/#making-requests) does, so the
+same rules apply to them.
+
+## A first request
+
+```python title="main.py"
+import requests
+from wm import plugin, ui
+
+state = plugin.state(stars=None, error="")
+
+
+def load():
+    try:
+        r = requests.get("https://api.github.com/repos/psf/requests", timeout=10)
+        r.raise_for_status()
+        state.stars = r.json()["stargazers_count"]
+    except requests.RequestException as e:
+        state.error = str(e)
+
+
+load()
+
+
+def render():
+    ui.label(state.error or f"requests has {state.stars} stars")
+```
+
+Everything you know from requests is there: `params=`, `data=`, `json=`,
+`headers=`, `files=`, `auth=("user", "password")`, `timeout=`, `Session`,
+`r.status_code`, `r.json()`, `r.raise_for_status()`, `r.headers["Content-Type"]`
+in any case, `requests.codes.ok` and the exceptions in `requests.exceptions`.
+
+## What plugin.json needs
+
+The `network` permission, and every host you call in `hosts`:
+
+```json title="plugin.json (excerpt)"
+"permissions": ["network"],
+"hosts": ["api.github.com"]
+```
+
+The editors mark an `import requests` without `network`, and an address whose
+host is not in `hosts`. Both marks have a quick fix that adds the line to
+plugin.json. `wmpy check` reports the same problems.
+
+`network` is a [risky permission](/plugins/permissions/#risky-permissions).
+After a real install, requests raise `PermissionError` until the user turns it
+on, and the panel shows an Allow button for it.
+
+## Without waiting
+
+`requests.get(url)` waits for the answer, and the panel cannot react while it
+waits. This is an addition of WM Keyboard's, not part of requests: pass
+`then=` and the call returns at once.
+
+```python
+def search():
+    state.busy = True
+    requests.get(URL, params={"q": state.query}, then=got, on_error=failed)
+
+
+def got(r):
+    state.busy = False
+    state.results = r.json()["items"] if r.ok else []
+
+
+def failed(error):
+    state.busy = False
+    state.error = str(error)
+```
+
+`got` receives the `Response`, and the panel is drawn again after it runs. A
+status of 404 or 500 still goes to `got`; check `r.ok`. `failed` receives the
+same exceptions a waiting call raises. Every request method takes `then=` and
+`on_error=`: `requests.post`, `Session.get`, the `httpx` calls and `urlopen`.
+
+## Where it differs
+
+The keyboard sends the requests, so some things work differently than on a
+computer.
+
+| | requests on a computer | requests in a plugin |
+|---|---|---|
+| Addresses | http and https | https only. Plain http works only with a server on the local network that the user typed into the plugin's settings, with `network.local` |
+| Hosts | any | only those in plugin.json's `hosts` |
+| Timeout | none unless you give one | 15 seconds at most, and 15 when you give none. A larger `timeout=` counts as 15 and says so once in the log. For `(connect, read)` the longer one counts |
+| Reply size | no limit | 1 MB. A larger reply raises `ConnectionError` |
+| Requests a minute | no limit | 60 for each plugin |
+| Redirects | `allow_redirects=`, `r.history` | the keyboard follows up to 5 itself. `allow_redirects=False` changes nothing, `r.history` is empty, and a sixth raises `TooManyRedirects` |
+| Cookies | a `Session` sends them back | kept in `r.cookies` and `s.cookies` for reading, but never sent. Use a token in a header to stay signed in |
+| Headers | any | the keyboard sets `User-Agent` (naming your plugin), `Cookie`, `Host`, `Connection`, `Content-Length` and `Proxy-Authorization`; yours are left out |
+| Methods | any | GET, POST, PUT, PATCH, DELETE and HEAD. `options()` raises `ValueError`. GET, DELETE and HEAD go without a body |
+| `verify=`, `cert=` | turn checks off, send a client certificate | ignored. Certificates are always checked |
+| `proxies=` | used | ignored |
+| `stream=True` | reads the body as you go | the whole reply is read first. `iter_content()` and `iter_lines()` give lists |
+| Text with no charset | `text/...` is read as ISO-8859-1 | read as UTF-8 when it is valid UTF-8, as Windows-1252 otherwise. Only UTF-8, ASCII, ISO-8859-1 and Windows-1252 are read; set `r.encoding` or decode `r.content` yourself for others |
+| Data saver | no effect | no request is sent: `ConnectionError` |
+| Errors with two parents | `ConnectTimeout` is a `ConnectionError` and a `Timeout`; `JSONDecodeError` is a `RequestException` and a `ValueError` | each has one: a timeout raises `ReadTimeout` (a `Timeout`), `JSONDecodeError` is a `ValueError`, and `MissingSchema`, `InvalidSchema` and `InvalidURL` are only `RequestException` |
+| Authentication | Basic, Digest, `.netrc` | Basic and your own `AuthBase`. `HTTPDigestAuth` raises `NotImplementedError` |
+| Retries | `HTTPAdapter(max_retries=3)` | accepted, but nothing is retried. Catch `ConnectionError` and try again |
+| `bool(r)` | `r.ok` | `if r:` follows `r.ok`, but `bool(r)` is always `True` in the keyboard's Python |
+
+## Errors and what to do
+
+| Error | Why | What to do |
+|---|---|---|
+| `PermissionError`: requests needs the "network" permission | plugin.json has no `network` | add `"network"` to `"permissions"`; the quick fix does it |
+| `PermissionError`: api.example.com is not in plugin.json's "hosts" | the host is not listed | add it to `"hosts"`; the quick fix does it |
+| `PermissionError`: the user has not turned on 'network' | after a real install | the panel offers Allow; tell the user why you need it |
+| `requests.exceptions.ConnectionError` | no connection, Data saver, a host that cannot be reached, a reply over 1 MB, more than 60 requests a minute | the message says which; show it, or try again later |
+| `requests.exceptions.ReadTimeout` | no answer in time | try again, or ask for less |
+| `requests.exceptions.TooManyRedirects` | more than 5 redirects | call the final address |
+| `requests.exceptions.InvalidSchema` | an `http://` address, or another scheme | use `https://` |
+| `requests.exceptions.MissingSchema` | no `https://` in front | add it |
+| `requests.exceptions.HTTPError` | `r.raise_for_status()` on a status of 400 to 599 | read `e.response.status_code` |
+| `requests.exceptions.JSONDecodeError` | `r.json()` on a reply that is not JSON, often an error page | check `r.status_code` and `r.text` first |
+
+Every one but `PermissionError` and `JSONDecodeError` is a
+`requests.RequestException`, so one `except` catches them:
+
+```python
+try:
+    r = requests.get(URL, params={"q": query}, timeout=10)
+    r.raise_for_status()
+    data = r.json()
+except PermissionError:
+    state.error = "Allow internet access to search."
+except requests.exceptions.HTTPError as e:
+    state.error = f"The server said {e.response.status_code}."
+except requests.RequestException as e:
+    state.error = str(e)
+except ValueError:
+    state.error = "The server did not send JSON."
+```
+
+## httpx
+
+```python
+import httpx
+
+with httpx.Client(base_url="https://api.example.com/v1", headers={"Authorization": "Bearer " + token}, timeout=10) as client:
+    r = client.get("/items", params={"q": "milk"})
+    r.raise_for_status()
+    items = r.json()
+```
+
+`httpx.get`, `post` and the rest work too, and `Client` takes `base_url`,
+`headers`, `params`, `auth` and `timeout`. A `Response` has `status_code`,
+`reason_phrase`, `text`, `content`, `json()`, `headers`, `is_success`,
+`is_error` and `raise_for_status()`, which returns the response or raises
+`httpx.HTTPStatusError` for any status outside 200 to 299.
+
+The limits above apply. Beyond them, the timeout is 5 seconds unless you give
+one, as in httpx, and redirects are always followed whatever
+`follow_redirects` says. There is no `AsyncClient`: use `then=`. Errors are
+httpx's own: `httpx.ConnectError` for no connection, `httpx.ReadTimeout` (a
+`TimeoutException`), `httpx.TooManyRedirects` and `httpx.UnsupportedProtocol`
+for an address that is not https, all of them `httpx.RequestError`.
+
+## urllib.request
+
+```python
+import json
+from urllib.request import Request, urlopen
+
+with urlopen("https://api.example.com/v1/items", timeout=10) as reply:
+    items = json.loads(reply.read().decode())
+
+req = Request("https://api.example.com/v1/items", data=b'{"name": "milk"}', headers={"Content-Type": "application/json"})
+urlopen(req)
+```
+
+A reply has `read()`, `status`, `reason`, `headers`, `getcode()` and
+`geturl()`. A status of 400 or more raises `urllib.error.HTTPError`, which is
+also the reply: `e.code`, `e.read()`. No answer raises
+`urllib.error.URLError`. Decode `read()` before `json.loads`, which takes
+text only in the keyboard's Python. `urlretrieve` is not there, because
+plugins cannot write files; `build_opener` gives an opener whose `open()` is
+`urlopen`.
+
+## Tests and tools
+
+A mock answers requests, httpx and urllib.request as it answers `wm.http`,
+since all of them make the same `http.request` call:
+
+```python
+MOCK = {"http.request": {"status": 200, "text": '{"stargazers_count": 52000}', "headers": {}}}
+
+
+def test_stars():
+    s = plugin_test.session(mock=MOCK)
+    assert "52000" in str(s["load"]()["ui"])
+```
+
+The editors and `wmpy lsp` complete, explain and check requests, httpx and
+urllib.request as they do the `wm` package. `wmpy stubs` writes
+`requests/__init__.pyi` and `httpx.pyi` beside the `wm` stubs, so Pylance and
+mypy know the keyboard's versions, `then=` included. `wmpy pip install
+requests` says it is built in and changes nothing.

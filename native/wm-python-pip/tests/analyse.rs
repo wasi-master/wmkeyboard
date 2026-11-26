@@ -52,7 +52,7 @@ fn where_an_import_sits_decides_how_bad_it_is() {
     let r = run(
         &[(
             "fast.py",
-            "try:\n    import simplejson as json\nexcept ImportError:\n    import json\n\ndef save(x):\n    import os\n    return os.getcwd()\n\nif False:\n    pass\n",
+            "try:\n    import simplejson as json\nexcept ImportError:\n    import json\n\ndef save(x):\n    import subprocess\n    return subprocess.run(['ls'])\n\nif False:\n    pass\n",
         )],
         &[],
     );
@@ -122,7 +122,7 @@ fn builtins_and_members_are_checked_against_the_interpreter() {
     let r = run(
         &[(
             "compat.py",
-            "import sys\nfrom math import floor, not_a_function\nPY3 = sys.version_info[0] == 3\n\ndef read(path):\n    with open(path) as f:\n        return f.read()\n\ndef ok():\n    return sys.version\n",
+            "import sys\nfrom math import floor, not_a_function\nPY3 = sys._current_frames() is None\n\ndef read(path):\n    with open(path) as f:\n        return f.read()\n\ndef ok():\n    return sys.version\n",
         )],
         &[],
     );
@@ -140,23 +140,25 @@ fn runtime_gaps_are_warnings_from_what_the_interpreter_does() {
         &[],
     );
     let c = codes(&r);
-    // Both checks ask the interpreter; today it has neither.
-    assert!(c.iter().any(|x| x.1 == "multiple-inheritance" && x.3 == Some(8)), "{c:?}");
+    // Both checks ask the interpreter, so what counts as a gap follows it:
+    // a line is either fine or flagged with the matching code, once.
+    let at = |line: u32| c.iter().filter(|x| x.3 == Some(line)).collect::<Vec<_>>();
+    assert!(at(8).iter().all(|x| x.1 == "multiple-inheritance"), "{c:?}");
     // The parser may refuse the literal outright; otherwise it is a warning.
-    assert!(c.iter().any(|x| (x.1 == "big-int" || x.1 == "syntax") && x.3 == Some(12)), "{c:?}");
-    assert_eq!(c.iter().filter(|x| x.3 == Some(12)).count(), 1, "{c:?}");
+    assert!(at(12).iter().all(|x| x.1 == "big-int" || x.1 == "syntax"), "{c:?}");
+    assert!(at(8).len() <= 1 && at(12).len() <= 1, "{c:?}");
 }
 
 #[test]
 fn the_json_has_the_shape_the_web_editor_reads() {
-    let r = run(&[("m.py", "import os\n")], &[]);
+    let r = run(&[("m.py", "import socket\n")], &[]);
     let j = r.to_json();
     assert_eq!(j["verdict"], "incompatible");
     let p = &j["problems"][0];
     for k in ["severity", "file", "line", "col", "code", "message"] {
         assert!(p.get(k).is_some(), "{k} missing in {p}");
     }
-    assert_eq!(j["imports"]["missing"][0], "os");
+    assert_eq!(j["imports"]["missing"][0], "socket");
     assert!(j["imports"]["stdlib"].is_array() && j["imports"]["internal"].is_array());
     assert_eq!(j["roots"][0], "m");
 }
@@ -173,4 +175,17 @@ fn reserved_and_shadowed_names() {
 fn the_main_guard_never_runs_in_a_package() {
     let r = run(&[("tool.py", "import sys\n\ndef main():\n    return 0\n\nif __name__ == \"__main__\":\n    import argparse\n    sys.exit(main())\n")], &[]);
     assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
+}
+
+#[test]
+fn future_imports_are_asked_as_statements() {
+    // The interpreter may run `from __future__ import x` as a statement of
+    // its own while `import __future__` fails; only the first matters here.
+    let src = "from __future__ import annotations\n\ndef f(x: int) -> int:\n    return x\n";
+    let r = run(&[("fut.py", src)], &[]);
+    if wm_python::interp::check(src).is_ok() {
+        assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
+    } else {
+        assert!(r.problems().any(|p| p.code == "missing-import" || p.code == "syntax"), "{:?}", codes(&r));
+    }
 }

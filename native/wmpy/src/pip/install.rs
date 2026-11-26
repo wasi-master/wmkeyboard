@@ -73,6 +73,17 @@ impl Resolver<'_> {
                 return Err(format!("{} asks for a direct URL ({url}); wmpy installs from PyPI only", req.name));
             }
             let key = req.key();
+            // requests, httpx: the keyboard's own, so nothing to fetch or lock.
+            if wm_python_pip::is_built_in(&key) {
+                let line = match &parent {
+                    None => format!("{key} is built into WM Keyboard's plugins: `import {key}` works without installing it"),
+                    Some(p) => format!("{p} needs {key}, which is built into WM Keyboard's plugins, so it was not installed"),
+                };
+                if !self.notes.contains(&line) {
+                    self.notes.push(line);
+                }
+                continue;
+            }
             if let Some(p) = self.picks.get_mut(&key) {
                 if let Some(parent) = &parent {
                     if !p.required_by.contains(parent) {

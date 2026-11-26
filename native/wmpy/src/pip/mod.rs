@@ -19,6 +19,10 @@
 //! (`py3-none-any`) are used, or an sdist's `.py` files when nothing in it
 //! needs building. Requirements and markers are read as CPython 3.12 on Linux
 //! would read them; extras only when asked for as `pkg[extra]`.
+//!
+//! requests and httpx are built into the keyboard ([wm_python_pip::is_built_in]):
+//! asking for one, directly or as a dependency, installs nothing and puts
+//! nothing in `wmpy.lock`, and says so.
 
 mod dist;
 mod index;
@@ -485,7 +489,24 @@ fn run_install(args: InstallArgs) -> u8 {
         return fail(e, None, 2);
     }
     let (picks, notes) = (std::mem::take(&mut r.picks), std::mem::take(&mut r.notes));
+    if picks.is_empty() {
+        // Everything asked for is built in (`wmpy pip install requests`).
+        return print_notes_only(&notes, args.json);
+    }
     apply(&dir, lock, picks, notes, args.force, args.allow_warnings, args.json)
+}
+
+/// The result when nothing was installed or checked: only notes, such as
+/// that a package is built into the keyboard.
+fn print_notes_only(notes: &[String], json_out: bool) -> u8 {
+    if json_out {
+        println!("{}", serde_json::to_string_pretty(&json!({"packages": [], "notes": notes})).expect("json"));
+    } else {
+        for n in notes {
+            println!("{n}");
+        }
+    }
+    0
 }
 
 fn run_update(args: UpdateArgs) -> u8 {
@@ -587,6 +608,9 @@ fn run_check(args: CheckArgs) -> u8 {
                 dists.push((*d, deps));
             }
         }
+    }
+    if dists.is_empty() {
+        return print_notes_only(&notes, args.json);
     }
     let mut packages = Vec::new();
     let mut incompatible = false;

@@ -90,11 +90,12 @@ pub(crate) struct Probe {
     names: HashMap<String, bool>,
     modules: HashMap<String, bool>,
     members: HashMap<(String, String), bool>,
+    sources: HashMap<String, bool>,
 }
 
 impl Probe {
     pub fn new() -> Probe {
-        Probe { rt: runtime(), next: 0, names: HashMap::new(), modules: HashMap::new(), members: HashMap::new() }
+        Probe { rt: runtime(), next: 0, names: HashMap::new(), modules: HashMap::new(), members: HashMap::new(), sources: HashMap::new() }
     }
 
     /// Whether [name] means something at a module's top level with nothing
@@ -111,6 +112,21 @@ impl Probe {
             Err(e) => e.kind != "NameError",
         };
         self.names.insert(name.to_string(), ok);
+        ok
+    }
+
+    /// Whether [source] loads as a module of its own. For statements the
+    /// interpreter handles itself rather than as an import, such as
+    /// `from __future__ import annotations`.
+    pub fn source_runs(&mut self, source: &str) -> bool {
+        if let Some(v) = self.sources.get(source) {
+            return *v;
+        }
+        self.next += 1;
+        let module = format!("_wmpy_probe_{}", self.next);
+        self.rt.add_source_module(&module, source, false);
+        let ok = self.rt.import_module(&module).is_ok();
+        self.sources.insert(source.to_string(), ok);
         ok
     }
 
@@ -166,7 +182,8 @@ mod tests {
                 }
                 assert!(p.name_exists("print"));
                 assert!(p.module_exists("math"));
-                assert!(!p.module_exists("os"));
+                // Sockets stay out of plugins whatever else the interpreter gains.
+                assert!(!p.module_exists("socket"));
                 assert!(p.member_exists("sys", "version"));
             })
             .unwrap();
