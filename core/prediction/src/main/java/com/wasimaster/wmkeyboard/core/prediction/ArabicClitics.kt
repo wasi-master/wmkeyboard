@@ -48,9 +48,42 @@ object ArabicClitics {
 
     /**
      * The pronoun endings: his, her, their (two, men, women), your (one, two,
-     * men, women), my, our.
+     * men, women), my, our, and me on a verb (كتبني).
      */
-    val ENCLITICS: List<String> = listOf("ه", "ها", "هم", "هما", "هن", "ك", "كم", "كما", "كن", "ي", "نا")
+    val ENCLITICS: List<String> = listOf("ه", "ها", "هم", "هما", "هن", "ك", "كم", "كما", "كن", "ي", "ني", "نا")
+
+    /**
+     * Whether [word] reads as a stem [known] vouches for, after any prefix,
+     * with a whole pronoun ending of two letters or more (#1311): وبمقتنياتهن
+     * is و + ب + مقتنيات + هن. Ayaspell's rules let some nouns take only a
+     * few of the endings, and a word list holds the commonest forms only, so
+     * a correct word with هما or هن on it was read as a misspelling while
+     * the same word with هم passed.
+     *
+     * A one-letter ending (ه, ك, ي) is left to the checker and the lists:
+     * مدرسه is "his teacher" but far oftener مدرسة typed with ه, and that slip
+     * must stay correctable. Nor after the article: الكتابهم is no word.
+     * The stem is tried with a final ت or ا read back as ة or ى (مدرستهن) and
+     * a verb's و as its وا (كتبوهن).
+     */
+    fun hasKnownStem(word: String, known: (String) -> Boolean): Boolean {
+        for (ending in ENCLITICS) {
+            if (ending.length < 2 || !word.endsWith(ending)) continue
+            val head = word.substring(0, word.length - ending.length)
+            if (head.length < MIN_STEM) continue
+            val forms = listOfNotNull(head, restored(head), if (head.last() == 'و') head + 'ا' else null)
+            for (form in forms) {
+                if (form.startsWith("ال")) continue
+                if (known(form)) return true
+                for (prefix in PREFIXES) {
+                    if (prefix.endsWith("ال") || prefix.endsWith("لل") || !form.startsWith(prefix)) continue
+                    val stem = form.substring(prefix.length)
+                    if (stem.length >= MIN_STEM && !stem.startsWith("ال") && known(stem)) return true
+                }
+            }
+        }
+        return false
+    }
 
     private val LONGEST_ENCLITIC = ENCLITICS.maxOf { it.length }
 

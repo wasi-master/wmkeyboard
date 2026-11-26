@@ -3370,12 +3370,19 @@ class SuggestionEngine(
     /**
      * Whether [wordChecker] accepts [word] as typed, case and all: Hunspell
      * knows German `Haus` and not `haus`. Short words are left to the lists,
-     * which answer them better than rules do.
+     * which answer them better than rules do. On Arabic, also a known stem
+     * with a pronoun ending ([ArabicClitics.hasKnownStem]), checker or none.
      */
     private fun spellAccepted(word: String): Boolean {
         val checker = wordChecker
-        if (checker === WordChecker.NONE || word.length < MIN_SPELL_CHECK_LENGTH) return false
-        return checker.accepts(word)
+        if (word.length < MIN_SPELL_CHECK_LENGTH) return false
+        if (checker !== WordChecker.NONE && checker.accepts(word)) return true
+        // Arabic's own rule for a pronoun ending on a known stem (#1311),
+        // which Ayaspell and the lists both cover only in part.
+        return primaryLanguageId == ArabicClitics.LANGUAGE && ArabicClitics.hasKnownStem(word.lowered()) { stem ->
+            inDictionaries(stem) || userLexicon.contains(stem) ||
+                checker !== WordChecker.NONE && stem.length >= MIN_SPELL_CHECK_LENGTH && checker.accepts(stem)
+        }
     }
 
     /**

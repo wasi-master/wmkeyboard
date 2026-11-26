@@ -54,4 +54,23 @@ class ArabicCliticsTest {
         assertTrue(read.any { it.stem == "كتاب" })
         assertFalse(ArabicClitics.endings("و").isNotEmpty())
     }
+
+    private val stems = setOf("مقتنيات", "مدرسة", "كتاب", "كتبوا", "مدرس")
+
+    @Test
+    fun `a known stem takes every pronoun ending, behind any prefix`() {
+        for (word in listOf("وبمقتنياتهن", "وبمقتنياتهما", "مقتنياتهم", "مدرستهن", "فكتابكما", "كتبوهن")) {
+            assertTrue(word, ArabicClitics.hasKnownStem(word, stems::contains))
+        }
+    }
+
+    @Test
+    fun `one-letter endings, the article and unknown stems are left to the checker`() {
+        // مدرسه is far oftener مدرسة typed with ه than "his teacher".
+        assertFalse(ArabicClitics.hasKnownStem("مدرسه", stems::contains))
+        assertFalse(ArabicClitics.hasKnownStem("الكتابهم", stems::contains))
+        assertFalse(ArabicClitics.hasKnownStem("وبالكتابهم", stems::contains))
+        assertFalse(ArabicClitics.hasKnownStem("مقتنياتهب", stems::contains))
+        assertFalse(ArabicClitics.hasKnownStem("كتيبهن", stems::contains))
+    }
 }
