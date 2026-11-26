@@ -166,6 +166,11 @@ enum class Extension(
         tools = setOf(ToolbarTool.HOME_ASSISTANT),
         routes = setOf("homeassistant/entities"),
     ),
+
+    /** The phone as a TV remote, by infrared or over the local network (#1576). */
+    REMOTE(
+        tools = setOf(ToolbarTool.REMOTE),
+    ),
     ;
 
     companion object {

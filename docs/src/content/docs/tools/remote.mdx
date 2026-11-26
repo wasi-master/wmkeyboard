@@ -1,0 +1,67 @@
+---
+title: "TV remote"
+description: "Use the phone as a TV remote from the keyboard: infrared on phones with an emitter, or over Wi-Fi for Android TV, Google TV, Samsung, LG and Roku, with pairing done once in settings."
+sidebar:
+  order: 16.6
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The **Remote** tool turns the keyboard into a TV remote. It reaches a TV in one of two ways. Phones with an infrared emitter (many Xiaomi, Redmi and POCO phones, some Honor and Huawei ones, older Samsung and LG flagships) send the TV's own infrared codes, pointed at the TV like the remote that came with it. Every phone can also reach a TV on the same Wi-Fi, over the network protocols Android TV, Google TV, Samsung, LG and Roku build in. Nothing goes to the internet either way.
+
+Remote is an [extension](/reference/settings/extensions/). Switch on **TV remote** under <SettingsPath path="Extensions" />, and the tool appears in the toolbox. It is not pinned to the toolbar; drag it there if you use it a lot.
+
+## The pad
+
+Open **Remote** from the toolbox. Your remotes are chips along the header; tap one to switch. Under them is the pad:
+
+- **Power** and the **volume** rocker on the left, **Input** and the **channel** rocker on the right.
+- The arrows and **OK** in the middle.
+- **Back**, **Mute**, **Home** and **Menu** along the bottom.
+
+Hold volume, channel or an arrow and it repeats. A button the remote has no code for is greyed out: a Roku has no input button, and some infrared code sets lack Home or Menu. Infrared files you imported keep their other buttons, and those follow as chips under the pad.
+
+A network remote connects when the panel opens on it and lets go when the panel closes, another remote is picked or the keyboard goes away, so the keyboard holds no connection to your TV while you type. A line over the pad says when it is connecting, when the TV isn't answering, or when it has to be paired again, with a button for each.
+
+## Adding a remote
+
+Remotes are added and paired on the tool's page, under <SettingsPath path="Tools / Remote" />, where a pairing code can be typed into a real text box. The page lists your remotes, and a tap on one renames it, changes its codes or pairs it again, or removes it.
+
+### Infrared
+
+These two rows appear only on a phone with an infrared emitter.
+
+- **Infrared TV remote** asks for the TV's brand, then shows that brand's code sets. Brands change codes between models, so most have two or three. Point the phone at the TV, tap **Try Power** on each set until the TV answers, then **Use this set**.
+- **Import infrared codes** takes a [Flipper Zero](https://flipperzero.one/) `.ir` file, the format of the large shared code collections, for a TV, projector, air conditioner, fan or anything else with an infrared remote. Buttons with the usual names (Power, Vol_up, Ch_next, Ok, Back and so on) land on the pad, and the rest become chips.
+
+A tap on an infrared remote on its page also offers **Paste a code**: pick a button, then paste its code as Pronto hex, the `0000 006D …` form most code lists use. **Send it now** fires it once so you can check it before saving. A pasted code replaces the set's for that button; save an empty box to go back to the set.
+
+Phones can send infrared but not receive it, so the tool cannot learn a code from your old remote. Codes come from the shipped sets, a file or a paste.
+
+The shipped sets cover the TVs of 43 brands, picked from [Flipper-IRDB](https://github.com/Lucaslhm/Flipper-IRDB), a public-domain (CC0) collection.
+
+### On your Wi-Fi
+
+These rows need the TV and the phone on the same network.
+
+- **Find TVs on this Wi-Fi** searches for a few seconds and lists what answered, with its name and model. Tap one to add it and pair it.
+- **Add by address** is for a TV the search doesn't find, by its address on your network (shown in the TV's network settings) and its kind.
+
+Pairing depends on the TV:
+
+| TV | Pairing | Notes |
+|---|---|---|
+| Android TV and Google TV (Sony, TCL, Hisense, Philips, Xiaomi and others; Chromecast with Google TV; NVIDIA Shield) | The TV shows a six-character code; type it on the phone | Uses the TV's own remote service on ports 6466 and 6467, the one Google's TV remote app uses. The pairing key is made on this phone and kept out of backups |
+| Samsung (Tizen, 2016 and later) | The TV asks whether to allow WM Keyboard; choose **Allow** with the TV's remote | Sets from before 2016 aren't supported |
+| LG (webOS) | The TV asks whether to accept WM Keyboard; choose **Accept** | Power off works; power on needs Wake-on-LAN, below |
+| Roku players and Roku TVs | None | If the Roku refuses, set Settings, System, Advanced system settings, **Control by mobile apps** to allow network access |
+
+Samsung, LG and Roku TVs found by the search also tell the tool their network address (MAC). When such a TV is off and **Power** finds nothing answering, the tool sends a Wake-on-LAN packet to that address and connects again a few seconds later. That turns the TV on only if it keeps its network up in standby: **Power on with mobile** on Samsung, **Turn on via Wi-Fi** (or **Mobile TV On**) on LG.
+
+## Privacy and the network
+
+Every request a network remote makes is a row under **TV remote** in the [network activity log](/privacy/network-activity/): the searches, one row per connection, and each Roku press. They go only to the devices on your own network that you added or that answered the search, and only while the panel is open or the tool's page is pairing.
+
+The TVs sign their own certificates, so none is trusted by a public authority. Samsung, LG and Android TV are trusted on first sight and that certificate is pinned: if a later connection shows another, the tool refuses it. The pairing keys live in the tool's own file on the phone, not in the settings store, so a [settings backup](/reference/settings/backup/) never carries the key to your TV.
+
+Sockets to your own network need Android's internet permission too, so the [offline build](/privacy/offline/) keeps the infrared half only. The infrared half needs the `TRANSMIT_IR` permission, granted at install with no prompt.

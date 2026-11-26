@@ -180,6 +180,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.OPENHAB -> R.string.netlog_source_openhab to R.string.netlog_sent_openhab
     NetSource.TUYA -> R.string.netlog_source_tuya to R.string.netlog_sent_tuya
     NetSource.SWITCHBOT -> R.string.netlog_source_switchbot to R.string.netlog_sent_switchbot
+    NetSource.REMOTE -> R.string.netlog_source_remote to R.string.netlog_sent_remote
     NetSource.IMMICH -> R.string.netlog_source_immich to R.string.netlog_sent_immich
     NetSource.PAPERLESS -> R.string.netlog_source_paperless to R.string.netlog_sent_paperless
     NetSource.INVITES -> R.string.netlog_source_invites to R.string.netlog_sent_invites
@@ -238,6 +239,8 @@ private val DataSaverSources = NetSource.entries.toSet() - setOf(
     NetSource.TRANSLATE, NetSource.DEEPL_WRITE, NetSource.BACKUP, NetSource.UPDATES, NetSource.KDE_CONNECT,
     // The user's own server on their own network; a data saver has nothing to save there.
     NetSource.HOME_ASSISTANT, NetSource.HUE, NetSource.OPENHAB,
+    // A TV on the user's own network: a few bytes a press, never mobile data.
+    NetSource.REMOTE,
     // The user's own photo server, asked only while its album is open (#1205).
     NetSource.IMMICH,
     // The user's own document server; its own Wi-Fi only switch is on the scanner's page (#1198).

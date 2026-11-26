@@ -12290,6 +12290,8 @@ open class WMKeyboardService : InputMethodService() {
         closeKeypadSum(refresh = false)
         // A speed test under way when the keyboard goes has nobody watching it.
         if (speedTestDelegate.isInitialized()) speedTest.cancel()
+        // And a remote's connection to a TV, which the next field may never want.
+        if (remoteToolDelegate.isInitialized()) remoteTool.onPanelClose()
         // Keys held for a two-thumb read were meant for the field now closing.
         keysBehindDuet.clear()
         // No finger outlives the window it was on (#743).
@@ -39378,6 +39380,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.TODO -> onPanelChange(PanelMode.TODO)
             ToolbarTool.WM_PASS -> onPanelChange(PanelMode.WM_PASS)
             ToolbarTool.WM_CHROMA -> onPanelChange(PanelMode.WM_CHROMA)
+            ToolbarTool.REMOTE -> onPanelChange(PanelMode.REMOTE)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.MUSIC_ID -> onPanelChange(PanelMode.MUSIC_ID)
@@ -39793,6 +39796,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.TODO -> todoTool.onPanelOpen()
             PanelMode.WM_PASS -> wmPassTool.onPanelOpen()
             PanelMode.WM_CHROMA -> chromaTool.onPanelOpen()
+            PanelMode.REMOTE -> remoteTool.onPanelOpen()
             // A "next friday" chip lands on its day; "Add to calendar" on a
             // selection opens the composer filled in.
             PanelMode.CALENDAR -> {
@@ -39963,6 +39967,8 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel != PanelMode.TYPING_TEST) stopTypingTest()
         // Leaving the panel stops a run: nobody is watching, and it costs data.
         if (_uiState.value.panel != PanelMode.SPEED_TEST && speedTestDelegate.isInitialized()) speedTest.onClose()
+        // Nor does a remote stay connected to a TV once its pad is gone.
+        if (_uiState.value.panel != PanelMode.REMOTE && remoteToolDelegate.isInitialized()) remoteTool.onPanelClose()
         if (_uiState.value.panel == PanelMode.HANDWRITING) {
             // Flush any half-typed word so handwriting appends after it.
             currentInputConnection?.let { commitComposing(it, autocorrect = false) }
@@ -54478,6 +54484,7 @@ open class WMKeyboardService : InputMethodService() {
             send = sendTool.callbacks,
             wmPass = wmPassTool.callbacks,
             chroma = chromaTool.callbacks,
+            remote = remoteTool.callbacks,
             aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
                 onTap = ::onAiSuggestTapped,
                 onHold = ::onAiSuggestSuppressed,
@@ -54730,6 +54737,17 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val chromaTool by chromaToolDelegate
+
+    /** The Remote tool (#1576). Built on first use, like [chromaTool]; connects only while its panel is open. */
+    private val remoteToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.remote.RemoteController(
+            context = this,
+            scope = serviceScope,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.REMOTE) },
+        )
+    }
+    private val remoteTool by remoteToolDelegate
 
     /**
      * A fill typed the username: on to the password box, by the field's own

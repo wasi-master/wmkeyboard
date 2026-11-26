@@ -93,6 +93,7 @@ internal fun extensionTitle(extension: Extension): Int = when (extension) {
     Extension.KDE_CONNECT -> R.string.extension_kde_connect_title
     Extension.SEND_FILES -> R.string.extension_send_files_title
     Extension.SMART_HOME -> R.string.extension_smart_home_title
+    Extension.REMOTE -> R.string.extension_remote_title
 }
 
 /** One line on what the bundle adds, drawn under its row and its heading. */
@@ -122,6 +123,7 @@ internal fun extensionDescription(extension: Extension): Int = when (extension) 
     Extension.KDE_CONNECT -> R.string.extension_kde_connect_desc
     Extension.SEND_FILES -> R.string.extension_send_files_desc
     Extension.SMART_HOME -> R.string.extension_smart_home_desc
+    Extension.REMOTE -> R.string.extension_remote_desc
 }
 
 /** The bundle's glyph: the one its Home row or its first tool already wears, where it has one. */
@@ -166,6 +168,7 @@ internal fun extensionAccent(extension: Extension): Color = when (extension) {
     Extension.KDE_CONNECT -> Color(0xFF5C6BC0)
     Extension.SEND_FILES -> Color(0xFF26A69A)
     Extension.SMART_HOME -> Color(0xFFFFCA28)
+    Extension.REMOTE -> Color(0xFF546E7A)
 }
 
 /**

@@ -288,6 +288,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.TODO -> PanelMode.TODO
     ToolbarTool.WM_PASS -> PanelMode.WM_PASS
     ToolbarTool.WM_CHROMA -> PanelMode.WM_CHROMA
+    ToolbarTool.REMOTE -> PanelMode.REMOTE
     ToolbarTool.LOCATION -> PanelMode.LOCATION
     ToolbarTool.CLOCK -> PanelMode.CLOCK
     ToolbarTool.HOME_ASSISTANT -> PanelMode.HOME_ASSISTANT

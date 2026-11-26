@@ -4131,6 +4131,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.READ_BACK -> ReadBackToolSettings(settings)
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.SPEED_TEST -> SpeedTestToolSettings(repository, settings)
+        ToolbarTool.REMOTE -> RemoteToolSettings()
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)

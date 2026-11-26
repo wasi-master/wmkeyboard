@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Remote tool (#1576): the phone as a TV remote, by infrared or over Wi-Fi. -->
+    <string name="ime_tool_remote">Remote</string>
+    <string name="ime_remote_settings_desc">Remote tool settings</string>
+    <string name="ime_remote_empty_title">No remotes yet</string>
+    <string name="ime_remote_empty_body">Add your TV on the Remote tool\'s page: by its brand, to send infrared from this phone, or found on your Wi-Fi.</string>
+    <string name="ime_remote_add">Add a remote</string>
+    <string name="ime_remote_connecting">Connecting to %1$s…</string>
+    <string name="ime_remote_unreachable">%1$s isn\'t answering. Check that it\'s on and on the same Wi-Fi as this phone.</string>
+    <string name="ime_remote_not_paired">%1$s needs to be paired again.</string>
+    <string name="ime_remote_blocked">The Roku is refusing remotes. On the Roku, open Settings, System, Advanced system settings, Control by mobile apps, and allow network access.</string>
+    <string name="ime_remote_no_emitter">This phone has no infrared emitter, so it can\'t send to this remote.</string>
+    <string name="ime_remote_offline_build">This is the offline build, which can\'t reach devices on your network. Install the standard build to use network remotes.</string>
+    <string name="ime_remote_retry">Try again</string>
+    <string name="ime_remote_pair">Pair</string>
+    <string name="ime_remote_volume">VOL</string>
+    <string name="ime_remote_channel">CH</string>
+    <string name="ime_remote_key_power">Power</string>
+    <string name="ime_remote_key_vol_up">Volume up</string>
+    <string name="ime_remote_key_vol_down">Volume down</string>
+    <string name="ime_remote_key_mute">Mute</string>
+    <string name="ime_remote_key_ch_up">Channel up</string>
+    <string name="ime_remote_key_ch_down">Channel down</string>
+    <string name="ime_remote_key_input">Input</string>
+    <string name="ime_remote_key_up">Up</string>
+    <string name="ime_remote_key_down">Down</string>
+    <string name="ime_remote_key_left">Left</string>
+    <string name="ime_remote_key_right">Right</string>
+    <string name="ime_remote_key_ok">OK</string>
+    <string name="ime_remote_key_back">Back</string>
+    <string name="ime_remote_key_home">Home</string>
+    <string name="ime_remote_key_menu">Menu</string>
+    <!-- How each kind of remote is named under its row on the tool's page. -->
+    <string name="ime_remote_kind_ir">Infrared</string>
+    <string name="ime_remote_kind_android_tv">Android TV or Google TV</string>
+    <string name="ime_remote_kind_samsung">Samsung TV</string>
+    <string name="ime_remote_kind_lg">LG TV</string>
+    <string name="ime_remote_kind_roku">Roku</string>
+</resources>

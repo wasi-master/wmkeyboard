@@ -526,6 +526,27 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/zxing-cpp/zxing-cpp",
         ),
     )
+    // The Remote tool's infrared code sets for TVs (#1576), picked by
+    // scripts/build_remote_ir_codes.py into assets/remote/ir-tv.json.
+    add(
+        Attribution(
+            "Flipper-IRDB",
+            R.string.about_bundled_flipper_irdb_used,
+            "Lucaslhm and the Flipper-IRDB contributors, dedicated to the public domain",
+            "CC0-1.0", "cc0-1.0.txt",
+            "https://github.com/Lucaslhm/Flipper-IRDB",
+        ),
+    )
+    // The Remote tool's LG webOS registration manifest, as aiowebostv carries it.
+    add(
+        Attribution(
+            "aiowebostv",
+            R.string.about_bundled_aiowebostv_used,
+            "Copyright Home Assistant contributors",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/home-assistant-libs/aiowebostv",
+        ),
+    )
     add(
         Attribution(
             "libzueci",

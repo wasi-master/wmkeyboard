@@ -36,6 +36,11 @@
          taken only while its engine is running. -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- The Remote tool (#1576) sends infrared through ConsumerIrManager on
+         phones that have an emitter. A normal permission, granted at install;
+         nothing is sent until a remote's button is pressed. Its network
+         remotes use the multicast lock above for SSDP and mDNS discovery. -->
+    <uses-permission android:name="android.permission.TRANSMIT_IR" />
     <!-- Sync with the copy in a private space or work profile (#1017) goes
          over 127.0.0.1, which Android 17 closes between profiles for every
          app. Declared so that the user can open it again with
@@ -244,6 +249,8 @@
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- Most phones have no infrared emitter; the Remote tool's network remotes work without one. -->
+    <uses-feature android:name="android.hardware.consumerir" android:required="false" />
 
     <!--
          Televisions. Both lines are about the *store*, not about the code:

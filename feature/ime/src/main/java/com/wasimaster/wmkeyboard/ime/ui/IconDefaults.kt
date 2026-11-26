@@ -89,6 +89,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tv
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pets
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phonelink
@@ -225,6 +226,7 @@ object IconDefaults {
         ToolbarTool.TODO -> Icons.Outlined.Checklist
         ToolbarTool.WM_PASS -> Icons.Outlined.Key
         ToolbarTool.WM_CHROMA -> Icons.Outlined.Palette
+        ToolbarTool.REMOTE -> Icons.Outlined.Tv
         ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
         ToolbarTool.CLOCK -> Icons.Outlined.Schedule
         ToolbarTool.HOME_ASSISTANT -> Icons.Outlined.HomeIotDevice

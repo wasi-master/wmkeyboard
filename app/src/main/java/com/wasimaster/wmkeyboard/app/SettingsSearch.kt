@@ -2702,6 +2702,11 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_save_gallery_title, R.string.tooldetail_speed_save_gallery_subtitle),
     toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_show_ip_title, R.string.tooldetail_speed_show_ip_subtitle),
     toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_servers_group),
+    // The TV remote (#1576): its ways to add a remote.
+    toolEntry(ToolbarTool.REMOTE, R.string.tooldetail_remote_add_ir_title, R.string.tooldetail_remote_add_ir_subtitle),
+    toolEntry(ToolbarTool.REMOTE, R.string.tooldetail_remote_import_title, R.string.tooldetail_remote_import_subtitle),
+    toolEntry(ToolbarTool.REMOTE, R.string.tooldetail_remote_find_title, R.string.tooldetail_remote_find_subtitle),
+    toolEntry(ToolbarTool.REMOTE, R.string.tooldetail_remote_address_title, R.string.tooldetail_remote_address_subtitle),
     // The services, their keys, addresses and models are rows of the AI provider list now.
     toolEntry(
         ToolbarTool.AI,

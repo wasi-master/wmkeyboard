@@ -53,7 +53,7 @@ class ExtensionsTest {
         val standard = Extension.defaultsFor(SettingsDepth.STANDARD)
         for (ext in listOf(
             Extension.KDE_CONNECT, Extension.SEND_FILES, Extension.SMART_HOME, Extension.MUSIC_ID,
-            Extension.SPEED_TEST, Extension.INSTRUMENTS, Extension.WEATHER_AND_LOCATION, Extension.MODES,
+            Extension.SPEED_TEST, Extension.INSTRUMENTS, Extension.WEATHER_AND_LOCATION, Extension.MODES, Extension.REMOTE,
         )) {
             assertFalse("$ext should wait for Everything or a switch by hand", ext in standard)
         }

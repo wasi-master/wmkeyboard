@@ -2410,6 +2410,8 @@ object SmartSuggest {
         ToolbarTool.NOTES to listOf("note", "notes", "笔记", "筆記", "备忘录", "備忘錄", "メモ", "ノート", "메모"),
         ToolbarTool.WM_PASS to listOf("wm pass", "wmpass", "vault", "password manager"),
         ToolbarTool.WM_CHROMA to listOf("wm chroma", "wmchroma", "colour picker", "color picker", "palette"),
+        // Not "remote" alone: "remote work" is everyday prose.
+        ToolbarTool.REMOTE to listOf("tv remote", "tvremote", "remote control"),
         ToolbarTool.TODO to listOf("todo", "todos", "tasks", "待办", "待辦", "待办事项", "待辦事項", "やること", "할일"),
         ToolbarTool.TRACKPAD to listOf("trackpad", "触控板", "觸控板", "トラックパッド", "트랙패드"),
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.

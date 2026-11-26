@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Remote tool (#1576): its row on the Tools list, its page, its extension and its network log source. -->
+    <string name="fonts_tool_remote_desc">Use the phone as a TV remote: by infrared on phones that have an emitter, or over Wi-Fi for Android TV, Google TV, Samsung, LG and Roku</string>
+    <string name="extension_remote_title">TV remote</string>
+    <string name="extension_remote_desc">Control a TV by infrared or over Wi-Fi</string>
+    <string name="netlog_source_remote">TV remote</string>
+    <string name="about_bundled_flipper_irdb_used">The infrared codes the TV remote sends for each brand</string>
+    <string name="about_bundled_aiowebostv_used">The registration an LG TV is shown when the TV remote pairs with it</string>
+    <string name="netlog_sent_remote">The buttons you pressed, sent to a TV or player on your own network, and the searches that find them there. Nothing goes to the internet.</string>
+
+    <string name="tooldetail_remote_devices_group">Your remotes</string>
+    <string name="tooldetail_remote_devices_info">The remotes the panel shows as chips, the last one used first. Tap one to rename it, change its codes, pair it again or remove it. Pairing keys stay on this phone and are not part of a settings backup.</string>
+    <string name="tooldetail_remote_none">No remotes yet. Add one below.</string>
+    <string name="tooldetail_remote_ir_subtitle">%1$s · %2$s, code set %3$d</string>
+    <string name="tooldetail_remote_imported_subtitle">%1$s · %2$d imported buttons</string>
+    <string name="tooldetail_remote_imported_name">Imported remote</string>
+
+    <string name="tooldetail_remote_add_group">Add a remote</string>
+    <string name="tooldetail_remote_add_info">Infrared works on phones with an infrared emitter, pointed at the TV, with no setup on the TV. Network remotes need the TV and this phone on the same Wi-Fi, and are paired once.</string>
+    <string name="tooldetail_remote_add_ir_title">Infrared TV remote</string>
+    <string name="tooldetail_remote_add_ir_subtitle">Pick your TV\'s brand, then the code set it answers</string>
+    <string name="tooldetail_remote_import_title">Import infrared codes</string>
+    <string name="tooldetail_remote_import_subtitle">A Flipper Zero .ir file, for a TV, projector, air conditioner or anything else with a remote</string>
+    <string name="tooldetail_remote_import_empty">That file has no buttons this phone can send.</string>
+    <string name="tooldetail_remote_find_title">Find TVs on this Wi-Fi</string>
+    <string name="tooldetail_remote_find_subtitle">Android TV, Google TV, Samsung, LG and Roku</string>
+    <string name="tooldetail_remote_address_title">Add by address</string>
+    <string name="tooldetail_remote_address_subtitle">For a TV the search doesn\'t find</string>
+    <string name="tooldetail_remote_address_body">The TV\'s address on your network, such as 192.168.1.20. It\'s in the TV\'s network settings.</string>
+    <string name="tooldetail_remote_address_field">Address</string>
+    <string name="tooldetail_remote_add_button">Add</string>
+    <string name="tooldetail_remote_nothing_here">This phone has no infrared emitter, and this build can\'t reach your network, so there is no remote to add.</string>
+
+    <string name="tooldetail_remote_brand_title">TV brand</string>
+    <string name="tooldetail_remote_brand_filter">Search brands</string>
+    <string name="tooldetail_remote_sets_body">Brands use more than one set of codes. Point the phone at the TV and try Power on each set until the TV answers, then use that one.</string>
+    <string name="tooldetail_remote_set_title">Code set %1$d</string>
+    <string name="tooldetail_remote_set_models">%1$s and %2$d remotes like it</string>
+    <string name="tooldetail_remote_try_power">Try Power</string>
+    <string name="tooldetail_remote_use_set">Use this set</string>
+
+    <string name="tooldetail_remote_searching">Searching your Wi-Fi…</string>
+    <string name="tooldetail_remote_found_none">Nothing answered. Check that the TV is on and on the same Wi-Fi as this phone, or add it by its address.</string>
+    <string name="tooldetail_remote_search_again">Search again</string>
+
+    <string name="tooldetail_remote_pair_title">Pair %1$s</string>
+    <string name="tooldetail_remote_pair_connecting">Connecting…</string>
+    <string name="tooldetail_remote_pair_samsung">Look at the TV: it asks whether to allow WM Keyboard. Choose Allow with the TV\'s own remote.</string>
+    <string name="tooldetail_remote_pair_lg">Look at the TV: it asks whether to accept WM Keyboard. Choose Accept with the TV\'s own remote.</string>
+    <string name="tooldetail_remote_pair_code_body">The TV now shows a code of six letters and numbers. Type it here.</string>
+    <string name="tooldetail_remote_pair_code_field">Code on the TV</string>
+    <string name="tooldetail_remote_pair_wrong_code">That isn\'t the code on the TV. Check it and try again.</string>
+    <string name="tooldetail_remote_pair_button">Pair</string>
+    <string name="tooldetail_remote_pair_done">Paired. The remote is in the keyboard\'s Remote panel.</string>
+    <string name="tooldetail_remote_pair_refused">The TV said no. Try again and accept on the TV.</string>
+    <string name="tooldetail_remote_pair_timed_out">Nobody answered on the TV in time. Try again and accept the prompt.</string>
+    <string name="tooldetail_remote_pair_unreachable">Nothing answered at that address. Check that the TV is on and on the same Wi-Fi as this phone.</string>
+    <string name="tooldetail_remote_pair_unreachable_atv">Nothing answered at that address. Check that the TV is on and on the same Wi-Fi, and that the Android TV Remote Service or Google TV app is up to date on the TV.</string>
+    <string name="tooldetail_remote_pair_roku_blocked">The Roku is refusing remotes. On the Roku, open Settings, System, Advanced system settings, Control by mobile apps, and allow network access.</string>
+    <string name="tooldetail_remote_try_again">Try again</string>
+    <string name="tooldetail_remote_pair_again">Pair again</string>
+
+    <string name="tooldetail_remote_name_field">Name</string>
+    <string name="tooldetail_remote_pick_brand">Pick a brand\'s codes</string>
+    <string name="tooldetail_remote_change_set">Change the code set</string>
+    <string name="tooldetail_remote_delete">Remove this remote</string>
+    <string name="tooldetail_remote_delete_confirm">Remove it? Its codes or pairing are deleted from this phone.</string>
+
+    <string name="tooldetail_remote_paste_title">Paste a code</string>
+    <string name="tooldetail_remote_paste_body">Pick a button, then paste its code as Pronto hex (it starts with 0000) or as raw timings. A pasted code replaces the brand set\'s for that button; leave the box empty to go back to it.</string>
+    <string name="tooldetail_remote_paste_field">Code</string>
+    <string name="tooldetail_remote_paste_try">Send it now</string>
+    <string name="tooldetail_remote_paste_save">Save</string>
+</resources>

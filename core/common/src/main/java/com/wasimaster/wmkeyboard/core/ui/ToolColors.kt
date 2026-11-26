@@ -88,6 +88,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.WM_PASS -> Color(0xFF0D9488)
     // WM Chroma's own terracotta.
     ToolbarTool.WM_CHROMA -> Color(0xFFC4532F)
+    // A remote's slate blue-grey, apart from the media controls' purple.
+    ToolbarTool.REMOTE -> Color(0xFF546E7A)
     ToolbarTool.MEDIA_CONTROL -> Color(0xFFAB47BC)
     // KDE's own blue.
     ToolbarTool.KDE_CONNECT -> Color(0xFF1D99F3)
