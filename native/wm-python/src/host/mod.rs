@@ -256,11 +256,17 @@ impl Failure {
             };
             let traceback: Vec<Json> =
                 e.frames.iter().map(|f| json!({"file": f.file, "line": f.line, "function": f.function})).collect();
+            // Where in the plugin's own files it went wrong: the innermost
+            // frame that has a file, not a line inside the wm package.
+            let (file, line) = match e.frames.iter().rev().find(|f| f.file.is_some()) {
+                Some(f) => (f.file.clone(), f.line),
+                None => (e.file.clone(), e.line),
+            };
             json!({
                 "kind": kind,
                 "message": body,
-                "line": e.line,
-                "file": e.file,
+                "line": line,
+                "file": file,
                 "traceback": traceback,
                 "abort": e.abort.map(|a| a.wire()),
                 "exception": e.kind,

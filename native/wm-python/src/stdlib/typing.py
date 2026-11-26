@@ -365,82 +365,55 @@ class Protocol:
         return cls
 
 
-class NamedTuple:
+_NAMEDTUPLE_PROHIBITED = frozenset({
+    "__new__", "__init__", "__slots__", "__getnewargs__", "_fields", "_field_defaults", "_make", "_replace",
+    "_asdict", "_source",
+})
+_NAMEDTUPLE_SKIP = frozenset({"__annotations__", "__module__", "__qualname__", "__orig_bases__"})
+
+
+class _NamedTupleMeta(type):
+    """Turns `class Point(NamedTuple): x: int` into collections.namedtuple's
+    tuple subclass, with the class body's methods added."""
+
+    def __new__(mcls, typename, bases, ns, **kwargs):
+        if ns.get("_root", False):
+            return super().__new__(mcls, typename, bases, ns)
+        from collections import namedtuple as _namedtuple
+        annotations = ns.get("__annotations__", {})
+        names = list(annotations)
+        defaults = []
+        for name in names:
+            if name in ns:
+                defaults.append(ns[name])
+            elif defaults:
+                raise TypeError(f"Non-default namedtuple field {name} cannot follow default field{'s' if len(defaults) > 1 else ''} "
+                                + ", ".join(n for n in names if n in ns))
+        nm = _namedtuple(typename, names, defaults=defaults, module=ns.get("__module__", "__main__"))
+        nm.__annotations__ = dict(annotations)
+        for key, value in ns.items():
+            if key in _NAMEDTUPLE_PROHIBITED:
+                raise AttributeError("Cannot overwrite NamedTuple attribute " + key)
+            if key in _NAMEDTUPLE_SKIP or key in names:
+                continue
+            setattr(nm, key, value)
+        return nm
+
+    def __call__(cls, typename, fields=None, /, **kwargs):
+        from collections import namedtuple as _namedtuple
+        if fields is None:
+            fields = list(kwargs.items())
+        names = [name for name, _ in fields]
+        nm = _namedtuple(typename, names)
+        nm.__annotations__ = dict(fields)
+        return nm
+
+
+class NamedTuple(metaclass=_NamedTupleMeta):
     """A record class written with annotations: class Point(NamedTuple): x: int; y: int = 0.
-    Its instances unpack, index and compare like the tuple of their fields,
-    though isinstance(p, tuple) is False here."""
+    The class it makes is a tuple subclass, as collections.namedtuple's are."""
 
-    def __init_subclass__(cls):
-        own = vars(cls)
-        names = list(own.get("__annotations__", {}))
-        cls._fields = tuple(names)
-        cls.__match_args__ = cls._fields
-        cls._field_defaults = {n: own[n] for n in names if n in own}
-
-    def __init__(self, *args, **kwargs):
-        cls = type(self)
-        names = cls._fields
-        who = cls.__name__ + ".__new__()"
-        if len(args) > len(names):
-            least = 1 + len([n for n in names if n not in cls._field_defaults])
-            raise _too_many_error(who, least, 1 + len(names), 1 + len(args))
-        for name in names[:len(args)]:
-            if name in kwargs:
-                raise TypeError(f"{who} got multiple values for argument '{name}'")
-        values = list(args)
-        missing = []
-        for name in names[len(args):]:
-            if name in kwargs:
-                values.append(kwargs.pop(name))
-            elif name in cls._field_defaults:
-                values.append(cls._field_defaults[name])
-            else:
-                missing.append(name)
-        if missing:
-            raise _missing_error(who, missing)
-        if kwargs:
-            raise TypeError(f"{who} got an unexpected keyword argument '{list(kwargs)[0]}'")
-        object.__setattr__(self, "_values", tuple(values))
-        for name, value in zip(names, values):
-            object.__setattr__(self, name, value)
-
-    def __setattr__(self, name, value):
-        raise AttributeError(f"can't set attribute '{name}' on a {type(self).__name__}")
-
-    def __getitem__(self, i):
-        return self._values[i]
-
-    def __len__(self):
-        return len(self._values)
-
-    def __iter__(self):
-        return iter(self._values)
-
-    def __eq__(self, other):
-        if isinstance(other, tuple):
-            return self._values == other
-        return type(other) is type(self) and self._values == other._values
-
-    def __lt__(self, other):
-        return self._values < (other._values if isinstance(other, NamedTuple) else other)
-
-    def __hash__(self):
-        return hash(self._values)
-
-    def __repr__(self):
-        inner = ", ".join(f"{n}={v!r}" for n, v in zip(self._fields, self._values))
-        return f"{type(self).__name__}({inner})"
-
-    def _asdict(self):
-        return dict(zip(self._fields, self._values))
-
-    def _replace(self, **changes):
-        values = self._asdict()
-        for k, v in changes.items():
-            if k not in values:
-                raise ValueError(f"Got unexpected field name: '{k}'")
-            values[k] = v
-        return type(self)(**values)
+    _root = True
 
 
 class TypedDict:

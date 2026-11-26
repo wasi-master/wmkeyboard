@@ -96,6 +96,9 @@ needs:
   assignment, unpacking with a starred target (`first, *rest = items`), type
   annotations (read and ignored)
 - your own exceptions: `class NotFound(Exception): pass`
+- subclasses of `dict`, `list`, `str`, `int`, `float`, `tuple`, `set` and
+  `bytes`, with `super()` reaching the type's methods and `__missing__` for a
+  dict subclass
 - exact 64-bit integers with `<<`, `>>` and the other bit operators,
   `int.from_bytes` and `n.to_bytes` for binary formats; past 64 bits a result
   becomes a float, since there are no big integers
@@ -112,8 +115,8 @@ needs:
   hooks (`__index__`, `__int__`, `__float__`, `__abs__`, `__round__` and the
   rest) that the builtins and `math` ask
 
-Not there: `compile`, `open`, big integers, complex numbers, `%` formatting of
-bytes, and subclasses of `dict`, `list` or `str`.
+Not there: `compile`, `open`, big integers, complex numbers and `%` formatting
+of bytes.
 
 **Modules you can import:**
 
@@ -137,7 +140,14 @@ bytes, and subclasses of `dict`, `list` or `str`.
 [`wm.storage`](#storage) and [`wm.files`](#files). `unicodedata` has normal
 forms, categories, digit values and character names. In `itertools`, `count`, `cycle` and `repeat` are endless
 iterators: `islice`, `takewhile`, `zip` and `next()` take only what they need
-from them. `typing.NamedTuple` classes unpack and compare like tuples.
+from them. `collections.Counter`, `defaultdict` and `OrderedDict` are dict
+subclasses and `namedtuple` and `typing.NamedTuple` make tuple subclasses, as
+in Python, so they go into `json.dumps` and pass `isinstance(x, dict)` or
+`isinstance(p, tuple)`. In `enum`, an `IntEnum`, `StrEnum` or `IntFlag`
+member, or one of `class Color(str, Enum)`, is a value of that type:
+`Color.RED == "red"`, and `json.dumps` writes its value. `Flag` members
+combine with `|`, `&`, `^` and `~`, and `Enum("Animal", "ANT BEE")` makes an
+enum from names.
 
 `asyncio` has no event loop. Awaiting a coroutine runs it to its end there and
 then, so `create_task` starts one at once, `gather` awaits each in turn and

@@ -1,164 +1,308 @@
-"""collections: Counter, defaultdict, deque, namedtuple, ChainMap and OrderedDict.
+"""collections: Counter, defaultdict, OrderedDict, deque, namedtuple and
+ChainMap.
 
-Counter and defaultdict are classes that behave like dicts (indexing,
-`in`, `len`, iteration over keys, `items()`), not dict subclasses: pass them
-through `dict(...)` before `json.dumps`.
+Counter, defaultdict and OrderedDict are dict subclasses and namedtuple
+makes tuple subclasses, as in CPython: `isinstance(Counter(), dict)` holds
+and `json.dumps` takes them as they are.
 """
 
-OrderedDict = dict
 
+class OrderedDict(dict):
+    """A dict that can move a key to either end. Every dict keeps its order;
+    this one compares order-sensitively with another OrderedDict."""
 
-class _Mapping:
-    """Shared dict behaviour over self._data."""
+    def move_to_end(self, key, last=True):
+        value = dict.pop(self, key)
+        if last:
+            dict.__setitem__(self, key, value)
+            return
+        rest = list(dict.items(self))
+        dict.clear(self)
+        dict.__setitem__(self, key, value)
+        for k, v in rest:
+            dict.__setitem__(self, k, v)
 
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-    def __delitem__(self, key):
-        del self._data[key]
-
-    def __contains__(self, key):
-        return key in self._data
-
-    def __len__(self):
-        return len(self._data)
-
-    def __iter__(self):
-        return list(self._data.keys())
+    def popitem(self, last=True):
+        if not self:
+            raise KeyError("dictionary is empty")
+        key = next(reversed(self)) if last else next(iter(self))
+        return key, dict.pop(self, key)
 
     def __eq__(self, other):
-        if isinstance(other, _Mapping):
-            return self._data == other._data
-        return self._data == other
+        if isinstance(other, OrderedDict):
+            return dict.__eq__(self, other) and list(self) == list(other)
+        return dict.__eq__(self, other)
 
-    def keys(self):
-        return self._data.keys()
+    def __ne__(self, other):
+        return not self == other
 
-    def values(self):
-        return self._data.values()
-
-    def items(self):
-        return self._data.items()
-
-    def get(self, key, default=None):
-        return self._data.get(key, default)
-
-    def pop(self, key, *default):
-        if default:
-            return self._data.pop(key, default[0])
-        return self._data.pop(key)
-
-    def setdefault(self, key, default=None):
-        return self._data.setdefault(key, default)
-
-    def update(self, other=None, **kwargs):
-        if other is not None:
-            for k, v in dict(other).items():
-                self[k] = v
-        for k, v in kwargs.items():
-            self[k] = v
-
-    def clear(self):
-        self._data.clear()
+    def __repr__(self):
+        if not self:
+            return f"{type(self).__name__}()"
+        return f"{type(self).__name__}({dict.__repr__(self)})"
 
     def copy(self):
-        return dict(self._data)
+        return type(self)(self)
 
-    def to_dict(self):
-        return dict(self._data)
+    def __or__(self, other):
+        if not isinstance(other, dict):
+            return NotImplemented
+        new = type(self)(self)
+        new.update(other)
+        return new
+
+    def __ror__(self, other):
+        if not isinstance(other, dict):
+            return NotImplemented
+        new = type(self)(other)
+        new.update(self)
+        return new
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
+        out = cls()
+        for key in iterable:
+            out[key] = value
+        return out
 
 
-class Counter(_Mapping):
-    def __init__(self, iterable=None, **kwargs):
-        self._data = {}
-        self.update(iterable, **kwargs)
+class Counter(dict):
+    """A dict of counts: missing keys count zero."""
 
-    def __getitem__(self, key):
-        return self._data.get(key, 0)
+    def __init__(self, iterable=None, /, **kwds):
+        super().__init__()
+        self.update(iterable, **kwds)
 
-    def update(self, iterable=None, **kwargs):
-        if iterable is not None:
-            if isinstance(iterable, (dict, _Mapping)):
-                for k, v in dict(iterable).items():
-                    self._data[k] = self._data.get(k, 0) + v
-            else:
-                for item in iterable:
-                    self._data[item] = self._data.get(item, 0) + 1
-        for k, v in kwargs.items():
-            self._data[k] = self._data.get(k, 0) + v
+    def __missing__(self, key):
+        return 0
 
-    def subtract(self, iterable=None, **kwargs):
-        if iterable is not None:
-            if isinstance(iterable, (dict, _Mapping)):
-                for k, v in dict(iterable).items():
-                    self._data[k] = self._data.get(k, 0) - v
-            else:
-                for item in iterable:
-                    self._data[item] = self._data.get(item, 0) - 1
-        for k, v in kwargs.items():
-            self._data[k] = self._data.get(k, 0) - v
+    def total(self):
+        return sum(self.values())
 
     def most_common(self, n=None):
         # sorted() is stable, so ties keep the order they were first counted in.
-        pairs = sorted(list(self._data.items()), key=lambda kv: -kv[1])
+        pairs = sorted(self.items(), key=lambda kv: kv[1], reverse=True)
         if n is None:
             return pairs
         return pairs[:n]
 
     def elements(self):
         out = []
-        for k, v in self._data.items():
+        for k, v in self.items():
             for _ in range(v):
                 out.append(k)
-        return out
+        return iter(out)
 
-    def total(self):
-        return sum(self._data.values())
+    @classmethod
+    def fromkeys(cls, iterable, v=None):
+        raise NotImplementedError("Counter.fromkeys() is undefined.  Use Counter(iterable) instead.")
 
-    def __add__(self, other):
-        out = Counter()
-        for k in list(self._data.keys()) + [k for k in other.keys() if k not in self._data]:
-            v = self[k] + other[k]
-            if v > 0:
-                out._data[k] = v
-        return out
+    def update(self, iterable=None, /, **kwds):
+        if iterable is not None:
+            if isinstance(iterable, dict):
+                if self:
+                    for elem, count in iterable.items():
+                        self[elem] = count + self.get(elem, 0)
+                else:
+                    dict.update(self, iterable)
+            else:
+                for elem in iterable:
+                    self[elem] = self.get(elem, 0) + 1
+        if kwds:
+            self.update(kwds)
 
-    def __sub__(self, other):
-        out = Counter()
-        for k in self._data:
-            v = self[k] - other[k]
-            if v > 0:
-                out._data[k] = v
-        return out
+    def subtract(self, iterable=None, /, **kwds):
+        if iterable is not None:
+            if isinstance(iterable, dict):
+                for elem, count in iterable.items():
+                    self[elem] = self.get(elem, 0) - count
+            else:
+                for elem in iterable:
+                    self[elem] = self.get(elem, 0) - 1
+        if kwds:
+            self.subtract(kwds)
+
+    def copy(self):
+        return type(self)(self)
+
+    def __reduce__(self):
+        return type(self), (dict(self),)
+
+    def __delitem__(self, elem):
+        if elem in self:
+            super().__delitem__(elem)
 
     def __repr__(self):
-        if not self._data:
-            return "Counter()"
+        if not self:
+            return f"{type(self).__name__}()"
         inner = ", ".join(f"{k!r}: {v!r}" for k, v in self.most_common())
-        return "Counter({" + inner + "})"
+        return f"{type(self).__name__}({{{inner}}})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        return all(self[e] == other[e] for c in (self, other) for e in c)
+
+    def __ne__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        return not self == other
+
+    def __le__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        return all(self[e] <= other[e] for c in (self, other) for e in c)
+
+    def __lt__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        return self <= other and self != other
+
+    def __ge__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        return all(self[e] >= other[e] for c in (self, other) for e in c)
+
+    def __gt__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        return self >= other and self != other
+
+    def __add__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        result = Counter()
+        for elem, count in self.items():
+            newcount = count + other[elem]
+            if newcount > 0:
+                result[elem] = newcount
+        for elem, count in other.items():
+            if elem not in self and count > 0:
+                result[elem] = count
+        return result
+
+    def __sub__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        result = Counter()
+        for elem, count in self.items():
+            newcount = count - other[elem]
+            if newcount > 0:
+                result[elem] = newcount
+        for elem, count in other.items():
+            if elem not in self and count < 0:
+                result[elem] = 0 - count
+        return result
+
+    def __or__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        result = Counter()
+        for elem, count in self.items():
+            other_count = other[elem]
+            newcount = other_count if count < other_count else count
+            if newcount > 0:
+                result[elem] = newcount
+        for elem, count in other.items():
+            if elem not in self and count > 0:
+                result[elem] = count
+        return result
+
+    def __and__(self, other):
+        if not isinstance(other, Counter):
+            return NotImplemented
+        result = Counter()
+        for elem, count in self.items():
+            other_count = other[elem]
+            newcount = count if count < other_count else other_count
+            if newcount > 0:
+                result[elem] = newcount
+        return result
+
+    def __pos__(self):
+        result = Counter()
+        for elem, count in self.items():
+            if count > 0:
+                result[elem] = count
+        return result
+
+    def __neg__(self):
+        result = Counter()
+        for elem, count in self.items():
+            if count < 0:
+                result[elem] = 0 - count
+        return result
+
+    def _keep_positive(self):
+        for elem in [e for e, c in self.items() if not c > 0]:
+            del self[elem]
+        return self
+
+    def __iadd__(self, other):
+        for elem, count in other.items():
+            self[elem] += count
+        return self._keep_positive()
+
+    def __isub__(self, other):
+        for elem, count in other.items():
+            self[elem] -= count
+        return self._keep_positive()
+
+    def __ior__(self, other):
+        for elem, other_count in other.items():
+            count = self[elem]
+            if other_count > count:
+                self[elem] = other_count
+        return self._keep_positive()
+
+    def __iand__(self, other):
+        for elem, count in self.items():
+            other_count = other[elem]
+            if other_count < count:
+                self[elem] = other_count
+        return self._keep_positive()
 
 
-class defaultdict(_Mapping):
-    def __init__(self, default_factory=None, *args, **kwargs):
+class defaultdict(dict):
+    """A dict that makes a missing key's value with default_factory()."""
+
+    def __init__(self, default_factory=None, /, *args, **kwargs):
+        if default_factory is not None and not callable(default_factory):
+            raise TypeError("first argument must be callable or None")
+        super().__init__(*args, **kwargs)
         self.default_factory = default_factory
-        self._data = dict(*args) if args else {}
-        for k, v in kwargs.items():
-            self._data[k] = v
 
-    def __getitem__(self, key):
-        if key in self._data:
-            return self._data[key]
+    def __missing__(self, key):
         if self.default_factory is None:
             raise KeyError(key)
         value = self.default_factory()
-        self._data[key] = value
+        self[key] = value
         return value
 
     def __repr__(self):
-        return f"defaultdict({self.default_factory!r}, {self._data!r})"
+        return f"{type(self).__name__}({self.default_factory!r}, {dict.__repr__(self)})"
+
+    def copy(self):
+        return type(self)(self.default_factory, self)
+
+    __copy__ = copy
+
+    def __reduce__(self):
+        return type(self), (self.default_factory,), None, None, iter(self.items())
+
+    def __or__(self, other):
+        if not isinstance(other, dict):
+            return NotImplemented
+        new = self.copy()
+        new.update(other)
+        return new
+
+    def __ror__(self, other):
+        if not isinstance(other, dict):
+            return NotImplemented
+        new = type(self)(self.default_factory, other)
+        new.update(self)
+        return new
 
 
 class deque:
@@ -266,108 +410,167 @@ def _too_many_error(who, least, most, given):
     return TypeError(f"{who} takes {takes} but {given} {'was' if given == 1 else 'were'} given")
 
 
-def namedtuple(typename, field_names, defaults=None):
+def namedtuple(typename, field_names, *, rename=False, defaults=None, module=None):
+    """A tuple subclass whose items are also named attributes."""
     if isinstance(field_names, str):
         field_names = field_names.replace(",", " ").split()
+    field_names = [str(name) for name in field_names]
+    if rename:
+        seen = set()
+        for index, name in enumerate(field_names):
+            if (not name.isidentifier() or name.startswith("_") or name in seen
+                    or name in ("False", "None", "True", "and", "as", "assert", "async", "await", "break", "class",
+                                "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global",
+                                "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+                                "return", "try", "while", "with", "yield")):
+                field_names[index] = f"_{index}"
+            seen.add(name)
+    for name in [typename] + field_names:
+        if not isinstance(name, str) or not name.isidentifier():
+            raise ValueError(f"Type names and field names must be valid identifiers: {name!r}")
+    seen = set()
+    for name in field_names:
+        if name.startswith("_") and not rename:
+            raise ValueError(f"Field names cannot start with an underscore: {name!r}")
+        if name in seen:
+            raise ValueError(f"Encountered duplicate field name: {name!r}")
+        seen.add(name)
     fields = tuple(field_names)
-    defaults = tuple(defaults or ())
+    defaults = tuple(defaults) if defaults is not None else ()
+    if len(defaults) > len(fields):
+        raise TypeError("Got more default values than field names")
     first_default = len(fields) - len(defaults)
+    field_defaults = dict(zip(fields[first_default:], defaults))
+    who = typename + ".__new__()"
 
-    class _Record:
-        _fields = fields
-        __match_args__ = fields
+    def __new__(cls, *args, **kwargs):
+        if len(args) > len(fields):
+            raise _too_many_error(who, 1 + first_default, 1 + len(fields), 1 + len(args))
+        for name in fields[:len(args)]:
+            if name in kwargs:
+                raise TypeError(f"{who} got multiple values for argument '{name}'")
+        values = list(args)
+        missing = []
+        for i in range(len(args), len(fields)):
+            name = fields[i]
+            if name in kwargs:
+                values.append(kwargs.pop(name))
+            elif i >= first_default:
+                values.append(defaults[i - first_default])
+            else:
+                missing.append(name)
+        if missing:
+            raise _missing_error(who, missing)
+        if kwargs:
+            raise TypeError(f"{who} got an unexpected keyword argument '{list(kwargs)[0]}'")
+        return tuple.__new__(cls, values)
 
-        def __init__(self, *args, **kwargs):
-            who = typename + ".__new__()"
-            if len(args) > len(fields):
-                raise _too_many_error(who, 1 + first_default, 1 + len(fields), 1 + len(args))
-            for name in fields[:len(args)]:
-                if name in kwargs:
-                    raise TypeError(f"{who} got multiple values for argument '{name}'")
-            values = list(args)
-            missing = []
-            for i in range(len(args), len(fields)):
-                name = fields[i]
-                if name in kwargs:
-                    values.append(kwargs.pop(name))
-                elif i >= first_default:
-                    values.append(defaults[i - first_default])
-                else:
-                    missing.append(name)
-            if missing:
-                raise _missing_error(who, missing)
-            if kwargs:
-                raise TypeError(f"{who} got an unexpected keyword argument '{list(kwargs)[0]}'")
-            object.__setattr__(self, "_values", tuple(values))
-            for name, value in zip(fields, values):
-                object.__setattr__(self, name, value)
+    def _make(cls, iterable):
+        result = tuple.__new__(cls, iterable)
+        if len(result) != len(fields):
+            raise TypeError(f"Expected {len(fields)} arguments, got {len(result)}")
+        return result
 
-        def __setattr__(self, name, value):
-            raise AttributeError(f"can't set attribute '{name}' on a {typename}")
+    def _replace(self, /, **kwds):
+        result = self._make([kwds.pop(name) if name in kwds else value for name, value in zip(fields, self)])
+        if kwds:
+            raise ValueError(f"Got unexpected field names: {list(kwds)!r}")
+        return result
 
-        def __getitem__(self, i):
-            return self._values[i]
+    def __repr__(self):
+        inner = ", ".join(f"{n}={v!r}" for n, v in zip(fields, self))
+        return f"{self.__class__.__name__}({inner})"
 
-        def __len__(self):
-            return len(fields)
+    def _asdict(self):
+        return dict(zip(self._fields, self))
 
-        def __iter__(self):
-            return list(self._values)
+    def __getnewargs__(self):
+        return tuple(self)
 
-        def __eq__(self, other):
-            if isinstance(other, tuple):
-                return self._values == other
-            return isinstance(other, _Record) and self._values == other._values
+    def __setattr__(self, name, value):
+        if name in fields:
+            raise AttributeError("can't set attribute")
+        raise AttributeError(f"{typename!r} object has no attribute {name!r} and no __dict__ for setting new attributes")
 
-        def __hash__(self):
-            return hash(self._values)
+    namespace = {
+        "__doc__": f"{typename}({', '.join(fields)})",
+        "__slots__": (),
+        "_fields": fields,
+        "_field_defaults": field_defaults,
+        "__new__": __new__,
+        "_make": classmethod(_make),
+        "__replace__": _replace,
+        "_replace": _replace,
+        "__repr__": __repr__,
+        "_asdict": _asdict,
+        "__getnewargs__": __getnewargs__,
+        "__setattr__": __setattr__,
+        "__match_args__": fields,
+        "__module__": module if module is not None else "__main__",
+    }
+    for index, name in enumerate(fields):
+        namespace[name] = property(lambda self, index=index: self[index], doc=f"Alias for field number {index}")
+    return type(typename, (tuple,), namespace)
 
-        def __lt__(self, other):
-            return self._values < tuple(other)
 
-        def __le__(self, other):
-            return self._values <= tuple(other)
+class _Mapping:
+    """Dict behaviour over self._data, for ChainMap."""
 
-        def __gt__(self, other):
-            return self._values > tuple(other)
+    def __getitem__(self, key):
+        return self._data[key]
 
-        def __ge__(self, other):
-            return self._values >= tuple(other)
+    def __setitem__(self, key, value):
+        self._data[key] = value
 
-        def __add__(self, other):
-            return self._values + tuple(other)
+    def __delitem__(self, key):
+        del self._data[key]
 
-        def __contains__(self, item):
-            return item in self._values
+    def __contains__(self, key):
+        return key in self._data
 
-        def count(self, value):
-            return self._values.count(value)
+    def __len__(self):
+        return len(self._data)
 
-        def index(self, value, *args):
-            return self._values.index(value, *args)
+    def __iter__(self):
+        return iter(self._data)
 
-        @classmethod
-        def _make(cls, iterable):
-            return cls(*iterable)
+    def __eq__(self, other):
+        if isinstance(other, _Mapping):
+            return self._data == other._data
+        return self._data == other
 
-        def __repr__(self):
-            inner = ", ".join(f"{n}={v!r}" for n, v in zip(fields, self._values))
-            return f"{typename}({inner})"
+    def keys(self):
+        return self._data.keys()
 
-        def _asdict(self):
-            return dict(zip(fields, self._values))
+    def values(self):
+        return self._data.values()
 
-        def _replace(self, **changes):
-            values = dict(zip(fields, self._values))
-            for k, v in changes.items():
-                if k not in values:
-                    raise ValueError(f"Got unexpected field name: '{k}'")
-                values[k] = v
-            return _Record(**values)
+    def items(self):
+        return self._data.items()
 
-    _Record.__qualname__ = typename
-    _Record.__name__ = typename
-    return _Record
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
+    def pop(self, key, *default):
+        if default:
+            return self._data.pop(key, default[0])
+        return self._data.pop(key)
+
+    def setdefault(self, key, default=None):
+        return self._data.setdefault(key, default)
+
+    def update(self, other=None, **kwargs):
+        if other is not None:
+            for k, v in dict(other).items():
+                self[k] = v
+        for k, v in kwargs.items():
+            self[k] = v
+
+    def clear(self):
+        self._data.clear()
+
+    def copy(self):
+        return dict(self._data)
 
 
 class ChainMap(_Mapping):

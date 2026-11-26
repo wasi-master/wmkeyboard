@@ -152,22 +152,107 @@ def cmp_to_key(cmp):
     return K
 
 
+def _gt_from_lt(self, other):
+    r = type(self).__lt__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r and self != other
+
+
+def _le_from_lt(self, other):
+    r = type(self).__lt__(self, other)
+    if r is NotImplemented:
+        return r
+    return r or self == other
+
+
+def _ge_from_lt(self, other):
+    r = type(self).__lt__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r
+
+
+def _ge_from_le(self, other):
+    r = type(self).__le__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r or self == other
+
+
+def _lt_from_le(self, other):
+    r = type(self).__le__(self, other)
+    if r is NotImplemented:
+        return r
+    return r and self != other
+
+
+def _gt_from_le(self, other):
+    r = type(self).__le__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r
+
+
+def _lt_from_gt(self, other):
+    r = type(self).__gt__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r and self != other
+
+
+def _ge_from_gt(self, other):
+    r = type(self).__gt__(self, other)
+    if r is NotImplemented:
+        return r
+    return r or self == other
+
+
+def _le_from_gt(self, other):
+    r = type(self).__gt__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r
+
+
+def _le_from_ge(self, other):
+    r = type(self).__ge__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r or self == other
+
+
+def _gt_from_ge(self, other):
+    r = type(self).__ge__(self, other)
+    if r is NotImplemented:
+        return r
+    return r and self != other
+
+
+def _lt_from_ge(self, other):
+    r = type(self).__ge__(self, other)
+    if r is NotImplemented:
+        return r
+    return not r
+
+
+_convert = {
+    "__lt__": [("__gt__", _gt_from_lt), ("__le__", _le_from_lt), ("__ge__", _ge_from_lt)],
+    "__le__": [("__ge__", _ge_from_le), ("__lt__", _lt_from_le), ("__gt__", _gt_from_le)],
+    "__gt__": [("__lt__", _lt_from_gt), ("__ge__", _ge_from_gt), ("__le__", _le_from_gt)],
+    "__ge__": [("__le__", _le_from_ge), ("__gt__", _gt_from_ge), ("__lt__", _lt_from_ge)],
+}
+
+
 def total_ordering(cls):
-    own = vars(cls)
-    if "__lt__" in own:
-        if "__gt__" not in own:
-            cls.__gt__ = lambda self, other: not (self < other) and self != other
-        if "__le__" not in own:
-            cls.__le__ = lambda self, other: self < other or self == other
-        if "__ge__" not in own:
-            cls.__ge__ = lambda self, other: not (self < other)
-    elif "__gt__" in own:
-        if "__lt__" not in own:
-            cls.__lt__ = lambda self, other: not (self > other) and self != other
-        if "__ge__" not in own:
-            cls.__ge__ = lambda self, other: self > other or self == other
-        if "__le__" not in own:
-            cls.__le__ = lambda self, other: not (self > other)
-    else:
-        raise ValueError("total_ordering needs at least __lt__ or __gt__")
+    """The comparisons a class lacks, made from the one it has, as CPython's
+    does: one it inherits (from tuple, say) counts."""
+    roots = {op for op in _convert if getattr(cls, op, None) is not getattr(object, op, None)}
+    if not roots:
+        raise ValueError("must define at least one ordering operation: < > <= >=")
+    root = max(roots)
+    for name, func in _convert[root]:
+        if name not in roots:
+            func.__name__ = name
+            setattr(cls, name, func)
     return cls

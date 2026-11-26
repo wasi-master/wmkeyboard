@@ -529,7 +529,8 @@ impl Interp {
         // and `^=`) changes the set itself, so every name for it sees the change.
         if let (Value::Dict(d), BinOp::BitOr) = (&current, op) {
             let pairs = match &rhs {
-                Value::Dict(_) | Value::Instance(_) => self.mapping_pairs(&rhs)?,
+                Value::Dict(_) => self.mapping_pairs(&rhs)?,
+                Value::Instance(i) if super::methods::is_mapping(i) => self.mapping_pairs(&rhs)?,
                 other => self.pairs_of(other, "|=")?,
             };
             let mut m = d.borrow_mut();
@@ -990,7 +991,7 @@ impl Interp {
     }
 
     /// `del base[idx]`, where [idx] may be a slice object.
-    fn delete_item(&mut self, base: &Value, idx: &Value) -> R<()> {
+    pub(crate) fn delete_item(&mut self, base: &Value, idx: &Value) -> R<()> {
         match base {
             Value::Instance(_) => {
                 if self.dunder(base, "__delitem__", vec![idx.clone()])?.is_none() {
@@ -1042,6 +1043,15 @@ impl Interp {
 
     fn instance_key(&mut self, inst: &Rc<Instance>, v: &Value) -> R<HKey> {
         let Some(method) = inst.class.lookup("__hash__") else {
+            // A str, int or tuple subclass is the key its value is, read back as itself.
+            if let Some(p) = inst.payload() {
+                if matches!(p, Value::List(_) | Value::Dict(_) | Value::Set(_)) {
+                    return Err(self.error(format!("unhashable type: '{}'", inst.class.name), "TypeError"));
+                }
+                let p = p.clone();
+                let key = self.hashable(&p)?;
+                return Ok(HKey::Sub(Rc::new((key, v.clone()))));
+            }
             return Ok(HKey::Ref(v.clone()));
         };
         if method.is_none() {
@@ -1161,7 +1171,7 @@ impl Interp {
     }
 
     /// `base[idx] = value`, where [idx] may be a slice object.
-    fn set_item(&mut self, base: &Value, idx: &Value, value: Value) -> R<()> {
+    pub(crate) fn set_item(&mut self, base: &Value, idx: &Value, value: Value) -> R<()> {
         match base {
             Value::List(l) => {
                 if let Value::Object(o) = idx {
@@ -1809,7 +1819,7 @@ impl Interp {
             let value = self.eval(v, env)?;
             if k.as_ref() == "**" {
                 for (hk, item) in self.mapping_pairs(&value)? {
-                    let HKey::Str(name) = hk else {
+                    let HKey::Str(name) = hk.base().clone() else {
                         return Err(self.error("keywords must be strings", "TypeError"));
                     };
                     if kw.iter().any(|(n, _)| *n == name) {
@@ -1836,10 +1846,10 @@ impl Interp {
                     let converted = match (conversion, &value) {
                         (Some(FConversion::Repr), _) => Value::str(self.to_repr(&value)?),
                         (Some(FConversion::Ascii), _) => Value::str(ascii_escape(&self.to_repr(&value)?)),
-                        (_, Value::Instance(_)) if spec.is_some() => match self.dunder(&value, "__format__", vec![Value::str("")])? {
-                            Some(_) => value,
-                            None => Value::str(self.to_str(&value)?),
-                        },
+                        // An object with no `__format__` formats as its str().
+                        (_, Value::Instance(i)) if spec.is_some() && i.payload().is_none() && !i.class.defines("__format__") => {
+                            Value::str(self.to_str(&value)?)
+                        }
                         _ => value,
                     };
                     match spec {
@@ -1966,6 +1976,10 @@ impl Interp {
             if plain {
                 return Ok(obj.clone());
             }
+        }
+        // Every object knows its type; an instance's may be a property.
+        if name == "__class__" && !matches!(obj, Value::Instance(_)) {
+            return Ok(self.type_of(obj));
         }
         match obj {
             Value::Instance(inst) => match self.instance_attr(inst, name)? {
@@ -2345,6 +2359,9 @@ impl Interp {
         #[cfg(not(target_arch = "wasm32"))]
         let started = self.deadline.map(|_| std::time::Instant::now());
         let f = f.clone();
+        // The host reads a subclass of a built-in type as its value.
+        let args = plain_args(args);
+        let kwargs = kwargs.into_iter().map(|(k, v)| (k, plain_value(v))).collect();
         let result = {
             let mut call = Call { name: &f.name, args, kwargs, line, interp: self };
             (f.body)(&mut call)
@@ -2618,7 +2635,7 @@ impl Interp {
 
     // MARK: - Operators
 
-    fn unary_op(&mut self, op: UnOp, v: &Value) -> R<Value> {
+    pub(crate) fn unary_op(&mut self, op: UnOp, v: &Value) -> R<Value> {
         if let Value::Instance(_) = v {
             let name = match op {
                 UnOp::Not => return Ok(Value::Bool(!self.truth(v)?)),
@@ -2973,7 +2990,7 @@ impl Interp {
                 "s" => Value::str(self.to_str(&value)?),
                 "r" => Value::str(self.to_repr(&value)?),
                 "a" => Value::str(ascii_escape(&self.to_repr(&value)?)),
-                _ => value,
+                _ => plain_value(value),
             };
             spec.push_str(match ty {
                 "i" | "u" => "d",
@@ -3042,7 +3059,7 @@ impl Interp {
         }))
     }
 
-    fn compare_op(&mut self, op: CmpOp, a: &Value, b: &Value) -> R<bool> {
+    pub(crate) fn compare_op(&mut self, op: CmpOp, a: &Value, b: &Value) -> R<bool> {
         // Numbers compare directly: ints exactly across the whole 64-bit
         // range, and anything against NaN is false, as in Python.
         if let (Some(x), Some(y)) = (a.as_int(), b.as_int()) {
@@ -3143,7 +3160,7 @@ impl Interp {
         Err(self.error(format!("'<' not supported between '{}' and '{}'", a.type_name(), b.type_name()), "TypeError"))
     }
 
-    fn contains(&mut self, container: &Value, item: &Value) -> R<bool> {
+    pub(crate) fn contains(&mut self, container: &Value, item: &Value) -> R<bool> {
         if let Value::Class(c) = container {
             let c = c.clone();
             if let Some(f) = self.meta_method(&c, "__contains__") {
@@ -3167,6 +3184,11 @@ impl Interp {
                 }
             }
             return Ok(false);
+        }
+        // `S("a") in "abc"`: a str subclass is the str it is.
+        if let (Some(p), Value::Str(_) | Value::Bytes(_)) = (payload_of(item), container) {
+            let p = p.clone();
+            return self.contains(container, &p);
         }
         if let Value::Instance(_) = item {
             if let Some(items) = sequence_items(container) {

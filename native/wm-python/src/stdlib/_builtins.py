@@ -471,7 +471,7 @@ class GenericAlias:
                 return "None"
             return repr(a)
         inner = ", ".join(show(a) for a in self.__args__) if self.__args__ else "()"
-        return f"{self.__origin__.__name__}[{inner}]"
+        return f"{show(self.__origin__)}[{inner}]"
 
 
 def aiter(iterable):

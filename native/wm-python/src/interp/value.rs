@@ -84,6 +84,10 @@ pub struct Class {
     pub meta: Option<Rc<Class>>,
     /// It derives from `type`: a metaclass, whose instances are classes.
     pub is_type: bool,
+    /// The built-in type it derives from (`dict`, `list`, `str`, `int`,
+    /// `float`, `tuple`, `set` or `bytes`), whose value each instance
+    /// carries as its [Instance::payload].
+    pub builtin_base: Option<Rc<str>>,
 }
 
 impl Class {
@@ -114,6 +118,21 @@ impl Class {
     pub fn lineage(&self) -> Vec<Rc<str>> {
         std::iter::once(self.name.clone()).chain(self.mro.iter().map(|k| k.name.clone())).collect()
     }
+
+    /// Whether the class or a base defines [name] itself, rather than
+    /// having it from its built-in base.
+    pub fn defines(&self, name: &str) -> bool {
+        self.lookup(name).is_some()
+    }
+}
+
+/// The built-in types a class may derive from.
+pub(crate) const SUBCLASSABLE: &[&str] = &["dict", "list", "str", "int", "float", "tuple", "set", "bytes"];
+
+/// Whether a built-in base's value changes in place (so `__init__` fills
+/// it) rather than being made whole by `__new__`.
+pub(crate) fn mutable_base(base: &str) -> bool {
+    matches!(base, "dict" | "list" | "set")
 }
 
 /// An instance of a [Class], with its own attributes.
@@ -125,11 +144,26 @@ pub struct Instance {
     /// the attributes live in this dict, which the script holds too, so
     /// `self.__dict__[key] = value` sets an attribute.
     dict: std::cell::OnceCell<DictRef>,
+    /// For an instance of a class deriving from a built-in type, the value
+    /// of that type it is: the dict a `dict` subclass's items live in, the
+    /// text of a `str` subclass.
+    payload: std::cell::OnceCell<Value>,
 }
 
 impl Instance {
     pub fn new(class: Rc<Class>) -> Instance {
-        Instance { class, attrs: RefCell::new(name_map(0)), dict: std::cell::OnceCell::new() }
+        Instance { class, attrs: RefCell::new(name_map(0)), dict: std::cell::OnceCell::new(), payload: std::cell::OnceCell::new() }
+    }
+
+    /// The built-in value this instance is, for a class deriving from a built-in type.
+    #[inline]
+    pub fn payload(&self) -> Option<&Value> {
+        self.payload.get()
+    }
+
+    /// Give the instance its built-in value. Only the first one given counts.
+    pub fn set_payload(&self, v: Value) {
+        let _ = self.payload.set(v);
     }
 
     #[inline]
@@ -208,6 +242,37 @@ impl Instance {
             })
             .clone()
     }
+}
+
+/// The built-in value [v] is when it is an instance of a class deriving
+/// from a built-in type.
+#[inline]
+pub(crate) fn payload_of(v: &Value) -> Option<&Value> {
+    match v {
+        Value::Instance(i) => i.payload(),
+        _ => None,
+    }
+}
+
+/// [v] as native code sees it: an instance of a built-in type's subclass
+/// is its built-in value, as a C function in CPython reads one.
+#[inline]
+pub(crate) fn plain_value(v: Value) -> Value {
+    match &v {
+        Value::Instance(i) => match i.payload() {
+            Some(p) => p.clone(),
+            None => v,
+        },
+        _ => v,
+    }
+}
+
+/// Every argument as native code sees it, by [plain_value].
+pub(crate) fn plain_args(args: Vec<Value>) -> Vec<Value> {
+    if !args.iter().any(|a| payload_of(a).is_some()) {
+        return args;
+    }
+    args.into_iter().map(plain_value).collect()
 }
 
 /// The callable and descriptor shapes classes need.
@@ -446,6 +511,10 @@ pub enum HKey {
     Obj { hash: i64, canon: Value, value: Value },
     /// A builtin such as `int` or `len`, by name.
     Builtin(Rc<str>),
+    /// An instance of a `str`, `int`, `float`, `tuple` or `bytes`
+    /// subclass: it hashes and compares as the key of its built-in value,
+    /// and is the instance again when read back.
+    Sub(Rc<(HKey, Value)>),
 }
 
 /// A number key as an integer when it is one exactly, so `1`, `1.0` and
@@ -464,6 +533,16 @@ fn is_number(k: &HKey) -> bool {
 }
 
 impl HKey {
+    /// The key this one hashes and compares as: itself, or a subclass
+    /// instance's built-in key.
+    #[inline]
+    pub fn base(&self) -> &HKey {
+        match self {
+            HKey::Sub(p) => p.0.base(),
+            k => k,
+        }
+    }
+
     fn ref_address(v: &Value) -> usize {
         match v {
             Value::Class(c) => Rc::as_ptr(c) as *const u8 as usize,
@@ -477,14 +556,15 @@ impl HKey {
 
 impl PartialEq for HKey {
     fn eq(&self, other: &Self) -> bool {
-        if is_number(self) && is_number(other) {
-            return match (whole(self), whole(other)) {
+        let (this, other) = (self.base(), other.base());
+        if is_number(this) && is_number(other) {
+            return match (whole(this), whole(other)) {
                 (Some(a), Some(b)) => a == b,
-                (None, None) => matches!((self, other), (HKey::Float(a), HKey::Float(b)) if a == b),
+                (None, None) => matches!((this, other), (HKey::Float(a), HKey::Float(b)) if a == b),
                 _ => false,
             };
         }
-        match (self, other) {
+        match (this, other) {
             (HKey::None, HKey::None) => true,
             (HKey::Str(a), HKey::Str(b)) => str_eq(a, b),
             (HKey::Tuple(a), HKey::Tuple(b)) => a == b,
@@ -504,6 +584,7 @@ impl Eq for HKey {}
 impl Hash for HKey {
     fn hash<H: Hasher>(&self, h: &mut H) {
         match self {
+            HKey::Sub(p) => p.0.hash(h),
             HKey::None => 0u8.hash(h),
             HKey::Bool(_) | HKey::Int(_) | HKey::Float(_) => match whole(self) {
                 Some(i) => {
@@ -562,7 +643,7 @@ impl Hash for StrKey<'_> {
 
 impl indexmap::Equivalent<HKey> for StrKey<'_> {
     fn equivalent(&self, key: &HKey) -> bool {
-        matches!(key, HKey::Str(s) if str_eq(s, self.0))
+        matches!(key.base(), HKey::Str(s) if str_eq(s, self.0))
     }
 }
 
@@ -601,6 +682,7 @@ impl HKey {
             HKey::Ref(v) => v.clone(),
             HKey::Obj { value, .. } => value.clone(),
             HKey::Builtin(n) => Value::Builtin(n.clone()),
+            HKey::Sub(p) => p.1.clone(),
         }
     }
 
@@ -762,6 +844,7 @@ impl Value {
                 Object::DictView(_, d) => !d.borrow().is_empty(),
                 _ => true,
             },
+            Value::Instance(i) => i.payload().is_none_or(Value::truthy),
             _ => true,
         }
     }
@@ -909,6 +992,7 @@ pub(crate) fn py_str(v: &Value) -> String {
             Some(Value::Str(m)) if m.as_ref() != "builtins" => format!("<class '{m}.{}'>", c.name),
             _ => format!("<class '{}'>", c.name),
         },
+        Value::Instance(i) if i.payload().is_some() => py_str(i.payload().unwrap()),
         Value::Instance(i) => match i.get("args") {
             Some(Value::Tuple(args)) if i.class.exception_root.is_some() => match args.len() {
                 0 => String::new(),
@@ -1039,6 +1123,7 @@ pub(crate) fn py_repr(v: &Value) -> String {
             )
         }),
         Value::Exception(e) => format!("{}({})", e.kind, e.args.iter().map(py_repr).collect::<Vec<_>>().join(", ")),
+        Value::Instance(i) if i.payload().is_some() => py_repr(i.payload().unwrap()),
         Value::Instance(i) if i.class.exception_root.is_some() => {
             let args = match i.get("args") {
                 Some(Value::Tuple(a)) => a.iter().map(py_repr).collect::<Vec<_>>().join(", "),
@@ -1129,7 +1214,11 @@ pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
         (Value::HostFunction(x), Value::HostFunction(y)) => Rc::ptr_eq(x, y),
         (Value::Function(x), Value::Function(y)) => Rc::ptr_eq(x, y),
         (Value::Class(x), Value::Class(y)) => Rc::ptr_eq(x, y),
-        (Value::Instance(x), Value::Instance(y)) => Rc::ptr_eq(x, y),
+        (Value::Instance(x), Value::Instance(y)) if Rc::ptr_eq(x, y) => true,
+        // A subclass of a built-in type with no `__eq__` of its own compares as its value.
+        (Value::Instance(x), _) if x.payload().is_some() && !x.class.defines("__eq__") => py_equals(x.payload().unwrap(), b),
+        (_, Value::Instance(y)) if y.payload().is_some() && !y.class.defines("__eq__") => py_equals(a, y.payload().unwrap()),
+        (Value::Instance(_), Value::Instance(_)) => false,
         // A keys or items view equals the set of what it shows.
         (x, y) if is_set_view(x) || is_set_view(y) => match (as_key_set(x), as_key_set(y)) {
             (Some(p), Some(q)) => p.len() == q.len() && p.iter().all(|k| q.contains(k)),
@@ -1179,6 +1268,7 @@ pub(crate) fn sequence_items(v: &Value) -> Option<Vec<Value>> {
         Value::List(l) => Some(l.borrow().clone()),
         Value::Tuple(t) => Some(t.as_ref().clone()),
         Value::Set(s) => Some(s.borrow().iter().map(HKey::to_value).collect()),
+        Value::Instance(i) if !i.class.defines("__iter__") => i.payload().and_then(sequence_items),
         _ => None,
     }
 }

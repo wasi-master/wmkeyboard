@@ -870,6 +870,12 @@ fn errors_carry_their_file_and_traceback() {
             [json!({"file": "main.py", "line": 2, "function": "<module>"}), json!({"file": "helpers.py", "line": 1, "function": "<module>"})],
             "{r:#}"
         );
+        // Raised inside the wm package: the line is the plugin's own call into it.
+        let mut s = session(&[], json!({}));
+        let r = parse(s.load("from wm import ui\n\ndef render():\n    ui.icon('x', color='red')\n"));
+        assert_eq!((&r["error"]["file"], &r["error"]["line"]), (&json!("main.py"), &json!(4)), "{r:#}");
+        let frames = r["error"]["traceback"].as_array().unwrap();
+        assert!(frames.last().unwrap()["file"].is_null(), "{r:#}");
         // A syntax error names its file and has no calls.
         let r = parse(session(&[], json!({})).load("def (:\n"));
         assert_eq!(r["error"]["file"], "main.py", "{r:#}");

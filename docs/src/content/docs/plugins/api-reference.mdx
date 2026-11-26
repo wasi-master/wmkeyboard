@@ -409,8 +409,19 @@ shape the classes made with `metaclass=` (its `__new__` and `__init__`),
 decide what calling them does (`__call__`), answer `isinstance` and
 `issubclass` (`__instancecheck__`, `__subclasscheck__`), and give those classes
 methods, properties, `len()`, `for` and `[]`. Other class keywords go to
-`__init_subclass__`. The built-in types (`dict`, `list`, `str`) still cannot be
-subclassed.
+`__init_subclass__`.
+
+A class can derive from `dict`, `list`, `str`, `int`, `float`, `tuple`, `set`
+or `bytes`, and each instance is a value of that type: `isinstance(d, dict)`
+holds, the type's methods and operators work on it, and `json.dumps`, string
+methods and `wm` functions take it as one. Its own methods override the
+type's, `super().__setitem__(key, value)` and `dict.__getitem__(self, key)`
+reach the type's, and a dict subclass's `__missing__` answers for a key it
+lacks. A str, int or tuple subclass hashes as its value, so `{Name("a"): 1}`
+finds `"a"`. As in Python, what the type's own methods hand back is the plain
+type: `S("a").upper()` is a `str`, and `L([1]) + [2]` a `list`. The type
+must be the only built-in base: `class X(dict, list)` and `class B(bool)` are
+refused, as Python refuses them.
 
 **Async:** `async def`, `await`, `async for`, `async with` and async
 comprehensions work. `asyncio` runs them one coroutine at a time, with no

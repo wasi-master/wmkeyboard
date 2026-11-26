@@ -356,6 +356,9 @@ impl Interp {
         if !self.enabled_modules.contains(&module) {
             return Err(self.error(format!("no module named '{module}'"), "ImportError"));
         }
+        // Native code reads a subclass of a built-in type as its value.
+        let args = plain_args(args);
+        let kwargs: Vec<(Rc<str>, Value)> = kwargs.into_iter().map(|(k, v)| (k, plain_value(v))).collect();
         match module {
             "sys" => self.sys_call(name, &args),
             "math" if args.iter().any(|a| matches!(a, Value::Instance(_))) => self.math_with_instances(name, args, kwargs),

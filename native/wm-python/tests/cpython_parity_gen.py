@@ -1099,6 +1099,303 @@ lg.p = 3
 lg.q = 4
 repr((c.big, c.big, "big" in vars(c), c.d, C.d, c.extra, sorted(vars(c)), lg.p, lg.q, C.__init__ is object.__init__ or callable(C.__init__)))
 """),
+    ('builtin_subclasses_behave_as_their_base', "classes", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import json
+class D(dict):
+    def __missing__(self, k):
+        return k * 2
+d = D(a=1)
+print(d['a'], d['zz'], isinstance(d, dict), len(d), type(d).__name__, d, repr(d), str(d))
+print(d.get('q'), 'a' in d, list(d), list(d.items()), d.keys(), dict(d), json.dumps(d))
+d['b'] = 2; d.update(c=3); del d['a']
+print(d, d.pop('b'), d, D.fromkeys('xy', 0), type(D.fromkeys('x')).__name__)
+class L(list):
+    def total(self):
+        return sum(self)
+l = L([1, 2, 3])
+l.append(4)
+print(l.total(), l, len(l), l[1:], isinstance(l, list), l[0], l[-1], sorted(l, reverse=True))
+l += [5]
+print(l, type(l).__name__, l + [6], type(l + [6]).__name__, 2 * l[:2], l == [1, 2, 3, 4, 5], l != [1])
+l[0] = 10; del l[1]
+print(l, l.index(3), l.count(4), [x * 2 for x in l], max(l), min(l), sum(l), list(reversed(l)))
+class S(str):
+    def shout(self):
+        return self.upper() + '!'
+s = S('hi')
+print(s.shout(), s + 'x', 'x' + s, len(s), s == 'hi', {s: 1}['hi'], {'hi': 2}[s], repr(s), str(s), f"<{s}>", f"{s:>5}")
+print(s * 2, s.replace('h', 'H'), 'h' in s, s in 'ohio', '-'.join([s, s]), 'hi'.startswith(s), s.split('i'), s[0], s[::-1], s.upper(), type(s.upper()).__name__)
+print(hash(s) == hash('hi'), sorted([S('b'), S('a')]), s < 'z', '%s and %r' % (s, s), int(S('42')) + 1, float(S('1.5')))
+class I(int):
+    def double(self):
+        return self * 2
+i = I(21)
+print(i.double(), i + 1, 1 + i, isinstance(i, int), repr(i), str(i), i * 2, -i, abs(I(-3)), i // 2, i % 5, i ** 2, i > 20, i == 21, hex(i), '%d' % i, f"{i:04d}")
+print([0, 1, 2][I(1)], range(I(3)), list(range(I(2))), round(I(5)), int(i), float(i), bool(I(0)), {i: 'x'}[21], I('ff', 16), I(), i.bit_length())
+class F(float):
+    pass
+f = F(2.5)
+print(f + 1, f * 2, f, repr(f), isinstance(f, float), int(f), round(f), f.is_integer(), F('3.25'))
+class T(tuple):
+    def first(self):
+        return self[0]
+t = T([1, 2, 3])
+print(t, t.first(), len(t), t + (4,), t[1:], isinstance(t, tuple), hash(t) == hash((1, 2, 3)), t == (1, 2, 3), {t: 1}[(1, 2, 3)])
+a, b, c = t
+print(a, b, c, *t)
+class Pt(tuple):
+    def __new__(cls, x, y):
+        return super().__new__(cls, (x, y))
+    @property
+    def x(self):
+        return self[0]
+p = Pt(3, 4)
+print(p, p.x, p[1], type(p).__name__, len(p))
+class Up(str):
+    def __new__(cls, value):
+        return super().__new__(cls, value.upper())
+u = Up('abc')
+print(u, len(u), u.lower(), type(u).__name__, u + '!', isinstance(u, Up))
+class St(set):
+    pass
+st = St([1, 2])
+st.add(3)
+print(sorted(st), len(st), 2 in st, isinstance(st, set), sorted(st | {9}), st == {1, 2, 3})
+st |= {4}
+print(sorted(st), type(st).__name__)
+class Counter2(dict):
+    def __init__(self, items=()):
+        super().__init__()
+        for x in items:
+            self[x] = self.get(x, 0) + 1
+c = Counter2('abca')
+print(c, c['a'], len(c))
+class AttrDict(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+ad = AttrDict(x=1)
+ad.y = 2
+print(ad.x, ad.y, ad, sorted(ad.keys()))
+class Logged(dict):
+    def __setitem__(self, k, v):
+        print('set', k, v)
+        super().__setitem__(k, v)
+lg = Logged()
+lg['k'] = 1
+print(lg, dict.__getitem__(lg, 'k'), list.__len__([1, 2]), str.upper('x'), int.__add__(2, 3), (5).__add__(1), 'ab'.__len__(), [1].__contains__(1))
+print(issubclass(D, dict), issubclass(D, object), D.__bases__, D.__mro__, type(d) is D, type(d) is dict)
+print(json.dumps({'d': D(x=L([1, S('s')])), 'i': I(3)}))
+import copy
+print(copy.copy(l), type(copy.copy(l)).__name__, copy.deepcopy(d), type(copy.deepcopy(d)).__name__, copy.copy(s), type(copy.copy(i)).__name__)
+'\n'.join(_out)
+'''),
+    ('builtin_subclasses_with_overrides', "classes", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+class Ci(str):
+    def __eq__(self, other):
+        return self.lower() == str(other).lower()
+    def __hash__(self):
+        return hash(self.lower())
+print(Ci('A') == 'a', Ci('A') != 'b', {Ci('X'): 1}.get(Ci('x')), 'a' == Ci('A'))
+class Rev(list):
+    def __iter__(self):
+        return iter(sorted(super().__iter__(), reverse=True))
+r = Rev([1, 3, 2])
+print(list(r), [x for x in r], r, len(r))
+class Lim(list):
+    def __len__(self):
+        return 99
+print(len(Lim([1])), bool(Lim()), Lim([1]))
+class Pretty(list):
+    def __repr__(self):
+        return 'Pretty' + super().__repr__()
+print(Pretty([1]), str(Pretty([2])), [Pretty([3])], f"{Pretty([4])}")
+class Named(str):
+    def __repr__(self):
+        return 'Named(' + super().__repr__() + ')'
+n = Named('x')
+print(n, repr(n), [n], f"{n}", str(n), '%s|%r' % (n, n))
+class Tag(str):
+    def __init__(self, value):
+        self.tag = 't'
+t = Tag('v')
+print(t, t.tag, t + 'w', vars(t))
+class Pos(int):
+    def __new__(cls, v):
+        if v < 0:
+            raise ValueError('negative')
+        return super().__new__(cls, v)
+print(Pos(3) + Pos(4), type(Pos(3)).__name__)
+try:
+    Pos(-1)
+except ValueError as e:
+    print('caught', e)
+class Mix:
+    def hello(self):
+        return 'hello ' + str(len(self))
+class MD(Mix, dict):
+    pass
+md = MD(a=1, b=2)
+print(md.hello(), isinstance(md, Mix), isinstance(md, dict), MD.__mro__)
+class OD(dict):
+    def keys(self):
+        return sorted(super().keys())
+od = OD(b=1, a=2)
+print(od.keys(), dict(od), {**od})
+class Guard(dict):
+    def __contains__(self, k):
+        return k == 'magic'
+print('magic' in Guard(), 'x' in Guard(x=1))
+class DD(dict):
+    def __init__(self, factory, *a, **kw):
+        super().__init__(*a, **kw)
+        self.factory = factory
+    def __missing__(self, k):
+        v = self[k] = self.factory()
+        return v
+dd = DD(list)
+dd['x'].append(1)
+dd['y'].append(2)
+print(dd, dd.factory, len(dd))
+try:
+    {Rev(): 1}
+except TypeError as e:
+    print('TypeError', e)
+for bad in (bool, type(None)):
+    try:
+        class X(bad):
+            pass
+    except TypeError as e:
+        print('TypeError', e)
+try:
+    class Y(dict, list):
+        pass
+except TypeError as e:
+    print('TypeError', e)
+print(L() == L() if (L := type('L', (list,), {})) else 0, type('S2', (str,), {})('q').upper())
+class Money(float):
+    def __str__(self):
+        return f'${self:.2f}'
+m = Money(3.5)
+print(m, str(m), repr(m), f"{m}", m + 1, [m])
+import functools
+@functools.total_ordering
+class Ver(tuple):
+    pass
+print(Ver((1, 2)) < Ver((1, 3)), max([Ver((1,)), Ver((2,))]))
+class Stack(list):
+    push = list.append
+    def peek(self):
+        return self[-1]
+s = Stack()
+s.push(1); s.push(2)
+print(s.peek(), s.pop(), s, Stack.push)
+class Bits(int):
+    def __repr__(self):
+        return f'Bits({int(self)})'
+b = Bits(5)
+print(b, repr(b), b | 2, b & 4, b << 1, ~b, [b], str(b))
+class Lst(list):
+    pass
+x = Lst([3, 1, 2]); x.sort(); x.reverse(); x.extend([0]); x.insert(0, 9); x.remove(1)
+print(x, x * 2, x[::2], x.copy(), type(x.copy()).__name__, 9 in x, x.index(2))
+y = Lst([1]); y *= 3
+print(y, type(y).__name__, y.__class__.__name__)
+print(sorted({Ci('b'), Ci('a')}), 'append' in dir(Lst()), hasattr(Lst(), 'append'), callable(Lst().append), Lst[int], type(Lst[int]).__name__)
+print(type(iter([])).__name__, iter([]).__class__.__name__, (1).__class__, "".__class__.__name__, len.__class__.__name__)
+'\n'.join(_out)
+'''),
+    ('enums_counters_and_named_tuples', "classes", r'''
+__name__ = '__main__'
+_out = []
+def print(*a, sep=' '):
+    _out.append(sep.join(str(x) for x in a))
+import json, copy
+from enum import Enum, IntEnum, StrEnum, Flag, IntFlag, auto, unique
+from collections import Counter, defaultdict, OrderedDict, namedtuple
+from typing import NamedTuple
+class C(str, Enum):
+    R = 'r'
+    G = 'g'
+print(C.R, repr(C.R), f"{C.R}", C.R == 'r', C.R.value, C('r'), isinstance(C.R, str), C.R.upper(), hash(C.R) == hash('r'), json.dumps(C.R), {C.R: 1}['r'], list(C), len(C), C['G'], C.R in C)
+class P(IntEnum):
+    A = 1
+    B = 2
+print(P.A, repr(P.A), f"{P.A}", f"{P.A:03d}", P.A + 1, P.A == 1, P(2), json.dumps([P.A, P.B]), sorted([P.B, P.A]), isinstance(P.A, int), hash(P.A) == hash(1), {P.A: 'x'}[1], P.A < P.B, int(P.B), P.B.name, P(P.A))
+class S(StrEnum):
+    X = auto()
+    Y = 'why'
+print(S.X, repr(S.X), S.Y, S('why'), S.X == 'x', '-'.join(S), S.X.value)
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    CRIMSON = 1
+print(Color.CRIMSON is Color.RED, list(Color), len(Color), list(Color.__members__), Color(1), Color.RED == 1, repr(Color.GREEN), str(Color.GREEN), f"{Color.GREEN}", Color.RED.name, copy.deepcopy(Color.RED) is Color.RED)
+try:
+    Color(9)
+except ValueError as e:
+    print('ValueError', e)
+class Perm(IntFlag):
+    R = 4
+    W = 2
+    X = 1
+rw = Perm.R | Perm.W
+print(rw, repr(rw), Perm.R in rw, Perm.X in rw, int(rw), rw & Perm.R, repr(Perm(7)), bool(Perm(0)), Perm.R | 1, list(rw))
+class Fl(Flag):
+    A = auto()
+    B = auto()
+    C = auto()
+print(Fl.A, Fl.C.value, repr(Fl.A | Fl.B), list(Fl.A | Fl.C), repr(~Fl.A), Fl(0), bool(Fl(0)))
+Animal = Enum('Animal', 'ANT BEE CAT')
+print(list(Animal), Animal.BEE.value, Animal(3))
+class Planet(Enum):
+    EARTH = (5.97e24, 6.37e6)
+    def __init__(self, mass, radius):
+        self.mass = mass
+        self.radius = radius
+print(Planet.EARTH.mass, Planet.EARTH.value)
+cnt = Counter('abracadabra')
+print(cnt, cnt.most_common(2), cnt['z'], isinstance(cnt, dict), json.dumps(cnt, sort_keys=True), cnt + Counter('zz'), cnt - Counter('aaaaa'), sum(cnt.values()), cnt.total(), sorted(cnt.elements())[:3])
+cnt.update(['a', 'z']); cnt.subtract({'b': 1}); del cnt['nothing']
+print(cnt['a'], cnt['b'], cnt['z'], Counter(a=1) == Counter(a=1, b=0), dict(Counter('aab')), copy.copy(Counter('ab')), type(copy.deepcopy(cnt)).__name__)
+dd = defaultdict(list)
+dd['x'].append(1)
+dd['y']
+print(dd, dict(dd), isinstance(dd, dict), json.dumps(dd), 'z' in dd, len(dd), copy.copy(dd), dd.default_factory)
+try:
+    defaultdict(None)['q']
+except KeyError as e:
+    print('KeyError', e)
+od = OrderedDict(a=1, b=2, c=3)
+od.move_to_end('a'); od.move_to_end('c', last=False)
+print(od, list(od), od.popitem(), od.popitem(last=False), od, OrderedDict(a=1, b=2) == OrderedDict(b=2, a=1), OrderedDict(a=1, b=2) == dict(b=2, a=1), isinstance(od, dict))
+Point = namedtuple('Point', 'x y', defaults=[0])
+p = Point(1)
+print(p, p.x, p.y, p[0], isinstance(p, tuple), p == (1, 0), p._replace(y=5), p._asdict(), Point._fields, Point._make([3, 4]), json.dumps(p), len(p), hash(p) == hash((1, 0)), p + (9,), sorted([Point(2), Point(1)]), copy.copy(p), Point._field_defaults)
+x, y = p
+print(x, y, Point.__name__, type(p).__name__, repr(Point(y=2, x=1)))
+try:
+    p.x = 3
+except AttributeError as e:
+    print('AttributeError', e)
+class Emp(NamedTuple):
+    name: str
+    dept: str = 'eng'
+    def label(self):
+        return f'{self.name}@{self.dept}'
+e = Emp('ann')
+print(e, e.label(), e.dept, isinstance(e, tuple), e._asdict(), Emp._fields, e == ('ann', 'eng'), json.dumps(e), Emp('bob', 'ops')[1])
+Pair = NamedTuple('Pair', [('a', int), ('b', int)])
+print(Pair(1, 2), Pair(1, 2).b)
+'\n'.join(_out)
+'''),
 ]
 
 

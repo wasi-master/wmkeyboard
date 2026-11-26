@@ -7,7 +7,7 @@ use super::value::DictMap;
 use super::error::{AbortKind, PyError};
 use super::text::{graphemes, longer_than, parse_swift_double, parse_swift_int, str_compare};
 use super::builtins::is_scalar;
-use super::value::{format_double, HKey, Value};
+use super::value::{format_double, payload_of, HKey, Value};
 
 type Res<T> = Result<T, PyError>;
 
@@ -76,6 +76,10 @@ fn write(v: &Value, out: &mut String, options: &EncodeOptions, depth: u32, limit
     let newline = if indent.is_none() { "" } else { "\n" };
     let separator = format!("{}{newline}", options.item_separator);
     let separator = separator.as_str();
+    // A subclass of a built-in type writes as its value.
+    if let Some(p) = payload_of(v) {
+        return write(p, out, options, depth, limit, charge);
+    }
     let items: Vec<Value> = match v {
         Value::None => {
             out.push_str("null");
@@ -159,7 +163,7 @@ fn write(v: &Value, out: &mut String, options: &EncodeOptions, depth: u32, limit
 /// A dict key as JSON writes it: strings as they are, numbers, booleans and
 /// None as JSON would spell them.
 fn key_text(k: &HKey) -> Res<String> {
-    Ok(match k {
+    Ok(match k.base() {
         HKey::Str(s) => s.to_string(),
         HKey::Bool(b) => if *b { "true" } else { "false" }.to_string(),
         HKey::None => "null".to_string(),

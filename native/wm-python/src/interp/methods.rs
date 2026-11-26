@@ -4,7 +4,7 @@
 
 use std::rc::Rc;
 
-use super::ast::BinOp;
+use super::ast::{BinOp, CmpOp};
 use super::bytes::{decode, encode_with, from_hex, to_hex};
 use super::error::R;
 use super::eval::{set_algebra, Interp};
@@ -48,13 +48,54 @@ pub(crate) const UNBOUND_PREFIX: &str = "__unbound__:";
 /// Methods called on the type itself rather than on a value.
 const TYPE_STATICS: &[(&str, &str)] = &[("str", "maketrans"), ("dict", "fromkeys"), ("int", "from_bytes"), ("bytes", "fromhex")];
 
-/// Whether `ty.name` is a method of a built-in type, taken from the type
-/// (`str.lower`, `list.append`) or a static one (`dict.fromkeys`).
-pub(crate) fn type_member(ty: &str, name: &str) -> bool {
-    if TYPE_STATICS.contains(&(ty, name)) {
-        return true;
+/// Whether `ty.name` (as "dict.fromkeys") is one of [TYPE_STATICS].
+pub(crate) fn is_type_static(path: &str) -> bool {
+    TYPE_STATICS.iter().any(|(t, n)| path.strip_prefix(t).and_then(|r| r.strip_prefix('.')) == Some(n))
+}
+
+// The special methods each built-in type has, as `int.__add__` and
+// `super().__setitem__` reach them.
+const OBJ_DUNDERS: &[&str] = &["__str__", "__repr__", "__format__", "__init__", "__new__"];
+const CMP_DUNDERS: &[&str] = &["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"];
+const SEQ_DUNDERS: &[&str] = &["__len__", "__getitem__", "__contains__", "__iter__", "__add__", "__mul__", "__rmul__"];
+const NUM_DUNDERS: &[&str] = &[
+    "__add__", "__radd__", "__sub__", "__rsub__", "__mul__", "__rmul__", "__truediv__", "__rtruediv__", "__floordiv__",
+    "__rfloordiv__", "__mod__", "__rmod__", "__pow__", "__rpow__", "__divmod__", "__rdivmod__", "__neg__", "__pos__",
+    "__abs__", "__bool__", "__int__", "__float__", "__trunc__", "__floor__", "__ceil__", "__round__", "__hash__",
+    "__getnewargs__",
+];
+const INT_DUNDERS: &[&str] = &[
+    "__and__", "__rand__", "__or__", "__ror__", "__xor__", "__rxor__", "__lshift__", "__rlshift__", "__rshift__",
+    "__rrshift__", "__invert__", "__index__",
+];
+const STR_DUNDERS: &[&str] = &["__hash__", "__mod__", "__rmod__", "__getnewargs__"];
+const TUPLE_DUNDERS: &[&str] = &["__hash__", "__getnewargs__"];
+const LIST_DUNDERS: &[&str] = &["__setitem__", "__delitem__", "__iadd__", "__imul__", "__reversed__"];
+const DICT_DUNDERS: &[&str] = &[
+    "__eq__", "__ne__", "__len__", "__getitem__", "__setitem__", "__delitem__", "__contains__", "__iter__", "__or__",
+    "__ror__", "__ior__", "__reversed__",
+];
+const SET_DUNDERS: &[&str] = &[
+    "__len__", "__contains__", "__iter__", "__or__", "__ror__", "__and__", "__rand__", "__sub__", "__rsub__", "__xor__",
+    "__rxor__", "__ior__", "__iand__", "__isub__", "__ixor__",
+];
+
+/// The special methods of the built-in type [ty].
+fn type_dunders(ty: &str) -> &'static [&'static [&'static str]] {
+    match ty {
+        "str" => &[OBJ_DUNDERS, CMP_DUNDERS, SEQ_DUNDERS, STR_DUNDERS],
+        "bytes" | "tuple" => &[OBJ_DUNDERS, CMP_DUNDERS, SEQ_DUNDERS, TUPLE_DUNDERS],
+        "list" => &[OBJ_DUNDERS, CMP_DUNDERS, SEQ_DUNDERS, LIST_DUNDERS],
+        "dict" => &[OBJ_DUNDERS, DICT_DUNDERS],
+        "set" => &[OBJ_DUNDERS, CMP_DUNDERS, SET_DUNDERS],
+        "int" => &[OBJ_DUNDERS, CMP_DUNDERS, NUM_DUNDERS, INT_DUNDERS],
+        "float" => &[OBJ_DUNDERS, CMP_DUNDERS, NUM_DUNDERS],
+        _ => &[],
     }
-    let table: &[&str] = match ty {
+}
+
+fn type_methods(ty: &str) -> &'static [&'static str] {
+    match ty {
         "str" => STR_METHODS,
         "list" => LIST_METHODS,
         "tuple" => TUPLE_METHODS,
@@ -63,25 +104,83 @@ pub(crate) fn type_member(ty: &str, name: &str) -> bool {
         "bytes" => BYTES_METHODS,
         "int" => INT_METHODS,
         "float" => FLOAT_METHODS,
-        _ => return false,
-    };
-    table.contains(&name)
+        _ => &[],
+    }
+}
+
+/// Whether the built-in type [ty] has the special method [name].
+pub(crate) fn has_dunder(ty: &str, name: &str) -> bool {
+    type_dunders(ty).iter().any(|t| t.contains(&name))
+}
+
+/// Every method name of the built-in type [ty], special ones included.
+pub(crate) fn type_members(ty: &str) -> impl Iterator<Item = &'static str> {
+    type_methods(ty).iter().copied().chain(type_dunders(ty).iter().flat_map(|t| t.iter().copied()))
+}
+
+/// Whether `ty.name` is a method of a built-in type, taken from the type
+/// (`str.lower`, `list.append`, `dict.__setitem__`) or a static one (`dict.fromkeys`).
+pub(crate) fn type_member(ty: &str, name: &str) -> bool {
+    if TYPE_STATICS.contains(&(ty, name)) {
+        return true;
+    }
+    type_methods(ty).contains(&name) || has_dunder(ty, name)
+}
+
+/// The built-in type a value's methods come from, as named in the tables.
+fn builtin_type(v: &Value) -> Option<&'static str> {
+    Some(match v {
+        Value::Str(_) => "str",
+        Value::List(_) => "list",
+        Value::Tuple(_) => "tuple",
+        Value::Set(_) => "set",
+        Value::Dict(_) => "dict",
+        Value::Bytes(_) => "bytes",
+        Value::Int(_) | Value::Bool(_) => "int",
+        Value::Float(_) => "float",
+        _ => return None,
+    })
 }
 
 /// Whether [obj] has a built-in method [name].
 pub(crate) fn has_builtin_method(obj: &Value, name: &str) -> bool {
-    let table = match obj {
-        Value::Str(_) => STR_METHODS,
-        Value::List(_) => LIST_METHODS,
-        Value::Tuple(_) => TUPLE_METHODS,
-        Value::Set(_) => SET_METHODS,
-        Value::Dict(_) => DICT_METHODS,
-        Value::Bytes(_) => BYTES_METHODS,
-        Value::Int(_) | Value::Bool(_) => INT_METHODS,
-        Value::Float(_) => FLOAT_METHODS,
-        _ => return false,
+    builtin_type(obj).is_some_and(|ty| type_methods(ty).contains(&name) || has_dunder(ty, name))
+}
+
+/// The unbound method `ty.name` a subclass instance whose value is
+/// [payload] reaches for `obj.name`, as the builtin's name.
+pub(crate) fn payload_method_path(payload: &Value, name: &str) -> Option<String> {
+    let ty = builtin_type(payload)?;
+    (type_methods(ty).contains(&name) || has_dunder(ty, name)).then(|| format!("{UNBOUND_PREFIX}{ty}.{name}"))
+}
+
+fn is_dunder(name: &str) -> bool {
+    name.len() > 4 && name.starts_with("__") && name.ends_with("__")
+}
+
+/// The operator a binary special method stands for, and whether it is the reflected one.
+fn binary_dunder(name: &str) -> Option<(BinOp, bool)> {
+    let inner = name.strip_prefix("__")?.strip_suffix("__")?;
+    let (reflected, base) = match inner.strip_prefix('r') {
+        Some(b) if !matches!(inner, "rshift") => (true, b),
+        _ => (false, inner),
     };
-    table.contains(&name)
+    let op = match base {
+        "add" => BinOp::Add,
+        "sub" => BinOp::Sub,
+        "mul" => BinOp::Mul,
+        "truediv" => BinOp::Div,
+        "floordiv" => BinOp::FloorDiv,
+        "mod" => BinOp::Mod,
+        "pow" => BinOp::Pow,
+        "and" => BinOp::BitAnd,
+        "or" => BinOp::BitOr,
+        "xor" => BinOp::BitXor,
+        "lshift" => BinOp::LShift,
+        "rshift" => BinOp::RShift,
+        _ => return None,
+    };
+    Some((op, reflected))
 }
 
 fn is_callable(v: &Value) -> bool {
@@ -100,6 +199,25 @@ impl Interp {
     #[inline(never)]
     pub(crate) fn call_method(&mut self, obj: &Value, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Value> {
         self.tick()?;
+        // `(5).__add__(3)`, `"a".__len__()`: a built-in value's special methods.
+        if is_dunder(name) {
+            if let Some(ty) = builtin_type(obj) {
+                if has_dunder(ty, name) {
+                    return match self.builtin_dunder(obj, name, args, kwargs)? {
+                        Some(v) => Ok(v),
+                        None => Err(self.error(format!("'{}' object has no attribute '{name}'", obj.type_name()), "AttributeError")),
+                    };
+                }
+            }
+        }
+        // A str subclass passed to a str method reads as the str it is.
+        let args = if matches!(obj, Value::Str(_) | Value::Bytes(_) | Value::Int(_) | Value::Float(_) | Value::Bool(_))
+            && !matches!(name, "format" | "format_map")
+        {
+            plain_args(args)
+        } else {
+            args
+        };
         match obj {
             Value::Str(s) => self.string_method(s, name, args, kwargs),
             Value::List(l) => self.list_method(l, name, args, kwargs),
@@ -149,7 +267,7 @@ impl Interp {
             Value::Object(o) if matches!(o.as_ref(), Object::Pattern { .. }) => {
                 let Object::Pattern { pattern, flags } = o.as_ref() else { unreachable!() };
                 let (pattern, flags) = (pattern.clone(), *flags);
-                self.pattern_method(&pattern, flags, name, args, kwargs)
+                self.pattern_method(&pattern, flags, name, plain_args(args), kwargs)
             }
             Value::Object(o) if matches!(o.as_ref(), Object::Generator(_)) => {
                 let o = o.clone();
@@ -228,6 +346,17 @@ impl Interp {
         let (ty, name) = path.split_once('.').unwrap_or((path, ""));
         match (ty, name) {
             ("str", "maketrans") => return self.maketrans(&args),
+            // `D.fromkeys(keys)` for a dict subclass D: a D.
+            ("dict", "fromkeys") if matches!(args.first(), Some(Value::Class(c)) if c.builtin_base.as_deref() == Some("dict")) => {
+                let Some(Value::Class(c)) = args.first().cloned() else { unreachable!() };
+                let keys = args.get(1).ok_or_else(|| self.error("fromkeys expected at least 1 argument", "TypeError"))?.clone();
+                let value = args.get(2).cloned().unwrap_or(Value::None);
+                let made = self.construct(&c, Vec::new(), Vec::new())?;
+                for k in self.iterate(&keys)? {
+                    self.set_item(&made, &k, value.clone())?;
+                }
+                return Ok(made);
+            }
             ("dict", "fromkeys") => {
                 let keys = args.first().ok_or_else(|| self.error("fromkeys expected at least 1 argument", "TypeError"))?;
                 let value = args.get(1).cloned().unwrap_or(Value::None);
@@ -247,9 +376,41 @@ impl Interp {
             }
             _ => {}
         }
+        // `str.__new__(cls, x)`: an instance of the str subclass cls made from x, or a plain str.
+        if name == "__new__" {
+            return match args.first() {
+                Some(Value::Class(c)) if c.builtin_base.as_deref() == Some(ty) => {
+                    let c = c.clone();
+                    self.new_instance_of(&c, &args[1..], &kwargs)
+                }
+                Some(Value::Builtin(b)) if b.as_ref() == ty => self.call_builtin(ty, &args[1..], &kwargs),
+                Some(other @ Value::Class(_)) => Err(self.error(format!("{ty}.__new__({}): {} is not a subtype of {ty}", py_str(other), py_str(other)), "TypeError")),
+                _ => Err(self.error(format!("{ty}.__new__(X): X is not a type object"), "TypeError")),
+            };
+        }
         let Some(receiver) = args.first().cloned() else {
             return Err(self.error(format!("unbound method {ty}.{name}() needs an argument"), "TypeError"));
         };
+        // An instance of a subclass: the method works on its value. Special
+        // methods see the instance itself, for a dict's `__missing__` and
+        // `+=` handing the same object back.
+        if let Value::Instance(inst) = &receiver {
+            if let Some(p) = inst.payload().cloned() {
+                if builtin_type(&p) == Some(ty) {
+                    if is_dunder(name) {
+                        let inst = inst.clone();
+                        return match self.payload_dunder(&inst, name, args[1..].to_vec(), kwargs)? {
+                            Some(v) => Ok(v),
+                            None => Err(self.error(format!("type object '{ty}' has no attribute '{name}'"), "AttributeError")),
+                        };
+                    }
+                    if let Value::Dict(d) = &p {
+                        return self.dict_method(d, name, &args[1..], &kwargs);
+                    }
+                    return self.call_method(&p, name, args[1..].to_vec(), kwargs);
+                }
+            }
+        }
         let fits = match ty {
             "int" => matches!(receiver, Value::Int(_) | Value::Bool(_)),
             _ => receiver.static_type_name() == ty,
@@ -411,10 +572,10 @@ impl Interp {
                 let it = args.first().ok_or_else(|| self.error("join() needs an iterable", "TypeError"))?;
                 // A list or tuple is joined where it lies, not copied first.
                 let joined = match it {
-                    Value::List(l) => join_strs(s, &l.borrow()),
-                    Value::Tuple(t) => join_strs(s, t),
+                    Value::List(l) if !l.borrow().iter().any(|v| payload_of(v).is_some()) => join_strs(s, &l.borrow()),
+                    Value::Tuple(t) if !t.iter().any(|v| payload_of(v).is_some()) => join_strs(s, t),
                     other => {
-                        let items = self.iterate(other)?;
+                        let items = plain_args(self.iterate(other)?);
                         join_strs(s, &items)
                     }
                 };
@@ -1150,7 +1311,7 @@ impl Interp {
     // MARK: - dict
 
     #[inline(never)]
-    fn dict_method(&mut self, d: &DictRef, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+    pub(crate) fn dict_method(&mut self, d: &DictRef, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         let key = |me: &mut Interp| -> R<HKey> {
             match args.first() {
                 Some(k) => me.hashable(k),
@@ -1199,7 +1360,7 @@ impl Interp {
                 let mut pairs: Vec<(HKey, Value)> = match args.first() {
                     None => Vec::new(),
                     Some(Value::Dict(src)) => src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
-                    Some(first @ Value::Instance(i)) if i.class.lookup("keys").is_some() => self.mapping_pairs(first)?,
+                    Some(first @ Value::Instance(i)) if is_mapping(i) => self.mapping_pairs(first)?,
                     Some(first) => self.pairs_of(first, "update()")?,
                 };
                 pairs.extend(kwargs.iter().map(|(k, v)| (HKey::Str(k.clone()), v.clone())));
@@ -1580,4 +1741,220 @@ fn join_strs(sep: &str, items: &[Value]) -> Result<String, String> {
         }
     }
     Ok(out)
+}
+
+/// Whether [i] reads as a mapping for `dict(x)` and `d.update(x)`: it has
+/// `keys()` of its own, or it is a dict subclass.
+pub(crate) fn is_mapping(i: &Instance) -> bool {
+    i.class.lookup("keys").is_some() || matches!(i.payload(), Some(Value::Dict(_)))
+}
+
+impl Interp {
+    /// A built-in value's special method [name]: `(5).__add__(3)`,
+    /// `d.__getitem__(k)`, and what a subclass of the type reaches through
+    /// `super()`. None when the type has no such method. An operator that
+    /// does not apply to the other side answers NotImplemented, as CPython's do.
+    pub(crate) fn builtin_dunder(&mut self, v: &Value, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Option<Value>> {
+        let Some(ty) = builtin_type(v) else { return Ok(None) };
+        if !has_dunder(ty, name) {
+            return Ok(None);
+        }
+        let arg = |me: &Interp, i: usize| -> R<Value> {
+            args.get(i).cloned().ok_or_else(|| me.error(format!("{ty}.{name}() expected {} argument(s), got {}", i + 1, args.len()), "TypeError"))
+        };
+        let not_implemented = || Value::Builtin(Rc::from("NotImplemented"));
+        // A TypeError from an operator is CPython's NotImplemented: the other side may know better.
+        let or_not_implemented = |r: R<Value>| -> R<Value> {
+            match r {
+                Err(super::error::Exc::Error(e)) if !e.is_abort() && e.kind == "TypeError" => Ok(not_implemented()),
+                other => other,
+            }
+        };
+        if let Some((op, reflected)) = binary_dunder(name) {
+            let other = plain_value(arg(self, 0)?);
+            let r = if reflected { self.binary_op(op, &other, v) } else { self.binary_op(op, v, &other) };
+            return or_not_implemented(r).map(Some);
+        }
+        let cmp = match name {
+            "__eq__" => Some(CmpOp::Eq),
+            "__ne__" => Some(CmpOp::Ne),
+            "__lt__" => Some(CmpOp::Lt),
+            "__le__" => Some(CmpOp::Le),
+            "__gt__" => Some(CmpOp::Gt),
+            "__ge__" => Some(CmpOp::Ge),
+            _ => None,
+        };
+        if let Some(op) = cmp {
+            let other = plain_value(arg(self, 0)?);
+            let r = self.compare_op(op, v, &other).map(Value::Bool);
+            return or_not_implemented(r).map(Some);
+        }
+        Ok(Some(match name {
+            "__len__" => Value::Int(self.length(v)? as i64),
+            "__getitem__" => {
+                let k = arg(self, 0)?;
+                self.index(v, &k)?
+            }
+            "__setitem__" => {
+                let (k, x) = (arg(self, 0)?, arg(self, 1)?);
+                self.set_item(v, &k, x)?;
+                Value::None
+            }
+            "__delitem__" => {
+                let k = arg(self, 0)?;
+                self.delete_item(v, &k)?;
+                Value::None
+            }
+            "__contains__" => {
+                let k = arg(self, 0)?;
+                Value::Bool(self.contains(v, &k)?)
+            }
+            "__iter__" => {
+                let kind = match v {
+                    Value::List(_) => "list_iterator",
+                    Value::Tuple(_) => "tuple_iterator",
+                    Value::Str(_) => "str_ascii_iterator",
+                    Value::Dict(_) => "dict_keyiterator",
+                    Value::Set(_) => "set_iterator",
+                    Value::Bytes(_) => "bytes_iterator",
+                    _ => "iterator",
+                };
+                let it = self.iter_of(v)?;
+                super::generators::iterator_object(kind, it)
+            }
+            "__reversed__" => self.call_builtin("reversed", std::slice::from_ref(v), &[])?,
+            "__bool__" => Value::Bool(v.truthy()),
+            "__hash__" => Value::Int(self.hash_of(v)?),
+            "__str__" => Value::str(self.to_str(v)?),
+            "__repr__" => Value::str(self.to_repr(v)?),
+            "__format__" => {
+                let spec = args.first().cloned().unwrap_or_else(|| Value::str(""));
+                self.call_builtin("format", &[v.clone(), spec], &[])?
+            }
+            "__init__" => {
+                self.builtin_init(v, &args, &kwargs)?;
+                Value::None
+            }
+            "__neg__" => self.unary_op(super::ast::UnOp::Neg, v)?,
+            "__pos__" => self.unary_op(super::ast::UnOp::Pos, v)?,
+            "__invert__" => self.unary_op(super::ast::UnOp::Invert, v)?,
+            "__abs__" => self.call_builtin("abs", std::slice::from_ref(v), &[])?,
+            "__int__" | "__index__" | "__trunc__" => self.call_builtin("int", std::slice::from_ref(v), &[])?,
+            "__float__" => self.call_builtin("float", std::slice::from_ref(v), &[])?,
+            "__floor__" | "__ceil__" => self.call_module("math", &name[2..name.len() - 2], vec![v.clone()], Vec::new())?,
+            "__round__" => {
+                let mut all = vec![v.clone()];
+                all.extend(args.iter().cloned());
+                self.call_builtin("round", &all, &[])?
+            }
+            "__divmod__" | "__rdivmod__" => {
+                let other = plain_value(arg(self, 0)?);
+                let pair = if name == "__divmod__" { [v.clone(), other] } else { [other, v.clone()] };
+                return or_not_implemented(self.call_builtin("divmod", &pair, &[])).map(Some);
+            }
+            "__getnewargs__" => Value::tuple(vec![v.clone()]),
+            "__iadd__" | "__imul__" | "__ior__" | "__iand__" | "__isub__" | "__ixor__" => {
+                let other = arg(self, 0)?;
+                if !self.inplace_builtin(v, name, &other)? {
+                    return Ok(Some(not_implemented()));
+                }
+                v.clone()
+            }
+            _ => return Ok(None),
+        }))
+    }
+
+    /// `x op= y` on a list, dict or set, changing it in place. False when
+    /// [other] is not something the operator takes.
+    pub(crate) fn inplace_builtin(&mut self, v: &Value, name: &str, other: &Value) -> R<bool> {
+        match (v, name) {
+            (Value::List(l), "__iadd__") => {
+                let items = self.iterate(other)?;
+                if l.borrow().len() + items.len() > self.max_container {
+                    return Err(self.container_abort("list"));
+                }
+                l.borrow_mut().extend(items);
+            }
+            (Value::List(l), "__imul__") => {
+                let Some(n) = plain_value(other.clone()).as_int() else { return Ok(false) };
+                let items = l.borrow().clone();
+                if (items.len() as u64).saturating_mul(n.max(0) as u64) > self.max_container as u64 {
+                    return Err(self.container_abort("list"));
+                }
+                let mut out = Vec::with_capacity(items.len() * n.max(0) as usize);
+                for _ in 0..n.max(0) {
+                    out.extend(items.iter().cloned());
+                }
+                *l.borrow_mut() = out;
+            }
+            (Value::Dict(d), "__ior__") => {
+                let pairs = match other {
+                    Value::Dict(src) => src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+                    Value::Instance(i) if is_mapping(i) => self.mapping_pairs(other)?,
+                    o => self.pairs_of(o, "|=")?,
+                };
+                let mut m = d.borrow_mut();
+                for (k, x) in pairs {
+                    m.insert(k, x);
+                }
+            }
+            (Value::Set(s), "__ior__" | "__iand__" | "__isub__" | "__ixor__") => {
+                let Some(Value::Set(o)) = Some(plain_value(other.clone())) else { return Ok(false) };
+                let op = match name {
+                    "__ior__" => BinOp::BitOr,
+                    "__iand__" => BinOp::BitAnd,
+                    "__isub__" => BinOp::Sub,
+                    _ => BinOp::BitXor,
+                };
+                let result = set_algebra(op, &s.borrow(), &o.borrow());
+                if let Some(Value::Set(r)) = result {
+                    let items = std::mem::take(&mut *r.borrow_mut());
+                    *s.borrow_mut() = items;
+                }
+            }
+            _ => return Ok(false),
+        }
+        Ok(true)
+    }
+
+    /// A special method of a subclass instance's built-in base, on its
+    /// value: what `d[k]`, `len(s)`, `a + b` and the rest fall back to when
+    /// the class does not define them. A dict subclass's `__missing__`
+    /// answers for a key it lacks; `+=` and kin hand back the instance.
+    pub(crate) fn payload_dunder(&mut self, inst: &Rc<Instance>, name: &str, args: Vec<Value>, kwargs: Vec<(Rc<str>, Value)>) -> R<Option<Value>> {
+        let Some(p) = inst.payload().cloned() else { return Ok(None) };
+        let me = Value::Instance(inst.clone());
+        match (name, &p) {
+            ("__getitem__", Value::Dict(d)) => {
+                let key = args.first().cloned().ok_or_else(|| self.error("__getitem__ expected 1 argument", "TypeError"))?;
+                let k = self.hashable(&key)?;
+                let found = d.borrow().get(&k).cloned();
+                if let Some(v) = found {
+                    return Ok(Some(v));
+                }
+                if let Some(m) = inst.class.lookup("__missing__") {
+                    let bound = self.special_bound(m, &me, &inst.class)?;
+                    return self.call_value(&bound, vec![key], Vec::new()).map(Some);
+                }
+                return Err(self.key_error(&key));
+            }
+            ("__iadd__" | "__imul__" | "__ior__" | "__iand__" | "__isub__" | "__ixor__", Value::List(_) | Value::Dict(_) | Value::Set(_)) => {
+                let other = args.first().cloned().ok_or_else(|| self.error(format!("{name} expected 1 argument"), "TypeError"))?;
+                if !has_dunder(builtin_type(&p).unwrap_or(""), name) || !self.inplace_builtin(&p, name, &other)? {
+                    return Ok(None);
+                }
+                return Ok(Some(me));
+            }
+            // object.__str__: the repr, which a class's own __repr__ decides.
+            ("__str__", _) if !matches!(p, Value::Str(_)) => return Ok(Some(Value::str(self.to_repr(&me)?))),
+            ("__repr__", _) => return Ok(Some(Value::str(self.to_repr(&p)?))),
+            // An empty spec formats as str() does, which the class may decide.
+            ("__format__", _) if args.first().is_none_or(|s| matches!(s, Value::Str(t) if t.is_empty())) => {
+                return Ok(Some(Value::str(self.to_str(&me)?)));
+            }
+            ("__hash__", Value::List(_) | Value::Dict(_) | Value::Set(_)) => return Ok(None),
+            _ => {}
+        }
+        self.builtin_dunder(&p, name, args, kwargs)
+    }
 }

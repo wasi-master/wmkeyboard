@@ -201,7 +201,22 @@ impl Interp {
         let mut classes = Vec::with_capacity(bases.len());
         let mut root: Option<Rc<str>> = None;
         let mut is_type = false;
+        let mut builtin: Option<Rc<str>> = None;
+        let mut builtin_at_end = false;
         for b in bases {
+            let base = match b {
+                Value::Class(c) => c.builtin_base.clone(),
+                Value::Builtin(n) if SUBCLASSABLE.contains(&n.as_ref()) => Some(n.clone()),
+                _ => None,
+            };
+            if let Some(n) = base {
+                match &builtin {
+                    Some(have) if have != &n => {
+                        return Err(self.error("multiple bases have instance lay-out conflict", "TypeError"));
+                    }
+                    _ => builtin = Some(n),
+                }
+            }
             match b {
                 Value::Class(c) => {
                     if root.is_none() {
@@ -210,6 +225,7 @@ impl Interp {
                     is_type |= c.is_type;
                     classes.push(c.clone());
                 }
+                Value::Builtin(n) if SUBCLASSABLE.contains(&n.as_ref()) => builtin_at_end = true,
                 Value::Builtin(n) if n.as_ref() == "object" => {}
                 Value::Builtin(n) if n.as_ref() == "type" => is_type = true,
                 Value::Builtin(n) if EXCEPTION_KINDS.contains(&n.as_ref()) => {
@@ -217,12 +233,7 @@ impl Interp {
                         root = Some(n.clone());
                     }
                 }
-                Value::Builtin(n) => {
-                    return Err(self.error(
-                        format!("a class cannot derive from the built-in '{n}'; keep one as an attribute instead"),
-                        "TypeError",
-                    ))
-                }
+                Value::Builtin(n) => return Err(self.error(format!("type '{n}' is not an acceptable base type"), "TypeError")),
                 other => {
                     return Err(self.error(format!("a class can only derive from a class, not '{}'", other.type_name()), "TypeError"))
                 }
@@ -243,6 +254,10 @@ impl Interp {
         if attrs.len() > self.max_container {
             return Err(self.container_abort("class"));
         }
+        if builtin.is_some() && root.is_some() {
+            return Err(self.error("multiple bases have instance lay-out conflict", "TypeError"));
+        }
+        let _ = builtin_at_end;
         let meta = self.derived_meta(meta, bases)?;
         let class = Rc::new(Class {
             name,
@@ -253,6 +268,7 @@ impl Interp {
             traits: Default::default(),
             meta,
             is_type,
+            builtin_base: builtin,
         });
         for v in class.attrs.borrow().values() {
             own(v, &class);
@@ -499,6 +515,9 @@ impl Interp {
                     if let Some(init) = class.lookup("__init__") {
                         let bound = self.bind(init, made.clone(), class);
                         self.call_value(&bound, args, kwargs)?;
+                    } else if let Some(p) = inst.payload().cloned() {
+                        // A dict or list subclass with no __init__ of its own: the base's fills it.
+                        self.builtin_init(&p, &args, &kwargs)?;
                     }
                 }
             }
@@ -507,6 +526,20 @@ impl Interp {
         let inst = Rc::new(Instance::new(class.clone()));
         self.track_instance(&inst);
         let value = Value::Instance(inst.clone());
+        if let Some(base) = class.builtin_base.clone() {
+            // The base's `__new__`: an empty container, or the value the
+            // arguments make (`str.__new__(S, x)` is `str(x)`).
+            let payload = self.new_payload(&base, &args, &kwargs)?;
+            inst.set_payload(payload.clone());
+            match class.lookup("__init__") {
+                Some(init) => {
+                    let bound = self.bind(init, value.clone(), class);
+                    self.call_value(&bound, args, kwargs)?;
+                }
+                None => self.builtin_init(&payload, &args, &kwargs)?,
+            }
+            return Ok(value);
+        }
         if class.exception_root.is_some() {
             inst.insert(Rc::from("args"), Value::tuple(args.clone()));
         }
@@ -530,6 +563,10 @@ impl Interp {
         match &v {
             Value::Function(_) => object(Object::Bound(receiver, v)),
             Value::Builtin(n) if n.starts_with("__") && n.ends_with("__") => object(Object::Bound(receiver, v)),
+            // `get = dict.get` in a class body: a method of the built-in type, bound as one.
+            Value::Builtin(n) if n.strip_prefix(super::methods::UNBOUND_PREFIX).is_some_and(|p| !super::methods::is_type_static(p)) => {
+                object(Object::Bound(receiver, v))
+            }
             Value::Object(o) => match o.as_ref() {
                 Object::StaticMethod(f) => f.clone(),
                 Object::ClassMethod(f) => object(Object::Bound(Value::Class(class.clone()), f.clone())),
@@ -617,6 +654,15 @@ impl Interp {
         match name {
             "__class__" => return Ok(Some(Value::Class(inst.class.clone()))),
             "__dict__" => return Ok(Some(Value::Dict(inst.dict()))),
+            _ => {}
+        }
+        // A method of the built-in base, working on the instance's value.
+        if let Some(p) = inst.payload() {
+            if let Some(path) = super::methods::payload_method_path(p, name) {
+                return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), Value::Builtin(Rc::from(path))))));
+            }
+        }
+        match name {
             "__str__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_STR))))),
             "__repr__" => return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_DEFAULT_REPR))))),
             // An exception's cause and context are None until `raise … from` sets one.
@@ -638,6 +684,16 @@ impl Interp {
                 _ => v,
             });
         }
+        if let Some(base) = &class.builtin_base {
+            if super::methods::type_member(base, name) && !matches!(name, "__name__" | "__qualname__" | "__doc__") {
+                // `D.fromkeys(...)` makes a D.
+                if name == "fromkeys" {
+                    return Some(object(Object::Bound(Value::Class(class.clone()), Value::Builtin(Rc::from(format!("{}dict.fromkeys", super::methods::UNBOUND_PREFIX))))));
+                }
+                return Some(Value::Builtin(Rc::from(format!("{}{base}.{name}", super::methods::UNBOUND_PREFIX))));
+            }
+        }
+        let builtin_base = || class.builtin_base.clone().map(Value::Builtin);
         Some(match name {
             "__name__" | "__qualname__" => Value::Str(class.name.clone()),
             "__doc__" => Value::None,
@@ -653,16 +709,21 @@ impl Interp {
             "__init_subclass__" => object(Object::Bound(Value::Class(class.clone()), hidden(HIDDEN_OBJECT_INIT_SUBCLASS))),
             "__str__" => hidden(HIDDEN_DEFAULT_STR),
             "__repr__" => hidden(HIDDEN_DEFAULT_REPR),
-            "__base__" => class.base().cloned().map(Value::Class).unwrap_or(Value::Builtin(Rc::from("object"))),
+            "__base__" => class.base().cloned().map(Value::Class).or_else(builtin_base).unwrap_or(Value::Builtin(Rc::from("object"))),
             "__bases__" => {
-                if class.bases.is_empty() {
-                    Value::tuple(vec![Value::Builtin(Rc::from("object"))])
-                } else {
-                    Value::tuple(class.bases.iter().cloned().map(Value::Class).collect())
+                let mut out: Vec<Value> = class.bases.iter().cloned().map(Value::Class).collect();
+                // A built-in base named directly comes after the classes.
+                if let Some(b) = builtin_base().filter(|_| class.bases.iter().all(|c| c.builtin_base.is_none())) {
+                    out.push(b);
                 }
+                if out.is_empty() {
+                    out.push(Value::Builtin(Rc::from("object")));
+                }
+                Value::tuple(out)
             }
             "__mro__" => {
                 let mut out: Vec<Value> = std::iter::once(class.clone()).chain(class.mro.iter().cloned()).map(Value::Class).collect();
+                out.extend(builtin_base());
                 out.push(Value::Builtin(Rc::from("object")));
                 Value::tuple(out)
             }
@@ -702,8 +763,21 @@ impl Interp {
                 return Ok(Some(self.bind(v, receiver.clone(), &owner)));
             }
         }
+        // Past every class: the built-in base's methods, then `type`'s for
+        // a metaclass, else `object`'s.
+        let base = match receiver {
+            Value::Instance(i) => i.class.builtin_base.clone(),
+            Value::Class(c) => c.builtin_base.clone(),
+            _ => None,
+        };
+        if let Some(base) = base {
+            if super::methods::type_member(&base, name) {
+                let path = Value::Builtin(Rc::from(format!("{}{base}.{name}", super::methods::UNBOUND_PREFIX)));
+                // `__new__` is static: the class comes as its first argument.
+                return Ok(Some(if name == "__new__" { path } else { object(Object::Bound(receiver.clone(), path)) }));
+            }
+        }
         let bound = |f: &str| Some(object(Object::Bound(receiver.clone(), hidden(f))));
-        // Past every class: `type`'s methods for a metaclass, else `object`'s.
         let is_type = class.is_type;
         Ok(match name {
             // A static method: the class comes as the first argument.
@@ -913,6 +987,11 @@ impl Interp {
                 let bound = self.special_bound(m, v, &inst.class)?;
                 return self.call_value(&bound, args, Vec::new()).map(Some);
             }
+            // The built-in base's, on the instance's value.
+            if inst.payload().is_some() {
+                let inst = inst.clone();
+                return self.payload_dunder(&inst, name, args, Vec::new());
+            }
         }
         Ok(None)
     }
@@ -1060,6 +1139,14 @@ impl Interp {
         if let Some(v) = self.dunder(b, reflected, vec![a.clone()])? {
             if !is_not_implemented(&v) {
                 return Ok(v);
+            }
+        }
+        // A built-in operator takes a subclass of its type as the value it
+        // is: `"x" + S("y")` is str's own `+`, though str has no `__radd__`.
+        if payload_of(a).is_some() || payload_of(b).is_some() {
+            let (x, y) = (plain_value(a.clone()), plain_value(b.clone()));
+            if !matches!(x, Value::Instance(_)) && !matches!(y, Value::Instance(_)) {
+                return self.binary_op(op, &x, &y);
             }
         }
         // `"ab" * n` repeats by what `n.__index__()` says.
@@ -1235,6 +1322,11 @@ impl Interp {
             return self.call_value(&f, vec![key.clone()], Vec::new());
         }
         let Some(hook) = c.lookup("__class_getitem__") else {
+            // `D[str, int]` for a dict subclass: an alias, as the built-in base's.
+            if c.builtin_base.is_some() {
+                let alias = self.python_builtin("GenericAlias")?;
+                return self.call_value(&alias, vec![Value::Class(c.clone()), key.clone()], Vec::new());
+            }
             return Err(self.error(format!("type '{}' is not subscriptable", c.name), "TypeError"));
         };
         let f = match &hook {
@@ -1271,6 +1363,12 @@ impl Interp {
     pub(crate) fn mapping_pairs(&mut self, v: &Value) -> R<Vec<(HKey, Value)>> {
         match v {
             Value::Dict(d) => Ok(d.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect()),
+            // A dict subclass that iterates as a dict does is read as one, as
+            // CPython does: its own keys() and __getitem__ are not asked.
+            Value::Instance(i) if matches!(i.payload(), Some(Value::Dict(_))) && !i.class.defines("__iter__") => {
+                let Some(Value::Dict(d)) = i.payload() else { unreachable!() };
+                Ok(d.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            }
             Value::Instance(_) => {
                 let keys = self.call_method(v, "keys", Vec::new(), Vec::new())?;
                 let mut out = Vec::new();
@@ -1291,6 +1389,12 @@ impl Interp {
         match v {
             Value::Instance(inst) => {
                 for name in ["__str__", "__repr__"] {
+                    // A str subclass is its own text unless it says otherwise.
+                    if name == "__repr__" {
+                        if let Some(Value::Str(s)) = inst.payload() {
+                            return Ok(s.to_string());
+                        }
+                    }
                     if let Some(m) = inst.class.lookup(name) {
                         let bound = self.special_bound(m, v, &inst.class)?;
                         return match self.call_value(&bound, Vec::new(), Vec::new())? {
@@ -1298,6 +1402,9 @@ impl Interp {
                             other => Err(self.error(format!("{name} returned non-string (type {})", other.type_name()), "TypeError")),
                         };
                     }
+                }
+                if let Some(p) = inst.payload().cloned() {
+                    return self.to_str(&p);
                 }
                 Ok(py_str(v))
             }
@@ -1355,7 +1462,10 @@ impl Interp {
                         other => return Err(self.error(format!("__repr__ returned non-string (type {})", other.type_name()), "TypeError")),
                     }
                 }
-                None => py_repr(v),
+                None => match inst.payload().cloned() {
+                    Some(p) => self.to_repr(&p)?,
+                    None => py_repr(v),
+                },
             },
             Value::List(l) => {
                 let items = l.borrow().clone();
@@ -1772,7 +1882,13 @@ impl Interp {
                 if let Some(Value::Instance(inst)) = args.first() {
                     if inst.class.exception_root.is_some() {
                         inst.insert(Rc::from("args"), Value::tuple(args[1..].to_vec()));
+                    } else if let Some(p) = inst.payload().cloned() {
+                        self.builtin_init(&p, &args[1..], kwargs)?;
+                        return Ok(Some(Value::None));
                     }
+                }
+                if !kwargs.is_empty() {
+                    return Err(self.error("object.__init__() takes exactly one argument (the instance to initialize)", "TypeError"));
                 }
                 Value::None
             }
@@ -1833,12 +1949,11 @@ impl Interp {
                 let Some(Value::Class(c)) = arg(0) else {
                     return Err(self.error("object.__new__(X): X is not a class", "TypeError"));
                 };
-                let inst = Rc::new(Instance::new(c.clone()));
-                self.track_instance(&inst);
-                Value::Instance(inst)
+                return self.new_instance_of(&c, &args[1..], kwargs).map(Some);
             }
             // As CPython, object.__str__ shows what the class's __repr__ gives.
             HIDDEN_DEFAULT_STR => match arg(0) {
+                Some(Value::Instance(i)) if matches!(i.payload(), Some(Value::Str(_))) => i.payload().cloned().unwrap(),
                 Some(v @ Value::Instance(_)) => Value::str(self.to_repr(&v)?),
                 other => Value::str(py_str(&other.unwrap_or(Value::None))),
             },
@@ -1936,6 +2051,7 @@ impl Interp {
             traits: Default::default(),
             meta: None,
             is_type: false,
+            builtin_base: None,
         });
         self.plain_object = Some(c.clone());
         c
@@ -1950,6 +2066,7 @@ impl Interp {
                 Value::Class(k) => k.meta.as_ref().is_some_and(|m| m.is_subclass_of(c)),
                 _ => false,
             },
+            Value::Builtin(name) if matches!(value, Value::Instance(i) if i.class.builtin_base.as_deref() == Some(name.as_ref())) => true,
             Value::Builtin(name) => match name.as_ref() {
                 "str" => matches!(value, Value::Str(_)),
                 "int" => matches!(value, Value::Int(_) | Value::Bool(_)),
@@ -2043,6 +2160,9 @@ impl Interp {
                 names.extend(i.keys().iter().map(|s| s.to_string()));
                 from_class(&i.class, &mut names);
                 names.extend(["__class__", "__dict__", "__repr__", "__str__"].map(String::from));
+                if let Some(base) = &i.class.builtin_base {
+                    names.extend(super::methods::type_members(base).map(String::from));
+                }
             }
             Value::Class(c) => {
                 from_class(c, &mut names);
@@ -2132,6 +2252,7 @@ impl Interp {
             Value::Tuple(t) => t.iter().any(|x| self.class_matches(c, x)),
             Value::Class(other) => c.is_subclass_of(other),
             Value::Builtin(n) if n.as_ref() == "object" => true,
+            Value::Builtin(n) if c.builtin_base.as_ref() == Some(n) => true,
             Value::Builtin(n) => c.exception_root.is_some() && self.exception_is(n, &c.name),
             _ => false,
         }
@@ -2256,4 +2377,74 @@ fn identity(v: &Value) -> i64 {
 
 fn kwarg(kwargs: &[(Rc<str>, Value)], name: &str) -> Option<Value> {
     kwargs.iter().find(|(k, _)| k.as_ref() == name).map(|(_, v)| v.clone())
+}
+
+impl Interp {
+    /// `cls.__new__(cls, *args)` for a class deriving from a built-in type
+    /// (the base's `__new__`), or `object.__new__(cls)`: an instance with no
+    /// attributes, and for the first its built-in value made from [args].
+    pub(crate) fn new_instance_of(&mut self, c: &Rc<Class>, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let inst = Rc::new(Instance::new(c.clone()));
+        self.track_instance(&inst);
+        if let Some(base) = c.builtin_base.clone() {
+            let payload = self.new_payload(&base, args, kwargs)?;
+            inst.set_payload(payload);
+        }
+        Ok(Value::Instance(inst))
+    }
+
+    /// The value a built-in base's `__new__` makes: an empty container for
+    /// dict, list and set (their `__init__` fills it), else the base called
+    /// with [args], `str(x)` or `int(x, 16)`.
+    pub(crate) fn new_payload(&mut self, base: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        Ok(match base {
+            "list" => Value::list(Vec::new()),
+            "dict" => Value::new_dict(DictMap::default()),
+            "set" => Value::new_set(KeySet::default()),
+            _ => match self.call_builtin(base, args, kwargs)? {
+                // `int(x)` of an instance of an int subclass hands back that instance's value.
+                Value::Instance(i) if i.payload().is_some() => i.payload().cloned().unwrap(),
+                v => v,
+            },
+        })
+    }
+
+    /// A built-in base's `__init__` on [payload]: a list takes the items of
+    /// its argument, a set its members, a dict its pairs and keywords. An
+    /// immutable value was made whole by `__new__`, so it takes nothing.
+    pub(crate) fn builtin_init(&mut self, payload: &Value, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<()> {
+        let ty = payload.static_type_name();
+        if mutable_base(ty) && args.len() > 1 {
+            return Err(self.error(format!("{ty} expected at most 1 argument, got {}", args.len()), "TypeError"));
+        }
+        match payload {
+            Value::List(l) => {
+                if !kwargs.is_empty() {
+                    return Err(self.error("list() takes no keyword arguments", "TypeError"));
+                }
+                let items = match args.first() {
+                    Some(a) => self.iterate(a)?,
+                    None => Vec::new(),
+                };
+                *l.borrow_mut() = items;
+            }
+            Value::Dict(d) => {
+                self.dict_method(d, "update", args, kwargs)?;
+            }
+            Value::Set(s) => {
+                if !kwargs.is_empty() {
+                    return Err(self.error("set() takes no keyword arguments", "TypeError"));
+                }
+                let mut keys = KeySet::default();
+                if let Some(a) = args.first() {
+                    for v in self.iterate(a)? {
+                        keys.insert(self.hashable(&v)?);
+                    }
+                }
+                *s.borrow_mut() = keys;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
 }

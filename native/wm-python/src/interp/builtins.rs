@@ -118,8 +118,23 @@ pub(crate) const PYTHON_BUILTINS: &[&str] =
 /// The builtins that take keyword arguments.
 pub(crate) const KWARG_BUILTINS: &[&str] = &[
     "sorted", "min", "max", "round", "property", "print", "enumerate", "dict", "sum", "int", "zip", "str", "bytes",
-    "__import__",
+    "__import__", "__base_init__", "__object_new__",
 ];
+
+/// The special methods a numeric builtin asks an instance for.
+fn numeric_hooks(name: &str) -> &'static [&'static str] {
+    match name {
+        "int" => &["__int__", "__index__", "__trunc__"],
+        "float" => &["__float__", "__index__"],
+        "bytes" => &["__bytes__", "__index__", "__iter__"],
+        "abs" => &["__abs__"],
+        "round" => &["__round__"],
+        "divmod" => &["__divmod__", "__rdivmod__"],
+        "pow" => &["__pow__", "__rpow__"],
+        "hex" | "oct" | "bin" | "chr" | "range" => &["__index__"],
+        _ => &[],
+    }
+}
 
 /// Swift's `Unicode.Scalar(i)` succeeds for these: any code point but a surrogate.
 pub(crate) fn is_scalar(i: i64) -> bool {
@@ -150,6 +165,24 @@ impl Interp {
                 _ => self.to_repr(&Value::tuple(args.to_vec()))?,
             };
             return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args: args.to_vec(), cause: None, context: None })));
+        }
+        // A subclass of a built-in type passed to a numeric builtin is its
+        // value, unless its class answers for the builtin itself.
+        if matches!(name, "int" | "float" | "bytes" | "abs" | "round" | "hex" | "oct" | "bin" | "chr" | "divmod" | "pow" | "range" | "ord")
+            && args.iter().any(|a| payload_of(a).is_some())
+        {
+            let hooks = numeric_hooks(name);
+            let plain: Vec<Value> = args
+                .iter()
+                .map(|a| match a {
+                    Value::Instance(i) if i.payload().is_some() && !hooks.iter().any(|h| i.class.defines(h)) => i.payload().cloned().unwrap(),
+                    other => other.clone(),
+                })
+                .collect();
+            let kwargs: Vec<(Rc<str>, Value)> = kwargs.iter().map(|(k, v)| (k.clone(), plain_value(v.clone()))).collect();
+            if plain.iter().all(|a| payload_of(a).is_none()) {
+                return self.call_builtin(name, &plain, &kwargs);
+            }
         }
         // An instance passed to a numeric builtin answers through its dunders.
         if matches!(name, "int" | "float" | "bool" | "bytes" | "abs" | "round" | "hex" | "oct" | "bin" | "chr" | "divmod" | "pow" | "range")
@@ -748,7 +781,7 @@ impl Interp {
         if let Some(first) = args.first() {
             let pairs = match first {
                 Value::Dict(src) => src.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
-                Value::Instance(i) if i.class.lookup("keys").is_some() => self.mapping_pairs(first)?,
+                Value::Instance(i) if super::methods::is_mapping(i) => self.mapping_pairs(first)?,
                 // dict([(k, v), ...]), the shape zip() and items() hand back.
                 other => self.pairs_of(other, "dict()")?,
             };
