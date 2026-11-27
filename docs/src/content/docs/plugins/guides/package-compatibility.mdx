@@ -18,10 +18,12 @@ verdict for each one and what stopped it.
 
 The verdicts are the ones `wmpy pip check` gives, explained on
 [Python packages](/plugins/guides/python-packages/#the-verdicts). A package
-counts as working only when the packages it needs work too. **Compiled
-code** means it ships only compiled wheels, so it can never be vendored:
-numpy, pandas, Pillow and lxml are like this. **Not checked** means wmpy
-could not resolve or download it.
+counts as working only when the packages it needs work too. **Comes with the
+keyboard** means plugins import it without installing it: `requests` and
+`httpx`. **Compiled code** means it ships only compiled wheels and needs
+their compiled parts: numpy, pandas, Pillow and lxml are like this. A package
+whose compiled parts have a Python fallback is checked on that fallback
+instead. **Not checked** means wmpy could not resolve or download it.
 
 The keyboard's Python grows between releases, and these results follow the
 interpreter wmpy was built from. To check a package against your own copy,

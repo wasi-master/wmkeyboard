@@ -46,6 +46,7 @@ const blockers = data.blockers as Blocker[];
 
 const VERDICT: Record<string, string> = {
 	ok: 'Works',
+	'built-in': 'Comes with the keyboard',
 	warnings: 'Works, with warnings',
 	incompatible: "Won't load",
 	compiled: 'Compiled code',
@@ -97,7 +98,7 @@ function said(b: Blocker): string {
 /** Why a package won't load, in one cell. */
 function why(r: Row): string {
 	if (r.verdict === 'ok') return '';
-	if (r.verdict === 'failed') return r.reason ?? '';
+	if (r.verdict === 'failed' || r.verdict === 'built-in') return r.reason ?? '';
 	if (r.verdict === 'compiled') return r.reason ?? 'compiled code';
 	const own = r.blockers ?? [];
 	if (own.length === 0) {
@@ -116,7 +117,7 @@ const pct = (n: number) => {
 	return p > 0 && p < 1 ? 'under 1%' : `${Math.round(p)}%`;
 };
 const shownBlockers = blockers.filter((b) => !kinds || kinds.includes(b.kind)).slice(0, limit);
-const working = rows.filter((r) => r.verdict === 'ok' || r.verdict === 'warnings');
+const working = rows.filter((r) => r.verdict === 'ok' || r.verdict === 'warnings' || r.verdict === 'built-in');
 ---
 
 {part === 'totals' && (
@@ -166,7 +167,7 @@ const working = rows.filter((r) => r.verdict === 'ok' || r.verdict === 'warnings
 			{working.map((r) => (
 				<li>
 					<a href={`https://pypi.org/project/${r.name}/`} rel="nofollow"><code>{r.name}</code></a>
-					{r.verdict === 'warnings' ? ' (with warnings)' : ''}
+					{r.verdict === 'warnings' ? ' (with warnings)' : r.verdict === 'built-in' ? ' (comes with the keyboard)' : ''}
 					{r.summary ? `: ${r.summary}` : ''}
 				</li>
 			))}

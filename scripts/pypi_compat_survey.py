@@ -47,10 +47,9 @@ PICKED = [
     "requests", "httpx", "chardet", "charset-normalizer", "idna", "six", "typing-extensions",
 ]
 
-# A package with only compiled wheels is checked from its source archive when
-# that is small (it may have a pure-Python fallback, as PyYAML does). A big
-# archive is almost always compiled code, and is not downloaded.
-SDIST_CHECK_LIMIT = 2 * 1024 * 1024
+# A package with only compiled wheels is still handed to wmpy, which takes
+# the .py files of a small one (it may fall back to Python, as PyYAML does)
+# and refuses a big one without downloading it.
 
 KIND_ORDER = ["language", "stdlib", "builtin", "sandbox", "compiled", "dependency", "package", "limits", "other"]
 
@@ -93,9 +92,6 @@ def classify_files(files):
     pure = [w for w in wheels if w["filename"].endswith("-none-any.whl") and "py3" in w["filename"].rsplit("-", 3)[-3]]
     if pure:
         return "pure", None
-    if wheels and sdists:
-        size = sdists[0].get("size") or 0
-        return ("sdist", None) if size <= SDIST_CHECK_LIMIT else ("compiled", size)
     if wheels:
         return "compiled", None
     if sdists:
@@ -187,16 +183,16 @@ def survey_one(wmpy, cache, timeout, item, meta):
     if shape == "none":
         row.update(verdict="failed", reason="no files in the latest release")
         return row, []
-    if shape == "compiled":
-        why = "only compiled wheels" if size is None else "only compiled wheels; {:.0f} MB source archive not checked".format(size / 1048576)
-        row.update(verdict="compiled", reason=why, blockers=[{"kind": "compiled", "code": "c-extension", "subject": "compiled wheels only", "count": 1}])
-        return row, [(("compiled", "c-extension", "compiled wheels only"), None)]
     out, err = check(wmpy, name, cache, timeout)
     if out is None:
         row.update(verdict="failed", reason=err)
         return row, []
     me = normalize(name)
     pkgs = out.get("packages") or []
+    built_in = next((n for n in out.get("notes") or [] if "built into" in n), None)
+    if not pkgs and built_in:
+        row.update(verdict="built-in", reason="comes with the keyboard: import it without installing")
+        return row, []
     own = next((p for p in pkgs if normalize(p.get("name", "")) == me), pkgs[0] if pkgs else None)
     if own is None:
         row.update(verdict="failed", reason="wmpy returned no package")
@@ -223,6 +219,10 @@ def survey_one(wmpy, cache, timeout, item, meta):
         worst = "incompatible"
     elif worst == "ok" and any(d["verdict"] == "warnings" for d in deps):
         worst = "warnings"
+    # Incompatible only for its compiled code: no Python fallback for it.
+    if worst == "incompatible" and shape == "compiled" and ordered and all(k[0] == "compiled" for k in ordered):
+        worst = "compiled"
+        row["reason"] = "compiled code it cannot do without"
     row["verdict"] = worst
     found = []
     for k in ordered:
