@@ -314,3 +314,12 @@ fn a_private_shim_beside_the_package_is_optional() {
     let r = run(&[("yaml/__init__.py", "X = 1\n"), ("_yaml/__init__.py", "from yaml._yaml import *\n")], &[]);
     assert_eq!(r.verdict, Verdict::Warnings, "{:?}", codes(&r));
 }
+
+#[test]
+fn names_a_standard_module_makes_on_demand_are_found() {
+    // CPython 3.13's typing makes Pattern and Match in its module __getattr__.
+    let r = run(&[("rx.py", "import typing\nfrom typing import Pattern, Match\n\ndef f(p: Pattern):\n    return typing.Match\n")], &[]);
+    assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
+    let r = run(&[("rx.py", "from typing import NoSuchThing\n")], &[]);
+    assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
+}

@@ -130,6 +130,19 @@ impl Probe {
         ok
     }
 
+    /// Whether the builtin [name], which exists, raises when called the way
+    /// plugins would call it: `open` with a path, `input` with a prompt.
+    pub fn refuses(&mut self, name: &str) -> bool {
+        let call = match name {
+            "open" => "open('x.txt')",
+            "input" => "input('? ')",
+            "breakpoint" | "help" | "copyright" | "credits" | "license" => &format!("{name}()"),
+            _ => return false,
+        };
+        let src = format!("try:\n    {call}\nexcept (OSError, EOFError, RuntimeError, NotImplementedError):\n    pass\nelse:\n    raise ValueError('ran')\n");
+        self.source_runs(&src)
+    }
+
     /// Whether `import [name]` works in a plugin, as far as the standard
     /// library goes (the `wm` package and the plugin's own files aside).
     pub fn module_exists(&mut self, name: &str) -> bool {
@@ -149,7 +162,11 @@ impl Probe {
         if let Some(v) = self.members.get(&key) {
             return *v;
         }
-        let ok = (self.module_exists(module) && self.rt.module_member(module, name).is_some()) || self.module_exists(&format!("{module}.{name}"));
+        let ok = (self.module_exists(module) && self.rt.module_member(module, name).is_some())
+            || self.module_exists(&format!("{module}.{name}"))
+            // A module's own `__getattr__` (PEP 562) answers names it makes on
+            // demand, such as typing.Pattern: ask the import itself.
+            || (self.module_exists(module) && self.source_runs(&format!("from {module} import {name}\n")));
         self.members.insert(key, ok);
         ok
     }

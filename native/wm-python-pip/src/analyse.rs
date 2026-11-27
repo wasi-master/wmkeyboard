@@ -643,7 +643,13 @@ fn check_names(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Probl
         if !CPYTHON_BUILTINS.contains(&name.as_str()) && !MODULE_DUNDERS.contains(&name.as_str()) {
             continue;
         }
-        if skipped.iter().any(|s| s.contains(o.span.start)) || ctx.probe.name_exists(&name) {
+        if skipped.iter().any(|s| s.contains(o.span.start)) {
+            continue;
+        }
+        // A builtin that is there but refuses when called (`open`, `input`):
+        // naming it is fine, calling it fails.
+        let refuses = ctx.probe.name_exists(&name) && sandbox_builtin(&name).is_some() && ctx.probe.refuses(&name);
+        if ctx.probe.name_exists(&name) && !(refuses && is_called(file, o.span)) {
             continue;
         }
         let mut in_function = false;
@@ -664,6 +670,7 @@ fn check_names(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Probl
         }
         *count += 1;
         let p = match sandbox_builtin(&name) {
+            Some(why) if refuses => at(file, o.span, severity, "sandbox-builtin", format!("'{name}' raises an error in plugins: {why}"), None),
             Some(why) => at(file, o.span, severity, "sandbox-builtin", format!("'{name}' is not available to plugins: {why}"), None),
             None => at(file, o.span, severity, "missing-builtin", format!("the keyboard's Python has no '{name}'"), None),
         };
@@ -672,6 +679,16 @@ fn check_names(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Probl
     for (name, n) in hidden {
         out.push(file_problem(&file.path, Severity::Info, "more", format!("'{name}' is used {n} more times in this file"), None));
     }
+}
+
+/// Whether the name at [span] is called right there: `open(...)`.
+fn is_called(file: &ModFile, span: Span) -> bool {
+    let units = file.source.units();
+    let mut i = span.end as usize;
+    while i < units.len() && (units[i] == b' ' as u16 || units[i] == b'\t' as u16) {
+        i += 1;
+    }
+    i < units.len() && units[i] == b'(' as u16
 }
 
 fn check_attributes(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Problem>) {

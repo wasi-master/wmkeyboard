@@ -177,7 +177,7 @@ Problems carry a short code. The common ones:
 | `missing-import` | Nothing provides this module. `help` says which package to install when it is not a standard one. |
 | `sandbox-import` | A module plugins go without on purpose: `socket`, `ctypes`, `multiprocessing`. `help` names what to use instead, such as `wm.http`. |
 | `missing-attribute` | The keyboard's version of a standard module lacks this, such as `sys.platform`. |
-| `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or keeps from plugins: `open`, `eval`, `exec`. |
+| `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or one that raises an error in plugins when called: `open` (no file system), `input` (no terminal). Only naming one, as in `prompt = input`, is fine. |
 | `missing-name` | `from x import y` where `x` has no `y`. |
 | `c-extension`, `c-source`, `needs-build` | Compiled code, its sources, or a source archive that would have to be built. |
 | `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 256 KB, more than four folders deep, or a path that is not a module name. |
