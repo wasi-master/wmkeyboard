@@ -38,6 +38,9 @@ pub struct Dist {
     /// Its compiled modules, by module name, when they were left out of a
     /// wheel built for a platform ([Dist::leave_out_compiled]).
     pub compiled: Vec<String>,
+    /// Programs compiled for computers that the wheel installs as commands
+    /// (`ruff`, `uv`): the package is a launcher for them, not a library.
+    pub programs: Vec<String>,
     /// Licence files: `(file name, bytes)`.
     pub licenses: Vec<(String, Vec<u8>)>,
     pub license: Option<String>,
@@ -81,6 +84,15 @@ impl Dist {
             ),
         );
     }
+}
+
+/// Whether [data] starts as a compiled program does: ELF, Mach-O or a Windows executable.
+fn is_program(data: &[u8]) -> bool {
+    data.starts_with(b"\x7fELF")
+        || data.starts_with(b"MZ")
+        || [[0xFE, 0xED, 0xFA, 0xCE], [0xFE, 0xED, 0xFA, 0xCF], [0xCE, 0xFA, 0xED, 0xFE], [0xCF, 0xFA, 0xED, 0xFE], [0xCA, 0xFE, 0xBA, 0xBE]]
+            .iter()
+            .any(|m| data.starts_with(m))
 }
 
 fn is_binary(path: &str) -> bool {
@@ -300,12 +312,25 @@ pub fn from_wheel(bytes: &[u8], source: &str, sha256: &str) -> Result<Dist, Stri
                     take_file(&mut dist, inner, data, &mut skipped, &mut skipped_py);
                 }
             }
+            if let Some(script) = rest.strip_prefix("scripts/") {
+                if is_program(data) {
+                    dist.programs.push(script.to_string());
+                }
+            }
             continue;
         }
         take_file(&mut dist, name, data, &mut skipped, &mut skipped_py);
     }
     dist.key = normalize(&dist.name);
     finish(&mut dist, skipped, skipped_py);
+    if !dist.programs.is_empty() && dist.refused.is_none() {
+        let names = dist.programs.join(", ");
+        dist.refused = Some(if dist.programs.len() == 1 {
+            format!("it installs {names}, a program compiled for computers, and its Python only starts that program, which plugins cannot run")
+        } else {
+            format!("it installs {names}, programs compiled for computers, and its Python only starts them, which plugins cannot do")
+        });
+    }
     Ok(dist)
 }
 
@@ -522,6 +547,29 @@ mod tests {
         d.leave_out_compiled("PyYAML-6.0.2-cp312-cp312-manylinux_2_17_x86_64.whl");
         assert_eq!((d.compiled, d.native), (vec!["yaml._yaml".to_string()], vec!["yaml/_yaml.h".to_string()]));
         assert!(d.notes[0].contains("_yaml.cpython-312-x86_64-linux-gnu.so"));
+    }
+
+    #[test]
+    fn a_wheel_that_installs_a_compiled_program_is_refused() {
+        let mut bytes = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut bytes));
+            let opts = zip::write::SimpleFileOptions::default();
+            for (name, data) in [
+                ("lint/__init__.py", &b"from ._find import find\n"[..]),
+                ("lint/_find.py", &b"def find():\n    return 'lint'\n"[..]),
+                ("lint-1.0.data/scripts/lint", &b"\x7fELF\x02\x01\x01rest"[..]),
+                ("lint-1.0.data/scripts/helper.py", &b"#!python\nprint(1)\n"[..]),
+                ("lint-1.0.dist-info/METADATA", &b"Metadata-Version: 2.1\nName: lint\nVersion: 1.0\n"[..]),
+            ] {
+                std::io::Write::write_all(&mut { zip.start_file(name, opts).unwrap(); &mut zip }, data).unwrap();
+            }
+            zip.finish().unwrap();
+        }
+        let d = from_wheel(&bytes, "x", "y").unwrap();
+        assert_eq!(d.programs, vec!["lint".to_string()]);
+        assert!(d.refused.as_deref().unwrap().contains("lint, a program compiled for computers"), "{:?}", d.refused);
+        assert!(is_program(b"\xcf\xfa\xed\xfe....") && is_program(b"MZ\x90") && !is_program(b"#!/bin/sh"));
     }
 
     #[test]
