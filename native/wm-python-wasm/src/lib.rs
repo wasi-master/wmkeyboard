@@ -276,6 +276,20 @@ pub fn pip_analyse(files_json: &str, options_json: &str) -> String {
     wm_python_pip::analyse(&files, &opts).to_json().to_string()
 }
 
+/// Applies the keyboard's patch for [project] (its PEP 503 name), if it has
+/// one, to [files_json] (`{"path": "source"}`, the package's files), as
+/// `wmpy pip install` does. Answers `{"files": {path: source}, "notes":
+/// [what was patched or left out]}`, or `{"error"}`.
+#[wasm_bindgen]
+pub fn pip_patch(project: &str, files_json: &str) -> String {
+    let mut files = match files_arg(files_json) {
+        Ok(f) => f,
+        Err(e) => return json!({ "error": e }).to_string(),
+    };
+    let notes = wm_python_pip::patches::apply(project, &mut files);
+    json!({ "files": files, "notes": notes }).to_string()
+}
+
 /// Tree-shakes the vendored packages ([roots_json], their top-level names)
 /// among [files_json] (every `.py` file of the plugin), reached from [entry]
 /// and the plugin's own modules; [symbols] also drops unused top-level

@@ -450,6 +450,24 @@ export function pipAnalyse(files: Record<string, string>, options: { package: st
 }
 
 /**
+ * The keyboard's patch for [project] (its PEP 503 name) applied to [files]
+ * (path to source), as `wmpy pip install` applies it: the files, changed
+ * where a patch fits, and a note for each edit. Null when this build has no
+ * `pip_patch` or the call failed; the files then go in as they are.
+ */
+export function pipPatch(project: string, files: Record<string, string>): { files: Record<string, string>; notes: string[] } | null {
+	const f = pipExport('pip_patch', 'pipPatch');
+	if (!f) return null;
+	try {
+		const raw = JSON.parse(f(project, JSON.stringify(files))) as { files?: Record<string, string>; notes?: string[] };
+		if (!raw.files || typeof raw.files !== 'object') return null;
+		return { files: raw.files, notes: raw.notes ?? [] };
+	} catch {
+		return null;
+	}
+}
+
+/**
  * Tree-shakes the vendored packages ([roots]) among [files] (every `.py`
  * file of the plugin), reached from [entry] and the plugin's own modules.
  * [symbols] also drops unused top-level functions and classes. Null when this

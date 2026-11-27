@@ -4,6 +4,7 @@
  * here; the dialog fetches and checks, this decides the files.
  */
 import { LICENSES_DIR, LOCK_FILE, lockText, type Lock, type LockEntry, type PlannedPackage, type WheelContents } from '../../../lib/pypi';
+import * as Py from '../../../lib/python';
 import type { PipAnalysis } from '../../../lib/python';
 import { MANIFEST_FILE, type DraftFiles, type FileData } from './draft-files';
 
@@ -12,6 +13,25 @@ export interface PreparedPackage {
 	contents: WheelContents;
 	/** Null when this build has no compatibility check. */
 	analysis: PipAnalysis | null;
+	/** What the keyboard's patch for it changed ([Py.pipPatch]), one line each. */
+	patched?: string[];
+}
+
+/**
+ * [contents] with the keyboard's patch for [key] applied, as `wmpy pip
+ * install` applies it, and what it changed. Unchanged when there is no
+ * patch or this build cannot apply one.
+ */
+export function patchPackage(key: string, contents: WheelContents): { contents: WheelContents; notes: string[] } {
+	const sources = packageSources(contents);
+	const result = Py.pipPatch(key, sources);
+	if (!result || result.notes.length === 0) return { contents, notes: [] };
+	const modules = { ...contents.modules };
+	const encoder = new TextEncoder();
+	for (const [path, text] of Object.entries(result.files)) {
+		if (sources[path] !== text) modules[path] = encoder.encode(text);
+	}
+	return { contents: { ...contents, modules }, notes: result.notes };
 }
 
 export type Changes = Record<string, FileData | null>;

@@ -10,7 +10,7 @@ import { fmtBytes, NetError } from '../../../lib/net';
 import * as Py from '../../../lib/python';
 import { downloadWheel, fetchProject, fetchRelease, lockRoots, normalizeName, parseRequirement, PypiError, readWheel, resolvePlan, satisfies, type Lock, type Plan, type Project, type Requirement } from '../../../lib/pypi';
 import { moduleNames, type DraftFiles } from './draft-files';
-import { addPackages, neededBy, packageSources, removePackage, type Changes, type PreparedPackage } from './packages';
+import { addPackages, neededBy, packageSources, patchPackage, removePackage, type Changes, type PreparedPackage } from './packages';
 import { Dialog, TextButton } from './parts';
 import { S } from './strings';
 
@@ -100,7 +100,9 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 			const own = moduleNames(Object.keys(files), entry).filter((n) => !n.includes('.'));
 			const prepared: PreparedPackage[] = plan.packages.map((planned, i) => {
 				const available = [...new Set([...held, ...own, ...contents.flatMap((c, j) => (j === i ? [] : c.roots))])].sort();
-				return { planned, contents: contents[i]!, analysis: Py.pipAnalyse(packageSources(contents[i]!), { package: planned.name, available }) };
+				// The small fixes the keyboard keeps for a few packages, as wmpy pip applies them.
+				const patched = patchPackage(planned.key, contents[i]!);
+				return { planned, contents: patched.contents, patched: patched.notes, analysis: Py.pipAnalyse(packageSources(patched.contents), { package: planned.name, available }) };
 			});
 			setStage({ kind: 'checked', project, request, plan, prepared });
 		} catch (e) {
@@ -207,6 +209,7 @@ function PlannedRow({ p }: { p: PreparedPackage }) {
 				<div><b>{p.planned.name}</b> {p.planned.version}{a && <> <span class={`wm-verdict wm-verdict-${a.verdict}`}>{VERDICT_TEXT[a.verdict]}</span></>}</div>
 				<div class="wm-caption">{notes.join(' · ')}</div>
 				{a && a.imports.missing.length > 0 && <div class="wm-caption">{S.packageMissing(a.imports.missing.join(', '))}</div>}
+				{(p.patched ?? []).map((n, i) => <div key={`patch${i}`} class="wm-caption">{n}</div>)}
 				{a && a.problems.length > 0 && (
 					<ul class="wm-pkg-problems">
 						{a.problems.slice(0, 20).map((x, i) => (
