@@ -104,8 +104,8 @@ def _set(obj, default=NoDefault, **values):
     d = obj.__dict__
     for k, v in values.items():
         d["_tv_" + k] = v
-    # Assignable, unlike CPython 3.13's: typing_extensions' 3.12 path (this
-    # interpreter reports 3.12) sets it on a typing.TypeVar.
+    # Assignable, unlike CPython 3.13's: code written for 3.12's typing
+    # (typing_extensions before 3.13) sets it on a typing.TypeVar.
     d["__default__"] = default
     # The module that made it, as the C code reads off the calling frame.
     try:

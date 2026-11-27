@@ -670,7 +670,7 @@ fn build() -> Model {
     add("sys", Module, None, None, "About the interpreter. import sys.");
     add("sys.version", Constant, None, None, "The interpreter's version line.");
     for (name, doc) in [
-        ("version_info", "The Python version this interpreter follows, (3, 12, 0, \"final\", 0), with names: sys.version_info.major. Compare it with a tuple: sys.version_info >= (3, 10)."),
+        ("version_info", "The Python version this interpreter follows, (3, 13, 0, \"final\", 0), with names: sys.version_info.major. Compare it with a tuple: sys.version_info >= (3, 10)."),
         ("hexversion", "version_info as one number."),
         ("maxsize", "The largest int: 2 ** 63 - 1."),
         ("maxunicode", "The largest code point: 0x10FFFF."),

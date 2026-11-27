@@ -330,7 +330,7 @@ impl Interp {
             int_max_str_digits: super::bigint::MAX_STR_DIGITS,
             stdout_target: None,
             stderr_target: None,
-            version_info: Rc::new(vec![Value::Int(3), Value::Int(12), Value::Int(0), Value::str("final"), Value::Int(0)]),
+            version_info: Rc::new(vec![Value::Int(3), Value::Int(13), Value::Int(0), Value::str("final"), Value::Int(0)]),
             struct_seqs: Rc::new([
                 (
                     "hash_info",
@@ -392,8 +392,8 @@ impl Interp {
                     Rc::new(vec![
                         Value::str("cpython"),
                         Value::None,
-                        Value::tuple(vec![Value::Int(3), Value::Int(12), Value::Int(0), Value::str("final"), Value::Int(0)]),
-                        Value::Int(0x030C_00F0),
+                        Value::tuple(vec![Value::Int(3), Value::Int(13), Value::Int(0), Value::str("final"), Value::Int(0)]),
+                        Value::Int(0x030D_00F0),
                         Value::str("aarch64-linux-android"),
                     ]),
                 ),

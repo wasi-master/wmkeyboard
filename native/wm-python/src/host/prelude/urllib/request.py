@@ -239,7 +239,7 @@ class OpenerDirector:
     """What build_opener gives: open(url, data=None, timeout=None)."""
 
     def __init__(self):
-        self.addheaders = [("User-agent", "Python-urllib/3.12")]
+        self.addheaders = [("User-agent", "Python-urllib/3.13")]
 
     def add_handler(self, handler):
         pass

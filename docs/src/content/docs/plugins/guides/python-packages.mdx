@@ -56,7 +56,7 @@ For each package, `wmpy pip install`:
 3. Checks the download against the SHA-256 that PyPI lists.
 4. Reads its dependencies and installs those the same way. Markers such as
    `python_version < "3.9"` are read as CPython on Linux (aarch64) would read
-   them, at the version `sys.version_info` gives in a plugin (3.12 today),
+   them, at the version `sys.version_info` gives in a plugin (3.13 today),
    and extras only when you ask for them: `attrs[tests]`.
 5. Applies the small [patches](#patched-packages) the keyboard keeps for a
    few popular packages, then analyses every package and refuses those that

@@ -98,7 +98,7 @@ fn constant(module: &str, name: &str) -> Option<Value> {
         // A bad pattern raises ValueError here, which re.error stands for.
         ("re", "error" | "PatternError") => Value::Builtin(Rc::from("ValueError")),
         ("sys", "version") => Value::str(VERSION_LINE),
-        ("sys", "hexversion") => Value::Int(0x030C_00F0),
+        ("sys", "hexversion") => Value::Int(0x030D_00F0),
         ("sys", "maxsize") => Value::Int(i64::MAX),
         ("sys", "maxunicode") => Value::Int(0x10_FFFF),
         ("sys", "byteorder") => Value::str("little"),
@@ -1015,7 +1015,7 @@ fn expand_template(template: &str, m: &super::regex::Match) -> String {
     out
 }
 
-/// `sys.getsizeof(v)` as 64-bit CPython 3.12 answers for the common types:
+/// `sys.getsizeof(v)` as 64-bit CPython 3.13 answers for the common types:
 /// the object's own bytes, not what it refers to.
 fn size_of_value(v: &Value) -> i64 {
     let n = |x: usize| x as i64;
