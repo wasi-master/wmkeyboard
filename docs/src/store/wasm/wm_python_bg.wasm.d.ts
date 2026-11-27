@@ -14,6 +14,7 @@ export const hover: (a: number, b: number, c: number, d: number, e: number) => [
 export const inInert: (a: number, b: number, c: number) => number;
 export const opensBlock: (a: number, b: number) => number;
 export const pip_analyse: (a: number, b: number, c: number, d: number) => [number, number];
+export const pip_patch: (a: number, b: number, c: number, d: number) => [number, number];
 export const pip_shake: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
 export const providerTools: () => [number, number];
 export const pysession_cancel: (a: number) => void;
@@ -29,6 +30,7 @@ export const pysession_storageSet: (a: number, b: number, c: number, d: number, 
 export const pysession_thumbnail: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const pysession_transform: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const pysession_usage: (a: number) => [number, number];
+export const python_version: () => [number, number];
 export const references: (a: number, b: number, c: number) => [number, number];
 export const rename: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const signature: (a: number, b: number, c: number, d: number, e: number) => [number, number];

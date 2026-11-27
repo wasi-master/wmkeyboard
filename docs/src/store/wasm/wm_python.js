@@ -488,7 +488,7 @@ export function opensBlock(line) {
 /**
  * Whether a package can run in a plugin. [files_json] is `{"path": "source"}`
  * for the package's files (non-`.py` files may map to ""), [options_json]
- * `{"package": name, "available": [top-level names beside it]}`. Answers
+ * `{"package": name, "available": [top-level names beside it], "compiled": [compiled modules left out]}`. Answers
  * `{"verdict": "ok"|"warnings"|"incompatible", "problems": [{"severity",
  * "file", "line", "col", "code", "message", "endCol"?, "help"?}], "imports":
  * {"stdlib", "internal", "missing", "wm", "available"}, "roots", "files"}`,
@@ -513,6 +513,39 @@ export function pip_analyse(files_json, options_json) {
             throw e;
         }
         const ret = wasm.pip_analyse(ptr0, len0, ptr1, len1);
+        deferred3_0 = ret[0];
+        deferred3_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Applies the keyboard's patch for [project] (its PEP 503 name), if it has
+ * one, to [files_json] (`{"path": "source"}`, the package's files), as
+ * `wmpy pip install` does. Answers `{"files": {path: source}, "notes":
+ * [what was patched or left out]}`, or `{"error"}`.
+ * @param {string} project
+ * @param {string} files_json
+ * @returns {string}
+ */
+export function pip_patch(project, files_json) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(project, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(files_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.pip_patch(ptr0, len0, ptr1, len1);
         deferred3_0 = ret[0];
         deferred3_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);
@@ -570,6 +603,24 @@ export function providerTools() {
     let deferred1_1;
     try {
         const ret = wasm.providerTools();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * The Python version the interpreter gives as `sys.version_info`, such as
+ * `"3.12.0"`: the web editor reads PyPI markers and `Requires-Python` against it.
+ * @returns {string}
+ */
+export function python_version() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.python_version();
         deferred1_0 = ret[0];
         deferred1_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);

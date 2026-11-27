@@ -92,13 +92,21 @@ export function opensBlock(line: string): boolean;
 /**
  * Whether a package can run in a plugin. [files_json] is `{"path": "source"}`
  * for the package's files (non-`.py` files may map to ""), [options_json]
- * `{"package": name, "available": [top-level names beside it]}`. Answers
+ * `{"package": name, "available": [top-level names beside it], "compiled": [compiled modules left out]}`. Answers
  * `{"verdict": "ok"|"warnings"|"incompatible", "problems": [{"severity",
  * "file", "line", "col", "code", "message", "endCol"?, "help"?}], "imports":
  * {"stdlib", "internal", "missing", "wm", "available"}, "roots", "files"}`,
  * or `{"error"}` for arguments it cannot read.
  */
 export function pip_analyse(files_json: string, options_json: string): string;
+
+/**
+ * Applies the keyboard's patch for [project] (its PEP 503 name), if it has
+ * one, to [files_json] (`{"path": "source"}`, the package's files), as
+ * `wmpy pip install` does. Answers `{"files": {path: source}, "notes":
+ * [what was patched or left out]}`, or `{"error"}`.
+ */
+export function pip_patch(project: string, files_json: string): string;
 
 /**
  * Tree-shakes the vendored packages ([roots_json], their top-level names)
@@ -113,6 +121,12 @@ export function pip_shake(files_json: string, entry: string, roots_json: string,
  * The provider lists a plugin can answer, with a sample request each.
  */
 export function providerTools(): string;
+
+/**
+ * The Python version the interpreter gives as `sys.version_info`, such as
+ * `"3.12.0"`: the web editor reads PyPI markers and `Requires-Python` against it.
+ */
+export function python_version(): string;
 
 export function references(source: string, caret: number): string;
 
@@ -145,6 +159,7 @@ export interface InitOutput {
     readonly inInert: (a: number, b: number, c: number) => number;
     readonly opensBlock: (a: number, b: number) => number;
     readonly pip_analyse: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly pip_patch: (a: number, b: number, c: number, d: number) => [number, number];
     readonly pip_shake: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
     readonly providerTools: () => [number, number];
     readonly pysession_cancel: (a: number) => void;
@@ -160,6 +175,7 @@ export interface InitOutput {
     readonly pysession_thumbnail: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly pysession_transform: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly pysession_usage: (a: number) => [number, number];
+    readonly python_version: () => [number, number];
     readonly references: (a: number, b: number, c: number) => [number, number];
     readonly rename: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly signature: (a: number, b: number, c: number, d: number, e: number) => [number, number];
