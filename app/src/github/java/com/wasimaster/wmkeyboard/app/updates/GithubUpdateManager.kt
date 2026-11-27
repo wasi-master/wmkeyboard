@@ -163,6 +163,10 @@ internal object GithubUpdateManager {
             storedEtag = prefs.etag,
             onEtag = { prefs.etag = it },
             languages = BuildConfig.FLAVOR,
+            // Each track updates only to its own APK. BOOX never turns an
+            // update into a silent loss of raw ink, and no release lacking a
+            // BOOX APK makes the updater offer a standard build instead.
+            onyxPen = BuildConfig.ENABLE_ONYX_PEN,
         )
         prefs.lastCheckAt = System.currentTimeMillis()
         when (outcome) {

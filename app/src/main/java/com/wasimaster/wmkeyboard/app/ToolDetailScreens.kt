@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.settings.PrivacyShadeStyle
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
+import com.wasimaster.wmkeyboard.ime.handwriting.onyx.OnyxInkSupport
 import com.wasimaster.wmkeyboard.core.accessibility.SystemButtonsService
 import com.wasimaster.wmkeyboard.core.accessibility.TouchMouseService
 import com.wasimaster.wmkeyboard.core.accessibility.SplitScreenHelperService
@@ -2597,6 +2598,15 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_handwriting_stylus_info),
                         default = SettingsDefaults.handwritingStylusOnly,
                     ) { scope.launch { repository.setHandwritingStylusOnly(it) } }
+                }
+                item(visible = OnyxInkSupport.deviceSupported, level = SettingLevel.ADVANCED) {
+                    ToggleSetting(
+                        R.string.tooldetail_handwriting_onyx_pen_title,
+                        stringResource(R.string.tooldetail_handwriting_onyx_pen_subtitle),
+                        settings.watch { it.handwritingInk.onyxPen },
+                        info = stringResource(R.string.tooldetail_handwriting_onyx_pen_info),
+                        default = SettingsDefaults.handwritingInk.onyxPen,
+                    ) { scope.launch { repository.setHandwritingOnyxPen(it) } }
                 }
                 item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(

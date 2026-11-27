@@ -82,7 +82,7 @@ class BackupLocationTest {
     fun `per-device settings never sync`() {
         for (key in listOf("key_height", "key_height_landscape", "one_handed_mode", "floating_x", "hw_leader",
             "kde_hosts", "kde_clipboard_pauses", "lexicon_version", "sync_enabled", "auto_backup_locations", "number_row_landscape",
-            "app_lock_enabled", "app_lock_secret", "app_lock_method", "custom_themes")) {
+            "app_lock_enabled", "app_lock_secret", "app_lock_method", "custom_themes", "handwriting_onyx_pen")) {
             assertFalse(key, SyncKeys.syncable(key, includeSecrets = true))
         }
         for (key in listOf("autocorrect", "number_row", "number_row_corrections", "key_sound", "font_scale")) {

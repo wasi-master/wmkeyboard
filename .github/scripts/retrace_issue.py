@@ -104,7 +104,7 @@ LOOSE_VERSION_RE = re.compile(
 # `full` and `lite` are the names releases up to 0.5.9 used, before
 # `languages` became a flavour dimension and split each of them in two.
 # `fdroid` last: a record without its channel can still be from F-Droid.
-ALL_SUFFIXES = ("play", "full-intl", "full-en", "lite-intl", "lite-en", "full", "lite", "fdroid")
+ALL_SUFFIXES = ("play", "full-intl", "full-en", "full-en-boox", "lite-intl", "lite-en", "full", "lite", "fdroid")
 
 # The first release that carries the F-Droid build's own mappings, one per ABI
 # (`-vc<full code>-fdroid-mapping.txt.gz`). F-Droid's build has been ours byte
@@ -121,6 +121,9 @@ FLAVOR_TO_SUFFIX = {
     # `intl` or `en`; the mapping assets keep their `full-` names.
     "intl": ("full-intl", "full"),
     "en": ("full-en", "full"),
+    # The BOOX backend changes the English release's R8 run, even though its
+    # language flavour is still `en`. WMApplication marks that build enBoox.
+    "enboox": ("full-en-boox", "full-en", "full"),
     "fullintl": ("full-intl", "full"),
     "fullen": ("full-en", "full"),
     "liteintl": ("lite-intl", "lite"),
@@ -133,7 +136,7 @@ FLAVOR_TO_SUFFIX = {
 
 # The flavours that name the build outright, so the mapping is a lookup and
 # not a competition between candidates.
-EXACT_FLAVORS = frozenset({"intl", "en", "fullintl", "fullen", "liteintl", "liteen"})
+EXACT_FLAVORS = frozenset({"intl", "en", "enboox", "fullintl", "fullen", "liteintl", "liteen"})
 
 # One obfuscated frame, split into the parts a mapping is checked against.
 OBF_FRAME_RE = re.compile(

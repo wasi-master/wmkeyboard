@@ -70,6 +70,19 @@ val playStoreChannel = run {
         ?: "false").toBoolean()
 }
 
+// Opt-in BOOX builds only. The proprietary pen SDK and every class that
+// imports it stay out of ordinary, Play and F-Droid classpaths.
+val onyxPen: Boolean = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    (providers.gradleProperty("wmkb.enableOnyxPen").orNull
+        ?: localProperties.getProperty("wmkb.enableOnyxPen")
+        ?: System.getenv("WMKB_ENABLE_ONYX_PEN")
+        ?: "false").toBoolean()
+} && !playStoreChannel
+
 android {
     namespace = "com.wasimaster.wmkeyboard.ime"
     compileSdk {
@@ -103,7 +116,8 @@ android {
             }
             // The classes that call ML Kit directly, or their F-Droid stand-ins.
             val google = if (googleSdks) "src/google/java" else "src/nogoogle/java"
-            for (dir in dirs + google) {
+            val onyx = if (onyxPen) "src/onyx/java" else "src/onyxstub/java"
+            for (dir in dirs + google + onyx) {
                 java.srcDir(dir)
                 kotlin.srcDir(dir)
             }
@@ -184,6 +198,15 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.savedstate)
+    if (onyxPen) {
+        // Pen 1.5.4 selects onyxsdk-base 1.8.5 and onyxsdk-device 1.3.4.
+        implementation("com.onyx.android.sdk:onyxsdk-pen:1.5.4") {
+            // Debug-weaving annotations only; its POM declares GPL-3.0.
+            exclude(group = "com.jakewharton.hugo.fix", module = "hugo-annotations")
+            // AndroidX Core already supplies the legacy ResultReceiver bridge.
+            exclude(group = "com.android.support", module = "support-compat")
+        }
+    }
     implementation(libs.androidx.autofill)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.camera.core)

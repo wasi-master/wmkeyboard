@@ -33,8 +33,8 @@ object SyncKeys {
         "gesture_word_preview_offset_x", "gesture_word_preview_offset_y",
         "voice_bar_dock_bias", "voice_bar_edge_right", "voice_bar_y_bias", "voice_bar_snap",
         "voice_bar_vertical", "voice_bar_active",
-        // A hardware keyboard is attached to one device.
-        "hardware_keyboard_input", "toolbar_only_hw_keyboard",
+        // Hardware and vendor rendering support belong to one device.
+        "hardware_keyboard_input", "toolbar_only_hw_keyboard", "handwriting_onyx_pen",
         // What is installed or downloaded here.
         "emoji_font_installed_id", "whisper_model_id", "whisper_model_by_lang", "ai_local_model_id",
         "media_music_apps", "launcher_pinned", "launcher_hidden", "launcher_recents", "launcher_toolbar_apps",

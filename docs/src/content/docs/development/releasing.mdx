@@ -16,15 +16,16 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 
 | | GitHub release | F-Droid | Play Store |
 |---|---|---|---|
-| Flavor | standard: `en`; offline: `en`, and `intl` for its all-languages build (`intl` is also built to cut the language packs from) | `intl` | `en` |
+| Flavor | standard and BOOX: `en`; offline: `en`, and `intl` for its all-languages build (`intl` is also built to cut the language packs from) | `intl` | `en` |
 | Gradle task | `assembleEnRelease` and `assembleIntlRelease` | `assembleLiteRelease`, an alias for `assembleIntlRelease` | `bundleEnRelease` |
 | `wmkb.enablePlayStore` | `false` | `false` | `true` |
 | `wmkb.enableGms` | `true` | `false` | `true` |
 | `wmkb.enableFdroid` | `false` | `true` | `false` |
 | `wmkb.splitApks` | `true` | not used | ignored by `bundle*` |
+| `wmkb.enableOnyxPen` | `true` only in the BOOX job; unset otherwise | not set | not set |
 | `wmkb.enableCrashScreen` | not set | not set | `false`, forced by the Fastfile over `local.properties` |
 | Automation `TYPE_TEXT` | offered | offered | left out |
-| Artifact | the standard build (`full-en`), one APK per ABI, plus one signed language pack per interface language (`-lang-<locale>.apk`), R8 mappings, native symbols, the all-languages build (`full-intl`), one APK per ABI, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm`, which the in-app updater installs with the APK); the `offline` job adds `full-en-nointernet` in `arm64-v8a` and `universal` and `full-intl-nointernet` in `universal`. The feature libraries go to the data repository's `natives` release | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
+| Artifact | the standard build (`full-en`), one APK per ABI, plus one signed language pack per interface language (`-lang-<locale>.apk`), R8 mappings, native symbols, the all-languages build (`full-intl`), one APK per ABI, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm`, which the in-app updater installs with the APK); the `offline` job adds `full-en-nointernet` in `arm64-v8a` and `universal` and `full-intl-nointernet` in `universal`; `boox` adds `full-en-boox` in `arm64-v8a` with its own mapping and native symbols. The feature libraries go to the data repository's `natives` release | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
 | Manifest `versionCode` (from 0.6.2) | `wmkb.versionCode × 10` plus 1 for `armeabi-v7a`, 2 for `arm64-v8a`, 0 for `universal` (3 was `x86_64`'s until it was dropped, and is not reused) | the same two digits, one APK each | `× 10`, digit 0 |
 | ML Kit text recognition and barcodes | the bundled artifacts: their Java in the APK, their two native libraries (`libmlkit_google_ocr_pipeline.so`, `libbarhopper_v3.so`) pinned and read on demand out of Google's Maven (the `scanner` gate) | absent | unbundled, models fetched from Play services |
 | ML Kit through Play services (the Chinese, Japanese, Korean and Devanagari text recognisers, the document scanner, subject segmentation) | linked; Play services fetches each model | absent | the same |
@@ -44,7 +45,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | OpenCV (the built-in document scanner) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:docscan` module |
 | MNN (the sticker generator) and its NPU runner | committed prebuilt libraries, pinned and downloaded on demand | MNN compiled from source by the recipe; no NPU runner | the same prebuilt libraries, in the on-demand `:feature:imagegen` module |
 | Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, pinned and downloaded on demand | Tesseract absent; Whistle's prebuilt library deleted by the recipe, pinned from `native/gates.json` and fetched after the opt-in | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
-| In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
+| In-app updates | GitHub releases, downloads and installs; the BOOX track takes only later BOOX APKs | checks F-Droid, links out | Play In-App Updates |
 | Native libraries in the APK | uncompressed and page-aligned | uncompressed and page-aligned | uncompressed and page-aligned; Play compresses the download itself |
 | Bundled layouts | JSON compacted at build time | same | same |
 
@@ -183,6 +184,24 @@ update. Every other input matches the `apks` job, so R8 should rename each the
 same way as its regular build; the publish job attaches a mapping only when the
 two differ, and warns when they do.
 
+The optional `boox` job builds the standard online English configuration with
+`wmkb.enableOnyxPen=true`, the only release job that sets it. Its signed
+`full-en-boox-arm64-v8a.apk` contains the proprietary Onyx Pen SDK and its raw
+ink backend; ordinary, Play and F-Droid jobs still neither register the BOOX
+repository nor resolve the SDK. BOOX keeps native delivery and the download
+layout pack, so the job collects the libraries its APK pins. It takes the
+standard English build's stable resource IDs as an input, since Onyx's SDK adds
+resources. The BOOX job checks that every standard ID stays unchanged while
+allowing its own dependencies' additional IDs; `pack-ids` still requires the
+offline IDs to match exactly, so language packs cannot load the wrong strings.
+The job is `continue-on-error`: a failure in the BOOX repository, build or checks
+leaves the BOOX APK out of the release instead of blocking every other build.
+Content-addressed native assets shared with another build upload only once. The
+`-boox-` asset suffix puts BOOX on its own updater track: the ordinary updater
+never selects it, and the BOOX updater takes only releases carrying a BOOX APK
+rather than replacing it with a standard build and removing raw ink. It has no
+standard dex-metadata asset and has no all-languages switch.
+
 The release also carries the files you need to read a crash report from those
 APKs. The `*-mapping.txt.gz` files are the R8 mappings: `full-en` for the
 standard and offline builds, `full-intl` for the all-languages ones, and
@@ -197,7 +216,11 @@ gunzip -k wmkeyboard-0.5.9-vc24-full-intl-mapping.txt.gz
 retrace wmkeyboard-0.5.9-vc24-full-intl-mapping.txt stacktrace.txt
 ```
 
-The fifth one comes from the `bundle` job rather than the `apks` job, and it is
+The BOOX build has its own `full-en-boox-mapping.txt.gz`: the Onyx backend and
+SDK make its R8 output different from the standard English build's, so their
+mappings are not interchangeable.
+
+The Play one comes from the `bundle` job rather than the `apks` job, and it is
 there because the Play build is compiled with different channel flags, so R8
 renames it differently and neither of the other two fits a crash from a Play
 install. Play Console reads the copy inside the AAB and needs no upload; a

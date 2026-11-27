@@ -66,7 +66,7 @@ open class WMApplication : Application() {
         if (com.wasimaster.wmkeyboard.core.semantic.EmbeddingService.isServiceProcess() ||
             com.wasimaster.wmkeyboard.core.imagegen.ImageGenService.isServiceProcess()
         ) {
-            DebugLog.setBuildTag(BuildConfig.FLAVOR)
+            DebugLog.setBuildTag(BuildConfig.FLAVOR + if (BuildConfig.ENABLE_ONYX_PEN) "Boox" else "")
             DebugLog.attach(this)
             NetLog.attach(this)
             com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate.attach(this)
@@ -74,14 +74,14 @@ open class WMApplication : Application() {
             com.wasimaster.wmkeyboard.core.modules.GoogleLibraries.applyToGates()
             return
         }
-        // Which of the two flavours this is, said here because here is the
-        // only place that knows. The log lives in :core:common and compiles
+        // Which flavour and release track this is, said here because here is
+        // the only place that knows. The log lives in :core:common and compiles
         // against :core:config, which has no flavours, so left to itself a
-        // crash record cannot tell the `intl` build from the `en` one. Those are separate R8 runs with mappings that do
-        // not interchange, and the retrace bot picks the mapping off this
-        // line. Before attach, so the first crash of the process already
-        // carries it.
-        DebugLog.setBuildTag(BuildConfig.FLAVOR)
+        // crash record cannot tell the `intl`, `en` and BOOX builds apart.
+        // Their R8 mappings do not interchange, and the retrace bot picks the
+        // mapping off this line. Before attach, so the first crash of the
+        // process already carries it.
+        DebugLog.setBuildTag(BuildConfig.FLAVOR + if (BuildConfig.ENABLE_ONYX_PEN) "Boox" else "")
         DebugLog.attach(this)
         // The network activity log, before anything in this process can make
         // a request. Cheap: it reads two small files, or waits for the unlock.

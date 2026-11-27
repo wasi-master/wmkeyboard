@@ -560,6 +560,9 @@
     <string name="tooldetail_handwriting_stylus_title">Stylus only</string>
     <string name="tooldetail_handwriting_stylus_subtitle">Only an S Pen or another stylus draws. The keyboard ignores finger touches</string>
     <string name="tooldetail_handwriting_stylus_info">This helps to reject the palm while you write with a stylus. Even with this setting off, the keyboard ignores finger touches for a short time after stylus strokes, so a resting palm does not draw.</string>
+    <string name="tooldetail_handwriting_onyx_pen_title">BOOX low-latency ink</string>
+    <string name="tooldetail_handwriting_onyx_pen_subtitle">Use Onyx raw pen rendering in the docked handwriting panel</string>
+    <string name="tooldetail_handwriting_onyx_pen_info">For BOOX e-paper devices. Other handwriting surfaces keep using the normal renderer. Turn this off if toolbar buttons, completed ink, or recognized text do not refresh correctly. This setting stays on this device.</string>
     <string name="tooldetail_handwriting_auto_space_title">Automatic space</string>
     <string name="tooldetail_handwriting_auto_space_subtitle">Put a space between words that you write one after another</string>
     <string name="tooldetail_handwriting_auto_space_info">Puts a space between words that you write one after the other, so you do not press the spacebar between them. This setting is on by default.</string>

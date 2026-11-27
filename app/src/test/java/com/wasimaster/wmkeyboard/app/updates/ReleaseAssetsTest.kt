@@ -87,6 +87,17 @@ class ReleaseAssetsTest {
     }
 
     @Test
+    fun `reads the BOOX track, and has no BOOX dex metadata to guess at`() {
+        val name = "wmkeyboard-0.6.8-vc400-full-en-boox-arm64-v8a.apk"
+        val parsed = ReleaseAssets.parseAssetName(name)
+        assertTrue(parsed?.onyxPen == true)
+        assertEquals("full", parsed?.flavor)
+        assertEquals("en", parsed?.languages)
+        assertEquals("arm64-v8a", parsed?.abi)
+        assertNull(ReleaseAssets.dexMetadataName(name, 35))
+    }
+
+    @Test
     fun `takes the first ABI the device prefers`() {
         val picked = ReleaseAssets.pickAsset(
             release = release(),
@@ -121,6 +132,27 @@ class ReleaseAssetsTest {
     fun `never offers the other edition`() {
         val release = release(names = listOf("wmkeyboard-0.5.3-vc14-lite-arm64-v8a.apk"))
         assertNull(ReleaseAssets.pickAsset(release, "full", listOf("arm64-v8a")))
+    }
+
+    @Test
+    fun `BOOX and standard installs take only their own update track`() {
+        val release = release(
+            names = listOf(
+                "wmkeyboard-0.6.8-vc400-full-en-arm64-v8a.apk",
+                "wmkeyboard-0.6.8-vc400-full-en-boox-arm64-v8a.apk",
+            ),
+        )
+        assertEquals(
+            "wmkeyboard-0.6.8-vc400-full-en-arm64-v8a.apk",
+            ReleaseAssets.pickAsset(release, "full", listOf("arm64-v8a"))?.name,
+        )
+        assertEquals(
+            "wmkeyboard-0.6.8-vc400-full-en-boox-arm64-v8a.apk",
+            ReleaseAssets.pickAsset(release, "full", listOf("arm64-v8a"), onyxPen = true)?.name,
+        )
+        // No silent route back to ordinary ink when this release has no BOOX APK.
+        val standardOnly = release(names = listOf("wmkeyboard-0.6.8-vc400-full-en-arm64-v8a.apk"))
+        assertNull(ReleaseAssets.pickAsset(standardOnly, "full", listOf("arm64-v8a"), onyxPen = true))
     }
 
     @Test

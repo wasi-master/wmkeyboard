@@ -107,9 +107,10 @@ internal class GithubAppUpdater(
     override val switchingToAllLanguages: StateFlow<Boolean> = GithubUpdateManager.switching
 
     // The standard build too: on Android 7 to 10 it cannot load a language
-    // pack, and the release carries the all-languages build again.
+    // pack, and the release carries the all-languages build again. BOOX has no
+    // all-languages build; it takes language packs like the English base.
     override val canSwitchToAllLanguages: Boolean =
-        BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN
+        !BuildConfig.ENABLE_ONYX_PEN && BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN
 
     override val sourceNameRes: Int = R.string.update_source_github
 
