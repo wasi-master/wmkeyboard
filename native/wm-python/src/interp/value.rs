@@ -71,11 +71,11 @@ pub enum Value {
 /// A class: its name, its bases, and the attributes its body defined.
 pub struct Class {
     pub name: Rc<str>,
-    /// The classes it names as bases, in order.
-    pub bases: Vec<Rc<Class>>,
+    /// The classes it names as bases, in order. `C.__bases__ = ...` sets them.
+    pub bases: RefCell<Vec<Rc<Class>>>,
     /// Where attributes are looked for after the class itself: its bases
     /// and theirs, in C3 order (Python's method resolution order).
-    pub mro: Vec<Rc<Class>>,
+    pub mro: RefCell<Vec<Rc<Class>>>,
     /// The built-in exception this class descends from, like `ValueError`,
     /// which makes its instances raisable. None for plain classes.
     pub exception_root: Option<Rc<str>>,
@@ -94,12 +94,20 @@ pub struct Class {
 }
 
 impl Class {
+    /// Its `__qualname__`: `Outer.Inner` for a class made in a class body, or one set on it.
+    pub fn qualname(&self) -> Rc<str> {
+        match self.attrs.borrow().get("__qualname__") {
+            Some(Value::Str(q)) => q.clone(),
+            _ => self.name.clone(),
+        }
+    }
+
     /// [name] on this class or the first class after it in its resolution order that has it.
     pub fn lookup(&self, name: &str) -> Option<Value> {
         if let Some(v) = self.attrs.borrow().get(name) {
             return Some(v.clone());
         }
-        for k in &self.mro {
+        for k in self.mro.borrow().iter() {
             if let Some(v) = k.attrs.borrow().get(name) {
                 return Some(v.clone());
             }
@@ -108,18 +116,28 @@ impl Class {
     }
 
     /// The first base, as `__base__` reads it.
-    pub fn base(&self) -> Option<&Rc<Class>> {
-        self.bases.first()
+    pub fn base(&self) -> Option<Rc<Class>> {
+        self.bases.borrow().first().cloned()
+    }
+
+    /// The classes after this one in its resolution order, as they are now.
+    pub fn mro_list(&self) -> Vec<Rc<Class>> {
+        self.mro.borrow().clone()
+    }
+
+    /// Its bases, as they are now.
+    pub fn base_list(&self) -> Vec<Rc<Class>> {
+        self.bases.borrow().clone()
     }
 
     /// Whether this class is [other] or descends from it.
     pub fn is_subclass_of(self: &Rc<Class>, other: &Rc<Class>) -> bool {
-        Rc::ptr_eq(self, other) || self.mro.iter().any(|k| Rc::ptr_eq(k, other))
+        Rc::ptr_eq(self, other) || self.mro.borrow().iter().any(|k| Rc::ptr_eq(k, other))
     }
 
     /// This class's name and every base's, in resolution order.
     pub fn lineage(&self) -> Vec<Rc<str>> {
-        std::iter::once(self.name.clone()).chain(self.mro.iter().map(|k| k.name.clone())).collect()
+        std::iter::once(self.name.clone()).chain(self.mro.borrow().iter().map(|k| k.name.clone())).collect()
     }
 
     /// Whether the class or a base defines [name] itself, rather than
@@ -130,7 +148,14 @@ impl Class {
 }
 
 /// The built-in types a class may derive from.
-pub(crate) const SUBCLASSABLE: &[&str] = &["dict", "list", "str", "int", "float", "tuple", "set", "bytes"];
+pub(crate) const SUBCLASSABLE: &[&str] = &["dict", "list", "str", "int", "float", "tuple", "set", "bytes", "property", "classmethod", "staticmethod"];
+
+/// The built-in descriptors a class may derive from: an instance of such a
+/// class works as the one it carries, through the `__get__` (and for a
+/// property `__set__` and `__delete__`) its class is given.
+pub(crate) fn descriptor_base(base: &str) -> bool {
+    matches!(base, "property" | "classmethod" | "staticmethod")
+}
 
 /// Whether a built-in base's value changes in place (so `__init__` fills
 /// it) rather than being made whole by `__new__`.
@@ -436,33 +461,89 @@ pub struct Function {
     /// keeps each turn's `i`.
     pub(crate) defaults: Vec<Option<Value>>,
     /// Attributes set on the function, `f.cache = {}` or the `__name__`
-    /// `functools.wraps` copies over.
-    pub(crate) attrs: RefCell<NameMap>,
+    /// `functools.wraps` copies over, until something asks for its `__dict__`.
+    attrs: RefCell<NameMap>,
+    /// Made the first time `__dict__` is asked for: from then on the
+    /// attributes live in this dict, so `f.__dict__.update(g.__dict__)`
+    /// (functools.update_wrapper) sets them, as on an instance.
+    dict: std::cell::OnceCell<DictRef>,
 }
 
 impl Function {
     pub(crate) fn new(name: Rc<str>, body: FnBody, closure: Rc<Env>, defaults: Vec<Option<Value>>) -> Function {
-        Function { name, body, closure, owner: RefCell::new(None), defaults, attrs: RefCell::new(name_map(0)) }
+        Function { name, body, closure, owner: RefCell::new(None), defaults, attrs: RefCell::new(name_map(0)), dict: std::cell::OnceCell::new() }
+    }
+
+    /// The attribute [name] set on the function.
+    pub(crate) fn attr(&self, name: &str) -> Option<Value> {
+        match self.dict.get() {
+            None => self.attrs.borrow().get(name).cloned(),
+            Some(d) => d.borrow().get(&StrKey(name)).cloned(),
+        }
+    }
+
+    pub(crate) fn has_attr(&self, name: &str) -> bool {
+        match self.dict.get() {
+            None => self.attrs.borrow().contains_key(name),
+            Some(d) => d.borrow().contains_key(&StrKey(name)),
+        }
+    }
+
+    pub(crate) fn attr_count(&self) -> usize {
+        match self.dict.get() {
+            None => self.attrs.borrow().len(),
+            Some(d) => d.borrow().len(),
+        }
+    }
+
+    pub(crate) fn set_attr(&self, name: Rc<str>, value: Value) {
+        match self.dict.get() {
+            None => {
+                self.attrs.borrow_mut().insert(name, value);
+            }
+            Some(d) => {
+                d.borrow_mut().insert(HKey::Str(name), value);
+            }
+        }
+    }
+
+    pub(crate) fn del_attr(&self, name: &str) -> bool {
+        match self.dict.get() {
+            None => self.attrs.borrow_mut().shift_remove(name).is_some(),
+            Some(d) => d.borrow_mut().shift_remove(&StrKey(name)).is_some(),
+        }
+    }
+
+    /// The function's `__dict__`: one dict, the same each time.
+    pub(crate) fn attr_dict(&self) -> DictRef {
+        self.dict
+            .get_or_init(|| {
+                let mut m = DictMap::default();
+                for (k, v) in self.attrs.borrow_mut().drain(..) {
+                    m.insert(HKey::Str(k), v);
+                }
+                Rc::new(RefCell::new(m))
+            })
+            .clone()
     }
 
     /// The name its repr shows: a `__qualname__` set on it, or `C.m` for a
     /// method defined in a class body, or its own.
     pub fn qualified_name(&self) -> Rc<str> {
-        if let Some(Value::Str(s)) = self.attrs.borrow().get("__qualname__") {
-            return s.clone();
+        if let Some(Value::Str(s)) = self.attr("__qualname__") {
+            return s;
         }
         match self.owner.borrow().as_ref().and_then(|w| w.upgrade()) {
-            Some(class) => Rc::from(format!("{}.{}", class.name, self.display_name())),
+            Some(class) => Rc::from(format!("{}.{}", class.qualname(), self.display_name())),
             None => self.display_name(),
         }
     }
 
     /// The name it shows: a `__qualname__` or `__name__` set on it, or the one it was defined with.
     pub fn display_name(&self) -> Rc<str> {
-        let attrs = self.attrs.borrow();
         for key in ["__qualname__", "__name__"] {
-            if let Some(Value::Str(s)) = attrs.get(key) {
-                return s.clone();
+            if let Some(Value::Str(s)) = self.attr(key) {
+                return s;
             }
         }
         self.name.clone()
@@ -1048,10 +1129,18 @@ pub(crate) fn py_str(v: &Value) -> String {
             let (s, e) = m.spans.first().copied().flatten().unwrap_or((0, 0));
             format!("<re.Match object; span=({s}, {e}), match={}>", py_repr(&m.subject.piece(&m.value())))
         }
-        Value::Class(c) => match c.attrs.borrow().get("__module__") {
-            Some(Value::Str(m)) if m.as_ref() != "builtins" => format!("<class '{m}.{}'>", c.name),
-            _ => format!("<class '{}'>", c.name),
-        },
+        // `<class 'module.Qualified.Name'>`, a `__qualname__` set on it counting.
+        Value::Class(c) => {
+            let attrs = c.attrs.borrow();
+            let name = match attrs.get("__qualname__") {
+                Some(Value::Str(q)) => q.clone(),
+                _ => c.name.clone(),
+            };
+            match attrs.get("__module__") {
+                Some(Value::Str(m)) if m.as_ref() != "builtins" => format!("<class '{m}.{name}'>"),
+                _ => format!("<class '{name}'>"),
+            }
+        }
         Value::Instance(i) if i.payload().is_some() => py_str(i.payload().unwrap()),
         Value::Instance(i) => match i.get("args") {
             Some(Value::Tuple(args)) if i.class.exception_root.is_some() => match args.len() {
@@ -1110,8 +1199,13 @@ pub(crate) fn str_repr(s: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\t' => out.push_str("\\t"),
             '\r' => out.push_str("\\r"),
-            // Other control characters as Python writes them.
-            c if (c as u32) < 0x20 || (0x7F..0xA0).contains(&(c as u32)) => out.push_str(&format!("\\x{:02x}", c as u32)),
+            c if c.is_ascii() && c >= ' ' && c != '\x7f' => out.push(c),
+            // What str.isprintable() refuses, escaped as Python writes it.
+            c if !super::text::scalar_is_printable(c) => match c as u32 {
+                n @ 0..=0xFF => out.push_str(&format!("\\x{n:02x}")),
+                n @ 0x100..=0xFFFF => out.push_str(&format!("\\u{n:04x}")),
+                n => out.push_str(&format!("\\U{n:08x}")),
+            },
             c => out.push(c),
         }
     }

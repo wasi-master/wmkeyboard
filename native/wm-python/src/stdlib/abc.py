@@ -1,5 +1,6 @@
-"""Abstract base classes: ABCMeta, ABC, abstractmethod and the virtual
-subclasses `register` adds, as Python has them.
+"""Abstract base classes: ABCMeta, ABC, abstractmethod (and its old forms
+abstractproperty, abstractclassmethod and abstractstaticmethod) and the
+virtual subclasses `register` adds, as Python has them.
 
 A class made by ABCMeta (any subclass of ABC) notes which abstract methods
 it leaves unimplemented in `__abstractmethods__`; creating an instance of
@@ -8,25 +9,54 @@ class's `__subclasshook__`, then what was registered.
 """
 
 
-def abstractmethod(f):
-    _ABSTRACT[id(f)] = True
-    return f
+def abstractmethod(funcobj):
+    """A decorator marking a method abstract: a class made by ABCMeta that
+    leaves it unimplemented can't be instantiated. It sets the function's
+    __isabstractmethod__, which property, classmethod and staticmethod pass on."""
+    funcobj.__isabstractmethod__ = True
+    return funcobj
 
 
-_ABSTRACT = {}
+class abstractclassmethod(classmethod):
+    """A decorator indicating abstract classmethods.
+
+    Deprecated, use 'classmethod' with 'abstractmethod' instead.
+    """
+
+    __isabstractmethod__ = True
+
+    def __init__(self, callable):
+        callable.__isabstractmethod__ = True
+        super().__init__(callable)
 
 
-def _unwrap(value):
-    # A property, staticmethod or classmethod is abstract when what it wraps is.
-    if isinstance(value, property):
-        return value.fget
-    func = getattr(value, "__func__", None)
-    return value if func is None else func
+class abstractstaticmethod(staticmethod):
+    """A decorator indicating abstract staticmethods.
+
+    Deprecated, use 'staticmethod' with 'abstractmethod' instead.
+    """
+
+    __isabstractmethod__ = True
+
+    def __init__(self, callable):
+        callable.__isabstractmethod__ = True
+        super().__init__(callable)
+
+
+class abstractproperty(property):
+    """A decorator indicating abstract properties.
+
+    Deprecated, use 'property' with 'abstractmethod' instead.
+    """
+
+    __isabstractmethod__ = True
 
 
 def _is_abstract(value):
-    value = _unwrap(value)
-    return callable(value) and id(value) in _ABSTRACT
+    try:
+        return bool(getattr(value, "__isabstractmethod__", False))
+    except Exception:
+        return False
 
 
 def _compute_abstracts(cls):
@@ -42,7 +72,7 @@ def _compute_abstracts(cls):
             if _is_abstract(value):
                 missing.append(name)
     # Creating an instance of a class with this set non-empty is refused.
-    cls.__abstractmethods__ = set(missing)
+    cls.__abstractmethods__ = frozenset(missing)
 
 
 class ABCMeta(type):

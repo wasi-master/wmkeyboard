@@ -131,7 +131,13 @@ fn string_parts(parts: &[FRawPart], depth: u32) -> Result<Vec<FPart>, PyError> {
         .map(|part| match part {
             FRawPart::Lit(t) => Ok(FPart::Literal(t.clone())),
             FRawPart::Expr { source, conv, spec } => {
-                let expr = parse_expression(source, depth + 1)?;
+                // A replacement field may run over several lines inside a
+                // triple-quoted f-string; in brackets those are one line.
+                let expr = if source.contains('\n') {
+                    parse_expression(&format!("({source})"), depth + 1)?
+                } else {
+                    parse_expression(source, depth + 1)?
+                };
                 let conversion = match conv.as_deref() {
                     Some("r") => Some(FConversion::Repr),
                     Some("a") => Some(FConversion::Ascii),
@@ -241,6 +247,11 @@ impl Parser {
 
     fn is_keyword(&self, s: &str) -> bool {
         matches!(self.kind(), Tok::Keyword(k) if *k == s)
+    }
+
+    /// At the `for` (or `async for`) that makes what came before a comprehension's element.
+    fn at_comprehension(&self) -> bool {
+        self.is_keyword("for") || (self.is_keyword("async") && matches!(self.tokens.get(self.i + 1).map(|t| &t.kind), Some(Tok::Keyword("for"))))
     }
 
     fn is_eof(&self) -> bool {
@@ -436,33 +447,63 @@ impl Parser {
 
     fn parse_if(&mut self) -> P<Stmt> {
         let line = self.line();
-        self.advance();
-        let mut branches = Vec::new();
-        let mut cond = self.parse_expr()?;
+        let mut cond = self.parse_expr_after_keyword()?;
         // `if (yield from check()):` pauses before the test, once.
         let mut before = Vec::new();
         hoist_yield(&mut cond, &mut before, line, &mut self.temps);
+        let rest = self.parse_if_rest(line, cond)?;
+        Ok(with_before(before, rest))
+    }
+
+    /// Past `elif` (or `if`): its test.
+    fn parse_expr_after_keyword(&mut self) -> P<Expr> {
+        self.advance();
+        self.parse_expr()
+    }
+
+    /// The rest of an `if` whose test [cond] was read: its block, `elif`s and `else`.
+    fn parse_if_rest(&mut self, line: u32, cond: Expr) -> P<Stmt> {
         let body = self.parse_block()?;
-        branches.push((cond, body));
+        let mut branches = vec![(cond, body)];
         self.skip_newlines();
         while self.is_keyword("elif") {
-            self.advance();
-            let c = self.parse_expr()?;
+            let elif_line = self.line();
+            let mut c = self.parse_expr_after_keyword()?;
+            let mut elif_before = Vec::new();
+            hoist_yield(&mut c, &mut elif_before, elif_line, &mut self.temps);
+            if !elif_before.is_empty() {
+                // `elif (yield x):` pauses only when the branches before it
+                // failed: it is an `else:` holding an `if` of its own.
+                let rest = self.parse_if_rest(elif_line, c)?;
+                return Ok(Stmt { line, yields: false, kind: StmtKind::If(branches, Some(vec![with_before(elif_before, rest)])) });
+            }
             let b = self.parse_block()?;
             branches.push((c, b));
             self.skip_newlines();
         }
         let else_body = self.parse_optional_else()?;
-        Ok(with_before(before, Stmt { line, yields: false, kind: StmtKind::If(branches, else_body) }))
+        Ok(Stmt { line, yields: false, kind: StmtKind::If(branches, else_body) })
     }
 
     fn parse_while(&mut self) -> P<Stmt> {
         let line = self.line();
         self.advance();
-        let cond = self.parse_expr()?;
+        let mut cond = self.parse_expr()?;
         let body = self.parse_block()?;
         let else_body = self.parse_optional_else()?;
-        Ok(Stmt { line, yields: false, kind: StmtKind::While(cond, body, else_body) })
+        let mut before = Vec::new();
+        hoist_yield(&mut cond, &mut before, line, &mut self.temps);
+        if before.is_empty() {
+            return Ok(Stmt { line, yields: false, kind: StmtKind::While(cond, body, else_body) });
+        }
+        // `while not (yield from done()):` pauses before each test: a
+        // `while True:` whose body starts with the test, the loop's `else`
+        // running where the test fails, as it does when the loop ends.
+        let mut exit = else_body.unwrap_or_default();
+        exit.push(Stmt { line, yields: false, kind: StmtKind::Break });
+        before.push(Stmt { line, yields: false, kind: StmtKind::If(vec![(Expr::Unary(UnOp::Not, Box::new(cond)), exit)], None) });
+        before.extend(body);
+        Ok(Stmt { line, yields: false, kind: StmtKind::While(Expr::Bool(true), before, None) })
     }
 
     fn parse_for(&mut self) -> P<Stmt> {
@@ -711,6 +752,9 @@ impl Parser {
                     keywords.push((Rc::from("**"), self.parse_expr()?));
                 } else if !keywords.is_empty() {
                     return Err(PyError::perr("positional argument follows keyword argument", self.line()));
+                } else if self.match_op("*") {
+                    // `class C(*mixins):` spreads an iterable of bases.
+                    bases.push(Expr::Starred(Box::new(self.parse_expr()?)));
                 } else {
                     bases.push(self.parse_expr()?);
                 }
@@ -1080,6 +1124,8 @@ impl Parser {
                 }
             }
             StmtKind::AugAssign(_, _, e) => hoist_yield(e, &mut before, line, &mut self.temps),
+            // `response: Response = yield request` pauses, then binds what came back.
+            StmtKind::AnnAssign(_, _, Some(e)) => hoist_yield(e, &mut before, line, &mut self.temps),
             _ => {}
         }
         if let StmtKind::Assign(targets, _) = &mut stmt.kind {
@@ -1104,7 +1150,7 @@ impl Parser {
             self.advance();
             let annotation = self.parse_expr()?;
             let annotation = self.annotation(annotation, true);
-            let value = if self.match_op("=") { Some(self.parse_expr_or_tuple()?) } else { None };
+            let value = if self.match_op("=") { Some(self.parse_value_or_yield()?) } else { None };
             self.expect_statement_end()?;
             return Ok(Stmt { line, yields: false, kind: StmtKind::AnnAssign(first, annotation, value) });
         }
@@ -1430,7 +1476,7 @@ impl Parser {
             } else {
                 let first = self.parse_expr()?;
                 // A bare generator expression argument: `sum(x * 2 for x in xs)`.
-                if self.is_keyword("for") {
+                if self.at_comprehension() {
                     let clauses = self.parse_comprehension_clauses()?;
                     args.push(Expr::Comprehension(Rc::new(Comprehension {
                         kind: CompKind::Gen,
@@ -1499,13 +1545,27 @@ impl Parser {
     /// The `for … in … [if …]` chain shared by every comprehension form.
     fn parse_comprehension_clauses(&mut self) -> P<Vec<CompClause>> {
         let mut clauses = Vec::new();
-        while self.match_keyword("for") {
+        loop {
+            // `async for`: the async iterable's items, each awaited as it is
+            // reached (with no event loop, there and then).
+            let is_async = self.is_keyword("async") && matches!(self.tokens.get(self.i + 1).map(|t| &t.kind), Some(Tok::Keyword("for")));
+            if is_async {
+                self.advance();
+            }
+            if !self.match_keyword("for") {
+                break;
+            }
             let target = self.parse_target_list()?;
             if !self.match_keyword("in") {
                 return Err(PyError::perr("expected 'in' in comprehension", self.line()));
             }
             // The iterable stops before a trailing `if`, which filters here.
             let iterable = self.parse_or()?;
+            let iterable = if is_async {
+                Expr::Call(Box::new(Expr::Name(Name::new(Rc::from("__aiter_sync__")))), vec![iterable], Vec::new())
+            } else {
+                iterable
+            };
             let mut conditions = Vec::new();
             while self.is_keyword("if") {
                 self.advance();
@@ -1625,7 +1685,7 @@ impl Parser {
             return Ok(y);
         }
         let first = self.parse_display_item()?;
-        if self.is_keyword("for") {
+        if self.at_comprehension() {
             let clauses = self.parse_comprehension_clauses()?;
             self.expect_op(")")?;
             return Ok(Expr::Comprehension(Rc::new(Comprehension {
@@ -1661,7 +1721,7 @@ impl Parser {
             return Ok(Expr::List(Vec::new()));
         }
         let first = self.parse_display_item()?;
-        if self.is_keyword("for") {
+        if self.at_comprehension() {
             let clauses = self.parse_comprehension_clauses()?;
             self.expect_op("]")?;
             return Ok(Expr::Comprehension(Rc::new(Comprehension {
@@ -1704,7 +1764,7 @@ impl Parser {
         let first = self.parse_display_item()?;
         if !matches!(first, Expr::Starred(_)) && self.match_op(":") {
             let first_value = self.parse_expr()?;
-            if self.is_keyword("for") {
+            if self.at_comprehension() {
                 let clauses = self.parse_comprehension_clauses()?;
                 self.expect_op("}")?;
                 return Ok(Expr::Comprehension(Rc::new(Comprehension {
@@ -1721,7 +1781,7 @@ impl Parser {
             self.expect_op("}")?;
             return Ok(Expr::Dict(vec![(first, first_value)]));
         }
-        if self.is_keyword("for") {
+        if self.at_comprehension() {
             let clauses = self.parse_comprehension_clauses()?;
             self.expect_op("}")?;
             return Ok(Expr::Comprehension(Rc::new(Comprehension {

@@ -1,10 +1,11 @@
 """time: the clock, and dates as struct_time, as Python's time module has
-them. There is no sleep: a plugin waits with a timer instead.
+them. sleep() can't wait, as the keyboard has to keep answering: sleep(0)
+returns, and longer refuses. A plugin waits with plugin.after() instead.
 
 The keyboard's own additions stay: parts(t) and format(pattern, t).
 """
 
-from _time import time, monotonic, parts, format
+from _time import time, monotonic, parts, format, sleep
 import _native
 
 _DAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

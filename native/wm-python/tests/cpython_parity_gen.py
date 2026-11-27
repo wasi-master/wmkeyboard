@@ -2164,6 +2164,282 @@ except AttributeError:
     nope = "AttributeError"
 repr(([k.__name__ for k in C.__mro__], [getattr(b, "__name__", type(b).__name__) for b in C.__orig_bases__], mod.late, nope))
 '''),
+    ("json_errors_say_where", "json", r'''
+import json
+out = []
+for s in ["", "[1,", '{"a" 1}', "01", "[1,]", "{'a':1}", '"a\x01"', '"\\x"', '  [1]  x', "[\n1,\n2,\n]"]:
+    try:
+        json.loads(s)
+        out.append("ok")
+    except json.JSONDecodeError as e:
+        out.append((str(e), e.pos, e.lineno, e.colno, isinstance(e, ValueError)))
+repr(out)
+'''),
+    ("json_hooks_and_constants", "json", r'''
+import json, decimal, collections
+repr((
+    json.loads('[NaN, Infinity, -Infinity, 1e2, -0]', parse_constant=lambda c: c),
+    json.loads('{"a": 1.10}', parse_float=decimal.Decimal),
+    json.loads('[1, 2]', parse_int=str),
+    json.loads('{"b": 1, "a": 2, "b": 3}', object_pairs_hook=list),
+    json.loads('{"b": 1, "c": {"d": 2}}', object_hook=lambda d: sorted(d)),
+    type(json.loads('{"x": 1}', object_pairs_hook=collections.OrderedDict)).__name__,
+    json.loads(b'{"a": [1, 2]}'),
+    json.loads('"\\ud83d\\ude00 \\u00e9"'),
+    json.JSONDecoder().raw_decode('[1] xyz'),
+    json.dumps([float("inf"), -float("inf")]),
+))
+'''),
+    ("json_encoders", "json", r'''
+import json
+class P:
+    def __init__(self, x):
+        self.x = x
+class Enc(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, P):
+            return {"P": o.x}
+        return super().default(o)
+errors = []
+a = []
+a.append(a)
+for f in (lambda: json.dumps(a), lambda: json.dumps(float("nan"), allow_nan=False), lambda: json.dumps({(1, 2): 3}), lambda: json.dumps(object(), cls=Enc), lambda: json.dumps({1: 1, "a": 2}, sort_keys=True)):
+    try:
+        f()
+    except (TypeError, ValueError) as e:
+        errors.append((type(e).__name__, str(e)))
+repr((
+    json.dumps([P(1), P(2)], cls=Enc),
+    Enc(indent=1).encode({"a": [P(5)]}),
+    json.dumps({"p": P(3)}, default=lambda o: o.x),
+    json.dumps({1: 2, (1, 2): 3, 2.5: 1, None: 0, False: 4}, skipkeys=True),
+    json.dumps({"b": [1, {}]}, indent=0),
+    errors,
+))
+'''),
+    ("user_collections_and_chainmap", "stdlib", r'''
+from collections import UserDict, UserList, UserString, ChainMap, defaultdict
+import collections.abc as cabc
+class Lower(UserDict):
+    def __setitem__(self, k, v):
+        super().__setitem__(k.lower(), v)
+d = Lower(); d["X"] = 1
+u = UserList([3, 1, 2]); u.sort(); u.append(5)
+s = UserString("hello world")
+c = ChainMap({"a": 1}, {"a": 2, "b": 3})
+c2 = c.new_child({"z": 0})
+try:
+    del c["b"]
+    k = "deleted"
+except KeyError as e:
+    k = str(e)
+repr((dict(d), isinstance(d, cabc.MutableMapping), u.data, u[1:].data, (u + [9]).data, s.upper().data, s.split(), s.count("o"), s[1:4].data,
+      dict(c), len(c), list(c2), dict(c.parents), isinstance(c, cabc.Mapping), bool(ChainMap()), k, ChainMap(defaultdict(int))["x"]))
+'''),
+    ("functools_is_cpythons", "stdlib", r'''
+import functools, collections.abc
+calls = []
+@functools.lru_cache(maxsize=2)
+def sq(x):
+    calls.append(x)
+    return x * x
+[sq(n) for n in (2, 3, 2, 4, 3, 2)]
+class Cell:
+    def __init__(self):
+        self.alive = False
+    def set_state(self, state):
+        self.alive = bool(state)
+    set_alive = functools.partialmethod(set_state, True)
+cell = Cell(); cell.set_alive()
+@functools.singledispatch
+def kind(arg):
+    return "default"
+@kind.register
+def _(arg: int):
+    return "int"
+@kind.register(list)
+def _(arg):
+    return "list"
+@kind.register
+def _(arg: collections.abc.Mapping):
+    return "mapping"
+class N:
+    @functools.singledispatchmethod
+    def neg(self, arg):
+        return "?"
+    @neg.register
+    def _(self, arg: int):
+        return -arg
+class Lazy:
+    @functools.cached_property
+    def v(self):
+        calls.append("v")
+        return 42
+z = Lazy(); z.v; z.v
+def orig(x):
+    "doc"
+orig.extra = 1
+@functools.wraps(orig)
+def w(*a):
+    return orig(*a)
+repr((calls, tuple(sq.cache_info()), sq.cache_parameters(), cell.alive, [kind(1), kind([1]), kind({}), kind("s"), kind(True)],
+      N().neg(5), N().neg("x"), z.__dict__, w.__name__, w.__doc__, w.extra, w.__wrapped__ is orig, functools.reduce(lambda a, b: a + b, [1, 2, 3])))
+'''),
+    ("abc_old_decorators", "classes", r'''
+from abc import ABC, abstractmethod, abstractproperty, abstractclassmethod, abstractstaticmethod
+class Base(ABC):
+    @abstractmethod
+    def run(self): ...
+    @abstractproperty
+    def name(self): ...
+    @abstractclassmethod
+    def make(cls): ...
+    @abstractstaticmethod
+    def helper(): ...
+class Half(Base):
+    def run(self):
+        return 1
+    name = "half"
+    @classmethod
+    def make(cls):
+        return cls
+try:
+    Half()
+    msg = "made"
+except TypeError as e:
+    msg = str(e)
+repr((sorted(Base.__abstractmethods__), sorted(Half.__abstractmethods__), msg, isinstance(Base.__dict__["name"], property), Base.__dict__["make"].__isabstractmethod__))
+'''),
+    ("descriptor_subclasses", "classes", r'''
+class named(property):
+    def __init__(self, fget, label=None):
+        super().__init__(fget)
+        self.label = label
+class CM(classmethod):
+    pass
+class SM(staticmethod):
+    pass
+class Lazy(property):
+    def __get__(self, obj, owner=None):
+        if obj is None:
+            return self
+        return "lazy:" + str(self.fget(obj))
+class RW(property):
+    pass
+class G:
+    def __init__(self):
+        self._v = 3
+    @named
+    def v(self):
+        return self._v
+    @CM
+    def who(cls):
+        return cls.__name__
+    @SM
+    def s():
+        return "s"
+    @Lazy
+    def q(self):
+        return 7
+    def _get(self):
+        return self.__dict__.get("_z", 0)
+    def _set(self, value):
+        self.__dict__["_z"] = value
+    z = RW(_get, _set)
+class H(G):
+    pass
+g = H()
+g.z = 9
+try:
+    g.v = 5
+    err = "set"
+except AttributeError as e:
+    err = str(e)
+repr((g.v, G.__dict__["v"].label, isinstance(G.__dict__["v"], property), G.v is G.__dict__["v"], H.who(), g.who(), G.s(), g.q, g.z, err))
+'''),
+    ("comprehension_and_yield_forms", "generators", r'''
+import asyncio
+async def agen(n):
+    for i in range(n):
+        yield i * 10
+async def main():
+    return [x async for x in agen(3)], {x: 1 async for x in agen(2)}
+def g():
+    n = 0
+    while not (yield n):
+        n += 1
+    else:
+        n = -n
+    return n
+it = g(); seen = [next(it), it.send(False), it.send(0)]
+try:
+    it.send(True)
+except StopIteration as e:
+    seen.append(e.value)
+def h():
+    if False:
+        pass
+    elif (yield "asked") == "yes":
+        r: int = yield "typed"
+        return r
+bases = [type("M1", (), {"a": 1}), type("M2", (), {"b": 2})]
+class Both(*bases):
+    pass
+hg = h(); steps = [next(hg), hg.send("yes")]
+try:
+    hg.send(5)
+except StopIteration as e:
+    steps.append(e.value)
+flag = True
+repr((asyncio.run(main()), seen, steps, Both.a + Both.b, f"""<{
+    'x'
+    if flag
+    else 'y'
+}>"""))
+'''),
+    ("str_count_and_repr_escapes", "strings", r'''
+d = "[\n1,\n2,\n]"
+repr((d.count("\n", 0, 6), "aaaa".count("a", 1, 3), "aaaa".count("", 1, 3), "abc".count("b", 5), repr("﻿​\xad \xa0x\x7f\U000e0001")))
+'''),
+    ("signatures_qualnames_and_type_modules", "classes", r'''
+import inspect, types, collections, time
+__name__ = "__main__"
+class A:
+    class B:
+        def m(self): pass
+sigs = []
+for f in (len, print, sorted, zip, open, bool, max):
+    try:
+        sigs.append(str(inspect.signature(f)))
+    except ValueError:
+        sigs.append("ValueError")
+T = type("T", (), {})
+P = collections.namedtuple("P", "x")
+repr((sigs, A.B.__qualname__, A.B.m.__qualname__, repr(A.B), T.__module__, P.__module__, types.CapsuleType.__name__, time.sleep(0)))
+'''),
+    ("bases_can_be_reassigned", "classes", r'''
+from typing import NamedTuple, Generic, TypeVar
+T = TypeVar("T")
+class GPt(NamedTuple, Generic[T]):
+    v: T
+class A:
+    x = "A"
+class B:
+    x = "B"
+class C(A):
+    pass
+class D(C):
+    pass
+before = D.x
+C.__bases__ = (B,)
+errors = []
+for bad in ((), (D,), (B, B)):
+    try:
+        C.__bases__ = bad
+    except TypeError as e:
+        errors.append(str(e))
+repr((GPt(v=3), GPt.__parameters__, str(GPt[int]).rsplit(".", 1)[-1], before, D.x, [k.__name__ for k in D.__mro__], isinstance(D(), B), issubclass(D, A), errors))
+'''),
 ]
 
 

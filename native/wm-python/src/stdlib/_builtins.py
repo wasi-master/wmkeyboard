@@ -713,6 +713,18 @@ class GenericAlias:
         return f"{star}{_alias_repr_item(self.__origin__)}[{inner}]"
 
 
+def __aiter_sync__(iterable):
+    """What `async for` in a comprehension walks: each item of the async
+    iterable, its __anext__ awaited as the comprehension reaches it."""
+    ait = iterable.__aiter__()
+    while True:
+        try:
+            item = await ait.__anext__()
+        except StopAsyncIteration:
+            return
+        yield item
+
+
 def aiter(iterable):
     return iterable.__aiter__()
 
@@ -1301,3 +1313,135 @@ class _re_Scanner:
 
 _re_Scanner.__name__ = _re_Scanner.__qualname__ = "Scanner"
 _re_Scanner.__module__ = "re"
+
+
+class JSONDecodeError(ValueError):
+    """json.JSONDecodeError, as CPython's Lib/json/decoder.py has it: a
+    ValueError that also says where in the document reading stopped.
+
+    msg: the message alone; doc: the JSON text; pos: the character it points at;
+    lineno and colno: that character's line and column, counted from 1.
+    """
+
+    def __init__(self, msg, doc, pos):
+        lineno = doc.count("\n", 0, pos) + 1
+        colno = pos - doc.rfind("\n", 0, pos)
+        errmsg = "%s: line %d column %d (char %d)" % (msg, lineno, colno, pos)
+        ValueError.__init__(self, errmsg)
+        self.msg = msg
+        self.doc = doc
+        self.pos = pos
+        self.lineno = lineno
+        self.colno = colno
+
+    def __reduce__(self):
+        return self.__class__, (self.msg, self.doc, self.pos)
+
+
+JSONDecodeError.__module__ = "json.decoder"
+
+_JSON_CONSTANTS = {"-Infinity": float("-inf"), "Infinity": float("inf"), "NaN": float("nan")}
+
+
+class JSONDecoder(object):
+    """json.JSONDecoder: CPython's options and methods over the json module's
+    own decoder. A hook left out is read natively, without a call."""
+
+    def __init__(self, *, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, strict=True, object_pairs_hook=None):
+        self.object_hook = object_hook
+        self.parse_float = parse_float or float
+        self.parse_int = parse_int or int
+        self.parse_constant = parse_constant or _JSON_CONSTANTS.__getitem__
+        self.strict = strict
+        self.object_pairs_hook = object_pairs_hook
+        self.memo = {}
+
+    def _options(self):
+        constant = self.parse_constant
+        # The default (the dict's own lookup) is what the decoder does anyway.
+        if getattr(constant, "__self__", None) is _JSON_CONSTANTS:
+            constant = None
+        return {
+            "object_hook": self.object_hook,
+            "object_pairs_hook": self.object_pairs_hook,
+            "parse_float": self.parse_float,
+            "parse_int": self.parse_int,
+            "parse_constant": constant,
+            "strict": self.strict,
+        }
+
+    def decode(self, s, _w=None):
+        """The Python value of the JSON document [s], which may have
+        whitespace either side but nothing else."""
+        return __json_decode__(s, None, **self._options())
+
+    def raw_decode(self, s, idx=0):
+        """The value whose JSON starts at character [idx] of [s], and the
+        index just past it: for a document with more after the value."""
+        return __json_decode__(s, idx, **self._options())
+
+    def scan_once(self, string, idx):
+        try:
+            return __json_decode__(string, idx, **self._options())
+        except JSONDecodeError as e:
+            if e.msg == "Expecting value" and e.pos == idx:
+                raise StopIteration(idx) from None
+            raise
+
+
+JSONDecoder.__module__ = "json.decoder"
+
+
+class JSONEncoder(object):
+    """json.JSONEncoder: CPython's options and methods over the json
+    module's own encoder. A subclass's default() is called for each value
+    JSON has no form for."""
+
+    item_separator = ", "
+    key_separator = ": "
+
+    # ensure_ascii is off unless asked, as json.dumps has it here.
+    def __init__(self, *, skipkeys=False, ensure_ascii=False, check_circular=True, allow_nan=True, sort_keys=False, indent=None, separators=None, default=None):
+        self.skipkeys = skipkeys
+        self.ensure_ascii = ensure_ascii
+        self.check_circular = check_circular
+        self.allow_nan = allow_nan
+        self.sort_keys = sort_keys
+        self.indent = indent
+        if separators is not None:
+            self.item_separator, self.key_separator = separators
+        elif indent is not None:
+            self.item_separator = ","
+        if default is not None:
+            self.default = default
+
+    def default(self, o):
+        """What [o], a value JSON can't hold, is written as. Override it to
+        return something JSON can hold; this one raises a TypeError."""
+        raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
+
+    def _encode(self, o):
+        return __json_encode__(
+            o,
+            skipkeys=self.skipkeys,
+            ensure_ascii=self.ensure_ascii,
+            check_circular=self.check_circular,
+            allow_nan=self.allow_nan,
+            sort_keys=self.sort_keys,
+            indent=self.indent,
+            separators=(self.item_separator, self.key_separator),
+            default=self.default,
+        )
+
+    def encode(self, o):
+        """[o] as one JSON string."""
+        if type(self).iterencode is not JSONEncoder.iterencode:
+            return "".join(self.iterencode(o, _one_shot=True))
+        return self._encode(o)
+
+    def iterencode(self, o, _one_shot=False):
+        """[o] as JSON, in pieces to write one by one: here, one piece."""
+        return iter((self._encode(o),))
+
+
+JSONEncoder.__module__ = "json.encoder"

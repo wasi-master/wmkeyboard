@@ -184,6 +184,18 @@ class SimpleNamespace:
 MappingProxyType = type(type.__dict__)
 
 
+class CapsuleType:
+    """The type of a C extension's capsule, a pointer handed between C
+    modules. None is made here, as no module is written in C."""
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError("cannot create 'PyCapsule' instances")
+
+
+CapsuleType.__name__ = CapsuleType.__qualname__ = "PyCapsule"
+CapsuleType.__module__ = "builtins"
+
+
 def resolve_bases(bases):
     """Resolve MRO entries dynamically as specified by PEP 560."""
     new_bases = list(bases)

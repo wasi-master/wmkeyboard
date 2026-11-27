@@ -7,7 +7,7 @@
 use std::rc::Rc;
 
 use super::datefmt::{civil, format_pattern};
-use super::error::R;
+use super::error::{Exc, PyError, R};
 use super::eval::Interp;
 use super::json;
 use super::regex::{latin1_bytes, latin1_text, Regex, Subject, ASCII, BYTES, DOT_ALL, IGNORE_CASE, MULTILINE, UNICODE, VERBOSE};
@@ -32,7 +32,7 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
         "_mt" => super::mt::FUNCTIONS,
         "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed", "getrandbits"],
         // `_time` is the same clock, under the `time` module written in Python.
-        "time" | "_time" => &["time", "monotonic", "parts", "format"],
+        "time" | "_time" => &["time", "monotonic", "parts", "format", "sleep"],
         "json" => &["dumps", "loads", "dump", "load"],
         "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile"],
         "sys" => &[
@@ -72,6 +72,7 @@ pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
             "path_hooks", "path_importer_cache", "prefix", "base_prefix", "exec_prefix", "base_exec_prefix", "flags",
             "implementation",
         ],
+        "json" => &["JSONEncoder", "JSONDecoder", "JSONDecodeError"],
         "sys.stdout" | "sys.stderr" | "sys.stdin" => &["encoding"],
         _ => &[],
     }
@@ -113,10 +114,19 @@ fn constant(module: &str, name: &str) -> Option<Value> {
     })
 }
 
-/// Members of a native module written in Python, in _builtins.py: `re.Scanner`.
+fn name_of_json_member(name: &str) -> &'static str {
+    match name {
+        "JSONEncoder" => "JSONEncoder",
+        "JSONDecoder" => "JSONDecoder",
+        _ => "JSONDecodeError",
+    }
+}
+
+/// Members of a native module written in Python, in _builtins.py: `re.Scanner`, json's classes.
 pub(crate) fn python_member(module: &str, name: &str) -> Option<&'static str> {
     match (module, name) {
         ("re", "Scanner") => Some("_re_Scanner"),
+        ("json", "JSONEncoder" | "JSONDecoder" | "JSONDecodeError") => Some(name_of_json_member(name)),
         _ => None,
     }
 }
@@ -205,6 +215,38 @@ pub(crate) fn random_seed() -> u64 {
 
 fn kwarg<'a>(kwargs: &'a [(Rc<str>, Value)], name: &str) -> Option<&'a Value> {
     kwargs.iter().find(|(k, _)| k.as_ref() == name).map(|(_, v)| v)
+}
+
+/// The decoder's hooks from `json.loads` keywords: one left None, or the
+/// built-in it stands in for (`parse_float=float`), is read natively.
+pub(crate) fn json_decode_options(kwargs: &[(Rc<str>, Value)]) -> json::DecodeOptions {
+    let hook = |key: &str, builtin: &str| {
+        kwarg(kwargs, key).filter(|v| !v.is_none() && !matches!(v, Value::Builtin(b) if b.as_ref() == builtin)).cloned()
+    };
+    json::DecodeOptions {
+        object_hook: hook("object_hook", ""),
+        object_pairs_hook: hook("object_pairs_hook", ""),
+        parse_float: hook("parse_float", "float"),
+        parse_int: hook("parse_int", "int"),
+        parse_constant: hook("parse_constant", ""),
+        strict: kwarg(kwargs, "strict").is_none_or(Value::truthy),
+    }
+}
+
+/// What the JSON encoder and decoder ask of the interpreter: steps, and calls to hooks.
+struct JsonHost<'a>(&'a mut Interp);
+
+impl json::Host for JsonHost<'_> {
+    fn charge(&mut self) -> Result<(), PyError> {
+        self.0.tick()
+    }
+
+    fn call(&mut self, f: &Value, args: Vec<Value>) -> Result<Value, PyError> {
+        self.0.call_value(f, args, Vec::new()).map_err(|e| match e {
+            Exc::Error(e) => *e,
+            _ => PyError::new("a JSON hook returned out of a loop", "RuntimeError"),
+        })
+    }
 }
 
 /// What a compiled pattern answers to, as `pattern.search(text)`.
@@ -669,6 +711,30 @@ impl Interp {
         match name {
             "time" => Ok(Value::Float((self.clock.now() * 1000.0).trunc() / 1000.0)),
             "monotonic" => Ok(Value::Float(self.clock.monotonic())),
+            // The keyboard must keep answering keys: sleep(0), which waits for
+            // nothing, returns, and a plugin waits with plugin.after() instead.
+            "sleep" => {
+                let secs = match args.first() {
+                    Some(Value::Int(n)) => *n as f64,
+                    Some(Value::Bool(b)) => *b as i64 as f64,
+                    Some(Value::Float(f)) => *f,
+                    Some(other) => return Err(self.error(format!("'{}' object cannot be interpreted as an integer or float", other.type_name()), "TypeError")),
+                    None => return Err(self.error("sleep() takes exactly one argument (0 given)", "TypeError")),
+                };
+                if secs.is_nan() {
+                    return Err(self.error("Invalid value NaN (not a number)", "ValueError"));
+                }
+                if secs < 0.0 {
+                    return Err(self.error("sleep length must be non-negative", "ValueError"));
+                }
+                if secs > 0.0 {
+                    return Err(self.error(
+                        "time.sleep() can't wait in a plugin, as the keyboard would stop answering keys; call plugin.after(seconds, fn) instead",
+                        "RuntimeError",
+                    ));
+                }
+                Ok(Value::None)
+            }
             "parts" => {
                 let ms = self.date_arg(args, 0);
                 let c = civil(ms, self.clock.as_ref());
@@ -704,7 +770,6 @@ impl Interp {
 
     #[inline(never)]
     fn json_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
-        let limit = self.max_string;
         match name {
             // The file forms: what the file-like object's read() gives, and
             // the text written with its write().
@@ -725,37 +790,162 @@ impl Interp {
             }
             "dumps" => {
                 let v = args.first().ok_or_else(|| self.error("json.dumps() needs a value", "TypeError"))?;
-                let indent = match args.get(1).or_else(|| kwarg(kwargs, "indent")) {
-                    None | Some(Value::None) => None,
-                    Some(Value::Str(s)) => Some(s.to_string()),
-                    Some(other) => match other.as_int() {
-                        Some(n) => Some(" ".repeat(n.clamp(0, 64) as usize)),
-                        None => return Err(self.error("indent must be a number or a string", "TypeError")),
-                    },
-                };
-                let mut options = json::EncodeOptions::new(indent);
-                options.sort_keys = kwarg(kwargs, "sort_keys").is_some_and(Value::truthy);
-                // Off unless asked: the keyboard's text is rarely ASCII, and JSON reads it either way.
-                options.ensure_ascii = kwarg(kwargs, "ensure_ascii").is_some_and(Value::truthy);
-                if let Some(sep) = kwarg(kwargs, "separators").filter(|v| !v.is_none()) {
-                    match sequence_items(sep).as_deref() {
-                        Some([Value::Str(item), Value::Str(key)]) => {
-                            options.item_separator = item.to_string();
-                            options.key_separator = key.to_string();
-                        }
-                        _ => return Err(self.error("separators must be an (item, key) pair of strings", "TypeError")),
-                    }
+                // Not CPython's: the indent may come second, as PyMini took it.
+                let indent = args.get(1).or_else(|| kwarg(kwargs, "indent"));
+                const OWN: &[&str] = &["skipkeys", "ensure_ascii", "check_circular", "allow_nan", "cls", "indent", "separators", "default", "sort_keys"];
+                let cls = kwarg(kwargs, "cls").filter(|c| !c.is_none()).cloned();
+                if cls.is_none() && kwargs.iter().all(|(k, _)| OWN.contains(&k.as_ref())) {
+                    return self.json_encode(v, indent, kwargs);
                 }
-                let s = json::encode(v, &options, limit, &mut || self.tick())?;
-                Ok(Value::str(s))
+                // A JSONEncoder subclass, or keywords for one: made with every
+                // option, as CPython's dumps makes it, and asked to encode.
+                let cls = match cls {
+                    Some(c) => c,
+                    None => self.python_builtin("JSONEncoder")?,
+                };
+                let option = |key: &str, default: Value| kwarg(kwargs, key).cloned().unwrap_or(default);
+                let mut kw: Vec<(Rc<str>, Value)> = vec![
+                    (Rc::from("skipkeys"), option("skipkeys", Value::Bool(false))),
+                    (Rc::from("ensure_ascii"), option("ensure_ascii", Value::Bool(false))),
+                    (Rc::from("check_circular"), option("check_circular", Value::Bool(true))),
+                    (Rc::from("allow_nan"), option("allow_nan", Value::Bool(true))),
+                    (Rc::from("indent"), indent.cloned().unwrap_or(Value::None)),
+                    (Rc::from("separators"), option("separators", Value::None)),
+                    (Rc::from("default"), option("default", Value::None)),
+                    (Rc::from("sort_keys"), option("sort_keys", Value::Bool(false))),
+                ];
+                kw.extend(kwargs.iter().filter(|(k, _)| !OWN.contains(&k.as_ref())).cloned());
+                let encoder = self.call_value(&cls, Vec::new(), kw)?;
+                let encode = self.attribute(&encoder, "encode")?;
+                self.call_value(&encode, vec![v.clone()], Vec::new())
             }
             "loads" => {
-                let Some(Value::Str(s)) = args.first() else {
-                    return Err(self.error("json.loads() needs a string", "TypeError"));
+                let s = args.first().ok_or_else(|| self.error("loads() missing 1 required positional argument: 's'", "TypeError"))?;
+                let text = self.json_text(s)?;
+                const OWN: &[&str] = &["cls", "object_hook", "parse_float", "parse_int", "parse_constant", "object_pairs_hook"];
+                let cls = kwarg(kwargs, "cls").filter(|c| !c.is_none()).cloned();
+                if cls.is_none() && kwargs.iter().all(|(k, _)| OWN.contains(&k.as_ref())) {
+                    let options = json_decode_options(kwargs);
+                    return self.json_decode(&text, None, &options);
+                }
+                // A JSONDecoder subclass, or keywords for one: given the hooks
+                // that were set, as CPython's loads does, and asked to decode.
+                let cls = match cls {
+                    Some(c) => c,
+                    None => self.python_builtin("JSONDecoder")?,
                 };
-                Ok(json::decode(s, &mut || self.tick())?)
+                let kw: Vec<(Rc<str>, Value)> = kwargs.iter().filter(|(k, v)| k.as_ref() != "cls" && !(OWN.contains(&k.as_ref()) && v.is_none())).cloned().collect();
+                let decoder = self.call_value(&cls, Vec::new(), kw)?;
+                let decode = self.attribute(&decoder, "decode")?;
+                self.call_value(&decode, vec![Value::Str(text)], Vec::new())
             }
             _ => Err(self.error(format!("module 'json' has no attribute '{name}'"), "AttributeError")),
+        }
+    }
+
+    /// `json.dumps` without a class: [kwargs] are JSONEncoder's options.
+    pub(crate) fn json_encode(&mut self, v: &Value, indent: Option<&Value>, kwargs: &[(Rc<str>, Value)]) -> R<Value> {
+        let indent = match indent {
+            None | Some(Value::None) => None,
+            Some(Value::Str(s)) => Some(s.to_string()),
+            Some(other) => match other.as_int() {
+                Some(n) => Some(" ".repeat(n.clamp(0, 64) as usize)),
+                None => return Err(self.error("indent must be a number or a string", "TypeError")),
+            },
+        };
+        let flag = |key: &str, default: bool| kwarg(kwargs, key).map_or(default, Value::truthy);
+        let mut options = json::EncodeOptions::new(indent);
+        options.sort_keys = flag("sort_keys", false);
+        // Off unless asked: the keyboard's text is rarely ASCII, and JSON reads it either way.
+        options.ensure_ascii = flag("ensure_ascii", false);
+        options.skipkeys = flag("skipkeys", false);
+        options.allow_nan = flag("allow_nan", true);
+        options.check_circular = flag("check_circular", true);
+        options.default = kwarg(kwargs, "default").filter(|d| !d.is_none()).cloned();
+        if let Some(sep) = kwarg(kwargs, "separators").filter(|v| !v.is_none()) {
+            match sequence_items(sep).as_deref() {
+                Some([Value::Str(item), Value::Str(key)]) => {
+                    options.item_separator = item.to_string();
+                    options.key_separator = key.to_string();
+                }
+                _ => return Err(self.error("separators must be an (item, key) pair of strings", "TypeError")),
+            }
+        }
+        let limit = self.max_string;
+        let s = json::encode(v, &options, limit, &mut JsonHost(self))?;
+        Ok(Value::str(s))
+    }
+
+    /// The text `json.loads` reads: a str, or bytes in the UTF its first
+    /// bytes show, as CPython's json.detect_encoding tells them apart.
+    fn json_text(&mut self, s: &Value) -> R<Rc<str>> {
+        match s {
+            Value::Str(s) => {
+                if s.starts_with('\u{feff}') {
+                    return Err(self.json_decode_error("Unexpected UTF-8 BOM (decode using utf-8-sig)", s, 0));
+                }
+                Ok(s.clone())
+            }
+            Value::Bytes(b) => {
+                let encoding = match b.as_ref() {
+                    [0, 0, 0xFE, 0xFF, ..] | [0xFF, 0xFE, 0, 0, ..] => "utf-32",
+                    [0xFE, 0xFF, ..] | [0xFF, 0xFE, ..] => "utf-16",
+                    [0xEF, 0xBB, 0xBF, ..] => "utf-8-sig",
+                    [0, 0, _, _, ..] => "utf-32-be",
+                    [0, _, _, _, ..] | [0, _] => "utf-16-be",
+                    [_, 0, 0, 0, ..] => "utf-32-le",
+                    [_, 0, _, _, ..] | [_, 0] => "utf-16-le",
+                    _ => "utf-8",
+                };
+                match super::bytes::decode(b, encoding, "strict") {
+                    Ok(text) => Ok(Rc::from(text)),
+                    Err(e) => Err(self.byte_error(e)),
+                }
+            }
+            other => Err(self.error(format!("the JSON object must be str, bytes or bytearray, not {}", other.type_name()), "TypeError")),
+        }
+    }
+
+    /// Decode [text]: all of it (JSONDecoder.decode) when [at] is None, else
+    /// one value from that character on, as `(value, end)` (raw_decode).
+    pub(crate) fn json_decode(&mut self, text: &Rc<str>, at: Option<i64>, options: &json::DecodeOptions) -> R<Value> {
+        let result = match at {
+            None => json::decode(text, options, &mut JsonHost(self)).map(|v| (v, None)),
+            Some(at) => {
+                if at < 0 {
+                    return Err(self.error("idx cannot be negative", "ValueError"));
+                }
+                // Indexes count characters as str's do, by grapheme cluster.
+                let b = self.chars(text);
+                let Some(&start) = b.get(at as usize) else {
+                    return Err(self.json_decode_error_at("Expecting value", text, at));
+                };
+                json::decode_at(text, start as usize, options, &mut JsonHost(self)).map(|(v, end)| (v, Some(end)))
+            }
+        };
+        match result {
+            Ok((v, None)) => Ok(v),
+            Ok((v, Some(end))) => Ok(Value::tuple(vec![v, Value::Int(grapheme_count(&text[..end]) as i64)])),
+            Err(json::DecodeError::At(message, byte)) => Err(self.json_decode_error(message, text, byte)),
+            Err(json::DecodeError::Other(e)) => Err(e.into()),
+        }
+    }
+
+    fn json_decode_error(&mut self, message: &str, doc: &Rc<str>, byte: usize) -> Exc {
+        let pos = grapheme_count(doc.get(..byte).unwrap_or(doc));
+        self.json_decode_error_at(message, doc, pos as i64)
+    }
+
+    /// A json.JSONDecodeError (a ValueError) for [message] at character [pos] of [doc].
+    fn json_decode_error_at(&mut self, message: &str, doc: &Rc<str>, pos: i64) -> Exc {
+        let class = match self.python_builtin("JSONDecodeError") {
+            Ok(c) => c,
+            Err(e) => return e,
+        };
+        match self.call_value(&class, vec![Value::str(message), Value::Str(doc.clone()), Value::Int(pos)], Vec::new()) {
+            Ok(Value::Instance(inst)) => self.raise_instance(&inst),
+            Ok(_) => self.error(message, "ValueError"),
+            Err(e) => e,
         }
     }
 

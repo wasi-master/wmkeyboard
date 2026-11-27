@@ -282,7 +282,7 @@ fn the_smaller_modules() {
     assert_eq!("2.5 2.5", run("import statistics\nf'{statistics.mean([1, 2, 3, 4])} {statistics.median([1, 2, 3, 4])}'"));
     assert_eq!("36 4", run("import uuid\nu = str(uuid.uuid4())\nf'{len(u)} {u[14]}'"));
     assert_eq!("[1, [2]] False", run("import copy\na = [1, [2]]\nb = copy.deepcopy(a)\nb[1].append(3)\nf'{a} {a[1] is b[1]}'"));
-    assert!(error("from abc import ABC, abstractmethod\nclass Shape(ABC):\n    @abstractmethod\n    def area(self):\n        pass\nShape()").contains("abstract methods area"));
+    assert!(error("from abc import ABC, abstractmethod\nclass Shape(ABC):\n    @abstractmethod\n    def area(self):\n        pass\nShape()").contains("without an implementation for abstract method 'area'"));
     assert_eq!("4", run("from abc import ABC, abstractmethod\nclass Shape(ABC):\n    @abstractmethod\n    def area(self):\n        pass\nclass Sq(Shape):\n    def area(self):\n        return 4\nSq().area()"));
     assert_eq!("None", run("from typing import Optional, List\ndef f(x: Optional[List[int]] = None) -> None:\n    return x\nf()"));
 }

@@ -50,13 +50,18 @@ const DIVERGES: &[(&str, &str)] = &[
     // line it was raised on, as CPython's traceback gives it; PyMini had none.
     ("056-format-unknown.py", concat!(r##"ERROR: Line 1: ValueError: unknown format code 'q'"##, "\n")),
     ("057-format-float-as-int.py", concat!(r##"ERROR: Line 1: ValueError: cannot format a float with 'd'"##, "\n")),
-    ("104-json-loads-err.py", concat!(r##"ERROR: Line 2: ValueError: expected a JSON string"##, "\n")),
+    // 2026-11-27: bad JSON raises CPython's JSONDecodeError (a ValueError),
+    // in the words of its C reader, with where it went wrong.
+    ("104-json-loads-err.py", concat!(r##"ERROR: Line 2: JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"##, "\n")),
     ("105-json-dumps-err.py", concat!(r##"ERROR: Line 2: TypeError: Object of type function is not JSON serializable"##, "\n")),
     ("114-re-errors.py", concat!(r##"ERROR: Line 2: ValueError: missing ')' in pattern"##, "\n")),
     ("179-edge-regex-bad-range.py", concat!(r##"ERROR: Line 2: ValueError: bad character range in pattern"##, "\n")),
     ("181-edge-regex-possessive.py", concat!(r##"ERROR: Line 2: ValueError: possessive quantifiers are not supported"##, "\n")),
-    ("183-edge-json-surrogate.py", concat!(r##"ERROR: Line 2: ValueError: invalid \u escape in JSON"##, "\n")),
-    ("184-edge-json-trailing.py", concat!(r##"ERROR: Line 2: ValueError: could not parse JSON"##, "\n")),
+    // A lone surrogate, which CPython keeps, reads as U+FFFD: a string here can't hold one.
+    ("183-edge-json-surrogate.py", "'\u{FFFD}'\n"),
+    ("184-edge-json-trailing.py", concat!(r##"ERROR: Line 2: JSONDecodeError: Extra data: line 1 column 8 (char 7)"##, "\n")),
+    // 2026-11-27: infinity is written `Infinity`, as CPython's json writes it (PyMini wrote null).
+    ("101-json-dumps.py", concat!(r##"['{"a": 1, "b": [1.5, "x", null, true], "c": {}}', '[]', '"é\\n\\"q\\""', '{"n": Infinity}', '[1, 2]', '{"1": 2}']"##, "\n")),
     ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
     // 2026-11-27: a module that is not there is a ModuleNotFoundError, as in CPython.
     ("096-import-errors.py", "ERROR: Line 1: ModuleNotFoundError: no module named 'os' (available: json, math, random, re, sys, time)\n"),
@@ -102,7 +107,8 @@ const DIVERGES: &[(&str, &str)] = &[
     ("040-strings-pad.py", "['005', '-005', 'abc', 'a**', '  a', '---ab--', 'abc']\n"),
     ("006-builtins-float-err.py", "ERROR: Line 1: ValueError: could not convert string to float: 'x1'\n"),
     ("165-edge-find-graphemes.py", concat!(r##"[1, 2, 1, 3, -1, 1]"##, "\n")),
-    ("166-edge-split-unicode.py", concat!(r##"[['a', 'b', 'c'], ['a​b'], ['x\r', 'y'], ['', '', 'a']]"##, "\n")),
+    // 2026-11-27: repr escapes what str.isprintable() refuses, a zero-width space among them.
+    ("166-edge-split-unicode.py", concat!(r##"[['a', 'b', 'c'], ['a\u200bb'], ['x\r', 'y'], ['', '', 'a']]"##, "\n")),
     ("182-edge-json-unicode.py", concat!(r##"['"😀é\\u0001\\b"', 0, 'é\n', '{"a": 1.0, "b": 1e+20, "c": -0.0}', 100.0, 0, 0]"##, "\n")),
     ("202-edge-large-ints.py", concat!(r##"[9007199254740992, 18014398509481982, 121932631112635269, 1.8446744073709552e+19, -9.223372036854776e+18, 1000000000000001, 1.2157665459056929e+19]"##, "\n")),
     ("205-edge-tuple-key-nfc.py", concat!(r##"['x', True, True]"##, "\n")),

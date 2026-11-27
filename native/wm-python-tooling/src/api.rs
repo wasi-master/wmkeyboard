@@ -115,7 +115,7 @@ pub const LIBRARY: &[&str] = &[
     "gc", "genericpath", "getpass", "gettext", "glob", "gzip", "hashlib", "heapq", "hmac", "html", "html.entities",
     "html.parser", "http", "http.client", "http.cookiejar", "http.cookies", "http.server", "importlib",
     "importlib.metadata", "importlib.resources", "importlib.util", "inspect", "io", "ipaddress", "itertools",
-    "keyword", "linecache", "locale", "logging", "mimetypes", "mmap", "multiprocessing", "multiprocessing.pool",
+    "json.decoder", "json.encoder", "json.scanner", "keyword", "linecache", "locale", "logging", "mimetypes", "mmap", "multiprocessing", "multiprocessing.pool",
     "ntpath", "numbers", "operator", "optparse", "os", "os.path", "pathlib", "pickle", "platform", "posixpath",
     "pprint", "queue", "reprlib", "secrets", "select", "selectors", "shlex", "shutil", "signal", "socket",
     "socketserver", "ssl", "stat", "statistics", "string", "struct", "subprocess", "sysconfig", "tarfile", "tempfile",
@@ -591,6 +591,7 @@ fn build() -> Model {
     add("time.monotonic", Function, Some("monotonic()"), None, "Seconds from a clock that only moves forward, for measuring how long something takes.");
     add("time.parts", Function, Some("parts(seconds=None)"), None, "A dict of year, month, day, hour, minute, second, weekday (Monday is 0) and yearday for seconds, or for now, in the phone's time zone.");
     add("time.format", Function, Some("format(pattern, seconds=None)"), None, "seconds, or now, as text in a Unicode date pattern such as \"yyyy-MM-dd HH:mm\" or \"EEE d MMM\", with English names.");
+    add("time.sleep", Function, Some("sleep(seconds)"), None, "sleep(0) returns. Anything longer raises RuntimeError: the keyboard has to keep answering keys, so a plugin waits with plugin.after(seconds, fn) instead.");
     for (name, sig, doc) in [
         ("time_ns", "time_ns()", "time() in whole nanoseconds, an int."),
         ("monotonic_ns", "monotonic_ns()", "monotonic() in whole nanoseconds, an int."),
@@ -617,8 +618,11 @@ fn build() -> Model {
     add("time.tzname", Constant, None, None, "The time zone's name twice, as a tuple, such as (\"+06\", \"+06\").");
 
     add("json", Module, None, None, "JSON text to and from Python values. import json.");
-    add("json.dumps", Function, Some("dumps(value, indent=None, sort_keys=False, ensure_ascii=False, separators=None)"), None, "value written as JSON text. Dicts keep their order unless sort_keys. Characters past ASCII are written as they are; ensure_ascii=True escapes them. separators=(\",\", \":\") writes it compactly.");
-    add("json.loads", Function, Some("loads(text)"), None, "JSON text read as Python values. Raises ValueError on bad JSON.");
+    add("json.dumps", Function, Some("dumps(value, *, skipkeys=False, ensure_ascii=False, check_circular=True, allow_nan=True, cls=None, indent=None, separators=None, default=None, sort_keys=False)"), None, "value written as JSON text. Dicts keep their order unless sort_keys. Characters past ASCII are written as they are; ensure_ascii=True escapes them. separators=(\",\", \":\") writes it compactly. default(o) turns a value JSON has no form for into one it has; cls is a JSONEncoder subclass to write with.");
+    add("json.loads", Function, Some("loads(text, *, cls=None, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, object_pairs_hook=None)"), None, "JSON text (str or bytes) read as Python values. object_hook(d) replaces each object read, object_pairs_hook(pairs) gets its (key, value) pairs instead, parse_float(text) reads each number with a point (decimal.Decimal keeps it exact). Raises JSONDecodeError on bad JSON.");
+    add("json.JSONEncoder", Type, Some("JSONEncoder(*, skipkeys=False, ensure_ascii=False, check_circular=True, allow_nan=True, sort_keys=False, indent=None, separators=None, default=None)"), None, "What dumps writes with. Subclass it and override default(self, o) to write values JSON has no form for, then pass cls= to dumps.");
+    add("json.JSONDecoder", Type, Some("JSONDecoder(*, object_hook=None, parse_float=None, parse_int=None, parse_constant=None, strict=True, object_pairs_hook=None)"), None, "What loads reads with. decode(text) reads all of it; raw_decode(text, idx=0) reads one value and says where it ended.");
+    add("json.JSONDecodeError", Type, Some("JSONDecodeError(msg, doc, pos)"), None, "The ValueError bad JSON raises: msg, and where it is, pos (a character), lineno and colno.");
     add("json.dump", Function, Some("dump(value, fp, **options)"), None, "dumps(value, **options) written to fp, a file-like object with write(), such as io.StringIO.");
     add("json.load", Function, Some("load(fp, **options)"), None, "loads(fp.read()): JSON read from a file-like object."); 
 

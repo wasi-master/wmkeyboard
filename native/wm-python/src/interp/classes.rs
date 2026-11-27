@@ -53,6 +53,22 @@ pub(crate) const HIDDEN_EXCEPTION_ADD_NOTE: &str = "__exception_add_note__";
 /// bound to [obj] as a method, as attribute lookup on an instance binds it.
 pub(crate) const HIDDEN_FUNCTION_GET: &str = "__function_get__";
 
+/// `__get__`, `__set__` and `__delete__` of a class deriving from property,
+/// and `__get__` of one deriving from classmethod or staticmethod: what the
+/// built-in descriptor the instance carries does.
+pub(crate) const HIDDEN_PROPERTY_GET: &str = "__property_get__";
+pub(crate) const HIDDEN_PROPERTY_SET: &str = "__property_set__";
+pub(crate) const HIDDEN_PROPERTY_DELETE: &str = "__property_delete__";
+pub(crate) const HIDDEN_CLASSMETHOD_GET: &str = "__classmethod_get__";
+pub(crate) const HIDDEN_STATICMETHOD_GET: &str = "__staticmethod_get__";
+/// `p.setter(f)` and `p.getter(f)` on a property subclass: another of its
+/// class, `type(p)(fget, fset)`, as CPython makes it.
+pub(crate) const HIDDEN_PROPERTY_REMAKE_SETTER: &str = "__property_remake_setter__";
+pub(crate) const HIDDEN_PROPERTY_REMAKE_GETTER: &str = "__property_remake_getter__";
+
+/// `C.__subclasses__()`: the classes still alive that name [C] as a base.
+pub(crate) const HIDDEN_SUBCLASSES: &str = "__type_subclasses__";
+
 /// Which of the three [name] is, if any.
 pub(crate) fn pickling_dunder(name: &str) -> Option<&'static str> {
     Some(match name {
@@ -129,10 +145,7 @@ impl Interp {
         for d in &def.decorators {
             decorators.push(self.eval(d, env)?);
         }
-        let mut given = Vec::with_capacity(def.bases.len());
-        for b in &def.bases {
-            given.push(self.eval(b, env)?);
-        }
+        let given = self.eval_items(&def.bases, env)?;
         // `class Names(List[str])`: a base that is not a class names the
         // ones it stands for through `__mro_entries__`, which sees every base
         // as written (PEP 560). The class then keeps those in `__orig_bases__`.
@@ -182,7 +195,13 @@ impl Interp {
         if let Some(module) = env.module().vars.borrow().get("__name__").cloned() {
             scope.define(&Rc::from("__module__"), module);
         }
-        scope.define(&Rc::from("__qualname__"), Value::Str(def.name.clone()));
+        // A class in a class body is named through it: `Outer.Inner`.
+        let outer = if env.parent.is_some() { env.vars.borrow().get("__qualname__").cloned() } else { None };
+        let qualname = match outer {
+            Some(Value::Str(o)) => Value::str(format!("{o}.{}", def.name)),
+            _ => Value::Str(def.name.clone()),
+        };
+        scope.define(&Rc::from("__qualname__"), qualname);
         if let Value::Str(doc) = super::eval::docstring(&def.body) {
             scope.define(&Rc::from("__doc__"), Value::Str(doc));
         }
@@ -321,8 +340,8 @@ impl Interp {
         let meta = self.derived_meta(meta, bases)?;
         let class = Rc::new(Class {
             name,
-            bases: classes,
-            mro,
+            bases: RefCell::new(classes),
+            mro: RefCell::new(mro),
             exception_root: root,
             attrs: RefCell::new(attrs),
             traits: Default::default(),
@@ -332,6 +351,20 @@ impl Interp {
         });
         for v in class.attrs.borrow().values() {
             own(v, &class);
+        }
+        // A subclass of property, classmethod or staticmethod gets the
+        // descriptor methods of the one its instances carry, unless it has its own.
+        if let Some(base) = class.builtin_base.as_deref().filter(|b| super::value::descriptor_base(b)) {
+            let methods: &[(&str, &str)] = match base {
+                "property" => &[("__get__", HIDDEN_PROPERTY_GET), ("__set__", HIDDEN_PROPERTY_SET), ("__delete__", HIDDEN_PROPERTY_DELETE)],
+                "classmethod" => &[("__get__", HIDDEN_CLASSMETHOD_GET)],
+                _ => &[("__get__", HIDDEN_STATICMETHOD_GET)],
+            };
+            for (name, hidden_name) in methods {
+                if class.lookup(name).is_none() {
+                    class.attrs.borrow_mut().insert(Rc::from(*name), hidden(hidden_name));
+                }
+            }
         }
         self.track_class(&class);
         // Each attribute whose class has `__set_name__` hears its owner and name.
@@ -354,7 +387,7 @@ impl Interp {
             self.exception_classes.insert(class.name.clone(), class.clone());
         }
         // The nearest base's `__init_subclass__` hears about each class made from it, as a classmethod.
-        let hook = class.mro.iter().find_map(|b| b.attrs.borrow().get("__init_subclass__").cloned());
+        let hook = class.mro.borrow().iter().find_map(|b| b.attrs.borrow().get("__init_subclass__").cloned());
         if let Some(hook) = hook {
             let f = match &hook {
                 Value::Object(o) => match o.as_ref() {
@@ -391,6 +424,12 @@ impl Interp {
                 return Err(self.error("type() attribute names must be strings", "TypeError"));
             };
             attrs.insert(k.clone(), v.clone());
+        }
+        // Like a class statement's, the class belongs to the module that called type().
+        if !attrs.contains_key("__module__") {
+            if let Some(module) = self.frame_module_name(0) {
+                attrs.insert(Rc::from("__module__"), Value::str(module));
+            }
         }
         self.make_class_with(class_name.clone(), &bases, attrs, meta, kwargs.to_vec())
     }
@@ -469,7 +508,7 @@ impl Interp {
             pairs.push((name.clone(), self.annotation_value(e, &env)?));
         }
         let dict = Value::dict(pairs);
-        f.attrs.borrow_mut().insert(Rc::from("__annotations__"), dict.clone());
+        f.set_attr(Rc::from("__annotations__"), dict.clone());
         Ok(dict)
     }
 
@@ -589,15 +628,25 @@ impl Interp {
         if class.is_type {
             return self.construct_class(class, args, kwargs);
         }
-        if let Some(Value::Set(pending)) = class.lookup("__abstractmethods__") {
-            let mut names: Vec<String> = pending.borrow().iter().map(|k| py_str(&k.to_value())).collect();
-            if !names.is_empty() {
-                names.sort();
-                return Err(self.error(
-                    format!("Can't instantiate abstract class {} with abstract methods {}", class.name, names.join(", ")),
-                    "TypeError",
-                ));
-            }
+        // The methods still abstract: a set, or the frozenset ABCMeta keeps.
+        let pending = match class.lookup("__abstractmethods__") {
+            Some(Value::Set(s)) => s.borrow().iter().map(|k| k.to_value()).collect(),
+            Some(v @ Value::Instance(_)) => self.iterate(&v)?,
+            _ => Vec::new(),
+        };
+        if !pending.is_empty() {
+            let mut names: Vec<String> = pending.iter().map(py_str).collect();
+            names.sort();
+            let quoted: Vec<String> = names.iter().map(|n| format!("'{n}'")).collect();
+            return Err(self.error(
+                format!(
+                    "Can't instantiate abstract class {} without an implementation for abstract method{} {}",
+                    class.name,
+                    if names.len() == 1 { "" } else { "s" },
+                    quoted.join(", ")
+                ),
+                "TypeError",
+            ));
         }
         // `__new__`, implicitly a staticmethod taking the class. What it returns
         // is the result; `__init__` runs on it only when it is an instance of this class.
@@ -630,6 +679,19 @@ impl Interp {
         self.track_instance(&inst);
         let value = Value::Instance(inst.clone());
         if let Some(base) = class.builtin_base.clone() {
+            // A property (or classmethod) subclass with an `__init__` of its
+            // own is given what it carries by `super().__init__(...)`, whose
+            // arguments need not be the class's.
+            if super::value::descriptor_base(&base) {
+                if let Some(init) = class.lookup("__init__") {
+                    let bound = self.bind(init, value.clone(), class);
+                    self.call_value(&bound, args, kwargs)?;
+                    if inst.payload().is_none() {
+                        inst.set_payload(self.new_payload(&base, &[], &[])?);
+                    }
+                    return Ok(value);
+                }
+            }
             // The base's `__new__`: an empty container, or the value the
             // arguments make (`str.__new__(S, x)` is `str(x)`).
             let payload = self.new_payload(&base, &args, &kwargs)?;
@@ -759,6 +821,20 @@ impl Interp {
             "__dict__" => return Ok(Some(Value::Dict(inst.dict()))),
             _ => {}
         }
+        // What a property (or classmethod) subclass carries answers for it:
+        // `fget`, `__func__`, `__doc__`. Its `setter` makes another of its class.
+        if let Some(Value::Object(o)) = inst.payload() {
+            if matches!(o.as_ref(), Object::Property { .. } | Object::ClassMethod(_) | Object::StaticMethod(_)) {
+                if matches!(o.as_ref(), Object::Property { .. }) && matches!(name, "setter" | "getter") {
+                    let remake = if name == "setter" { HIDDEN_PROPERTY_REMAKE_SETTER } else { HIDDEN_PROPERTY_REMAKE_GETTER };
+                    return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(remake)))));
+                }
+                let carried = Value::Object(o.clone());
+                if let Some(v) = self.optional_attribute(&carried, name)? {
+                    return Ok(Some(v));
+                }
+            }
+        }
         // A method of the built-in base, working on the instance's value.
         if let Some(p) = inst.payload() {
             if let Some(path) = super::methods::payload_method_path(p, name) {
@@ -790,6 +866,10 @@ impl Interp {
 
     /// `Cls.name`.
     pub(crate) fn class_attr(&self, class: &Rc<Class>, name: &str) -> Option<Value> {
+        // A class's own, never a base's.
+        if name == "__qualname__" {
+            return Some(Value::Str(class.qualname()));
+        }
         if let Some(v) = class.lookup(name) {
             return Some(match &v {
                 Value::Object(o) => match o.as_ref() {
@@ -827,14 +907,15 @@ impl Interp {
             "__hash__" => hidden(HIDDEN_OBJECT_HASH),
             "__getattribute__" => hidden(HIDDEN_OBJECT_GETATTR),
             "__init_subclass__" => object(Object::Bound(Value::Class(class.clone()), hidden(HIDDEN_OBJECT_INIT_SUBCLASS))),
+            "__subclasses__" => object(Object::Bound(Value::Class(class.clone()), hidden(HIDDEN_SUBCLASSES))),
             "__str__" => hidden(HIDDEN_DEFAULT_STR),
             "__repr__" => hidden(HIDDEN_DEFAULT_REPR),
             _ if !class.is_type && pickling_dunder(name).is_some() => hidden(pickling_dunder(name).unwrap()),
-            "__base__" => class.base().cloned().map(Value::Class).or_else(builtin_base).unwrap_or(Value::Builtin(Rc::from("object"))),
+            "__base__" => class.base().map(Value::Class).or_else(builtin_base).unwrap_or(Value::Builtin(Rc::from("object"))),
             "__bases__" => {
-                let mut out: Vec<Value> = class.bases.iter().cloned().map(Value::Class).collect();
+                let mut out: Vec<Value> = class.base_list().into_iter().map(Value::Class).collect();
                 // A built-in base named directly comes after the classes.
-                if let Some(b) = builtin_base().filter(|_| class.bases.iter().all(|c| c.builtin_base.is_none())) {
+                if let Some(b) = builtin_base().filter(|_| class.bases.borrow().iter().all(|c| c.builtin_base.is_none())) {
                     out.push(b);
                 }
                 if out.is_empty() {
@@ -843,7 +924,7 @@ impl Interp {
                 Value::tuple(out)
             }
             "__mro__" => {
-                let mut out: Vec<Value> = std::iter::once(class.clone()).chain(class.mro.iter().cloned()).map(Value::Class).collect();
+                let mut out: Vec<Value> = std::iter::once(class.clone()).chain(class.mro_list()).map(Value::Class).collect();
                 out.extend(builtin_base());
                 // The built-in exceptions it derives from, most derived first.
                 let mut kind = class.exception_root.as_deref();
@@ -866,13 +947,13 @@ impl Interp {
     /// the class that defined the running method, and bound to the same `self`.
     pub(crate) fn super_attr(&mut self, class: &Rc<Class>, receiver: &Value, name: &str) -> R<Option<Value>> {
         let order: Vec<Rc<Class>> = match receiver {
-            Value::Instance(i) => std::iter::once(i.class.clone()).chain(i.class.mro.iter().cloned()).collect(),
-            Value::Class(c) => std::iter::once(c.clone()).chain(c.mro.iter().cloned()).collect(),
+            Value::Instance(i) => std::iter::once(i.class.clone()).chain(i.class.mro_list()).collect(),
+            Value::Class(c) => std::iter::once(c.clone()).chain(c.mro_list()).collect(),
             _ => Vec::new(),
         };
         let after: Vec<Rc<Class>> = match order.iter().position(|k| Rc::ptr_eq(k, class)) {
             Some(at) => order[at + 1..].to_vec(),
-            None => class.mro.clone(),
+            None => class.mro_list(),
         };
         for k in after {
             if let Some(v) = k.attrs.borrow().get(name).cloned() {
@@ -951,6 +1032,7 @@ impl Interp {
                 }
                 self.object_setattr(inst, name, value)
             }
+            Value::Class(c) if name.as_ref() == "__bases__" => self.set_class_bases(c, &value),
             Value::Class(c) => {
                 if shapes_lookup(name, Some(&value)) || c.attrs.borrow().get(name.as_ref()).is_some_and(|old| shapes_lookup(name, Some(old))) {
                     self.class_epoch += 1;
@@ -961,12 +1043,10 @@ impl Interp {
             }
             // Functions take attributes too: `f.calls = 0`, or what functools.wraps copies.
             Value::Function(f) => {
-                let mut attrs = f.attrs.borrow_mut();
-                if attrs.len() >= self.max_container && !attrs.contains_key(name) {
-                    drop(attrs);
+                if f.attr_count() >= self.max_container && !f.has_attr(name) {
                     return Err(self.container_abort("function"));
                 }
-                attrs.insert(name.clone(), value);
+                f.set_attr(name.clone(), value);
                 Ok(())
             }
             // `sys.stdout = buffer` sends print's output to it until put back.
@@ -1090,7 +1170,7 @@ impl Interp {
                 }
                 old.is_some()
             }
-            Value::Function(f) => f.attrs.borrow_mut().shift_remove(name).is_some(),
+            Value::Function(f) => f.del_attr(name),
             Value::Module(m) if m.as_ref() == "builtins" => {
                 let m = m.clone();
                 self.set_module_override(&m, &Rc::from(name), None)
@@ -2243,6 +2323,11 @@ impl Interp {
                 if let Some(Value::Instance(inst)) = args.first() {
                     if inst.class.exception_root.is_some() {
                         inst.insert(Rc::from("args"), Value::tuple(args[1..].to_vec()));
+                    } else if let Some(base) = inst.class.builtin_base.clone().filter(|b| super::value::descriptor_base(b) && inst.payload().is_none()) {
+                        // `super().__init__(fget, ...)` in a property subclass: what it carries.
+                        let carried = self.new_payload(&base, &args[1..], kwargs)?;
+                        inst.set_payload(carried);
+                        return Ok(Some(Value::None));
                     } else if let Some(p) = inst.payload().cloned() {
                         self.builtin_init(&p, &args[1..], kwargs)?;
                         return Ok(Some(Value::None));
@@ -2295,6 +2380,80 @@ impl Interp {
                 return self.construct_plain(&c, args[1..].to_vec(), kwargs.to_vec()).map(Some);
             }
             HIDDEN_TYPE_INIT => Value::None,
+            HIDDEN_PROPERTY_GET | HIDDEN_PROPERTY_SET | HIDDEN_PROPERTY_DELETE | HIDDEN_CLASSMETHOD_GET | HIDDEN_STATICMETHOD_GET => {
+                let Some(Value::Instance(d)) = arg(0) else {
+                    return Err(self.error("descriptor needs its instance", "TypeError"));
+                };
+                let Some(Value::Object(carried)) = d.payload().cloned() else {
+                    return Err(self.error(format!("'{}' object was not initialized", d.class.name), "TypeError"));
+                };
+                let obj = arg(1).unwrap_or(Value::None);
+                match (name, carried.as_ref()) {
+                    (HIDDEN_PROPERTY_GET, Object::Property { get, .. }) => {
+                        if obj.is_none() {
+                            Value::Instance(d.clone())
+                        } else if get.is_none() {
+                            return Err(self.error(format!("property {}of '{}' object has no getter", descriptor_name(&d, &obj), obj.type_name()), "AttributeError"));
+                        } else {
+                            let get = get.clone();
+                            return self.call_value(&get, vec![obj], Vec::new()).map(Some);
+                        }
+                    }
+                    (HIDDEN_PROPERTY_SET, Object::Property { set, .. }) => {
+                        if set.is_none() {
+                            return Err(self.error(format!("property {}of '{}' object has no setter", descriptor_name(&d, &obj), obj.type_name()), "AttributeError"));
+                        }
+                        let set = set.clone();
+                        self.call_value(&set, vec![obj, arg(2).unwrap_or(Value::None)], Vec::new())?;
+                        Value::None
+                    }
+                    (HIDDEN_PROPERTY_DELETE, Object::Property { .. }) => {
+                        return Err(self.error(format!("property {}of '{}' object has no deleter", descriptor_name(&d, &obj), obj.type_name()), "AttributeError"));
+                    }
+                    (HIDDEN_CLASSMETHOD_GET, Object::ClassMethod(f)) => {
+                        let owner = match arg(2) {
+                            Some(t) if !t.is_none() => t,
+                            _ => self.type_of(&obj),
+                        };
+                        object(Object::Bound(owner, f.clone()))
+                    }
+                    (HIDDEN_STATICMETHOD_GET, Object::StaticMethod(f)) => f.clone(),
+                    _ => return Err(self.error("descriptor carries the wrong kind of value", "TypeError")),
+                }
+            }
+            HIDDEN_PROPERTY_REMAKE_SETTER | HIDDEN_PROPERTY_REMAKE_GETTER => {
+                let (Some(Value::Instance(d)), Some(f)) = (arg(0), arg(1)) else {
+                    return Err(self.error("setter() takes exactly one argument", "TypeError"));
+                };
+                let Some(Value::Object(carried)) = d.payload().cloned() else {
+                    return Err(self.error(format!("'{}' object was not initialized", d.class.name), "TypeError"));
+                };
+                let Object::Property { get, set } = carried.as_ref() else {
+                    return Err(self.error("setter() of a non-property", "TypeError"));
+                };
+                let pair = if name == HIDDEN_PROPERTY_REMAKE_SETTER { vec![get.clone(), f] } else { vec![f, set.clone()] };
+                let class = d.class.clone();
+                return self.construct(&class, pair, Vec::new()).map(Some);
+            }
+            HIDDEN_SUBCLASSES => {
+                let of = arg(0).unwrap_or(Value::None);
+                let found: Vec<Value> = self
+                    .classes
+                    .iter()
+                    .filter_map(std::rc::Weak::upgrade)
+                    .filter(|c| match &of {
+                        Value::Class(base) => c.bases.borrow().iter().any(|b| Rc::ptr_eq(b, base)),
+                        // A built-in type's: classes deriving from it straight, not through another class.
+                        Value::Builtin(name) if name.as_ref() == "object" => c.bases.borrow().is_empty() && c.builtin_base.is_none(),
+                        Value::Builtin(name) => {
+                            c.builtin_base.as_deref() == Some(name.as_ref()) && !c.bases.borrow().iter().any(|b| b.builtin_base.as_deref() == Some(name.as_ref()))
+                        }
+                        _ => false,
+                    })
+                    .map(Value::Class)
+                    .collect();
+                Value::list(found)
+            }
             HIDDEN_FUNCTION_GET => match (arg(0), arg(1)) {
                 (Some(f), None | Some(Value::None)) => f,
                 (Some(f), Some(obj)) => object(Object::Bound(obj, f)),
@@ -2414,8 +2573,8 @@ impl Interp {
         }
         let c = Rc::new(Class {
             name: Rc::from("object"),
-            bases: Vec::new(),
-            mro: Vec::new(),
+            bases: RefCell::new(Vec::new()),
+            mro: RefCell::new(Vec::new()),
             exception_root: None,
             attrs: RefCell::new(name_map(0)),
             traits: Default::default(),
@@ -2522,7 +2681,7 @@ impl Interp {
         }
         let mut names: Vec<String> = Vec::new();
         let from_class = |c: &Rc<Class>, names: &mut Vec<String>| {
-            for k in std::iter::once(c).chain(c.mro.iter()) {
+            for k in std::iter::once(c.clone()).chain(c.mro_list()) {
                 names.extend(k.attrs.borrow().keys().map(|s| s.to_string()));
             }
         };
@@ -2664,7 +2823,8 @@ impl Interp {
             }
         }
         let mut bits = 0;
-        for k in std::iter::once(c).chain(c.mro.iter().map(|r| r.as_ref())) {
+        let mro = c.mro_list();
+        for k in std::iter::once(c).chain(mro.iter().map(|r| r.as_ref())) {
             for (name, v) in k.attrs.borrow().iter() {
                 if let Value::Object(o) = v {
                     if matches!(o.as_ref(), Object::Property { .. }) {
@@ -2712,7 +2872,7 @@ fn own(v: &Value, class: &Rc<Class>) {
 /// cannot be put in one order consistent with each of theirs.
 fn c3_order(bases: &[Rc<Class>]) -> Option<Vec<Rc<Class>>> {
     let mut seqs: Vec<Vec<Rc<Class>>> =
-        bases.iter().map(|b| std::iter::once(b.clone()).chain(b.mro.iter().cloned()).collect()).collect();
+        bases.iter().map(|b| std::iter::once(b.clone()).chain(b.mro_list()).collect()).collect();
     seqs.push(bases.to_vec());
     let mut out: Vec<Rc<Class>> = Vec::new();
     loop {
@@ -2757,7 +2917,67 @@ fn kwarg(kwargs: &[(Rc<str>, Value)], name: &str) -> Option<Value> {
     kwargs.iter().find(|(k, _)| k.as_ref() == name).map(|(_, v)| v.clone())
 }
 
+/// `'v' ` when [d] is the attribute `v` of [obj]'s class (or a class before
+/// it), for an error message; empty when it is found nowhere.
+fn descriptor_name(d: &Rc<Instance>, obj: &Value) -> String {
+    let Value::Instance(o) = obj else { return String::new() };
+    let mro = o.class.mro_list();
+    std::iter::once(&o.class)
+        .chain(mro.iter())
+        .find_map(|c| c.attrs.borrow().iter().find(|(_, v)| matches!(v, Value::Instance(i) if Rc::ptr_eq(i, d))).map(|(k, _)| format!("'{k}' ")))
+        .unwrap_or_default()
+}
+
 impl Interp {
+    /// `C.__bases__ = (A, B)`: new bases and the resolution order they make,
+    /// for [c] and every class deriving from it, as CPython reorders them.
+    /// typing does it to a generic NamedTuple.
+    pub(crate) fn set_class_bases(&mut self, c: &Rc<Class>, value: &Value) -> R<()> {
+        let Value::Tuple(items) = value else {
+            return Err(self.error(format!("can only assign tuple to {}.__bases__, not {}", c.name, value.type_name()), "TypeError"));
+        };
+        if items.is_empty() {
+            return Err(self.error(format!("can only assign non-empty tuple to {}.__bases__, not ()", c.name), "TypeError"));
+        }
+        let mut bases = Vec::with_capacity(items.len());
+        for item in items.iter() {
+            match item {
+                Value::Class(b) => {
+                    if b.is_subclass_of(c) {
+                        return Err(self.error("a __bases__ item causes an inheritance cycle", "TypeError"));
+                    }
+                    if bases.iter().any(|have: &Rc<Class>| Rc::ptr_eq(have, b)) {
+                        return Err(self.error(format!("duplicate base class {}", b.name), "TypeError"));
+                    }
+                    if b.builtin_base != c.builtin_base && b.builtin_base.is_some() {
+                        return Err(self.error(format!("__bases__ assignment: '{}' object layout differs from '{}'", b.name, c.name), "TypeError"));
+                    }
+                    bases.push(b.clone());
+                }
+                Value::Builtin(n) if n.as_ref() == "object" || c.builtin_base.as_deref() == Some(n.as_ref()) => {}
+                other => {
+                    return Err(self.error(format!("{}.__bases__ must be tuple of classes, not '{}'", c.name, other.type_name()), "TypeError"));
+                }
+            }
+        }
+        let Some(mro) = c3_order(&bases) else {
+            let names: Vec<&str> = bases.iter().map(|b| b.name.as_ref()).collect();
+            return Err(self.error(format!("Cannot create a consistent method resolution order (MRO) for bases {}", names.join(", ")), "TypeError"));
+        };
+        *c.bases.borrow_mut() = bases;
+        *c.mro.borrow_mut() = mro;
+        // The classes made from it, oldest first, so each reorders over its bases' new orders.
+        let derived: Vec<Rc<Class>> =
+            self.classes.iter().filter_map(std::rc::Weak::upgrade).filter(|k| !Rc::ptr_eq(k, c) && k.is_subclass_of(c)).collect();
+        for k in derived {
+            if let Some(order) = c3_order(&k.base_list()) {
+                *k.mro.borrow_mut() = order;
+            }
+        }
+        self.class_epoch += 1;
+        Ok(())
+    }
+
     /// `cls.__new__(cls, *args)` for a class deriving from a built-in type
     /// (the base's `__new__`), or `object.__new__(cls)`: an instance with no
     /// attributes, and for the first its built-in value made from [args].

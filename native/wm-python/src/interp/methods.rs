@@ -654,11 +654,26 @@ impl Interp {
             }
             "count" => {
                 let sub = self.arg_str(&args, 0, "count")?;
+                // Within s[start:end], when they are given.
+                let window: &str = if args.len() > 1 {
+                    let b = self.chars(s);
+                    let count = b.len() - 1;
+                    let bound = |v: Option<&Value>, default: usize| match v {
+                        None | Some(Value::None) => default,
+                        Some(v) => normalise(v.as_int().unwrap_or(default as i64), count),
+                    };
+                    let (lower, upper) = (bound(args.get(1), 0), bound(args.get(2), count));
+                    if lower > upper {
+                        return Ok(Value::Int(0));
+                    }
+                    &s[b[lower] as usize..b[upper] as usize]
+                } else {
+                    s
+                };
                 if sub.is_empty() {
-                    let n = self.chars(s).len();
-                    return Ok(Value::Int(n as i64));
+                    return Ok(Value::Int(grapheme_count(window) as i64 + 1));
                 }
-                Ok(Value::Int(s.matches(sub.as_ref()).count() as i64))
+                Ok(Value::Int(window.matches(sub.as_ref()).count() as i64))
             }
             "partition" | "rpartition" => {
                 let sep = self.arg_str(&args, 0, name)?;

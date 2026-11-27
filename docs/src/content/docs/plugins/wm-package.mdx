@@ -92,8 +92,9 @@ needs:
   and `from __future__ import annotations`, which keeps annotations as their
   text
 - `async def`, `await`, `async for` and `async with`, which `asyncio` runs one
-  coroutine at a time (see below)
-- list, dict and set comprehensions, f-strings (`{x=}` too), slicing, slice
+  coroutine at a time (see below), and `async for` in a comprehension
+- list, dict and set comprehensions, f-strings (`{x=}` too, and a field that
+  runs over several lines of a triple-quoted f-string), slicing, slice
   assignment, and unpacking with a starred target (`first, *rest = items`)
 - type annotations: a class's and a module's are evaluated into
   `__annotations__` where they stand, a function's the first time its
@@ -104,7 +105,9 @@ needs:
   included, with `split`, `subgroup` and `add_note` (there is no `except*`)
 - subclasses of `dict`, `list`, `str`, `int`, `float`, `tuple`, `set` and
   `bytes`, with `super()` reaching the type's methods and `__missing__` for a
-  dict subclass
+  dict subclass, and of `property`, `classmethod` and `staticmethod`, whose
+  instances work as the decorator does unless the class gives its own
+  `__get__`
 - integers of any size, as Python's are, with `<<`, `>>` and the other bit
   operators, and `int.from_bytes` and `n.to_bytes` for binary formats
 - complex numbers: `1 + 2j`, `complex("1+2j")`, `z.real`, `z.imag`,
@@ -144,8 +147,10 @@ no files and no console to read. `%` formatting of bytes is not there.
 `month`, `day`, `hour`, `minute`, `second`, `weekday`, `yearday`) and
 `format(pattern, seconds)` with Java date patterns such as
 `"EEE d MMM yyyy"`, and Python's own `localtime`, `gmtime`, `strftime`,
-`strptime`, `mktime`, `asctime`, `perf_counter` and `time_ns`. It has no
-`sleep`: a plugin waits with a timer. `sys` has `version_info` (3.13),
+`strptime`, `mktime`, `asctime`, `perf_counter` and `time_ns`. `sleep(0)`
+returns, but a longer `sleep` raises `RuntimeError`, as the keyboard has to
+keep answering keys: a plugin waits with `plugin.after(seconds, fn)`. `sys`
+has `version_info` (3.13),
 `platform` (`"android"`), `maxsize`, `argv`, `exit`, `getrecursionlimit`,
 `setrecursionlimit`, `float_info`, `int_info`, `hash_info`,
 `set_int_max_str_digits`, `getsizeof` (CPython's sizes), `flags` (none set),
@@ -218,7 +223,13 @@ forms, categories, digit values and character names. Everything in
 only as far as you take from them. `collections.Counter`, `defaultdict` and `OrderedDict` are dict
 subclasses and `namedtuple` and `typing.NamedTuple` make tuple subclasses, as
 in Python, so they go into `json.dumps` and pass `isinstance(x, dict)` or
-`isinstance(p, tuple)`. In `enum`, an `IntEnum`, `StrEnum` or `IntFlag`
+`isinstance(p, tuple)`. `ChainMap`, `UserDict`, `UserList` and `UserString`
+are CPython's. So is `functools`: `lru_cache` keeps the most recently used
+calls (with `cache_info()`), and `partialmethod`, `singledispatch`,
+`singledispatchmethod` and `cached_property` are there. `abc` marks methods
+with `abstractmethod`, or the older `abstractproperty`,
+`abstractclassmethod` and `abstractstaticmethod`, and a class that leaves
+one unwritten can't be instantiated. In `enum`, an `IntEnum`, `StrEnum` or `IntFlag`
 member, or one of `class Color(str, Enum)`, is a value of that type:
 `Color.RED == "red"`, and `json.dumps` writes its value. `Flag` members
 combine with `|`, `&`, `^` and `~`, and `Enum("Animal", "ANT BEE")` makes an
@@ -236,7 +247,8 @@ in memory. `str.encode`, `bytes.decode` and `codecs` know UTF-8 (with or without
 a signature), UTF-16, UTF-32, ASCII, Latin-1, Windows-1252, `unicode_escape`,
 `rot13` and `hex`. `argparse` parses the list you give it; on bad input it
 writes the usage to the log and raises `SystemExit`. `inspect` reads
-signatures and kinds of object but has no source to show, `ast` has only
+signatures (the builtins' too, where CPython has one, such as `len` and
+`sorted`) and kinds of object but has no source to show, `ast` has only
 `literal_eval`, `importlib.import_module` imports by name, and
 `importlib.metadata` finds no installed packages. A `weakref` keeps its object
 alive, since there is no garbage collector to watch it go. `secrets` draws on

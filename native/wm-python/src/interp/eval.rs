@@ -1721,7 +1721,7 @@ impl Interp {
     }
 
     #[inline(never)]
-    fn eval_items(&mut self, items: &[Expr], env: &Rc<Env>) -> R<Vec<Value>> {
+    pub(crate) fn eval_items(&mut self, items: &[Expr], env: &Rc<Env>) -> R<Vec<Value>> {
         let mut out = Vec::with_capacity(items.len());
         for i in items {
             if let Expr::Starred(inner) = i {
@@ -2321,8 +2321,8 @@ impl Interp {
                 _ => Err(self.error(format!("'{}' object has no attribute '{name}'", obj.type_name()), "AttributeError")),
             },
             Value::Function(f) => {
-                if let Some(v) = f.attrs.borrow().get(name) {
-                    return Ok(v.clone());
+                if let Some(v) = f.attr(name) {
+                    return Ok(v);
                 }
                 match name {
                     "__name__" => Ok(Value::Str(f.name.clone())),
@@ -2420,10 +2420,7 @@ impl Interp {
                         self.track_instance(&code);
                         Ok(Value::Instance(code))
                     }
-                    "__dict__" => {
-                        let pairs: Vec<(Rc<str>, Value)> = f.attrs.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-                        Ok(Value::dict(pairs))
-                    }
+                    "__dict__" => Ok(Value::Dict(f.attr_dict())),
                     _ => Err(self.error(format!("'function' object has no attribute '{name}'"), "AttributeError")),
                 }
             }
@@ -2482,6 +2479,9 @@ impl Interp {
             }
             // `int.__dict__`: what `dir(int)` lists, each name to what it reads.
             // Its own methods only: `__reduce_ex__` is object's, not list's.
+            Value::Builtin(b) if name == "__subclasses__" && (b.as_ref() == "object" || super::builtins::is_type_name(b)) => {
+                Ok(Value::Object(Rc::new(Object::Bound(obj.clone(), Value::Builtin(Rc::from(super::classes::HIDDEN_SUBCLASSES))))))
+            }
             Value::Builtin(b) if name == "__dict__" && (b.as_ref() == "object" || super::builtins::is_type_name(b)) => {
                 let names: Vec<Rc<str>> = if b.as_ref() == "object" {
                     match self.dir_of(obj)? {
@@ -4409,11 +4409,11 @@ impl Trace {
 /// How a call error names [f]: `C.m` for a method defined in a class body,
 /// as CPython's qualified name does, or its own name.
 fn call_name(f: &Function) -> String {
-    if let Some(Value::Str(q)) = f.attrs.borrow().get("__qualname__") {
+    if let Some(Value::Str(q)) = f.attr("__qualname__") {
         return q.to_string();
     }
     match f.owner.borrow().as_ref().and_then(|w| w.upgrade()) {
-        Some(class) => format!("{}.{}", class.name, f.name),
+        Some(class) => format!("{}.{}", class.qualname(), f.name),
         None => f.name.to_string(),
     }
 }

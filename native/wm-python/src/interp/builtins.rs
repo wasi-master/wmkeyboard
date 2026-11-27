@@ -99,7 +99,7 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
     "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
     "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii", "UnboundLocalError", "GeneratorExit",
-    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__", "__syntax_check__",
+    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__", "__syntax_check__", "__json_encode__", "__json_decode__",
 ];
 
 /// The builtins that are types: `type(x)` answers with one, and `str()` of
@@ -129,12 +129,13 @@ pub(crate) const PYTHON_BUILTINS: &[&str] =
     &[
         "frozenset", "bytearray", "memoryview", "__type_alias__", "GenericAlias", "aiter", "anext", "__union__", "__iter_call__",
         "BaseExceptionGroup", "ExceptionGroup", "input", "open", "breakpoint", "exit", "quit", "help", "compile",
+        "__aiter_sync__",
     ];
 
 /// The builtins that take keyword arguments.
 pub(crate) const KWARG_BUILTINS: &[&str] = &[
     "sorted", "min", "max", "round", "property", "print", "enumerate", "dict", "sum", "int", "zip", "str", "bytes",
-    "complex", "__import__", "__base_init__", "__object_new__",
+    "complex", "__import__", "__base_init__", "__object_new__", "__json_encode__", "__json_decode__",
 ];
 
 /// The special methods a numeric builtin asks an instance for.
@@ -403,6 +404,24 @@ impl Interp {
                     return Err(self.error("invalid syntax", "SyntaxError"));
                 }
                 Ok(Value::None)
+            }
+            // JSONEncoder.encode and JSONDecoder.decode (in _builtins.py): the
+            // json module's own encoder and decoder, given the object's options.
+            "__json_encode__" => {
+                let v = args.first().ok_or_else(|| self.error("__json_encode__() needs a value", "TypeError"))?;
+                self.json_encode(v, kwarg(kwargs, "indent"), kwargs)
+            }
+            "__json_decode__" => {
+                let Some(Value::Str(s)) = args.first() else {
+                    let given = args.first().map_or_else(|| "nothing".to_string(), Value::type_name);
+                    return Err(self.error(format!("the JSON object must be str, not {given}"), "TypeError"));
+                };
+                let at = match args.get(1) {
+                    None | Some(Value::None) => None,
+                    Some(v) => Some(v.as_int().ok_or_else(|| self.error("idx must be an int", "TypeError"))?),
+                };
+                let options = super::modules::json_decode_options(kwargs);
+                self.json_decode(s, at, &options)
             }
             "complex" => self.complex_builtin(args, kwargs),
             "sorted" => self.sorted_builtin(args, kwargs),

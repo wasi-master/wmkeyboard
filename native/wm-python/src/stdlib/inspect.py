@@ -5,6 +5,7 @@ There is no source code or call stack to look at here: getsource() and
 friends raise OSError, and stack() and currentframe() have nothing to give.
 """
 
+import builtins
 import functools
 import sys
 import types
@@ -758,15 +759,73 @@ def _signature_from_callable(obj, follow_wrapped=True, skip_first=False):
         new = vars(obj).get("__new__") if hasattr(obj, "__dict__") else None
         if isfunction(new):
             return _function_signature(new, skip_first=True)
-        # Neither written in Python: a built-in type's, which has no
-        # signature to read, or object's own, which takes nothing.
+        # Neither written in Python: a built-in type's, as CPython gives it
+        # where it has one, or object's own, which takes nothing.
         if getattr(obj, "__module__", None) == "builtins" and obj is not object:
-            raise ValueError(f"no signature found for builtin type {obj!r}")
+            text = _BUILTIN_SIGNATURES.get(obj.__name__) if obj is getattr(builtins, obj.__name__, None) else None
+            if text is None:
+                raise ValueError(f"no signature found for builtin type {obj!r}")
+            return _signature_from_text(text)
         return Signature([])
+    if isbuiltin(obj) and getattr(obj, "__module__", None) == "builtins":
+        text = _BUILTIN_SIGNATURES.get(obj.__name__) if obj is getattr(builtins, obj.__name__, None) else None
+        if text is not None:
+            return _signature_from_text(text)
     call = getattr(type(obj), "__call__", None)
     if call is not None and isfunction(call):
         return _function_signature(call, skip_first=True)
     raise ValueError(f"no signature found for builtin {obj!r}")
+
+
+# The builtins' signatures, as CPython's __text_signature__ gives them; those
+# CPython has none for (max, getattr, int, str, ...) are missing here too.
+_BUILTIN_SIGNATURES = {
+    "abs": "(x, /)", "aiter": "(async_iterable, /)", "all": "(iterable, /)", "any": "(iterable, /)",
+    "ascii": "(obj, /)", "bin": "(number, /)", "bool": "(object=False, /)", "callable": "(obj, /)",
+    "chr": "(i, /)", "classmethod": "(function, /)",
+    "compile": "(source, filename, mode, flags=0, dont_inherit=False, optimize=-1, *, _feature_version=-1)",
+    "complex": "(real=0, imag=0)", "delattr": "(obj, name, /)", "divmod": "(x, y, /)",
+    "enumerate": "(iterable, start=0)", "eval": "(source, /, globals=None, locals=None)",
+    "exec": "(source, /, globals=None, locals=None, *, closure=None)", "filter": "(function, iterable, /)",
+    "float": "(x=0, /)", "format": "(value, format_spec='', /)", "frozenset": "(iterable=(), /)",
+    "globals": "()", "hasattr": "(obj, name, /)", "hash": "(obj, /)", "hex": "(number, /)", "id": "(obj, /)",
+    "input": "(prompt='', /)", "isinstance": "(obj, class_or_tuple, /)", "issubclass": "(cls, class_or_tuple, /)",
+    "len": "(obj, /)", "list": "(iterable=(), /)", "locals": "()", "map": "(function, iterable, /, *iterables)",
+    "object": "()", "oct": "(number, /)",
+    "open": "(file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None)",
+    "ord": "(c, /)", "pow": "(base, exp, mod=None)", "print": "(*args, sep=' ', end='\\n', file=None, flush=False)",
+    "property": "(fget=None, fset=None, fdel=None, doc=None)", "repr": "(obj, /)", "reversed": "(sequence, /)",
+    "round": "(number, ndigits=None)", "set": "(iterable=(), /)", "setattr": "(obj, name, value, /)",
+    "sorted": "(iterable, /, *, key=None, reverse=False)", "staticmethod": "(function, /)",
+    "sum": "(iterable, /, start=0)", "tuple": "(iterable=(), /)", "zip": "(*iterables, strict=False)",
+}
+
+
+def _signature_from_text(text):
+    """A Signature from text like "(obj, /, *, key=None)": CPython's
+    __text_signature__ form, whose defaults are literals."""
+    import ast
+    params = []
+    kind = _POSITIONAL_OR_KEYWORD
+    for part in (p.strip() for p in text[1:-1].split(", ")):
+        if not part:
+            continue
+        if part == "/":
+            params = [p.replace(kind=_POSITIONAL_ONLY) for p in params]
+            continue
+        if part == "*":
+            kind = _KEYWORD_ONLY
+            continue
+        if part.startswith("**"):
+            params.append(Parameter(part[2:], _VAR_KEYWORD))
+            continue
+        if part.startswith("*"):
+            params.append(Parameter(part[1:], _VAR_POSITIONAL))
+            kind = _KEYWORD_ONLY
+            continue
+        name, eq, default = part.partition("=")
+        params.append(Parameter(name, kind, default=ast.literal_eval(default) if eq else _empty))
+    return Signature(params)
 
 
 def signature(obj, *, follow_wrapped=True, globals=None, locals=None, eval_str=False):

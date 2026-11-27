@@ -123,7 +123,7 @@ fn a_native_error_in_a_function_has_the_line_it_was_raised_on() {
     // The error a module function raises carries no line of its own; it takes
     // the innermost frame's, as CPython's traceback reports it.
     let e = failure(&[], "import json\n\ndef parse():\n    return json.loads('{')\n\nparse()\n");
-    assert_eq!(e.kind, "ValueError");
+    assert_eq!(e.kind, "JSONDecodeError");
     assert_eq!((e.file.as_deref(), e.line), (Some("main.py"), Some(4)));
     assert_eq!(frames(&e), [(Some("main.py"), Some(6), "<module>"), (Some("main.py"), Some(4), "parse")]);
     let e = failure(&[("helpers.py", "import math\n\ndef root(x):\n    return math.sqrt(x)\n")], "import helpers\nhelpers.root(-1)\n");

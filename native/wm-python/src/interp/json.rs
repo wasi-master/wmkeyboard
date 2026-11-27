@@ -1,24 +1,30 @@
-//! Port of PyJson.kt: JSON for script values, behind the `json` namespace.
-//! The encoder walks values directly so dict order survives a round trip, and
-//! the decoder keeps object keys in file order.
+//! JSON for script values, behind the `json` namespace: begun as a port of
+//! PyJson.kt, now reading and writing as CPython's json module does, with
+//! its C accelerator's error messages. The encoder walks values directly so
+//! dict order survives a round trip, and the decoder keeps object keys in
+//! file order. The hooks (`default`, `object_hook`, `parse_float` and the
+//! rest) are script functions the [Host] calls.
 
 use super::value::DictMap;
 
 use super::error::{AbortKind, PyError};
-use super::text::{graphemes, longer_than, parse_swift_double, parse_swift_int, str_compare};
-use super::builtins::is_scalar;
-use super::value::{format_double, payload_of, HKey, Value};
+use super::text::{longer_than, str_compare};
+use super::value::{format_double, payload_of, py_identical, HKey, Value};
 
 type Res<T> = Result<T, PyError>;
 
 /// Deepest nesting accepted either way, so a hostile value can't recurse the stack out.
 const MAX_DEPTH: u32 = 100;
 
-fn verr(m: &str) -> PyError {
-    PyError::new(m, "ValueError")
+/// What the encoder and decoder ask of the interpreter.
+pub(crate) trait Host {
+    /// Spend one step of the budget.
+    fn charge(&mut self) -> Res<()>;
+    /// Call a script function: `default`, a hook, a `parse_*` function.
+    fn call(&mut self, f: &Value, args: Vec<Value>) -> Res<Value>;
 }
 
-/// How `json.dumps` writes: its `indent`, `sort_keys`, `ensure_ascii` and `separators`.
+/// How `json.dumps` writes: CPython's JSONEncoder options.
 pub(crate) struct EncodeOptions {
     /// What one level of nesting indents by; None writes everything on one line.
     pub indent: Option<String>,
@@ -28,21 +34,61 @@ pub(crate) struct EncodeOptions {
     /// Between items, and between a key and its value.
     pub item_separator: String,
     pub key_separator: String,
+    /// Leave out a key that isn't a str, int, float, bool or None, rather than fail.
+    pub skipkeys: bool,
+    /// Write NaN and the infinities as `NaN`, `Infinity` and `-Infinity`, rather than fail.
+    pub allow_nan: bool,
+    /// Refuse a list or dict that contains itself, with a ValueError.
+    pub check_circular: bool,
+    /// What a value JSON can't hold is first turned into; None fails with a TypeError.
+    pub default: Option<Value>,
 }
 
 impl EncodeOptions {
     /// Python's defaults for an indent: `", "` on one line, `","` when indented.
     pub fn new(indent: Option<String>) -> EncodeOptions {
         let item_separator = if indent.is_some() { "," } else { ", " }.to_string();
-        EncodeOptions { indent, sort_keys: false, ensure_ascii: false, item_separator, key_separator: ": ".into() }
+        EncodeOptions {
+            indent,
+            sort_keys: false,
+            ensure_ascii: false,
+            item_separator,
+            key_separator: ": ".into(),
+            skipkeys: false,
+            allow_nan: true,
+            check_circular: true,
+            default: None,
+        }
     }
 }
 
 /// Encode [value].
-pub(crate) fn encode(value: &Value, options: &EncodeOptions, limit: usize, charge: &mut dyn FnMut() -> Res<()>) -> Res<String> {
-    let mut out = String::new();
-    write(value, &mut out, options, 0, limit, charge)?;
-    Ok(out)
+pub(crate) fn encode(value: &Value, options: &EncodeOptions, limit: usize, host: &mut dyn Host) -> Res<String> {
+    let mut w = Writer { out: String::new(), options, limit, host, markers: Vec::new() };
+    w.write(value, 0)?;
+    Ok(w.out)
+}
+
+/// A float as JSON writes it: its repr, or one of JavaScript's names for the three that aren't numbers.
+fn float_text(f: f64, allow_nan: bool) -> Res<String> {
+    if f.is_finite() {
+        return Ok(format_double(f));
+    }
+    if !allow_nan {
+        return Err(PyError::new(format!("Out of range float values are not JSON compliant: {}", format_double(f)), "ValueError"));
+    }
+    Ok(if f.is_nan() {
+        "NaN"
+    } else if f > 0.0 {
+        "Infinity"
+    } else {
+        "-Infinity"
+    }
+    .into())
+}
+
+fn key_type(k: &HKey) -> String {
+    k.to_value().type_name()
 }
 
 /// `sort_keys`: numbers by value, strings by code point; anything else mixed in is an error, as in Python.
@@ -53,131 +99,184 @@ fn key_order(a: &HKey, b: &HKey) -> Res<std::cmp::Ordering> {
         HKey::Float(f) => Some(*f),
         _ => None,
     };
-    match (a, b) {
+    match (a.base(), b.base()) {
         (HKey::Str(x), HKey::Str(y)) => Ok(str_compare(x, y)),
-        _ => match (number(a), number(b)) {
+        (x, y) => match (number(x), number(y)) {
             (Some(x), Some(y)) => Ok(x.partial_cmp(&y).unwrap_or(std::cmp::Ordering::Equal)),
-            _ => Err(PyError::new("'<' not supported between keys of different types", "TypeError")),
+            _ => Err(PyError::new(
+                format!("'<' not supported between instances of '{}' and '{}'", key_type(a), key_type(b)),
+                "TypeError",
+            )),
         },
     }
 }
 
-fn write(v: &Value, out: &mut String, options: &EncodeOptions, depth: u32, limit: usize, charge: &mut dyn FnMut() -> Res<()>) -> Res<()> {
-    charge()?;
-    if longer_than(out, limit) {
-        return Err(PyError::abort(AbortKind::StringCap, "string too large", None));
-    }
-    if depth > MAX_DEPTH * 2 {
-        return Err(PyError::abort(AbortKind::Recursion, "maximum recursion depth exceeded", None));
-    }
-    let indent = options.indent.as_deref();
-    let pad = indent.map(|i| i.repeat(depth as usize + 1)).unwrap_or_default();
-    let close_pad = indent.map(|i| i.repeat(depth as usize)).unwrap_or_default();
-    let newline = if indent.is_none() { "" } else { "\n" };
-    let separator = format!("{}{newline}", options.item_separator);
-    let separator = separator.as_str();
-    // A subclass of a built-in type writes as its value.
-    if let Some(p) = payload_of(v) {
-        return write(p, out, options, depth, limit, charge);
-    }
-    let items: Vec<Value> = match v {
-        Value::None => {
-            out.push_str("null");
-            return Ok(());
-        }
-        Value::Bool(b) => {
-            out.push_str(if *b { "true" } else { "false" });
-            return Ok(());
-        }
-        Value::Int(i) => {
-            out.push_str(&i.to_string());
-            return Ok(());
-        }
-        Value::Big(b) => {
-            out.push_str(&super::bigint::to_decimal(b).map_err(|(m, k)| PyError::new(m, k))?);
-            return Ok(());
-        }
-        Value::Float(f) => {
-            out.push_str(&if f.is_finite() { format_double(*f) } else { "null".into() });
-            return Ok(());
-        }
-        Value::Str(s) => {
-            quoted(s, out, options.ensure_ascii);
-            return Ok(());
-        }
-        Value::Dict(d) => {
-            let mut pairs: Vec<(HKey, Value)> = d.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-            if options.sort_keys {
-                let mut failed = None;
-                pairs.sort_by(|(a, _), (b, _)| match key_order(a, b) {
-                    Ok(o) => o,
-                    Err(e) => {
-                        failed.get_or_insert(e);
-                        std::cmp::Ordering::Equal
-                    }
-                });
-                if let Some(e) = failed {
-                    return Err(e);
-                }
+struct Writer<'a> {
+    out: String,
+    options: &'a EncodeOptions,
+    limit: usize,
+    host: &'a mut dyn Host,
+    /// The lists, dicts and `default` arguments being written, outermost first.
+    markers: Vec<Value>,
+}
+
+impl Writer<'_> {
+    fn enter(&mut self, v: &Value) -> Res<()> {
+        if self.options.check_circular {
+            if self.markers.iter().any(|m| py_identical(m, v)) {
+                return Err(PyError::new("Circular reference detected", "ValueError"));
             }
-            if pairs.is_empty() {
-                out.push_str("{}");
+            self.markers.push(v.clone());
+        }
+        Ok(())
+    }
+
+    fn leave(&mut self) {
+        if self.options.check_circular {
+            self.markers.pop();
+        }
+    }
+
+    fn newline(&mut self, depth: u32) {
+        if let Some(indent) = &self.options.indent {
+            self.out.push('\n');
+            for _ in 0..depth {
+                self.out.push_str(indent);
+            }
+        }
+    }
+
+    fn write(&mut self, v: &Value, depth: u32) -> Res<()> {
+        self.host.charge()?;
+        if longer_than(&self.out, self.limit) {
+            return Err(PyError::abort(AbortKind::StringCap, "string too large", None));
+        }
+        if depth > MAX_DEPTH * 2 {
+            return Err(PyError::abort(AbortKind::Recursion, "maximum recursion depth exceeded", None));
+        }
+        // A subclass of a built-in type writes as its value.
+        if let Some(p) = payload_of(v) {
+            return self.write(p, depth);
+        }
+        let ascii = self.options.ensure_ascii;
+        let items: Vec<Value> = match v {
+            Value::None => {
+                self.out.push_str("null");
                 return Ok(());
             }
-            out.push('{');
-            out.push_str(newline);
-            for (i, (k, value)) in pairs.iter().enumerate() {
-                if i > 0 {
-                    out.push_str(separator);
-                }
-                out.push_str(&pad);
-                quoted(&key_text(k)?, out, options.ensure_ascii);
-                out.push_str(&options.key_separator);
-                write(value, out, options, depth + 1, limit, charge)?;
+            Value::Bool(b) => {
+                self.out.push_str(if *b { "true" } else { "false" });
+                return Ok(());
             }
-            out.push_str(newline);
-            out.push_str(&close_pad);
-            out.push('}');
+            Value::Int(i) => {
+                self.out.push_str(&i.to_string());
+                return Ok(());
+            }
+            Value::Big(b) => {
+                self.out.push_str(&super::bigint::to_decimal(b).map_err(|(m, k)| PyError::new(m, k))?);
+                return Ok(());
+            }
+            Value::Float(f) => {
+                let text = float_text(*f, self.options.allow_nan)?;
+                self.out.push_str(&text);
+                return Ok(());
+            }
+            Value::Str(s) => {
+                quoted(s, &mut self.out, ascii);
+                return Ok(());
+            }
+            Value::Dict(d) => {
+                let mut pairs: Vec<(HKey, Value)> = d.borrow().iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+                if self.options.sort_keys {
+                    let mut failed = None;
+                    pairs.sort_by(|(a, _), (b, _)| match key_order(a, b) {
+                        Ok(o) => o,
+                        Err(e) => {
+                            failed.get_or_insert(e);
+                            std::cmp::Ordering::Equal
+                        }
+                    });
+                    if let Some(e) = failed {
+                        return Err(e);
+                    }
+                }
+                if pairs.is_empty() {
+                    self.out.push_str("{}");
+                    return Ok(());
+                }
+                self.enter(v)?;
+                self.out.push('{');
+                let mut first = true;
+                for (k, value) in &pairs {
+                    let Some(key) = key_text(k, self.options)? else { continue };
+                    if !first {
+                        self.out.push_str(&self.options.item_separator);
+                    }
+                    first = false;
+                    self.newline(depth + 1);
+                    quoted(&key, &mut self.out, ascii);
+                    self.out.push_str(&self.options.key_separator);
+                    self.write(value, depth + 1)?;
+                }
+                if !first {
+                    self.newline(depth);
+                }
+                self.out.push('}');
+                self.leave();
+                return Ok(());
+            }
+            Value::List(l) => l.borrow().clone(),
+            Value::Tuple(t) => t.as_ref().clone(),
+            // Not in CPython, which refuses a set: PyMini wrote one as a list,
+            // and still does when no `default` says otherwise.
+            Value::Set(s) if self.options.default.is_none() => s.borrow().iter().map(HKey::to_value).collect(),
+            other => {
+                let Some(default) = self.options.default.clone() else {
+                    return Err(PyError::new(format!("Object of type {} is not JSON serializable", other.type_name()), "TypeError"));
+                };
+                self.enter(other)?;
+                let replacement = self.host.call(&default, vec![other.clone()])?;
+                self.write(&replacement, depth)?;
+                self.leave();
+                return Ok(());
+            }
+        };
+        if items.is_empty() {
+            self.out.push_str("[]");
             return Ok(());
         }
-        Value::List(l) => l.borrow().clone(),
-        Value::Tuple(t) => t.as_ref().clone(),
-        Value::Set(s) => s.borrow().iter().map(HKey::to_value).collect(),
-        other => return Err(PyError::new(format!("Object of type {} is not JSON serializable", other.type_name()), "TypeError")),
-    };
-    if items.is_empty() {
-        out.push_str("[]");
-        return Ok(());
-    }
-    out.push('[');
-    out.push_str(newline);
-    for (i, item) in items.iter().enumerate() {
-        if i > 0 {
-            out.push_str(separator);
+        self.enter(v)?;
+        self.out.push('[');
+        for (i, item) in items.iter().enumerate() {
+            if i > 0 {
+                self.out.push_str(&self.options.item_separator);
+            }
+            self.newline(depth + 1);
+            self.write(item, depth + 1)?;
         }
-        out.push_str(&pad);
-        write(item, out, options, depth + 1, limit, charge)?;
+        self.newline(depth);
+        self.out.push(']');
+        self.leave();
+        Ok(())
     }
-    out.push_str(newline);
-    out.push_str(&close_pad);
-    out.push(']');
-    Ok(())
 }
 
 /// A dict key as JSON writes it: strings as they are, numbers, booleans and
-/// None as JSON would spell them.
-fn key_text(k: &HKey) -> Res<String> {
-    Ok(match k.base() {
+/// None as JSON would spell them. None for a key `skipkeys` leaves out.
+fn key_text(k: &HKey, options: &EncodeOptions) -> Res<Option<String>> {
+    Ok(Some(match k.base() {
         HKey::Str(s) => s.to_string(),
         HKey::Bool(b) => if *b { "true" } else { "false" }.to_string(),
         HKey::None => "null".to_string(),
         HKey::Int(i) => i.to_string(),
-        HKey::Float(f) => format_double(*f),
-        other => return Err(PyError::new(format!("keys must be str, int, float, bool or None, not {}", other.to_value().type_name()), "TypeError")),
-    })
+        HKey::Float(f) => float_text(*f, options.allow_nan)?,
+        _ if options.skipkeys => return Ok(None),
+        _ => return Err(PyError::new(format!("keys must be str, int, float, bool or None, not {}", key_type(k)), "TypeError")),
+    }))
 }
 
-fn quoted(s: &str, out: &mut String, ascii: bool) {
+/// [s] as a JSON string, quotes and all.
+pub(crate) fn quoted(s: &str, out: &mut String, ascii: bool) {
     out.push('"');
     for c in s.chars() {
         match c {
@@ -201,204 +300,308 @@ fn quoted(s: &str, out: &mut String, ascii: bool) {
     out.push('"');
 }
 
-/// Parse [text]. Object keys keep the file's own order.
-pub(crate) fn decode(text: &str, charge: &mut dyn FnMut() -> Res<()>) -> Res<Value> {
-    let chars = graphemes(text);
-    let mut p = Parser { chars: &chars, i: 0, depth: 0, charge };
-    p.skip_space();
-    let v = p.value()?;
-    p.skip_space();
-    if p.i < chars.len() {
-        return Err(verr("could not parse JSON"));
+/// How `json.loads` reads: CPython's JSONDecoder options. A hook left None
+/// is the built-in behaviour, done without calling into the script.
+#[derive(Default)]
+pub(crate) struct DecodeOptions {
+    pub object_hook: Option<Value>,
+    pub object_pairs_hook: Option<Value>,
+    pub parse_float: Option<Value>,
+    pub parse_int: Option<Value>,
+    pub parse_constant: Option<Value>,
+    /// Refuse control characters inside strings, as JSON does.
+    pub strict: bool,
+}
+
+/// Why decoding stopped: a JSONDecodeError's message and the byte offset it
+/// points at, or an error of its own (from a hook, or the sandbox).
+pub(crate) enum DecodeError {
+    At(&'static str, usize),
+    Other(PyError),
+}
+
+impl From<PyError> for DecodeError {
+    fn from(e: PyError) -> Self {
+        DecodeError::Other(e)
+    }
+}
+
+type DRes<T> = Result<T, DecodeError>;
+
+fn is_space(b: u8) -> bool {
+    matches!(b, b' ' | b'\t' | b'\n' | b'\r')
+}
+
+/// Past the JSON whitespace at byte [i] of [text].
+pub(crate) fn skip_space(text: &str, mut i: usize) -> usize {
+    let b = text.as_bytes();
+    while i < b.len() && is_space(b[i]) {
+        i += 1;
+    }
+    i
+}
+
+/// One value from byte [start] of [text], as JSONDecoder.raw_decode reads
+/// it, and the byte offset just past it.
+pub(crate) fn decode_at(text: &str, start: usize, options: &DecodeOptions, host: &mut dyn Host) -> DRes<(Value, usize)> {
+    let mut p = Parser { text, b: text.as_bytes(), depth: 0, options, host };
+    let (v, end) = p.value(start)?;
+    Ok((v, end))
+}
+
+/// The whole of [text] as one value, as JSONDecoder.decode reads it:
+/// whitespace either side, and nothing else after.
+pub(crate) fn decode(text: &str, options: &DecodeOptions, host: &mut dyn Host) -> DRes<Value> {
+    let (v, end) = decode_at(text, skip_space(text, 0), options, host)?;
+    let end = skip_space(text, end);
+    if end != text.len() {
+        return Err(DecodeError::At("Extra data", end));
     }
     Ok(v)
 }
 
-/// A tiny recursive-descent reader over grapheme clusters, as PyMini's is.
-struct Parser<'a, 'c> {
-    chars: &'a [&'a str],
-    i: usize,
+/// A recursive-descent reader over the bytes of the text: everything JSON
+/// spells with is ASCII, and a string's other characters are copied whole.
+struct Parser<'a, 'h> {
+    text: &'a str,
+    b: &'a [u8],
     depth: u32,
-    charge: &'c mut dyn FnMut() -> Res<()>,
+    options: &'a DecodeOptions,
+    host: &'h mut dyn Host,
 }
 
 impl Parser<'_, '_> {
-    fn at(&self) -> Option<&str> {
-        self.chars.get(self.i).copied()
+    fn starts(&self, i: usize, word: &str) -> bool {
+        self.b[i..].starts_with(word.as_bytes())
     }
 
-    fn skip_space(&mut self) {
-        while matches!(self.at(), Some(" " | "\n" | "\t" | "\r")) {
-            self.i += 1;
+    /// The value at byte [i]: "Expecting value" there when there is none.
+    fn value(&mut self, i: usize) -> DRes<(Value, usize)> {
+        self.host.charge()?;
+        let Some(&c) = self.b.get(i) else { return Err(DecodeError::At("Expecting value", i)) };
+        match c {
+            b'"' => {
+                let (s, end) = self.string(i + 1)?;
+                Ok((Value::str(s), end))
+            }
+            b'{' => self.nested(i + 1, Self::object),
+            b'[' => self.nested(i + 1, Self::array),
+            b'n' if self.starts(i, "null") => Ok((Value::None, i + 4)),
+            b't' if self.starts(i, "true") => Ok((Value::Bool(true), i + 4)),
+            b'f' if self.starts(i, "false") => Ok((Value::Bool(false), i + 5)),
+            b'N' if self.starts(i, "NaN") => Ok((self.constant("NaN", f64::NAN)?, i + 3)),
+            b'I' if self.starts(i, "Infinity") => Ok((self.constant("Infinity", f64::INFINITY)?, i + 8)),
+            b'-' if self.starts(i, "-Infinity") => Ok((self.constant("-Infinity", f64::NEG_INFINITY)?, i + 9)),
+            _ => self.number(i),
         }
     }
 
-    fn value(&mut self) -> Res<Value> {
-        (self.charge)()?;
-        match self.at() {
-            None => Err(verr("unexpected end of JSON")),
-            Some("{") => self.nested(Self::obj),
-            Some("[") => self.nested(Self::array),
-            Some("\"") => Ok(Value::str(self.string()?)),
-            Some("t") => self.literal("true").map(|_| Value::Bool(true)),
-            Some("f") => self.literal("false").map(|_| Value::Bool(false)),
-            Some("n") => self.literal("null").map(|_| Value::None),
-            _ => self.number(),
+    fn constant(&mut self, name: &str, value: f64) -> Res<Value> {
+        match &self.options.parse_constant {
+            Some(f) => self.host.call(f, vec![Value::str(name)]),
+            None => Ok(Value::Float(value)),
         }
     }
 
-    fn nested(&mut self, f: fn(&mut Self) -> Res<Value>) -> Res<Value> {
+    fn nested(&mut self, i: usize, f: fn(&mut Self, usize) -> DRes<(Value, usize)>) -> DRes<(Value, usize)> {
         self.depth += 1;
         if self.depth >= MAX_DEPTH {
-            return Err(PyError::abort(AbortKind::Recursion, "JSON nested too deeply", None));
+            return Err(PyError::abort(AbortKind::Recursion, "JSON nested too deeply", None).into());
         }
-        let r = f(self);
+        let r = f(self, i);
         self.depth -= 1;
         r
     }
 
-    fn literal(&mut self, word: &str) -> Res<()> {
-        for c in word.chars() {
-            match self.at() {
-                Some(x) if x.len() == 1 && x.starts_with(c) => self.i += 1,
-                _ => return Err(verr("invalid JSON literal")),
-            }
-        }
-        Ok(())
+    fn at(&self, i: usize) -> Option<u8> {
+        self.b.get(i).copied()
     }
 
-    fn obj(&mut self) -> Res<Value> {
-        self.i += 1;
+    fn object(&mut self, i: usize) -> DRes<(Value, usize)> {
+        let mut pairs: Vec<(String, Value)> = Vec::new();
+        let mut i = skip_space(self.text, i);
+        if self.at(i) != Some(b'}') {
+            loop {
+                if self.at(i) != Some(b'"') {
+                    return Err(DecodeError::At("Expecting property name enclosed in double quotes", i));
+                }
+                let (key, end) = self.string(i + 1)?;
+                i = skip_space(self.text, end);
+                if self.at(i) != Some(b':') {
+                    return Err(DecodeError::At("Expecting ':' delimiter", i));
+                }
+                i = skip_space(self.text, i + 1);
+                let (v, end) = self.value(i)?;
+                pairs.push((key, v));
+                i = skip_space(self.text, end);
+                if self.at(i) == Some(b'}') {
+                    break;
+                }
+                if self.at(i) != Some(b',') {
+                    return Err(DecodeError::At("Expecting ',' delimiter", i));
+                }
+                let comma = i;
+                i = skip_space(self.text, i + 1);
+                if self.at(i) == Some(b'}') {
+                    return Err(DecodeError::At("Illegal trailing comma before end of object", comma));
+                }
+            }
+        }
+        let end = i + 1;
+        if let Some(hook) = self.options.object_pairs_hook.clone() {
+            let list = pairs.into_iter().map(|(k, v)| Value::tuple(vec![Value::str(k), v])).collect();
+            return Ok((self.host.call(&hook, vec![Value::list(list)])?, end));
+        }
         let mut d = DictMap::default();
-        self.skip_space();
-        if self.at() == Some("}") {
-            self.i += 1;
-            return Ok(Value::new_dict(d));
+        for (k, v) in pairs {
+            d.insert(HKey::str(&k), v);
         }
-        loop {
-            self.skip_space();
-            let key = self.string()?;
-            self.skip_space();
-            if self.at() != Some(":") {
-                return Err(verr("expected ':' in JSON"));
-            }
-            self.i += 1;
-            self.skip_space();
-            let v = self.value()?;
-            d.insert(HKey::str(&key), v);
-            self.skip_space();
-            match self.at() {
-                None => return Err(verr("unexpected end of JSON")),
-                Some(",") => self.i += 1,
-                Some("}") => {
-                    self.i += 1;
-                    return Ok(Value::new_dict(d));
-                }
-                _ => return Err(verr("expected ',' or '}' in JSON")),
-            }
+        let dict = Value::new_dict(d);
+        if let Some(hook) = self.options.object_hook.clone() {
+            return Ok((self.host.call(&hook, vec![dict])?, end));
         }
+        Ok((dict, end))
     }
 
-    fn array(&mut self) -> Res<Value> {
-        self.i += 1;
+    fn array(&mut self, i: usize) -> DRes<(Value, usize)> {
         let mut items = Vec::new();
-        self.skip_space();
-        if self.at() == Some("]") {
-            self.i += 1;
-            return Ok(Value::list(items));
-        }
-        loop {
-            self.skip_space();
-            items.push(self.value()?);
-            self.skip_space();
-            match self.at() {
-                None => return Err(verr("unexpected end of JSON")),
-                Some(",") => self.i += 1,
-                Some("]") => {
-                    self.i += 1;
-                    return Ok(Value::list(items));
+        let mut i = skip_space(self.text, i);
+        if self.at(i) != Some(b']') {
+            loop {
+                let (v, end) = self.value(i)?;
+                items.push(v);
+                i = skip_space(self.text, end);
+                if self.at(i) == Some(b']') {
+                    break;
                 }
-                _ => return Err(verr("expected ',' or ']' in JSON")),
+                if self.at(i) != Some(b',') {
+                    return Err(DecodeError::At("Expecting ',' delimiter", i));
+                }
+                let comma = i;
+                i = skip_space(self.text, i + 1);
+                if self.at(i) == Some(b']') {
+                    return Err(DecodeError::At("Illegal trailing comma before end of array", comma));
+                }
             }
         }
+        Ok((Value::list(items), i + 1))
     }
 
-    fn string(&mut self) -> Res<String> {
-        if self.at() != Some("\"") {
-            return Err(verr("expected a JSON string"));
+    /// Four hex digits at byte [i], as a UTF-16 code unit.
+    fn hex4(&self, i: usize) -> Option<u32> {
+        let digits = self.b.get(i..i + 4)?;
+        let mut n = 0;
+        for &d in digits {
+            n = n * 16 + (d as char).to_digit(16)?;
         }
-        self.i += 1;
+        Some(n)
+    }
+
+    /// The string whose opening quote is just before byte [begin], and the
+    /// byte offset past its closing quote.
+    fn string(&mut self, begin: usize) -> DRes<(String, usize)> {
         let mut out = String::new();
-        while let Some(c) = self.at() {
-            if c == "\"" {
-                self.i += 1;
-                return Ok(out);
+        let mut i = begin;
+        loop {
+            let run = i;
+            while i < self.b.len() && self.b[i] != b'"' && self.b[i] != b'\\' && (self.b[i] >= 0x20 || !self.options.strict) {
+                i += 1;
             }
-            if c == "\\" {
-                self.i += 1;
-                let Some(e) = self.at() else { break };
-                match e {
-                    "n" => out.push('\n'),
-                    "t" => out.push('\t'),
-                    "r" => out.push('\r'),
-                    "b" => out.push('\u{0008}'),
-                    "f" => out.push('\u{000C}'),
-                    "u" => {
-                        let start = self.i + 1;
-                        let code = if start + 4 <= self.chars.len() {
-                            parse_swift_int(&self.chars[start..start + 4].concat(), 16)
-                        } else {
-                            None
-                        };
-                        // Like PyMini, a lone surrogate (half of a 😀 pair) is refused.
-                        match code {
-                            Some(c) if is_scalar(c) => out.push(char::from_u32(c as u32).unwrap()),
-                            _ => return Err(verr("invalid \\u escape in JSON")),
+            out.push_str(&self.text[run..i]);
+            let Some(c) = self.at(i) else { return Err(DecodeError::At("Unterminated string starting at", begin - 1)) };
+            match c {
+                b'"' => return Ok((out, i + 1)),
+                b'\\' => {}
+                _ => return Err(DecodeError::At("Invalid control character at", i)),
+            }
+            let Some(e) = self.at(i + 1) else { return Err(DecodeError::At("Unterminated string starting at", begin - 1)) };
+            let simple = match e {
+                b'"' => '"',
+                b'\\' => '\\',
+                b'/' => '/',
+                b'b' => '\u{08}',
+                b'f' => '\u{0c}',
+                b'n' => '\n',
+                b'r' => '\r',
+                b't' => '\t',
+                b'u' => {
+                    let Some(mut code) = self.hex4(i + 2) else { return Err(DecodeError::At("Invalid \\uXXXX escape", i + 1)) };
+                    i += 6;
+                    // A pair of surrogates, `😀`, is one character.
+                    if (0xD800..0xDC00).contains(&code) && self.starts(i, "\\u") {
+                        if let Some(low) = self.hex4(i + 2).filter(|l| (0xDC00..0xE000).contains(l)) {
+                            code = 0x10000 + ((code - 0xD800) << 10) + (low - 0xDC00);
+                            i += 6;
                         }
-                        self.i += 4;
                     }
-                    other => out.push_str(other),
+                    // A lone surrogate, which CPython keeps but a Rust string
+                    // can't hold, reads as the replacement character.
+                    out.push(char::from_u32(code).unwrap_or('\u{FFFD}'));
+                    continue;
                 }
-                self.i += 1;
-                continue;
-            }
-            out.push_str(c);
-            self.i += 1;
+                _ => return Err(DecodeError::At("Invalid \\escape", i)),
+            };
+            out.push(simple);
+            i += 2;
         }
-        Err(verr("unterminated JSON string"))
     }
 
-    fn number(&mut self) -> Res<Value> {
-        let mut text = String::new();
-        let mut is_double = false;
-        while let Some(c) = self.at() {
-            if c.len() == 1 && "0123456789+-.eE".contains(c) {
-                if c == "." || c == "e" || c == "E" {
-                    is_double = true;
-                }
-                text.push_str(c);
-                self.i += 1;
-            } else {
-                break;
+    fn digits(&self, mut i: usize) -> usize {
+        while self.at(i).is_some_and(|d| d.is_ascii_digit()) {
+            i += 1;
+        }
+        i
+    }
+
+    /// A number at byte [start], as `-?(0|[1-9]\d*)(\.\d+)?([eE][-+]?\d+)?` matches it.
+    fn number(&mut self, start: usize) -> DRes<(Value, usize)> {
+        let mut i = start;
+        if self.at(i) == Some(b'-') {
+            i += 1;
+        }
+        match self.at(i) {
+            Some(b'0') => i += 1,
+            Some(b'1'..=b'9') => i = self.digits(i + 1),
+            _ => return Err(DecodeError::At("Expecting value", start)),
+        }
+        let mut is_float = false;
+        if self.at(i) == Some(b'.') && self.at(i + 1).is_some_and(|d| d.is_ascii_digit()) {
+            is_float = true;
+            i = self.digits(i + 2);
+        }
+        if matches!(self.at(i), Some(b'e' | b'E')) {
+            let mut j = i + 1;
+            if matches!(self.at(j), Some(b'+' | b'-')) {
+                j += 1;
+            }
+            let end = self.digits(j);
+            if end > j {
+                is_float = true;
+                i = end;
             }
         }
-        if !is_double {
-            if let Some(i) = parse_swift_int(&text, 10) {
-                return Ok(Value::Int(i));
-            }
-            // A whole number past 64 bits is an int, as Python's json reads it.
-            let (negative, digits) = match text.strip_prefix('-') {
-                Some(d) => (true, d),
-                None => (false, text.as_str()),
-            };
-            if !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()) {
-                match super::bigint::parse_digits(digits, 10, negative) {
-                    Ok(Some(v)) => return Ok(v),
-                    Ok(None) => {}
-                    Err((m, k)) => return Err(PyError::new(m, k)),
-                }
-            }
+        let text = &self.text[start..i];
+        let hook = if is_float { &self.options.parse_float } else { &self.options.parse_int };
+        if let Some(f) = hook.clone() {
+            return Ok((self.host.call(&f, vec![Value::str(text)])?, i));
         }
-        parse_swift_double(&text).map(Value::Float).ok_or_else(|| verr("invalid number in JSON"))
+        if is_float {
+            // Rust's parse rounds as Python's float() does; past f64's range it is inf.
+            let f: f64 = text.parse().map_err(|_| PyError::new(format!("could not convert string to float: '{text}'"), "ValueError"))?;
+            return Ok((Value::Float(f), i));
+        }
+        if let Ok(n) = text.parse::<i64>() {
+            return Ok((Value::Int(n), i));
+        }
+        // A whole number past 64 bits is an int, as Python's json reads it.
+        let (negative, digits) = match text.strip_prefix('-') {
+            Some(d) => (true, d),
+            None => (false, text),
+        };
+        match super::bigint::parse_digits(digits, 10, negative) {
+            Ok(Some(v)) => Ok((v, i)),
+            Ok(None) => Err(DecodeError::At("Expecting value", start)),
+            Err((m, k)) => Err(PyError::new(m, k).into()),
+        }
     }
 }
