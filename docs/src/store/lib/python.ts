@@ -9,6 +9,7 @@
  */
 import init, * as wasm from '../wasm/wm_python.js';
 import wasmUrl from '../wasm/wm_python_bg.wasm?url';
+import { usePythonVersion } from './pypi';
 
 let loading: Promise<void> | null = null;
 let loaded = false;
@@ -18,6 +19,9 @@ export function ready(): Promise<void> {
 	if (!loading) {
 		loading = init({ module_or_path: wasmUrl }).then(() => {
 			loaded = true;
+			// PyPI markers and wheel tags follow the interpreter's own version (an older wasm has no python_version).
+			const version = (wasm as unknown as Record<string, unknown>).python_version;
+			if (typeof version === 'function') usePythonVersion(String(version()));
 		});
 		loading.catch(() => {
 			loading = null;

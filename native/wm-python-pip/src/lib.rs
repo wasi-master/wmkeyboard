@@ -46,6 +46,14 @@ pub fn is_built_in(project: &str) -> bool {
 }
 pub use shake::shake;
 
+/// The Python version the keyboard's interpreter gives as `sys.version_info`,
+/// `(major, minor, micro)`. `wmpy pip` and the web editor read environment
+/// markers, `Requires-Python` and wheel tags against it, so they follow the
+/// interpreter when it moves to a new version.
+pub fn python_version() -> (u32, u32, u32) {
+    reach::python_version()
+}
+
 /// The keyboard's caps on a plugin archive (`PluginFile.kt` in core/plugins).
 pub mod limits {
     /// One `.py` file.

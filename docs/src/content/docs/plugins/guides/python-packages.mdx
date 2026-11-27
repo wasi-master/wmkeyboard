@@ -49,14 +49,15 @@ For each package, `wmpy pip install`:
 2. Downloads its pure-Python wheel (`py3-none-any`), or its source archive
    when there is no wheel and nothing in it needs building. A package that
    ships only compiled wheels gets the `.py` files of one of them (a Linux
-   build for CPython 3.12 when there is one), without the compiled parts.
+   build for the keyboard's Python version when there is one), without the compiled parts.
    Many packages fall back to Python for those (PyYAML, MarkupSafe, msgpack,
    multidict), and the analysis checks that they do. A compiled wheel over
    24 MB is mostly compiled code, so it is refused without downloading it.
 3. Checks the download against the SHA-256 that PyPI lists.
 4. Reads its dependencies and installs those the same way. Markers such as
-   `python_version < "3.9"` are read as CPython 3.12 on Linux (aarch64) would
-   read them, and extras only when you ask for them: `attrs[tests]`.
+   `python_version < "3.9"` are read as CPython on Linux (aarch64) would read
+   them, at the version `sys.version_info` gives in a plugin (3.12 today),
+   and extras only when you ask for them: `attrs[tests]`.
 5. Applies the small [patches](#patched-packages) the keyboard keeps for a
    few popular packages, then analyses every package and refuses those that
    will not work.

@@ -65,10 +65,10 @@ impl FileInfo {
         py_ok && abi.split('.').any(|a| a == "none") && platform.split('.').any(|p| p == "any")
     }
 
-    /// Whether the file's `Requires-Python` lets CPython 3.12 install it.
+    /// Whether the file's `Requires-Python` lets the keyboard's Python version install it.
     pub fn fits_python(&self) -> bool {
         let Some(rp) = &self.requires_python else { return true };
-        let py = Version::parse("3.12.0").expect("version");
+        let py = Version::parse(&super::marker::python_version().1).expect("version");
         Specifier::parse(rp).map(|s| s.contains(&py)).unwrap_or(true)
     }
 }
@@ -250,8 +250,11 @@ mod tests {
         let mut f = file("x-1.0-py3-none-any.whl");
         f.requires_python = Some(">=3.8".into());
         assert!(f.fits_python());
-        f.requires_python = Some(">=3.13".into());
+        let (major, minor, _) = wm_python_pip::python_version();
+        f.requires_python = Some(format!(">={major}.{}", minor + 1));
         assert!(!f.fits_python());
+        f.requires_python = Some(format!(">={major}.{minor}"));
+        assert!(f.fits_python());
         assert!(allowed("https://files.pythonhosted.org/packages/aa/x.whl") && !allowed("https://evil.example/files.pythonhosted.org/x"));
     }
 }

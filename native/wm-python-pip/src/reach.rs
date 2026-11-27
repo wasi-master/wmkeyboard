@@ -60,13 +60,8 @@ impl Host {
     }
 
     fn of(probe: &mut Probe) -> Host {
+        let version = version_of(probe);
         let mut test = |src: String| probe.source_runs(&src);
-        let minor = (0..=40).find(|m| test(format!("import sys\nif sys.version_info[:2] != (3, {m}):\n    raise ValueError('v')\n")));
-        let version = minor.and_then(|m| {
-            (0..=40)
-                .find(|u| test(format!("import sys\nif sys.version_info[:3] != (3, {m}, {u}):\n    raise ValueError('v')\n")))
-                .map(|u| (3, m, u))
-        });
         let platforms = ["android", "linux", "darwin", "win32", "cygwin", "emscripten", "wasi", "ios", "freebsd"];
         let platform = platforms
             .iter()
@@ -102,6 +97,25 @@ impl Host {
             _ => return None,
         })
     }
+}
+
+/// `sys.version_info[:3]` as the interpreter answers it: only `sys` is imported.
+fn version_of(probe: &mut Probe) -> Option<(i64, i64, i64)> {
+    let mut test = |src: String| probe.source_runs(&src);
+    let minor = (0..=40).find(|m| test(format!("import sys\nif sys.version_info[:2] != (3, {m}):\n    raise ValueError('v')\n")))?;
+    (0..=40)
+        .find(|u| test(format!("import sys\nif sys.version_info[:3] != (3, {minor}, {u}):\n    raise ValueError('v')\n")))
+        .map(|u| (3, minor, u))
+}
+
+/// The keyboard's Python version, asked once per process; 3.12.0 if the
+/// interpreter's answer cannot be read.
+pub(crate) fn python_version() -> (u32, u32, u32) {
+    static V: OnceLock<(u32, u32, u32)> = OnceLock::new();
+    *V.get_or_init(|| match version_of(&mut Probe::new()) {
+        Some((a, b, c)) => (a as u32, b as u32, c as u32),
+        None => (3, 12, 0),
+    })
 }
 
 /// A value a branch test can be worked out to.

@@ -276,6 +276,14 @@ pub fn pip_analyse(files_json: &str, options_json: &str) -> String {
     wm_python_pip::analyse(&files, &opts).to_json().to_string()
 }
 
+/// The Python version the interpreter gives as `sys.version_info`, such as
+/// `"3.12.0"`: the web editor reads PyPI markers and `Requires-Python` against it.
+#[wasm_bindgen]
+pub fn python_version() -> String {
+    let (a, b, c) = wm_python_pip::python_version();
+    format!("{a}.{b}.{c}")
+}
+
 /// Applies the keyboard's patch for [project] (its PEP 503 name), if it has
 /// one, to [files_json] (`{"path": "source"}`, the package's files), as
 /// `wmpy pip install` does. Answers `{"files": {path: source}, "notes":

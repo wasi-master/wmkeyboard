@@ -17,8 +17,10 @@
 //! `--force`, one with warnings unless `--allow-warnings`, and a package
 //! whose dependency was refused is refused with it. Only pure wheels
 //! (`py3-none-any`) are used, or an sdist's `.py` files when nothing in it
-//! needs building. Requirements and markers are read as CPython 3.12 on Linux
-//! would read them; extras only when asked for as `pkg[extra]`.
+//! needs building, or a compiled wheel's `.py` files when there is neither.
+//! Requirements and markers are read as CPython on Linux would read them, at
+//! the version the keyboard's Python reports ([wm_python_pip::python_version]);
+//! extras only when asked for as `pkg[extra]`.
 //!
 //! requests and httpx are built into the keyboard ([wm_python_pip::is_built_in]):
 //! asking for one, directly or as a dependency, installs nothing and puts

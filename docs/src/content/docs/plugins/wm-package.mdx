@@ -157,8 +157,9 @@ them still load:
   finds nothing. Reading or writing raises `PermissionError`.
 - `subprocess` has its constants, exceptions and `CompletedProcess`. Starting
   a program raises `PermissionError`.
-- `platform` says Android on a 64-bit ARM phone, running Python 3.12. It
-  leaves out who the phone is, so `node()` and `release()` are empty.
+- `platform` says Android on a 64-bit ARM phone, running the Python version
+  `sys.version_info` gives. It leaves out who the phone is, so `node()` and
+  `release()` are empty.
 - `zoneinfo` knows only UTC and its aliases. A naive `datetime` is already in
   the phone's time zone.
 - `gettext` finds no `.mo` files, so `translation(..., fallback=True)` gives

@@ -1,15 +1,27 @@
 //! PEP 508 requirements (`name[extra]>=1.0; python_version < "3.13"`) and
-//! environment markers, evaluated for a generic CPython 3.12 on Linux: the
-//! keyboard's Python is neither, so the markers only decide which of a
-//! package's dependencies a 3.12 interpreter would install.
+//! environment markers, evaluated for a generic CPython on Linux of the
+//! version the keyboard's Python reports ([wm_python_pip::python_version]):
+//! the keyboard's Python is neither, so the markers only decide which of a
+//! package's dependencies that interpreter would install.
+
+use std::sync::OnceLock;
 
 use super::version::{normalize, Specifier, Version};
+
+/// `("3.12", "3.12.0")`: the keyboard's Python version, short and full.
+pub fn python_version() -> &'static (String, String) {
+    static V: OnceLock<(String, String)> = OnceLock::new();
+    V.get_or_init(|| {
+        let (a, b, c) = wm_python_pip::python_version();
+        (format!("{a}.{b}"), format!("{a}.{b}.{c}"))
+    })
+}
 
 /// The environment markers are read against.
 fn env(var: &str) -> Option<&'static str> {
     Some(match var {
-        "python_version" => "3.12",
-        "python_full_version" | "implementation_version" => "3.12.0",
+        "python_version" => python_version().0.as_str(),
+        "python_full_version" | "implementation_version" => python_version().1.as_str(),
         "os_name" => "posix",
         "sys_platform" => "linux",
         "platform_system" => "Linux",
@@ -63,7 +75,7 @@ impl Requirement {
         Ok(Requirement { name, extras, specifier, marker, url: None })
     }
 
-    /// Whether it applies to CPython 3.12 when the package was asked for with [extras].
+    /// Whether it applies to the keyboard's Python when the package was asked for with [extras].
     pub fn applies(&self, extras: &[String]) -> Result<bool, String> {
         let Some(m) = &self.marker else { return Ok(true) };
         let expr = parse_marker(m)?;

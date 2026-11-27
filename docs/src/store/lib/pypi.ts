@@ -6,7 +6,7 @@
  * Only pure wheels go in (`py3-none-any`, `py2.py3-none-any`): plugins run
  * Python source, so a package that ships compiled code, or ships only an
  * sdist that would have to be built, is refused. Dependencies are read from
- * `Requires-Dist` with the environment markers of a generic CPython 3.12
+ * `Requires-Dist` with the environment markers of a generic CPython
  * ([MARKER_ENV]) and no extras unless they are asked for.
  *
  * The rules (PEP 503 names, PEP 440 versions, PEP 508 requirements, wheel
@@ -197,11 +197,12 @@ export function satisfies(version: string, specs: Specifier[], allowPre = false)
 // ---------------------------------------------------------------------------
 
 /**
- * The environment markers are evaluated in: a generic CPython 3.12 on
- * Linux, which is what the plugin interpreter answers to. `extra` is true
- * only for the extras asked for.
+ * The environment markers are evaluated in: a generic CPython on Linux, of
+ * the version the plugin interpreter reports ([usePythonVersion] sets it
+ * once the wasm has loaded; 3.12 until then). `extra` is true only for the
+ * extras asked for.
  */
-export const MARKER_ENV: Readonly<Record<string, string>> = {
+export const MARKER_ENV: Record<string, string> = {
 	python_version: '3.12',
 	python_full_version: '3.12.0',
 	implementation_name: 'cpython',
@@ -214,7 +215,17 @@ export const MARKER_ENV: Readonly<Record<string, string>> = {
 	platform_release: '',
 	platform_version: '',
 };
-export const PYTHON_VERSION = MARKER_ENV.python_full_version!;
+export let PYTHON_VERSION = MARKER_ENV.python_full_version!;
+
+/** Reads markers, `Requires-Python` and wheel tags as Python [full] (`"3.13.0"`) from now on. */
+export function usePythonVersion(full: string): void {
+	const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(full);
+	if (!m) return;
+	MARKER_ENV.python_version = `${m[1]}.${m[2]}`;
+	MARKER_ENV.python_full_version = full;
+	MARKER_ENV.implementation_version = full;
+	PYTHON_VERSION = full;
+}
 const VERSION_VARS = new Set(['python_version', 'python_full_version', 'implementation_version', 'platform_release']);
 
 export type Marker =
@@ -421,14 +432,15 @@ export function parseWheelName(filename: string): WheelName | null {
 
 /**
  * A wheel the plugin interpreter can take: no compiled code (`none`, `any`)
- * and Python 3, up to 3.12 when a minor version is named.
+ * and Python 3, up to the interpreter's minor version when one is named.
  */
 export function isPureWheel(filename: string): boolean {
 	const w = parseWheelName(filename);
 	if (!w || !w.abis.includes('none') || !w.platforms.includes('any')) return false;
+	const minor = Number(MARKER_ENV.python_version!.split('.')[1]);
 	return w.pythons.some((p) => {
 		const m = /^py3(\d*)$/.exec(p);
-		return !!m && (m[1] === '' || Number(m[1]) <= 12);
+		return !!m && (m[1] === '' || Number(m[1]) <= minor);
 	});
 }
 

@@ -250,13 +250,15 @@ impl Resolver<'_> {
 /// is mostly compiled code (torch, numpy), and the download is not worth it.
 const MAX_COMPILED_WHEEL: u64 = 24 << 20;
 
-/// The compiled wheel whose `.py` files to take: a Linux build for CPython
-/// 3.12 if there is one, as the keyboard's Python reads like that.
+/// The compiled wheel whose `.py` files to take: a Linux build for the
+/// keyboard's Python version if there is one, as its Python reads like that.
 fn best_compiled<'a>(wheels: &[&'a FileInfo]) -> Option<&'a FileInfo> {
+    let (major, minor, _) = wm_python_pip::python_version();
+    let tag = format!("-cp{major}{minor}-");
     let score = |f: &FileInfo| {
         let n = f.filename.to_ascii_lowercase();
         let platform = if n.contains("linux") && n.contains("x86_64") { 3 } else if n.contains("linux") { 2 } else if n.contains("macosx") { 1 } else { 0 };
-        let python = if n.contains("-cp312-") || n.contains("abi3") { 1 } else { 0 };
+        let python = if n.contains(&tag) || n.contains("abi3") { 1 } else { 0 };
         platform * 2 + python
     };
     wheels.iter().copied().filter(|f| f.size == 0 || f.size <= MAX_COMPILED_WHEEL).max_by_key(|f| score(f))
@@ -288,7 +290,7 @@ pub fn choose(project: &Project, spec: &Specifier) -> Result<(String, FileInfo, 
         }
     }
     let what = if spec.is_empty() { String::new() } else { format!(" matching {spec}") };
-    Err(format!("{} has no release{what} that CPython 3.12 can install", project.name))
+    Err(format!("{} has no release{what} that Python {} can install", project.name, super::marker::python_version().0))
 }
 
 /// The analysis of a new package, with everything else in the plugin as available.
