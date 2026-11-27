@@ -133,7 +133,7 @@ pub(crate) fn type_member(ty: &str, name: &str) -> bool {
 }
 
 /// The built-in type a value's methods come from, as named in the tables.
-fn builtin_type(v: &Value) -> Option<&'static str> {
+pub(crate) fn builtin_type(v: &Value) -> Option<&'static str> {
     Some(match v {
         Value::Str(_) => "str",
         Value::List(_) => "list",
@@ -351,6 +351,27 @@ impl Interp {
             }
             Value::Exception(e) => match name {
                 "with_traceback" => Ok(obj.clone()),
+                "add_note" => {
+                    let note = match args.first() {
+                        Some(Value::Str(s)) => Value::Str(s.clone()),
+                        Some(other) => return Err(self.error(format!("note must be a str, not '{}'", other.type_name()), "TypeError")),
+                        None => return Err(self.error("BaseException.add_note() takes exactly one argument (0 given)", "TypeError")),
+                    };
+                    let notes = match self.notes_of(e) {
+                        Some(n) => n,
+                        None => {
+                            self.exception_notes.retain(|(w, _)| w.strong_count() > 0);
+                            let n = Value::list(Vec::new());
+                            self.exception_notes.push((Rc::downgrade(e), n.clone()));
+                            n
+                        }
+                    };
+                    match notes {
+                        Value::List(l) => l.borrow_mut().push(note),
+                        _ => return Err(self.error("Cannot add note: __notes__ is not a list", "TypeError")),
+                    }
+                    Ok(Value::None)
+                }
                 _ => Err(self.error(format!("'{}' object has no method '{name}'", e.kind), "AttributeError")),
             },
             _ => Err(self.error(format!("'{}' object has no method '{name}'", obj.type_name()), "AttributeError")),

@@ -19,7 +19,7 @@ pub const NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// [NAMES] and the Rust half of the Python standard library modules
 /// ([`super::stdlib`]), which a host turns on with
 /// `Runtime::enable_python_stdlib`.
-pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native", "_time", "cmath"];
+pub const ALL_NAMES: &[&str] = &["math", "random", "time", "json", "re", "sys", "_native", "_time", "cmath", "_mt"];
 
 /// PyMini's version, and the line `sys.version` holds.
 pub const VERSION: &str = "2.0.1";
@@ -29,10 +29,11 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
     match module {
         "math" => super::mathmod::MATH_FUNCTIONS,
         "cmath" => super::mathmod::CMATH_FUNCTIONS,
+        "_mt" => super::mt::FUNCTIONS,
         "random" => &["random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "seed", "getrandbits"],
         // `_time` is the same clock, under the `time` module written in Python.
         "time" | "_time" => &["time", "monotonic", "parts", "format"],
-        "json" => &["dumps", "loads"],
+        "json" => &["dumps", "loads", "dump", "load"],
         "re" => &["search", "match", "fullmatch", "findall", "finditer", "sub", "subn", "split", "escape", "compile"],
         "sys" => &[
             "getrecursionlimit",
@@ -46,6 +47,9 @@ pub(crate) fn functions(module: &str) -> &'static [&'static str] {
             "getdefaultencoding",
             "getfilesystemencoding",
             "exc_info",
+            "_getframemodulename",
+            "getsizeof",
+            "_is_gil_enabled",
         ],
         "sys.stdout" | "sys.stderr" => &["write", "writelines", "flush", "isatty"],
         "sys.stdin" => &["read", "readline", "readlines", "isatty"],
@@ -60,11 +64,13 @@ pub(crate) fn constant_names(module: &str) -> &'static [&'static str] {
         "cmath" => &["pi", "e", "tau", "inf", "nan", "infj", "nanj"],
         "re" => &[
             "I", "IGNORECASE", "M", "MULTILINE", "S", "DOTALL", "X", "VERBOSE", "A", "ASCII", "U", "UNICODE", "NOFLAG", "Pattern", "Match",
-            "error", "PatternError",
+            "error", "PatternError", "Scanner",
         ],
         "sys" => &[
             "version", "version_info", "hexversion", "maxsize", "maxunicode", "byteorder", "platform", "argv", "path",
-            "modules", "stdout", "stderr", "stdin", "executable", "hash_info", "int_info", "float_info",
+            "modules", "stdout", "stderr", "stdin", "executable", "hash_info", "int_info", "float_info", "meta_path",
+            "path_hooks", "path_importer_cache", "prefix", "base_prefix", "exec_prefix", "base_exec_prefix", "flags",
+            "implementation",
         ],
         "sys.stdout" | "sys.stderr" | "sys.stdin" => &["encoding"],
         _ => &[],
@@ -99,10 +105,20 @@ fn constant(module: &str, name: &str) -> Option<Value> {
         // Where plugins run: the keyboard, on Android.
         ("sys", "platform") => Value::str("android"),
         ("sys", "executable") => Value::str(""),
+        // There is no installation on disk: no prefix to find files under.
+        ("sys", "prefix" | "base_prefix" | "exec_prefix" | "base_exec_prefix") => Value::str(""),
         ("sys", "stdin") => Value::Module(Rc::from("sys.stdin")),
         ("sys.stdout" | "sys.stderr" | "sys.stdin", "encoding") => Value::str("utf-8"),
         _ => return None,
     })
+}
+
+/// Members of a native module written in Python, in _builtins.py: `re.Scanner`.
+pub(crate) fn python_member(module: &str, name: &str) -> Option<&'static str> {
+    match (module, name) {
+        ("re", "Scanner") => Some("_re_Scanner"),
+        _ => None,
+    }
 }
 
 /// Resolve `module.name`, or None when the namespace has no such member.
@@ -200,16 +216,36 @@ impl Interp {
     pub(crate) fn sys_member(&self, name: &str) -> Option<Value> {
         Some(match name {
             "version_info" => Value::Tuple(self.version_info.clone()),
-            "hash_info" | "int_info" | "float_info" => Value::Tuple(self.struct_seqs.iter().find(|(n, _, _)| *n == name)?.2.clone()),
+            "hash_info" | "int_info" | "float_info" | "flags" | "implementation" => Value::Tuple(self.struct_seqs.iter().find(|(n, _, _)| *n == name)?.2.clone()),
             "stdout" => self.stdout_target.clone().unwrap_or_else(|| Value::Module(Rc::from("sys.stdout"))),
             "stderr" => self.stderr_target.clone().unwrap_or_else(|| Value::Module(Rc::from("sys.stderr"))),
-            "argv" => Value::list(vec![Value::str("")]),
-            "path" => Value::list(Vec::new()),
-            "modules" => {
-                let mut names: Vec<&str> = self.module_envs.keys().map(String::as_str).collect();
-                names.push("sys");
-                names.sort_unstable();
-                Value::dict(names.into_iter().map(|n| (n, Value::Module(Rc::from(n)))).collect())
+            // Containers a script changes in place: the same object each read.
+            "argv" | "path" | "meta_path" | "path_hooks" | "path_importer_cache" | "modules" => {
+                let key: &'static str = match name {
+                    "argv" => "argv",
+                    "path" => "path",
+                    "meta_path" => "meta_path",
+                    "path_hooks" => "path_hooks",
+                    "path_importer_cache" => "path_importer_cache",
+                    _ => "modules",
+                };
+                let mut values = self.sys_values.borrow_mut();
+                values
+                    .entry(key)
+                    .or_insert_with(|| match key {
+                        "argv" => Value::list(vec![Value::str("")]),
+                        "path_importer_cache" => Value::dict::<&str>(Vec::new()),
+                        "modules" => {
+                            let mut names: Vec<&str> = self.module_envs.keys().map(String::as_str).collect();
+                            names.push("sys");
+                            names.sort_unstable();
+                            let mut pairs: Vec<(&str, Value)> = names.into_iter().map(|n| (n, Value::Module(Rc::from(n)))).collect();
+                            pairs.extend(self.object_modules.iter().map(|(k, v)| (k.as_str(), v.clone())));
+                            Value::dict(pairs)
+                        }
+                        _ => Value::list(Vec::new()),
+                    })
+                    .clone()
             }
             _ => return None,
         })
@@ -258,6 +294,28 @@ impl Interp {
             }
             "intern" => args.first().cloned().ok_or_else(|| self.error("intern() needs a string", "TypeError")),
             "getdefaultencoding" | "getfilesystemencoding" => Ok(Value::str("utf-8")),
+            "_is_gil_enabled" => Ok(Value::Bool(true)),
+            "getsizeof" => {
+                let Some(v) = args.first() else {
+                    return Err(self.error("getsizeof() missing required argument 'object' (pos 1)", "TypeError"));
+                };
+                if let Value::Instance(_) = v {
+                    if let Some(n) = self.dunder(v, "__sizeof__", Vec::new())? {
+                        let Some(n) = n.as_int() else {
+                            return Err(self.error("an integer is required", "TypeError"));
+                        };
+                        return Ok(Value::Int(n + 16));
+                    }
+                }
+                Ok(Value::Int(size_of_value(v)))
+            }
+            "_getframemodulename" => {
+                let depth = match (args.first(), kwargs.first()) {
+                    (Some(v), _) | (None, Some((_, v))) => v.as_int().unwrap_or(0),
+                    _ => 0,
+                };
+                Ok(self.frame_module_name(depth.max(0) as usize).map(Value::str).unwrap_or(Value::None))
+            }
             "exc_info" => {
                 let value = match (&self.active_instance, &self.active_exception) {
                     (Some(i), _) => i.clone(),
@@ -326,6 +384,10 @@ impl Interp {
         if let Some(f) = self.module_override(module, name) {
             return self.call_value(&f, args, kwargs);
         }
+        if let Some(builtin) = python_member(module, name) {
+            let f = self.python_builtin(builtin)?;
+            return self.call_value(&f, args, kwargs);
+        }
         if let Some(host) = self.host_modules.get(module).cloned() {
             if let Some(f) = host.functions.get(name).cloned() {
                 return self.call_host(&f, args, kwargs);
@@ -336,9 +398,12 @@ impl Interp {
             return Err(self.error(format!("module '{module}' has no function '{name}'"), "AttributeError"));
         }
         if self.module_envs.contains_key(module) {
-            let f = self
-                .source_member(module, name)
-                .ok_or_else(|| self.error(format!("module '{module}' has no attribute '{name}'"), "AttributeError"))?;
+            let f = match self.source_member(module, name) {
+                Some(f) => f,
+                None => self
+                    .module_getattr(module, name)?
+                    .ok_or_else(|| self.error(format!("module '{module}' has no attribute '{name}'"), "AttributeError"))?,
+            };
             return self.call_value(&f, args, kwargs);
         }
         if let Some(stream) = module.strip_prefix("sys.") {
@@ -357,6 +422,7 @@ impl Interp {
             "math" if args.iter().any(|a| matches!(a, Value::Instance(_))) => self.math_with_instances(name, args, kwargs),
             "math" => self.math_call(name, &args, &kwargs),
             "cmath" => self.cmath_call(name, &args, &kwargs),
+            "_mt" => self.mt_call(name, &args),
             "random" => self.random_call(name, &args),
             "time" | "_time" => self.time_call(name, &args),
             "json" => self.json_call(name, &args, &kwargs),
@@ -640,6 +706,23 @@ impl Interp {
     fn json_call(&mut self, name: &str, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<Value> {
         let limit = self.max_string;
         match name {
+            // The file forms: what the file-like object's read() gives, and
+            // the text written with its write().
+            "load" => {
+                let fp = args.first().ok_or_else(|| self.error("load() missing 1 required positional argument: 'fp'", "TypeError"))?;
+                let read = self.attribute(fp, "read")?;
+                let text = self.call_value(&read, Vec::new(), Vec::new())?;
+                self.json_call("loads", &[text], kwargs)
+            }
+            "dump" => {
+                let (Some(v), Some(fp)) = (args.first(), args.get(1)) else {
+                    return Err(self.error("dump() missing 2 required positional arguments: 'obj' and 'fp'", "TypeError"));
+                };
+                let text = self.json_call("dumps", std::slice::from_ref(v), kwargs)?;
+                let write = self.attribute(fp, "write")?;
+                self.call_value(&write, vec![text], Vec::new())?;
+                Ok(Value::None)
+            }
             "dumps" => {
                 let v = args.first().ok_or_else(|| self.error("json.dumps() needs a value", "TypeError"))?;
                 let indent = match args.get(1).or_else(|| kwarg(kwargs, "indent")) {
@@ -930,4 +1013,44 @@ fn expand_template(template: &str, m: &super::regex::Match) -> String {
         i += 2;
     }
     out
+}
+
+/// `sys.getsizeof(v)` as 64-bit CPython 3.12 answers for the common types:
+/// the object's own bytes, not what it refers to.
+fn size_of_value(v: &Value) -> i64 {
+    let n = |x: usize| x as i64;
+    match v {
+        Value::None => 16,
+        Value::Bool(_) => 28,
+        Value::Int(i) => {
+            let digits = if *i == 0 { 0 } else { (64 - i.unsigned_abs().leading_zeros() as i64 + 29) / 30 };
+            24 + 4 * digits.max(1)
+        }
+        Value::Big(b) => 24 + 4 * ((b.bits() as i64 + 29) / 30),
+        Value::Float(_) => 24,
+        Value::Complex(..) => 32,
+        Value::Str(s) => {
+            let widest = s.chars().map(|c| c as u32).max().unwrap_or(0);
+            let count = n(s.chars().count());
+            match widest {
+                0..=0x7f => 41 + count,
+                0x80..=0xff => 57 + count,
+                0x100..=0xffff => 58 + 2 * count,
+                _ => 60 + 4 * count,
+            }
+        }
+        Value::Bytes(b) => 33 + n(b.len()),
+        Value::List(l) => 56 + 8 * n(l.borrow().len()),
+        Value::Tuple(t) => 40 + 8 * n(t.len()),
+        Value::Dict(d) => {
+            let len = d.borrow().len();
+            if len == 0 { 64 } else { 184 + 8 * n(len.next_power_of_two().max(8)) }
+        }
+        Value::Set(s) => {
+            let len = s.borrow().len();
+            216 + if len > 4 { 8 * n((len * 2).next_power_of_two()) } else { 0 }
+        }
+        Value::Instance(_) => 48,
+        _ => 56,
+    }
 }

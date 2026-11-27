@@ -306,6 +306,9 @@ pub enum Object {
     BigRange(Rc<super::bigint::BigRange>),
     /// `d.keys()`, `d.values()` or `d.items()`: a live view of the dict.
     DictView(ViewKind, DictRef),
+    /// The state of a Mersenne Twister, which `random.Random` keeps (mt.rs).
+    /// Boxed: its 2.5 KB of state would otherwise size every Object.
+    Mt(Box<RefCell<super::mt::Mt>>),
 }
 
 /// Which of a dict's views.
@@ -872,6 +875,7 @@ impl Value {
                 Object::DictView(k, _) => k.type_name(),
                 Object::Slice(..) => "slice",
                 Object::Pattern { .. } => "re.Pattern",
+                Object::Mt(_) => "_mt.state",
             },
         }
     }
@@ -1253,6 +1257,7 @@ pub(crate) fn holds_instance(v: &Value) -> bool {
         *budget -= 1;
         match v {
             Value::Instance(_) => true,
+            Value::Class(_) => meta_eq_class(v),
             Value::List(l) => l.borrow().iter().any(|x| walk(x, budget)),
             Value::Tuple(t) => t.iter().any(|x| walk(x, budget)),
             Value::Dict(d) => d.borrow().values().any(|x| walk(x, budget)),
@@ -1261,9 +1266,16 @@ pub(crate) fn holds_instance(v: &Value) -> bool {
     }
     match v {
         Value::Instance(_) => true,
+        Value::Class(_) => meta_eq_class(v),
         Value::List(_) | Value::Tuple(_) | Value::Dict(_) => walk(v, &mut 4096),
         _ => false,
     }
+}
+
+/// A class whose metaclass has an `__eq__` of its own (typing_extensions'
+/// Protocol equals typing's): `==` and `in` have to ask it.
+pub(crate) fn meta_eq_class(v: &Value) -> bool {
+    matches!(v, Value::Class(c) if c.meta.as_ref().is_some_and(|m| m.lookup("__eq__").is_some()))
 }
 
 /// Python `==`. Numbers compare across types, so 1 == 1.0 == True.
@@ -1311,6 +1323,9 @@ pub(crate) fn py_equals(a: &Value, b: &Value) -> bool {
         (Value::HostFunction(x), Value::HostFunction(y)) => Rc::ptr_eq(x, y),
         (Value::Function(x), Value::Function(y)) => Rc::ptr_eq(x, y),
         (Value::Class(x), Value::Class(y)) => Rc::ptr_eq(x, y),
+        // One module per name: `sys.modules["json"] is json`.
+        (Value::Module(x), Value::Module(y)) => x == y,
+        (Value::ModuleFunction(x), Value::ModuleFunction(y)) => x == y,
         (Value::Instance(x), Value::Instance(y)) if Rc::ptr_eq(x, y) => true,
         // A subclass of a built-in type with no `__eq__` of its own compares as its value.
         (Value::Instance(x), _) if x.payload().is_some() && !x.class.defines("__eq__") => py_equals(x.payload().unwrap(), b),

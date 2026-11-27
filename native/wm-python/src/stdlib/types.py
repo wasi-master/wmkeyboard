@@ -7,6 +7,10 @@ def _f():
     pass
 
 
+def _code_of():
+    pass
+
+
 def _g():
     yield
 
@@ -30,7 +34,54 @@ GeneratorType = type(_g())
 MethodType = type(_C()._m)
 BuiltinFunctionType = type(len)
 BuiltinMethodType = type(len)
-ModuleType = type(_sys)
+_module = type(_sys)
+
+
+class _ModuleMeta(type):
+    # isinstance(json, ModuleType) holds for the interpreter's own modules
+    # too, which are not instances of this class.
+    def __instancecheck__(cls, obj):
+        return cls in getattr(type(obj), "__mro__", ()) or (cls is ModuleType and type(obj) is _module)
+
+    def __subclasscheck__(cls, sub):
+        return (cls is ModuleType and sub is _module) or cls in getattr(sub, "__mro__", ())
+
+
+class ModuleType(metaclass=_ModuleMeta):
+    """A module made by a script or a loader: ModuleType("name") gives an
+    empty one to fill, and a class may derive from it, as six's lazy
+    modules do."""
+
+    def __init__(self, name, doc=None):
+        if not isinstance(name, str):
+            raise TypeError(f"module.__init__() argument 'name' must be str, not {type(name).__name__}")
+        self.__name__ = name
+        self.__doc__ = doc
+        self.__package__ = None
+        self.__loader__ = None
+        self.__spec__ = None
+
+    def __getattr__(self, name):
+        # PEP 562: the module's own __getattr__ answers what it lacks.
+        hook = self.__dict__.get("__getattr__")
+        if hook is not None:
+            return hook(name)
+        raise AttributeError(f"module '{self.__dict__.get('__name__', '?')}' has no attribute '{name}'")
+
+    def __repr__(self):
+        loader = self.__dict__.get("__loader__")
+        spec = self.__dict__.get("__spec__")
+        name = self.__dict__.get("__name__", "?")
+        origin = getattr(spec, "origin", None) if spec is not None else None
+        if origin is not None and getattr(spec, "has_location", False):
+            return f"<module {name!r} from {origin!r}>"
+        if loader is not None:
+            return f"<module {name!r} ({loader!r})>"
+        return f"<module {name!r}>"
+
+
+ModuleType.__name__ = ModuleType.__qualname__ = "module"
+ModuleType.__module__ = "builtins"
 NoneType = type(None)
 EllipsisType = type(...)
 NotImplementedType = type(NotImplemented)
@@ -39,6 +90,47 @@ CoroutineType = type(_c)
 _c.close()
 AsyncGeneratorType = type(_ag())
 del _f, _g, _C, _co, _ag, _c
+
+
+class _Descriptor:
+    """The C-level descriptor types CPython names here. Nothing in this
+    interpreter is one of them; they exist to be named and checked against."""
+
+
+class WrapperDescriptorType(_Descriptor):
+    pass
+
+
+class MethodWrapperType(_Descriptor):
+    pass
+
+
+class MethodDescriptorType(_Descriptor):
+    pass
+
+
+class ClassMethodDescriptorType(_Descriptor):
+    pass
+
+
+class GetSetDescriptorType(_Descriptor):
+    pass
+
+
+class MemberDescriptorType(_Descriptor):
+    pass
+
+
+WrapperDescriptorType.__name__ = WrapperDescriptorType.__qualname__ = "wrapper_descriptor"
+MethodWrapperType.__name__ = MethodWrapperType.__qualname__ = "method-wrapper"
+MethodDescriptorType.__name__ = MethodDescriptorType.__qualname__ = "method_descriptor"
+ClassMethodDescriptorType.__name__ = ClassMethodDescriptorType.__qualname__ = "classmethod_descriptor"
+GetSetDescriptorType.__name__ = GetSetDescriptorType.__qualname__ = "getset_descriptor"
+MemberDescriptorType.__name__ = MemberDescriptorType.__qualname__ = "member_descriptor"
+for _t in (WrapperDescriptorType, MethodWrapperType, MethodDescriptorType, ClassMethodDescriptorType,
+           GetSetDescriptorType, MemberDescriptorType):
+    _t.__module__ = "builtins"
+del _t, _Descriptor
 
 
 GenericAlias = type(list[int])
@@ -59,8 +151,8 @@ class FrameType:
     pass
 
 
-class CodeType:
-    pass
+CodeType = type(_code_of.__code__)
+del _code_of
 
 
 def coroutine(func):
@@ -88,45 +180,30 @@ class SimpleNamespace:
         return vars(self) == vars(other)
 
 
-class MappingProxyType:
-    """A read-only view of a mapping."""
+# What a class's __dict__ is: a read-only view, from the interpreter's builtins.
+MappingProxyType = type(type.__dict__)
 
-    def __init__(self, mapping):
-        object.__setattr__(self, "_mapping", mapping)
 
-    def __getitem__(self, key):
-        return self._mapping[key]
-
-    def __contains__(self, key):
-        return key in self._mapping
-
-    def __iter__(self):
-        return iter(self._mapping)
-
-    def __len__(self):
-        return len(self._mapping)
-
-    def __setattr__(self, name, value):
-        raise AttributeError("'mappingproxy' object attribute is read-only")
-
-    def get(self, key, default=None):
-        return self._mapping.get(key, default)
-
-    def keys(self):
-        return self._mapping.keys()
-
-    def values(self):
-        return self._mapping.values()
-
-    def items(self):
-        return self._mapping.items()
-
-    def copy(self):
-        return dict(self._mapping)
-
-    def __repr__(self):
-        return f"mappingproxy({self._mapping!r})"
-
+def resolve_bases(bases):
+    """Resolve MRO entries dynamically as specified by PEP 560."""
+    new_bases = list(bases)
+    updated = False
+    shift = 0
+    for i, base in enumerate(bases):
+        if isinstance(base, type):
+            continue
+        if not hasattr(base, "__mro_entries__"):
+            continue
+        new_base = base.__mro_entries__(bases)
+        updated = True
+        if not isinstance(new_base, tuple):
+            raise TypeError("__mro_entries__ must return a tuple")
+        else:
+            new_bases[i+shift:i+shift+1] = new_base
+            shift += len(new_base) - 1
+    if not updated:
+        return bases
+    return tuple(new_bases)
 
 def new_class(name, bases=(), kwds=None, exec_body=None):
     ns = {}

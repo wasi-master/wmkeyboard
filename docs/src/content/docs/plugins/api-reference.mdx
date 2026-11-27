@@ -376,7 +376,7 @@ mapping, class, `|` and `as` patterns, with guards), generators (`yield`,
 (with `{x=}`, which writes `x=` before the value), slicing, slice assignment
 (`items[1:3] = new`, `del items[::2]`), tuple unpacking with a starred target
 (`first, *rest = items`), `*` and `**` spreads in calls and displays, chained
-comparisons, `@` for classes that define `__matmul__`, `b"…"` bytes literals, type annotations (read and ignored),
+comparisons, `@` for classes that define `__matmul__`, `b"…"` bytes literals, type annotations (evaluated as Python evaluates them; one naming what is not defined yet is kept as its text),
 `import`, `from module import *` and `from __future__ import …`. An exception
 raised with `raise … from cause` keeps the cause as `__cause__`, and one raised
 while another is being handled keeps that one as `__context__`; a bare `raise`
@@ -458,12 +458,14 @@ Python prints it: `0.1 + 0.2` is `0.30000000000000004` and `1e16 + 2` is
 `oct`, `ord`, `pow`, `print`, `property`, `range`, `repr`, `reversed`,
 `round`, `set`, `setattr`, `sorted`, `staticmethod`, `str`, `sum`, `super`,
 `tuple`, `type`, `vars` and `zip`, and `__import__`, `aiter`, `anext`,
-`ascii`, `bytearray`, `dir`, `eval`, `exec`, `frozenset`, `globals`, `locals`,
-`memoryview` and `slice`. `eval` and `exec` run in the same sandbox, on the
+`ascii`, `bytearray`, `compile`, `dir`, `eval`, `exec`, `frozenset`, `globals`,
+`locals`, `memoryview` and `slice`. `eval` and `exec` run in the same sandbox, on the
 same step budget, and see the scope they are called from. `locals()` hands
 back a copy; `globals()` is the module's own dict, so a name set in it is a
-global from then on. There is no `open` or `compile`, and `__import__` reaches
-only what `import` reaches. `map`, `filter`, `zip`, `enumerate`, `reversed` and
+global from then on. `compile` checks that source parses and hands it to
+`eval` or `exec`; there is no bytecode. `open` raises `PermissionError` and
+`input` raises `EOFError`, and `__import__` reaches only what `import`
+reaches. `map`, `filter`, `zip`, `enumerate`, `reversed` and
 `range` are lazy, as in Python: `range(10**12)` holds three numbers, not a
 trillion.
 
@@ -506,11 +508,11 @@ on an event. Writing still takes brackets: `d["name"] = value`.
 | Module | What it has |
 |---|---|
 | `math` | `sqrt`, `isqrt`, `floor`, `ceil`, `trunc`, `fabs`, `pow`, `exp`, `exp2`, `expm1`, `log`, `log2`, `log10`, `log1p`, the trigonometric and hyperbolic functions, `degrees`, `radians`, `hypot`, `dist`, `gcd`, `lcm`, `factorial`, `comb`, `perm`, `prod`, `fsum`, `isclose`, `isnan`, `isinf`, `isfinite`, `copysign`, `fmod`, `remainder`, `modf`, `frexp`, `ldexp`, `cbrt`, `erf`, `erfc`, `gamma`, `lgamma`, `nextafter`, `ulp`, `fma`, `sumprod`, and `pi`, `e`, `tau`, `inf`, `nan`. A value a function does not have raises CPython's `ValueError: math domain error` (`math.sqrt(-1)`), and one too big for a float `OverflowError: math range error` (`math.exp(1000)`). |
-| `json` | `dumps` and `loads`. `dumps` takes `indent`, `sort_keys`, `separators` and `ensure_ascii`. Unlike Python, `ensure_ascii` is off unless you turn it on, so text in other scripts is written as it is. Bad JSON raises an error. |
-| `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape` and `compile`, whose pattern objects have the same methods; the flags `I`, `M`, `S`, `X` (verbose: spaces and `#` comments in the pattern are skipped), `A` (`\d`, `\w` and `\s` match ASCII only) and `U`, also spelled out, or written at the start of the pattern as `(?i)`, `(?m)`, `(?s)`, `(?x)`, `(?a)`. Patterns take lookahead `(?=…)` `(?!…)`, fixed-width lookbehind `(?<=…)` `(?<!…)`, backreferences `\1` `(?P=name)`, and the escapes `\x41`, `\u00e9`, `\N{BULLET}` and octal `\101`; not possessive quantifiers or atomic groups. A pattern made from bytes, `re.compile(rb"\d+")`, searches bytes and gives bytes back. Matching spends steps like any loop. |
+| `json` | `dumps` and `loads`, and `dump` and `load` on a file-like object such as `io.StringIO`. `dumps` takes `indent`, `sort_keys`, `separators` and `ensure_ascii`. Unlike Python, `ensure_ascii` is off unless you turn it on, so text in other scripts is written as it is. Bad JSON raises an error. |
+| `re` | `search`, `match`, `fullmatch`, `findall`, `finditer`, `sub`, `subn`, `split`, `escape` and `compile`, whose pattern objects have the same methods; the flags `I`, `M`, `S`, `X` (verbose: spaces and `#` comments in the pattern are skipped), `A` (`\d`, `\w` and `\s` match ASCII only) and `U`, also spelled out, or written at the start of the pattern as `(?i)`, `(?m)`, `(?s)`, `(?x)`, `(?a)`. Patterns take lookahead `(?=…)` `(?!…)`, fixed-width lookbehind `(?<=…)` `(?<!…)`, backreferences `\1` `(?P=name)`, and the escapes `\x41`, `\u00e9`, `\N{BULLET}` and octal `\101`; not possessive quantifiers or atomic groups. A pattern made from bytes, `re.compile(rb"\d+")`, searches bytes and gives bytes back. Matching spends steps like any loop. `re.Scanner(lexicon)` is CPython's small lexer: `scan(text)` gives what each matched action returned and the text left over. |
 | `time` | `time()` and `monotonic()` in seconds; `parts()` or `parts(seconds)`, a dict of `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday` (Monday is 0) and `yearday` in the phone's time zone; `format(pattern)` or `format(pattern, seconds)` with a Unicode date pattern such as `"EEE d MMM yyyy"`, which writes day and month names in English. Left out, `seconds` is now. |
-| `random` | `random`, `randint`, `randrange`, `getrandbits`, `choice`, `choices`, `shuffle`, `sample`, `uniform`, `seed` |
-| `sys` | `version`, `version_info` (3.12, readable as `.major` and so on), `hexversion`, `platform` (`"android"`), `maxsize`, `maxunicode`, `byteorder`, `argv`, `path`, `modules`, `exit`, `exc_info`, `intern`, `getrecursionlimit`, `setrecursionlimit`, `get_int_max_str_digits`, `set_int_max_str_digits`, `float_info`, `int_info`, `hash_info`, `audit` (which nothing listens to), and `stdout`, `stderr` and `stdin`. Both output streams write to the plugin's log, a line at a time, as `print` does; `stdin` has nothing to read. Setting `sys.stdout` to an object with a `write` method sends `print` there. |
+| `random` | `random`, `randint`, `randrange`, `getrandbits`, `choice`, `choices`, `shuffle`, `sample`, `uniform`, `seed`. With the Python standard library on, it is CPython's own `random`: the same numbers for the same seed, `Random` and `SystemRandom`, and `gauss` and the other distributions. |
+| `sys` | `version`, `version_info` (3.12, readable as `.major` and so on), `hexversion`, `platform` (`"android"`), `maxsize`, `maxunicode`, `byteorder`, `argv`, `path`, `modules`, `exit`, `exc_info`, `intern`, `getrecursionlimit`, `setrecursionlimit`, `get_int_max_str_digits`, `set_int_max_str_digits`, `float_info`, `int_info`, `hash_info`, `flags`, `implementation`, `getsizeof`, `meta_path`, `prefix` and `base_prefix` (empty), `audit` (which nothing listens to), and `stdout`, `stderr` and `stdin`. Both output streams write to the plugin's log, a line at a time, as `print` does; `stdin` has nothing to read. Setting `sys.stdout` to an object with a `write` method sends `print` there. |
 
 `time.format` takes the patterns Android and Java use (`yyyy`, `MM`, `d`, `HH`,
 `mm`, `EEE`, `MMMM` and so on), not C's `%Y-%m-%d`.

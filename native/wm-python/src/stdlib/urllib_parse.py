@@ -2,6 +2,42 @@
 
 import _native
 
+# CPython's classification of schemes (Lib/urllib/parse.py). The empty
+# string stands for a URL with no scheme.
+
+uses_relative = ['', 'ftp', 'http', 'gopher', 'nntp', 'imap',
+                 'wais', 'file', 'https', 'shttp', 'mms',
+                 'prospero', 'rtsp', 'rtsps', 'rtspu', 'sftp',
+                 'svn', 'svn+ssh', 'ws', 'wss']
+
+uses_netloc = ['', 'ftp', 'http', 'gopher', 'nntp', 'telnet',
+               'imap', 'wais', 'file', 'mms', 'https', 'shttp',
+               'snews', 'prospero', 'rtsp', 'rtsps', 'rtspu', 'rsync',
+               'svn', 'svn+ssh', 'sftp', 'nfs', 'git', 'git+ssh',
+               'ws', 'wss', 'itms-services']
+
+uses_params = ['', 'ftp', 'hdl', 'prospero', 'http', 'imap',
+               'https', 'shttp', 'rtsp', 'rtsps', 'rtspu', 'sip',
+               'sips', 'mms', 'sftp', 'tel']
+
+non_hierarchical = ['gopher', 'hdl', 'mailto', 'news',
+                    'telnet', 'wais', 'imap', 'snews', 'sip', 'sips']
+
+uses_query = ['', 'http', 'wais', 'imap', 'https', 'shttp', 'mms',
+              'gopher', 'rtsp', 'rtsps', 'rtspu', 'sip', 'sips']
+
+uses_fragment = ['', 'ftp', 'hdl', 'http', 'gopher', 'news',
+                 'nntp', 'wais', 'https', 'shttp', 'snews',
+                 'file', 'prospero']
+
+# Characters valid in scheme names.
+scheme_chars = ('abcdefghijklmnopqrstuvwxyz'
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                '0123456789'
+                '+-.')
+
+MAX_CACHE_SIZE = 20
+
 
 def quote(string, safe="/"):
     return _native.quote(string, safe)

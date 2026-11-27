@@ -114,7 +114,7 @@ pub const LIBRARY: &[&str] = &[
     "fractions", "functools", "gettext", "gzip", "hashlib", "heapq", "hmac", "html", "html.entities", "importlib",
     "importlib.metadata", "importlib.resources", "importlib.util", "inspect", "io", "ipaddress", "itertools",
     "keyword", "linecache", "locale", "logging", "mimetypes", "numbers", "operator", "os", "os.path", "pathlib",
-    "pickle", "platform", "pprint", "queue", "reprlib", "secrets", "shlex", "stat", "statistics", "string", "struct",
+    "pickle", "platform", "pprint", "queue", "reprlib", "secrets", "shlex", "shutil", "stat", "statistics", "string", "struct",
     "subprocess", "textwrap", "_thread", "threading", "token", "tokenize", "traceback", "types", "typing",
     "unicodedata", "unittest", "unittest.mock", "urllib", "urllib.parse", "uuid", "warnings", "weakref", "xml",
     "xml.etree", "xml.etree.ElementPath", "xml.etree.ElementTree", "xml.parsers", "xml.parsers.expat", "xml.sax",
@@ -138,13 +138,15 @@ pub const EXCEPTIONS: &[&str] = &[
     "SyntaxWarning", "FutureWarning", "ImportWarning", "UnicodeWarning", "BytesWarning", "ResourceWarning",
     "ChildProcessError", "InterruptedError", "ProcessLookupError", "BufferError", "MemoryError", "ReferenceError",
     "SystemError", "PythonFinalizationError", "TabError", "UnicodeTranslateError", "EncodingWarning",
+    "BaseExceptionGroup", "ExceptionGroup",
 ];
 
 /// Builtins taken out because they reach outside the script.
-pub const REMOVED_BUILTINS: &[&str] = &["open", "input", "compile", "breakpoint", "exit", "quit", "help"];
+/// They are there to call, and refuse: open() raises PermissionError, input() EOFError.
+pub const REMOVED_BUILTINS: &[&str] = &["open", "input", "breakpoint", "exit", "quit", "help"];
 
-/// Builtins Python has and PyMini does not.
-pub const MISSING_BUILTINS: &[&str] = &["BaseExceptionGroup", "ExceptionGroup"];
+/// Builtins Python has and plugins do not: the interactive interpreter's notices.
+pub const MISSING_BUILTINS: &[&str] = &["copyright", "credits", "license"];
 
 /// `wm` members that do not exist and never will: plugins have no way to read
 /// typed text or reach the file system. (The network, the clipboard and the
@@ -392,6 +394,8 @@ fn build() -> Model {
     add("id", Builtin, Some("id(value)"), None, "A number that is the same for the same object and different for another one alive at the same time.");
     add("hash", Builtin, Some("hash(value)"), None, "The hash of a value that can be a dict key.");
     add("eval", Builtin, Some("eval(source, globals=None, locals=None)"), None, "The value of one Python expression written as text, run in the plugin's own interpreter: eval(\"2 * x\") reads x where it is called.");
+    add("compile", Builtin, Some("compile(source, filename, mode)"), None, "source checked to be Python, kept for eval() (mode \"eval\") or exec() (\"exec\") to run. A SyntaxError if it does not parse.");
+    add("__debug__", Constant, None, None, "True: assert statements are checked.");
     add("exec", Builtin, Some("exec(source, globals=None, locals=None)"), None, "Runs Python statements written as text in the plugin's own interpreter. Names they assign land in globals, a dict, when one is given.");
     add("globals", Builtin, Some("globals()"), None, "The module's names and their values, as a dict.");
     add("locals", Builtin, Some("locals()"), None, "The names of the function it is called in and their values, as a dict.");
@@ -428,7 +432,9 @@ fn build() -> Model {
         ("SystemExit", "What sys.exit() raises."),
         ("KeyboardInterrupt", "An interruption from outside. Plugins never see one; it is here for code that catches it."),
         ("RecursionError", "Calls nested past the recursion limit, 1,000 deep. A RuntimeError."),
-        ("ModuleNotFoundError", "An import of a module that is not there. An ImportError."),
+        ("ModuleNotFoundError", "An import of a module that is not there. An ImportError; its name is the module's."),
+        ("BaseExceptionGroup", "Several exceptions raised together, in .exceptions. split() and subgroup() pick it apart; except* is not there."),
+        ("ExceptionGroup", "A BaseExceptionGroup of Exceptions only, which except Exception catches."),
         ("UnicodeEncodeError", "Text that cannot be written in the encoding asked for."),
         ("EOFError", "Input ended before it was expected to."),
         ("FloatingPointError", "A failed floating-point operation. An ArithmeticError."),
@@ -551,6 +557,29 @@ fn build() -> Model {
     ] {
         add(leak(format!("random.{name}")), Function, Some(leak(sig.to_string())), None, doc);
     }
+    // With the Python standard library (API 5), random is CPython's: the same
+    // numbers for the same seed, and the rest of its functions.
+    for (name, sig, doc) in [
+        ("getrandbits", "getrandbits(k)", "An int of k random bits."),
+        ("randbytes", "randbytes(n)", "n random bytes."),
+        ("getstate", "getstate()", "The generator's state, to give back to setstate()."),
+        ("setstate", "setstate(state)", "Puts back a state getstate() gave."),
+        ("triangular", "triangular(low=0.0, high=1.0, mode=None)", "A float from a triangular distribution."),
+        ("gauss", "gauss(mu=0.0, sigma=1.0)", "A float from a normal distribution."),
+        ("normalvariate", "normalvariate(mu=0.0, sigma=1.0)", "A float from a normal distribution."),
+        ("lognormvariate", "lognormvariate(mu, sigma)", "A float from a log-normal distribution."),
+        ("expovariate", "expovariate(lambd=1.0)", "A float from an exponential distribution."),
+        ("vonmisesvariate", "vonmisesvariate(mu, kappa)", "An angle from a von Mises distribution."),
+        ("gammavariate", "gammavariate(alpha, beta)", "A float from a gamma distribution."),
+        ("betavariate", "betavariate(alpha, beta)", "A float from a beta distribution, between 0 and 1."),
+        ("paretovariate", "paretovariate(alpha)", "A float from a Pareto distribution."),
+        ("weibullvariate", "weibullvariate(alpha, beta)", "A float from a Weibull distribution."),
+        ("binomialvariate", "binomialvariate(n=1, p=0.5)", "How many of n trials succeed, each with chance p."),
+    ] {
+        add(leak(format!("random.{name}")), Function, Some(leak(sig.to_string())), None, doc);
+    }
+    add("random.Random", Type, Some("Random(seed=None)"), None, "A generator of its own, with every function of the module as a method.");
+    add("random.SystemRandom", Type, Some("SystemRandom()"), None, "A generator drawing on the system's randomness; it cannot be seeded.");
 
     add("time", Module, None, None, "The clock. import time.");
     add("time.time", Function, Some("time()"), None, "Seconds since the epoch, now, as a float.");
@@ -585,6 +614,8 @@ fn build() -> Model {
     add("json", Module, None, None, "JSON text to and from Python values. import json.");
     add("json.dumps", Function, Some("dumps(value, indent=None, sort_keys=False, ensure_ascii=False, separators=None)"), None, "value written as JSON text. Dicts keep their order unless sort_keys. Characters past ASCII are written as they are; ensure_ascii=True escapes them. separators=(\",\", \":\") writes it compactly.");
     add("json.loads", Function, Some("loads(text)"), None, "JSON text read as Python values. Raises ValueError on bad JSON.");
+    add("json.dump", Function, Some("dump(value, fp, **options)"), None, "dumps(value, **options) written to fp, a file-like object with write(), such as io.StringIO.");
+    add("json.load", Function, Some("load(fp, **options)"), None, "loads(fp.read()): JSON read from a file-like object."); 
 
     add("re", Module, None, None, "Regular expressions, on a budgeted matcher. import re.");
     for (name, sig, doc) in [
@@ -605,6 +636,7 @@ fn build() -> Model {
     add("re.Pattern", Type, None, None, "The type of what re.compile returns, for isinstance() and annotations.");
     add("re.Match", Type, None, None, "The type of what re.search, re.match and re.fullmatch return, for isinstance() and annotations.");
     add("re.error", Type, None, None, "What a pattern that does not compile raises. Here it is ValueError.");
+    add("re.Scanner", Type, Some("Scanner(lexicon, flags=0)"), None, "A lexer: lexicon is (pattern, action) pairs; scan(text) gives (results, rest), each action called with (scanner, token)."); 
     for (name, sig, doc) in [
         ("search", "search(text, pos=0, endpos=None)", "The first match anywhere in text, or None."),
         ("match", "match(text, pos=0, endpos=None)", "A match at the start of text, or None."),
@@ -651,6 +683,18 @@ fn build() -> Model {
         ("stdout", "Standard output: write() goes to the plugin log, as print() does. Assign another object with a write method to catch what print() writes."),
         ("stderr", "Standard error, the same log as stdout."),
         ("stdin", "Standard input, which is always empty."),
+        ("meta_path", "The finders import asks, in order, for a module nothing else has: objects with find_spec(name, path, target)."),
+        ("path_hooks", "An empty list: imports do not read folders."),
+        ("path_importer_cache", "An empty dict."),
+        ("prefix", "An empty string: there is no installation on disk."),
+        ("base_prefix", "An empty string."),
+        ("exec_prefix", "An empty string."),
+        ("base_exec_prefix", "An empty string."),
+        ("flags", "The command-line flags CPython would have: none set, readable by name (sys.flags.optimize)."),
+        ("implementation", "The implementation, as CPython names it: sys.implementation.name is \"cpython\"."),
+        ("float_info", "The float type's limits: sys.float_info.max, .epsilon and the rest."),
+        ("int_info", "How ints are stored, as CPython reports it."),
+        ("hash_info", "How hash() works, as CPython reports it."),
     ] {
         add(leak(format!("sys.{name}")), Constant, None, None, doc);
     }
@@ -662,6 +706,7 @@ fn build() -> Model {
         ("getdefaultencoding", "getdefaultencoding()", "\"utf-8\"."),
         ("getfilesystemencoding", "getfilesystemencoding()", "\"utf-8\"."),
         ("exc_info", "exc_info()", "The exception being handled, as (type, value, None), or (None, None, None) outside an except."),
+        ("getsizeof", "getsizeof(value)", "About how many bytes value takes, as 64-bit CPython counts them."),
     ] {
         add(leak(format!("sys.{name}")), Function, Some(leak(sig.to_string())), None, doc);
     }

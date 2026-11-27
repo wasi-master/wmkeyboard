@@ -77,7 +77,8 @@ fn an_excluded_module_is_a_catchable_import_error() {
         py.run("try:\n    import random\n    r = 'imported'\nexcept ImportError:\n    r = 'caught'\nr").unwrap().to_str()
     );
     let error = py_error(py.run("import time"));
-    assert_eq!("ImportError", error.kind);
+    // CPython's kind: a ModuleNotFoundError, which `except ImportError` catches.
+    assert_eq!("ModuleNotFoundError", error.kind);
     assert!(!error.is_abort());
 }
 

@@ -62,14 +62,20 @@ def wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     return decorator
 
 
-def _make_key(args, kwargs):
-    if not kwargs:
-        return args
-    return args + tuple(sorted(kwargs.items()))
+def _make_key(args, kwargs, typed=False):
+    key = args
+    if kwargs:
+        key = args + tuple(sorted(kwargs.items()))
+    if typed:
+        key += tuple(type(v) for v in args)
+        if kwargs:
+            key += tuple(type(v) for v in kwargs.values())
+    return key
 
 
 class _Cached:
-    def __init__(self, func, maxsize):
+    def __init__(self, func, maxsize, typed=False):
+        self.typed = typed
         self.func = func
         self.__name__ = getattr(func, "__name__", "cached")
         self.__wrapped__ = func
@@ -80,7 +86,7 @@ class _Cached:
         self.misses = 0
 
     def __call__(self, *args, **kwargs):
-        key = _make_key(args, kwargs)
+        key = _make_key(args, kwargs, self.typed)
         if key in self.cache:
             self.hits += 1
             return self.cache[key]
@@ -104,12 +110,12 @@ class _Cached:
         return {"hits": self.hits, "misses": self.misses, "maxsize": self.maxsize, "currsize": len(self.cache)}
 
 
-def lru_cache(maxsize=128):
-    if callable(maxsize):
-        return _Cached(maxsize, 128)
+def lru_cache(maxsize=128, typed=False):
+    if callable(maxsize) and isinstance(typed, bool):
+        return _Cached(maxsize, 128, typed)
 
     def decorator(func):
-        return _Cached(func, maxsize)
+        return _Cached(func, maxsize, typed)
 
     return decorator
 

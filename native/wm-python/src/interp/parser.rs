@@ -21,7 +21,7 @@ pub(crate) const MAX_NESTING: u32 = 100;
 /// Parse a complete module, with every name resolved to where it lives.
 pub(crate) fn parse(source: &str) -> Result<Vec<Stmt>, PyError> {
     let tokens = tokenize(source)?;
-    let mut program = Parser { tokens, i: 0, depth: 0, temps: 0 }.parse_program()?;
+    let mut program = Parser::new(tokens, 0).parse_program()?;
     super::resolve::resolve_module(&mut program)?;
     Ok(program)
 }
@@ -30,7 +30,7 @@ pub(crate) fn parse(source: &str) -> Result<Vec<Stmt>, PyError> {
 /// with [namespace] as code running over a namespace of its own.
 pub(crate) fn parse_dynamic(source: &str, namespace: bool) -> Result<Vec<Stmt>, PyError> {
     let tokens = tokenize(source)?;
-    let mut program = Parser { tokens, i: 0, depth: 0, temps: 0 }.parse_program()?;
+    let mut program = Parser::new(tokens, 0).parse_program()?;
     if namespace {
         super::resolve::resolve_dynamic(&mut program)?;
     } else {
@@ -42,7 +42,7 @@ pub(crate) fn parse_dynamic(source: &str, namespace: bool) -> Result<Vec<Stmt>, 
 /// Parse a standalone expression (f-string placeholders).
 fn parse_expression(source: &str, depth: u32) -> Result<Expr, PyError> {
     let tokens = tokenize(source)?;
-    let mut p = Parser { tokens, i: 0, depth, temps: 0 };
+    let mut p = Parser::new(tokens, depth);
     p.skip_newlines();
     p.parse_expr_or_tuple()
 }
@@ -96,7 +96,7 @@ pub(crate) fn check_literal(source: &str) -> Result<Result<(), &'static str>, Py
         }
     }
     let tokens = tokenize(source)?;
-    let mut p = Parser { tokens, i: 0, depth: 0, temps: 0 };
+    let mut p = Parser::new(tokens, 0);
     p.skip_newlines();
     let e = p.parse_expr_or_tuple()?;
     p.skip_newlines();
@@ -154,6 +154,10 @@ struct Parser {
     depth: u32,
     /// How many `yield`s were moved out of an expression into a temporary, for its name.
     temps: u32,
+    /// `from __future__ import annotations` came first: annotations are kept as their text.
+    future_annotations: bool,
+    /// The annotations of the parameters read last, by parameter name.
+    param_annotations: Vec<(Rc<str>, Expr)>,
 }
 
 /// Moves each `yield` inside [e] (not [e] itself) into a statement of its
@@ -195,6 +199,22 @@ fn exception_names(e: &Expr) -> Option<Vec<Rc<str>>> {
 type P<T> = Result<T, PyError>;
 
 impl Parser {
+    fn new(tokens: Vec<Token>, depth: u32) -> Parser {
+        Parser { tokens, i: 0, depth, temps: 0, future_annotations: false, param_annotations: Vec::new() }
+    }
+
+    /// An annotation as the program keeps it: its text under `from
+    /// __future__ import annotations`, or when it could not be evaluated
+    /// without the resolver having seen it ([resolved] false: a function's,
+    /// evaluated when `__annotations__` is first read).
+    fn annotation(&self, e: Expr, resolved: bool) -> Expr {
+        if self.future_annotations || (!resolved && !super::unparse::is_plain(&e)) {
+            Expr::Str(Rc::from(super::unparse::unparse(&e)))
+        } else {
+            e
+        }
+    }
+
     fn kind(&self) -> &Tok {
         &self.tokens[self.i].kind
     }
@@ -659,14 +679,17 @@ impl Parser {
         self.advance();
         let name = self.expect_name("function name")?;
         self.skip_type_params()?;
+        self.param_annotations.clear();
         let params = self.parse_parameters(true)?;
         if self.match_op("->") {
-            // A return annotation: read, and thrown away.
-            self.parse_expr()?;
+            let e = self.parse_expr()?;
+            let e = self.annotation(e, false);
+            self.param_annotations.push((Rc::from("return"), e));
         }
+        let annotations = std::mem::take(&mut self.param_annotations);
         let body = self.parse_block()?;
         let frame = Frame { coroutine: is_async, ..Frame::default() };
-        let def = FuncDef { name: name.clone(), params, body, decorators, frame };
+        let def = FuncDef { name: name.clone(), params, body, decorators, frame, annotations };
         Ok(Stmt { line, yields: false, kind: StmtKind::FuncDef(Rc::new(def), Name::new(name)) })
     }
 
@@ -783,7 +806,7 @@ impl Parser {
         while !(if parenthesised { self.is_op(")") } else { self.is_op(":") }) {
             if self.match_op("**") {
                 let name = self.expect_name("parameter name")?;
-                self.skip_annotation(parenthesised)?;
+                self.skip_annotation(parenthesised, &name)?;
                 if !seen.insert(name.clone()) {
                     return Err(PyError::perr(format!("duplicate parameter '{name}'"), self.line()));
                 }
@@ -798,7 +821,7 @@ impl Parser {
                 after_star = true;
                 if let Tok::Name(_) = self.kind() {
                     let name = self.expect_name("parameter name")?;
-                    self.skip_annotation(parenthesised)?;
+                    self.skip_annotation(parenthesised, &name)?;
                     if !seen.insert(name.clone()) {
                         return Err(PyError::perr(format!("duplicate parameter '{name}'"), self.line()));
                     }
@@ -818,7 +841,7 @@ impl Parser {
                 continue;
             }
             let name = self.expect_name("parameter name")?;
-            self.skip_annotation(parenthesised)?;
+            self.skip_annotation(parenthesised, &name)?;
             if !seen.insert(name.clone()) {
                 return Err(PyError::perr(format!("duplicate parameter '{name}'"), self.line()));
             }
@@ -841,10 +864,13 @@ impl Parser {
         Ok(params)
     }
 
-    /// `: annotation` after a parameter name, inside brackets. Read and thrown away.
-    fn skip_annotation(&mut self, parenthesised: bool) -> P<()> {
+    /// `: annotation` after a parameter name, inside brackets: kept for the
+    /// function's `__annotations__`.
+    fn skip_annotation(&mut self, parenthesised: bool, name: &Rc<str>) -> P<()> {
         if parenthesised && self.match_op(":") {
-            self.parse_expr()?;
+            let e = if self.is_op("*") { self.parse_tuple_item()? } else { self.parse_expr()? };
+            let e = self.annotation(e, false);
+            self.param_annotations.push((name.clone(), e));
         }
         Ok(())
     }
@@ -997,10 +1023,14 @@ impl Parser {
             self.expect_op(")")?;
         }
         self.expect_statement_end()?;
-        // Every feature `__future__` names is on already: the import changes nothing.
+        // Every feature `__future__` names is on already but one: with
+        // `annotations`, annotations stay as their text.
         if module.as_ref() == "__future__" {
             if let Some((n, _)) = names.iter().find(|(n, _)| !FUTURE_FEATURES.contains(&n.as_ref())) {
                 return Err(PyError::perr(format!("future feature {n} is not defined"), line));
+            }
+            if names.iter().any(|(n, _)| n.as_ref() == "annotations") {
+                self.future_annotations = true;
             }
             return Ok(Stmt { line, yields: false, kind: StmtKind::Pass });
         }
@@ -1068,25 +1098,15 @@ impl Parser {
             return Ok(Stmt { line, yields: false, kind: StmtKind::Expr(e) });
         }
         let first = self.parse_expr_or_tuple()?;
-        // An annotated name, `x: int` or `x: int = 1`. The annotation is kept
-        // only as a plain name, for `__annotations__`; it is never evaluated.
-        if self.is_op(":") && matches!(first, Expr::Name(_) | Expr::Attribute(..) | Expr::Index(..)) {
+        // An annotated name, `x: int` or `x: int = 1`. In a module or a class
+        // body the annotation is evaluated, into `__annotations__`.
+        if self.is_op(":") && matches!(first, Expr::Name(_) | Expr::Attribute(..) | Expr::Index(..) | Expr::Slice(..)) {
             self.advance();
             let annotation = self.parse_expr()?;
-            let name = match annotation {
-                Expr::Name(n) => Some(n.id),
-                Expr::Str(s) => Some(s),
-                Expr::Attribute(_, n) => Some(n),
-                Expr::Index(base, _) => match *base {
-                    Expr::Name(n) => Some(n.id),
-                    Expr::Attribute(_, n) => Some(n),
-                    _ => None,
-                },
-                _ => None,
-            };
+            let annotation = self.annotation(annotation, true);
             let value = if self.match_op("=") { Some(self.parse_expr_or_tuple()?) } else { None };
             self.expect_statement_end()?;
-            return Ok(Stmt { line, yields: false, kind: StmtKind::AnnAssign(first, name, value) });
+            return Ok(Stmt { line, yields: false, kind: StmtKind::AnnAssign(first, annotation, value) });
         }
         // Augmented assignment.
         if let Tok::Op(o) = self.kind() {
@@ -1439,6 +1459,8 @@ impl Parser {
         if !self.is_op(",") {
             self.expect_op("]")?;
             return Ok(match first {
+                // `Tuple[*Ts]` is `Tuple[(*Ts,)]` (PEP 646).
+                SubItem::Index(i @ Expr::Starred(_)) => Expr::Index(Box::new(base), Box::new(Expr::Tuple(vec![i]))),
                 SubItem::Index(i) => Expr::Index(Box::new(base), Box::new(i)),
                 SubItem::Slice(l, u, s) => Expr::Slice(Box::new((base, l, u, s))),
             });

@@ -183,6 +183,10 @@ pub(crate) struct FuncDef {
     /// `@decorator` lines, top first. Applied bottom up.
     pub decorators: Vec<Expr>,
     pub frame: Frame,
+    /// Parameter (and `return`) annotations, evaluated in the module the
+    /// first time `__annotations__` is read. The resolver does not see them:
+    /// one that it would have to is kept as its text.
+    pub annotations: Vec<(Rc<str>, Expr)>,
 }
 
 /// A `lambda`.
@@ -349,7 +353,8 @@ pub(crate) enum StmtKind {
     /// `with a as x, b:` → [(a, Some(x)), (b, None)].
     With(Vec<(Expr, Option<Expr>)>, Vec<Stmt>),
     /// `x: int = 1`: the target, the annotation's plain name when it is one, and the value.
-    AnnAssign(Expr, Option<Rc<str>>, Option<Expr>),
+    /// `target: annotation = value`.
+    AnnAssign(Expr, Expr, Option<Expr>),
     Assert(Expr, Option<Expr>),
     Nonlocal(Vec<Rc<str>>),
     Return(Option<Expr>),

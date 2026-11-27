@@ -47,6 +47,11 @@ pub(crate) const HIDDEN_TYPE_INIT: &str = "__type_init__";
 pub(crate) const HIDDEN_OBJECT_REDUCE_EX: &str = "__object_reduce_ex__";
 pub(crate) const HIDDEN_OBJECT_REDUCE: &str = "__object_reduce__";
 pub(crate) const HIDDEN_OBJECT_GETSTATE: &str = "__object_getstate__";
+/// `BaseException.add_note`, written in Python in _builtins.py.
+pub(crate) const HIDDEN_EXCEPTION_ADD_NOTE: &str = "__exception_add_note__";
+/// `f.__get__(obj)`: a function, or a builtin like `object.__setattr__`,
+/// bound to [obj] as a method, as attribute lookup on an instance binds it.
+pub(crate) const HIDDEN_FUNCTION_GET: &str = "__function_get__";
 
 /// Which of the three [name] is, if any.
 pub(crate) fn pickling_dunder(name: &str) -> Option<&'static str> {
@@ -104,6 +109,13 @@ fn hidden(name: &str) -> Value {
     Value::Builtin(Rc::from(name))
 }
 
+/// What `dir(object)` lists: every object has these.
+const OBJECT_NAMES: &[&str] = &[
+    "__class__", "__delattr__", "__dir__", "__doc__", "__eq__", "__format__", "__ge__", "__getattribute__", "__getstate__",
+    "__gt__", "__hash__", "__init__", "__init_subclass__", "__le__", "__lt__", "__ne__", "__new__", "__reduce__",
+    "__reduce_ex__", "__repr__", "__setattr__", "__sizeof__", "__str__", "__subclasshook__",
+];
+
 fn object(o: Object) -> Value {
     Value::Object(Rc::new(o))
 }
@@ -117,19 +129,39 @@ impl Interp {
         for d in &def.decorators {
             decorators.push(self.eval(d, env)?);
         }
-        let mut bases = Vec::with_capacity(def.bases.len());
+        let mut given = Vec::with_capacity(def.bases.len());
         for b in &def.bases {
-            let v = self.eval(b, env)?;
-            // `class Names(List[str])`: a base that is not a class names the
-            // ones it stands for through `__mro_entries__`.
-            if let Value::Instance(_) = v {
-                if let Some(entries) = self.dunder(&v, "__mro_entries__", vec![Value::tuple(Vec::new())])? {
-                    bases.extend(self.iterate(&entries)?);
-                    continue;
-                }
-            }
-            bases.push(v);
+            given.push(self.eval(b, env)?);
         }
+        // `class Names(List[str])`: a base that is not a class names the
+        // ones it stands for through `__mro_entries__`, which sees every base
+        // as written (PEP 560). The class then keeps those in `__orig_bases__`.
+        let mut bases = Vec::with_capacity(given.len());
+        let mut orig_bases = None;
+        for v in &given {
+            let entries = match v {
+                Value::Class(_) => None,
+                Value::Builtin(b) if super::builtins::is_type_name(b) => None,
+                Value::Instance(_) => {
+                    let all = orig_bases.get_or_insert_with(|| Value::tuple(given.clone())).clone();
+                    self.dunder(v, "__mro_entries__", vec![all])?
+                }
+                // typing's `TypedDict` and `NamedTuple` are functions that carry one.
+                _ => match self.optional_attribute(v, "__mro_entries__")? {
+                    Some(hook) => {
+                        let all = orig_bases.get_or_insert_with(|| Value::tuple(given.clone())).clone();
+                        Some(self.call_value(&hook, vec![all], Vec::new())?)
+                    }
+                    None => None,
+                },
+            };
+            match entries {
+                Some(entries @ Value::Tuple(_)) => bases.extend(self.iterate(&entries)?),
+                Some(_) => return Err(self.error("__mro_entries__ must return a tuple", "TypeError")),
+                None => bases.push(v.clone()),
+            }
+        }
+        let changed = bases.len() != given.len() || bases.iter().zip(&given).any(|(a, b)| !super::value::py_identical(a, b));
         let mut kwargs: Vec<(Rc<str>, Value)> = Vec::new();
         for (k, e) in &def.keywords {
             let v = self.eval(e, env)?;
@@ -158,6 +190,9 @@ impl Interp {
         let mut attrs = name_map(0);
         for (k, v) in scope.vars.borrow_mut().take_all() {
             attrs.insert(k, v);
+        }
+        if changed {
+            attrs.insert(Rc::from("__orig_bases__"), Value::tuple(given));
         }
         // The metaclass named, or else the most derived of the bases' own.
         let meta = match explicit {
@@ -213,6 +248,13 @@ impl Interp {
         meta: Option<Rc<Class>>,
         kwargs: Vec<(Rc<str>, Value)>,
     ) -> R<Value> {
+        // `__qualname__` from the body becomes the class's own name, out of
+        // its `__dict__`, as type.__new__ takes it (typing's protocol checks
+        // read every name there).
+        let mut attrs = attrs;
+        if matches!(attrs.get("__qualname__"), Some(Value::Str(q)) if *q == name) {
+            attrs.shift_remove("__qualname__");
+        }
         let mut classes = Vec::with_capacity(bases.len());
         let mut root: Option<Rc<str>> = None;
         let mut is_type = false;
@@ -234,8 +276,11 @@ impl Interp {
             }
             match b {
                 Value::Class(c) => {
-                    if root.is_none() {
-                        root = c.exception_root.clone();
+                    // The most derived of the bases' built-in exceptions: ExceptionGroup's is Exception.
+                    if let Some(r) = &c.exception_root {
+                        if root.as_ref().is_none_or(|have| exception_matches(have, r)) {
+                            root = Some(r.clone());
+                        }
                     }
                     is_type |= c.is_type;
                     classes.push(c.clone());
@@ -244,7 +289,7 @@ impl Interp {
                 Value::Builtin(n) if n.as_ref() == "object" => {}
                 Value::Builtin(n) if n.as_ref() == "type" => is_type = true,
                 Value::Builtin(n) if EXCEPTION_KINDS.contains(&n.as_ref()) => {
-                    if root.is_none() {
+                    if root.as_ref().is_none_or(|have| exception_matches(have, n)) {
                         root = Some(n.clone());
                     }
                 }
@@ -358,10 +403,11 @@ impl Interp {
         Some(self.bind(v, Value::Class(c.clone()), m))
     }
 
-    /// `x: int = 1`. The value is assigned like any other; a plain name also
-    /// goes into its scope's `__annotations__`, which is what `dataclass` reads.
+    /// `x: int = 1`. The value is assigned like any other; in a module or a
+    /// class body the annotation is evaluated, and for a plain name goes
+    /// into its scope's `__annotations__`, which is what `dataclass` reads.
     #[inline(never)]
-    pub(crate) fn exec_ann_assign(&mut self, target: &Expr, annotation: Option<&Rc<str>>, value: Option<&Expr>, env: &Rc<Env>) -> R<()> {
+    pub(crate) fn exec_ann_assign(&mut self, target: &Expr, annotation: &Expr, value: Option<&Expr>, env: &Rc<Env>) -> R<()> {
         if let Some(v) = value {
             let v = self.eval(v, env)?;
             self.assign(target, v, env)?;
@@ -382,10 +428,49 @@ impl Interp {
                     d
                 }
             };
-            let ann = annotation.map(|a| Value::Str(a.clone())).unwrap_or(Value::None);
+            let ann = self.annotation_value(annotation, env)?;
             dict.borrow_mut().insert(HKey::Str(n.clone()), ann);
         }
         Ok(())
+    }
+
+    /// An annotation's value: what it evaluates to, or, where that fails
+    /// (a class named before it is made), its text, as under `from
+    /// __future__ import annotations`. CPython raises there; plugins written
+    /// before annotations were evaluated keep loading.
+    pub(crate) fn annotation_value(&mut self, annotation: &Expr, env: &Rc<Env>) -> R<Value> {
+        if let Expr::Str(s) = annotation {
+            return Ok(Value::Str(s.clone()));
+        }
+        let saved = self.current_line;
+        let out = match self.eval(annotation, env) {
+            Ok(v) => Ok(v),
+            Err(Exc::Error(e)) if !e.is_abort() => Ok(Value::str(super::unparse::unparse(annotation))),
+            Err(e) => Err(e),
+        };
+        self.current_line = saved;
+        out
+    }
+
+    /// A function's `__annotations__`: its parameters' and return's
+    /// annotations, evaluated in its module the first time they are read
+    /// and kept from then on (so a change to the dict stays).
+    pub(crate) fn function_annotations(&mut self, f: &Rc<Function>) -> R<Value> {
+        let FnBody::Def(def) = &f.body else {
+            return Ok(Value::dict(Vec::<(Rc<str>, Value)>::new()));
+        };
+        let def = def.clone();
+        let mut env = f.closure.clone();
+        while let Some(p) = env.parent.clone() {
+            env = p;
+        }
+        let mut pairs = Vec::with_capacity(def.annotations.len());
+        for (name, e) in &def.annotations {
+            pairs.push((name.clone(), self.annotation_value(e, &env)?));
+        }
+        let dict = Value::dict(pairs);
+        f.attrs.borrow_mut().insert(Rc::from("__annotations__"), dict.clone());
+        Ok(dict)
     }
 
     #[inline(never)]
@@ -422,10 +507,13 @@ impl Interp {
             Err(Exc::Error(e)) if !e.is_abort() => {
                 let value = self.caught_value(&e);
                 let kind = self.type_of(&value);
-                let swallow = self.call_method(&m, "__exit__", vec![kind, value, Value::None], Vec::new())?;
+                let swallow = self.call_method(&m, "__exit__", vec![kind, value.clone(), Value::None], Vec::new())?;
                 if self.truth(&swallow)? {
                     Ok(())
                 } else {
+                    // The same object goes on: an `except` inside `__exit__`
+                    // (contextlib's) took it off the raised slot.
+                    self.raised = Some((Rc::from(e.kind.as_str()), e.message.clone(), value));
                     Err(Exc::Error(e))
                 }
             }
@@ -446,7 +534,7 @@ impl Interp {
         self.classes.push(Rc::downgrade(class));
     }
 
-    fn track_instance(&mut self, inst: &Rc<Instance>) {
+    pub(crate) fn track_instance(&mut self, inst: &Rc<Instance>) {
         if self.instances.len() >= 64 && self.instances.len().is_power_of_two() {
             self.instances.retain(|w| w.strong_count() > 0);
         }
@@ -685,9 +773,19 @@ impl Interp {
             }
             // An exception's cause and context are None until `raise … from` sets one.
             "__cause__" | "__context__" | "__traceback__" if inst.class.exception_root.is_some() => return Ok(Some(Value::None)),
+            "add_note" if inst.class.exception_root.is_some() => {
+                return Ok(Some(object(Object::Bound(Value::Instance(inst.clone()), hidden(HIDDEN_EXCEPTION_ADD_NOTE)))));
+            }
             _ => {}
         }
         Ok(None)
+    }
+
+    /// `Cls.__dict__` and `vars(Cls)`: a read-only view of the class's own
+    /// names (a copy taken now), as CPython's mappingproxy is.
+    pub(crate) fn class_dict_proxy(&mut self, plain: Value) -> R<Value> {
+        let proxy = self.python_builtin("mappingproxy")?;
+        self.call_value(&proxy, vec![plain], Vec::new())
     }
 
     /// `Cls.name`.
@@ -715,9 +813,13 @@ impl Interp {
         Some(match name {
             "__name__" | "__qualname__" => Value::Str(class.name.clone()),
             "__doc__" => Value::None,
-            // What every class has from `object`.
+            // PEP 695 type parameters, which a class written `class C[T]` would list.
+            "__type_params__" => Value::tuple(Vec::new()),
+            // What every class has from `object`, and a metaclass from `type`.
             "__init__" if !class.is_type => hidden(HIDDEN_BASE_INIT),
             "__new__" if !class.is_type => hidden(HIDDEN_OBJECT_NEW),
+            "__init__" => hidden(HIDDEN_TYPE_INIT),
+            "__new__" => hidden(HIDDEN_TYPE_NEW),
             "__setattr__" => hidden(HIDDEN_OBJECT_SETATTR),
             "__delattr__" => hidden(HIDDEN_OBJECT_DELATTR),
             "__eq__" => hidden(HIDDEN_OBJECT_EQ),
@@ -743,6 +845,12 @@ impl Interp {
             "__mro__" => {
                 let mut out: Vec<Value> = std::iter::once(class.clone()).chain(class.mro.iter().cloned()).map(Value::Class).collect();
                 out.extend(builtin_base());
+                // The built-in exceptions it derives from, most derived first.
+                let mut kind = class.exception_root.as_deref();
+                while let Some(k) = kind {
+                    out.push(Value::Builtin(Rc::from(k)));
+                    kind = super::eval::exception_parent(k);
+                }
                 out.push(Value::Builtin(Rc::from("object")));
                 Value::tuple(out)
             }
@@ -773,6 +881,11 @@ impl Interp {
                         let get = get.clone();
                         return self.call_value(&get, vec![receiver.clone()], Vec::new()).map(Some);
                     }
+                }
+                // A `__new__` written in a class is implicitly static: the
+                // class comes as its first argument, as with `type.__new__`.
+                if name == "__new__" && matches!(v, Value::Function(_)) {
+                    return Ok(Some(v));
                 }
                 let owner = match receiver {
                     Value::Instance(i) => i.class.clone(),
@@ -1227,6 +1340,19 @@ impl Interp {
                 }
                 Ok(py_identical(a, b))
             }
+            (Value::Class(_), _) | (_, Value::Class(_)) if meta_eq_class(a) || meta_eq_class(b) => {
+                for (x, y) in [(a, b), (b, a)] {
+                    if let Value::Class(c) = x {
+                        if let Some(h) = self.meta_method(c, "__eq__") {
+                            let r = self.call_value(&h, vec![y.clone()], Vec::new())?;
+                            if !is_not_implemented(&r) {
+                                return self.truth(&r);
+                            }
+                        }
+                    }
+                }
+                Ok(py_identical(a, b))
+            }
             (Value::List(x), Value::List(y)) if !Rc::ptr_eq(x, y) && (holds_instance(a) || holds_instance(b)) => {
                 let (x, y) = (x.borrow().clone(), y.borrow().clone());
                 self.eq_items(&x, &y)
@@ -1597,18 +1723,14 @@ impl Interp {
     }
 
     pub(crate) fn exception_is(&self, clause: &str, kind: &str) -> bool {
-        if exception_matches(clause, kind) {
-            return true;
-        }
+        // A class answers by its own bases: a BaseExceptionGroup is no Exception.
         if let Some(c) = self.exception_classes.get(kind) {
             if c.lineage().iter().any(|n| n.as_ref() == clause) {
                 return true;
             }
-            if let Some(root) = &c.exception_root {
-                return exception_matches(clause, root);
-            }
+            return c.exception_root.as_ref().is_some_and(|root| exception_matches(clause, root));
         }
-        false
+        exception_matches(clause, kind)
     }
 
     /// `raise inst`: remember the instance so `except … as e` hands back the
@@ -1639,6 +1761,11 @@ impl Interp {
             // make it an instance of the class the script can match on.
             let inst = Rc::new(Instance::new(class));
             inst.insert(Rc::from("args"), Value::tuple(vec![Value::str(&error.message)]));
+            if super::eval::exception_matches("ImportError", &error.kind) {
+                inst.insert(Rc::from("name"), super::eval::import_error_name(&error.message));
+                inst.insert(Rc::from("path"), Value::None);
+                inst.insert(Rc::from("msg"), Value::str(&error.message));
+            }
             self.track_instance(&inst);
             return Value::Instance(inst);
         }
@@ -1662,22 +1789,41 @@ impl Interp {
     }
 
     /// `.x` and `..x` resolved against the module doing the importing.
-    pub(crate) fn resolve_module(&self, name: &str) -> R<Rc<str>> {
+    /// The package a module's relative imports start from: its
+    /// `__package__`, else worked out from its `__name__`, as importlib does.
+    pub(crate) fn package_of(&self, package: Option<&Value>, name: Option<&Value>) -> Option<String> {
+        if let Some(Value::Str(p)) = package {
+            return Some(p.to_string());
+        }
+        match name {
+            Some(Value::Str(n)) if n.as_ref() == "__main__" => Some(String::new()),
+            Some(Value::Str(n)) if self.packages.contains(n.as_ref()) => Some(n.to_string()),
+            Some(Value::Str(n)) => Some(n.rsplit_once('.').map(|(p, _)| p.to_string()).unwrap_or_default()),
+            _ => None,
+        }
+    }
+
+    /// The package of the module [env] belongs to: where an import in a
+    /// function resolves, whichever module happens to be running it.
+    pub(crate) fn package_of_env(&self, env: &Env) -> Option<String> {
+        let vars = env.module().vars.borrow();
+        self.package_of(vars.get("__package__"), vars.get("__name__"))
+    }
+
+    /// [name] with its leading dots resolved against [package] (the
+    /// importing module's), or against the module loading now when unknown.
+    pub(crate) fn resolve_module(&self, name: &str, package: Option<String>) -> R<Rc<str>> {
         if !name.starts_with('.') {
             return Ok(Rc::from(name));
         }
         let dots = name.chars().take_while(|c| *c == '.').count();
         let rest = &name[dots..];
-        let current = self.current_module.as_ref();
-        let mut package: Vec<&str> = if current == "__main__" {
-            Vec::new()
-        } else if self.packages.contains(current) {
-            current.split('.').collect()
-        } else {
-            let mut parts: Vec<&str> = current.split('.').collect();
-            parts.pop();
-            parts
-        };
+        let package = package.or_else(|| {
+            let current = self.current_module.as_ref();
+            self.package_of(None, Some(&Value::str(current)))
+        });
+        let package = package.unwrap_or_default();
+        let mut package: Vec<&str> = if package.is_empty() { Vec::new() } else { package.split('.').collect() };
         for _ in 1..dots {
             if package.pop().is_none() {
                 return Err(self.error("attempted relative import beyond the top", "ImportError"));
@@ -1693,14 +1839,34 @@ impl Interp {
     }
 
     /// Load [name] and each package above it, running Python sources once.
+    /// An object a script put in `sys.modules` is the module; a name nothing
+    /// else knows goes to the finders in `sys.meta_path`.
     pub(crate) fn ensure_module(&mut self, name: &str) -> R<()> {
         let parts: Vec<&str> = name.split('.').collect();
         for i in 1..=parts.len() {
             let prefix = parts[..i].join(".");
+            if self.object_modules.contains_key(&prefix) {
+                continue;
+            }
+            match self.sys_modules_entry(&prefix) {
+                Some(Value::None) => {
+                    return Err(self.error(format!("import of {prefix} halted; None in sys.modules"), "ModuleNotFoundError"));
+                }
+                Some(Value::Module(m)) if m.as_ref() == prefix => {}
+                Some(other) => {
+                    self.object_modules.insert(prefix, other);
+                    continue;
+                }
+                None => {}
+            }
             if !self.module_exists(&prefix) {
+                if self.import_from_meta_path(&prefix)? {
+                    continue;
+                }
                 return Err(self.error(
                     format!("no module named '{prefix}' (available: {})", self.importable_modules().join(", ")),
-                    "ImportError",
+                    // CPython's kind, an ImportError: `except ModuleNotFoundError` catches it.
+                    "ModuleNotFoundError",
                 ));
             }
             if self.module_envs.contains_key(&prefix) {
@@ -1712,8 +1878,11 @@ impl Interp {
                 // A folder of modules with no __init__.py: an empty namespace.
                 let env = Env::new(None);
                 env.define(&Rc::from("__name__"), Value::str(&prefix));
-                self.module_envs.insert(prefix, env);
+                self.packages.insert(prefix.clone());
+                self.define_spec(&prefix, &env)?;
+                self.module_envs.insert(prefix.clone(), env);
             }
+            self.note_loaded(&prefix);
         }
         Ok(())
     }
@@ -1727,12 +1896,15 @@ impl Interp {
         })?;
         let env = Env::new(None);
         env.define(&Rc::from("__name__"), Value::str(name));
+        self.define_spec(name, &env)?;
         // Registered before it runs, so a cycle sees the half-made module rather than looping.
         self.module_envs.insert(name.to_string(), env.clone());
         self.closures.push(Rc::downgrade(&env));
         let saved_module = std::mem::replace(&mut self.current_module, Rc::from(name));
         let saved_line = self.current_line;
+        self.module_runs.push((self.frames.len(), Rc::from(name)));
         let mut r = self.exec_block(&program, &env);
+        self.module_runs.pop();
         if let Err(Exc::Error(e)) = &mut r {
             self.note_frame(e, "<module>", name, saved_line);
         }
@@ -1741,6 +1913,150 @@ impl Interp {
         if let Err(e) = r {
             self.module_envs.remove(name);
             return Err(e);
+        }
+        Ok(())
+    }
+
+    /// A module as an import binds it: the object a loader made, or the module itself.
+    pub(crate) fn module_value(&self, name: &str) -> Value {
+        self.object_modules.get(name).cloned().unwrap_or_else(|| Value::Module(Rc::from(name)))
+    }
+
+    /// What `sys.modules` holds for [name], once a script has read `sys.modules`.
+    fn sys_modules_entry(&self, name: &str) -> Option<Value> {
+        let values = self.sys_values.borrow();
+        let Some(Value::Dict(d)) = values.get("modules") else { return None };
+        let found = d.borrow().get(&super::value::StrKey(name)).cloned();
+        found
+    }
+
+    /// Put [name] in `sys.modules`, if a script has it, as importing does.
+    fn note_loaded(&mut self, name: &str) {
+        let d = self.sys_values.borrow().get("modules").cloned();
+        if let Some(Value::Dict(d)) = d {
+            let present = d.borrow().get(&super::value::StrKey(name)).is_some();
+            if !present {
+                let value = self.module_value(name);
+                d.borrow_mut().insert(HKey::Str(Rc::from(name)), value);
+            }
+        }
+    }
+
+    /// Import [name] through `sys.meta_path`, as importlib's _find_spec and
+    /// _load do: the first finder whose `find_spec` gives a spec wins, its
+    /// loader's `create_module` makes the module (or a fresh one is made),
+    /// and `exec_module` fills it. False when no finder knows the name.
+    pub(crate) fn import_from_meta_path(&mut self, name: &str) -> R<bool> {
+        let finders = match self.sys_values.borrow().get("meta_path") {
+            Some(Value::List(l)) => l.borrow().clone(),
+            _ => return Ok(false),
+        };
+        if finders.is_empty() {
+            return Ok(false);
+        }
+        let saved = self.current_line;
+        let path = match name.rsplit_once('.') {
+            Some((parent, _)) => {
+                let module = self.module_value(parent);
+                self.optional_attribute(&module, "__path__")?.unwrap_or(Value::None)
+            }
+            None => Value::None,
+        };
+        for finder in finders {
+            let Some(find_spec) = self.optional_attribute(&finder, "find_spec")? else { continue };
+            let spec = self.call_value(&find_spec, vec![Value::str(name), path.clone(), Value::None], Vec::new())?;
+            if matches!(spec, Value::None) {
+                continue;
+            }
+            let loader = self.optional_attribute(&spec, "loader")?.unwrap_or(Value::None);
+            if matches!(loader, Value::None) {
+                return Err(self.error(format!("no module named '{name}': its spec has no loader"), "ImportError"));
+            }
+            let mut module = match self.optional_attribute(&loader, "create_module")? {
+                Some(create) => self.call_value(&create, vec![spec.clone()], Vec::new())?,
+                None => Value::None,
+            };
+            if matches!(module, Value::None) {
+                let env = Env::new(None);
+                env.define(&Rc::from("__name__"), Value::str(name));
+                env.define(&Rc::from("__spec__"), spec.clone());
+                env.define(&Rc::from("__loader__"), loader.clone());
+                let parent = self.optional_attribute(&spec, "parent")?.unwrap_or(Value::None);
+                env.define(&Rc::from("__package__"), parent);
+                self.module_envs.insert(name.to_string(), env);
+                module = Value::Module(Rc::from(name));
+            } else if !matches!(&module, Value::Module(m) if m.as_ref() == name) {
+                if self.optional_attribute(&module, "__spec__")?.is_none_or(|s| matches!(s, Value::None)) {
+                    // As _init_module_attrs: a module that will not take it keeps going without.
+                    let _ = self.set_attr(&module, &Rc::from("__spec__"), spec.clone());
+                }
+                self.object_modules.insert(name.to_string(), module.clone());
+            }
+            let sys_modules = self.sys_member("modules");
+            if let Some(Value::Dict(d)) = &sys_modules {
+                d.borrow_mut().insert(HKey::Str(Rc::from(name)), module.clone());
+            }
+            if let Some(exec) = self.optional_attribute(&loader, "exec_module")? {
+                self.call_value(&exec, vec![module.clone()], Vec::new())?;
+            } else if let Some(load) = self.optional_attribute(&loader, "load_module")? {
+                let loaded = self.call_value(&load, vec![Value::str(name)], Vec::new())?;
+                if !matches!(&loaded, Value::Module(m) if m.as_ref() == name) {
+                    self.object_modules.insert(name.to_string(), loaded);
+                }
+            }
+            // The module may have put something else in its place, as CPython allows.
+            match self.sys_modules_entry(name) {
+                Some(Value::Module(m)) if m.as_ref() == name => {}
+                Some(Value::None) | None => {}
+                Some(other) => {
+                    self.object_modules.insert(name.to_string(), other);
+                }
+            }
+            if let Some((parent, child)) = name.rsplit_once('.') {
+                let parent = self.module_value(parent);
+                let value = self.module_value(name);
+                let _ = self.set_attr(&parent, &Rc::from(child), value);
+            }
+            self.current_line = saved;
+            return Ok(true);
+        }
+        self.current_line = saved;
+        Ok(false)
+    }
+
+    /// `getattr(v, name, None)`, as an Option: errors other than AttributeError pass through.
+    pub(crate) fn optional_attribute(&mut self, v: &Value, name: &str) -> R<Option<Value>> {
+        match self.attribute(v, name) {
+            Ok(x) => Ok(Some(x)),
+            Err(Exc::Error(e)) if !e.is_abort() && e.kind == "AttributeError" => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// `__spec__`, `__package__` and `__loader__` of a module about to run,
+    /// as importlib sets them: a ModuleSpec naming it, its parent package,
+    /// and the file it came from where the host named one.
+    pub(crate) fn define_spec(&mut self, name: &str, env: &Rc<Env>) -> R<()> {
+        // The module ModuleSpec itself is written in gets none.
+        if name == "_builtins" {
+            return Ok(());
+        }
+        let package = self.packages.contains(name);
+        let parent = if package { name } else { name.rsplit_once('.').map(|(p, _)| p).unwrap_or("") };
+        let origin = self.module_files.get(name).map(Value::str).unwrap_or(Value::None);
+        let saved = self.current_line;
+        let class = self.python_builtin("ModuleSpec")?;
+        let kwargs = vec![(Rc::from("origin"), origin.clone()), (Rc::from("is_package"), Value::Bool(package))];
+        let spec = self.call_value(&class, vec![Value::str(name), Value::None], kwargs)?;
+        if !matches!(origin, Value::None) {
+            self.set_attr(&spec, &Rc::from("has_location"), Value::Bool(true))?;
+        }
+        self.current_line = saved;
+        env.define(&Rc::from("__spec__"), spec);
+        env.define(&Rc::from("__package__"), Value::str(parent));
+        env.define(&Rc::from("__loader__"), Value::None);
+        if package {
+            env.define(&Rc::from("__path__"), Value::list(Vec::new()));
         }
         Ok(())
     }
@@ -1805,7 +2121,8 @@ impl Interp {
                 self.arity(name, args, 1)?;
                 match &args[0] {
                     Value::Instance(i) => Value::Dict(i.dict()),
-                    Value::Class(c) => self.class_attr(c, "__dict__").unwrap_or(Value::None),
+                    Value::Class(_) | Value::Module(_) => self.attribute(&args[0], "__dict__")?,
+                    Value::Builtin(b) if b.as_ref() == "object" || super::builtins::is_type_name(b) => self.attribute(&args[0], "__dict__")?,
                     other => return Err(self.error(format!("vars() argument must have __dict__, not '{}'", other.type_name()), "TypeError")),
                 }
             }
@@ -1978,6 +2295,11 @@ impl Interp {
                 return self.construct_plain(&c, args[1..].to_vec(), kwargs.to_vec()).map(Some);
             }
             HIDDEN_TYPE_INIT => Value::None,
+            HIDDEN_FUNCTION_GET => match (arg(0), arg(1)) {
+                (Some(f), None | Some(Value::None)) => f,
+                (Some(f), Some(obj)) => object(Object::Bound(obj, f)),
+                _ => return Err(self.error("__get__(None, None) is invalid", "TypeError")),
+            },
             HIDDEN_OBJECT_INIT_SUBCLASS => {
                 if !kwargs.is_empty() {
                     let who = match arg(0) {
@@ -2027,7 +2349,7 @@ impl Interp {
                     Value::Bool(!self.truth(&eq)?)
                 }
             }
-            HIDDEN_OBJECT_REDUCE_EX | HIDDEN_OBJECT_REDUCE | HIDDEN_OBJECT_GETSTATE => {
+            HIDDEN_OBJECT_REDUCE_EX | HIDDEN_OBJECT_REDUCE | HIDDEN_OBJECT_GETSTATE | HIDDEN_EXCEPTION_ADD_NOTE => {
                 let f = self.python_builtin(name)?;
                 self.call_value(&f, args.to_vec(), kwargs.to_vec())?
             }
@@ -2228,18 +2550,17 @@ impl Interp {
                 }
             }
             other => {
-                let table: &[&str] = match other {
-                    Value::Str(_) => super::methods::STR_METHODS,
-                    Value::List(_) => super::methods::LIST_METHODS,
-                    Value::Tuple(_) => super::methods::TUPLE_METHODS,
-                    Value::Set(_) => super::methods::SET_METHODS,
-                    Value::Dict(_) => super::methods::DICT_METHODS,
-                    Value::Bytes(_) => super::methods::BYTES_METHODS,
-                    Value::Int(_) | Value::Bool(_) | Value::Big(_) => super::methods::INT_METHODS,
-                    Value::Float(_) => super::methods::FLOAT_METHODS,
-                    _ => &[],
+                // A built-in type, or a value of one: its methods and special
+                // methods, and what every object has.
+                let ty: Option<&str> = match other {
+                    Value::Builtin(b) if b.as_ref() == "object" || super::builtins::is_type_name(b) => Some(b),
+                    Value::Builtin(_) => None,
+                    v => super::methods::builtin_type(v),
                 };
-                names.extend(table.iter().map(|s| s.to_string()));
+                if let Some(ty) = ty {
+                    names.extend(super::methods::type_members(ty).map(String::from));
+                    names.extend(OBJECT_NAMES.iter().map(|s| s.to_string()));
+                }
                 if matches!(other, Value::Int(_) | Value::Bool(_) | Value::Big(_)) {
                     names.extend(["real", "imag", "numerator", "denominator"].map(String::from));
                 }

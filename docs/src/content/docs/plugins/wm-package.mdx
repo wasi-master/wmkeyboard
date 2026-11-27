@@ -88,15 +88,20 @@ needs:
   `global`, `nonlocal`, `del`, and `match`/`case` with Python's patterns
 - generators: `yield`, `yield from`, `send`, `throw` and `close`, and generator
   expressions, which run only as far as something asks
-- the walrus `:=`, `...`, `eval` and `exec`, `from module import *`, and
-  `from __future__ import annotations`
+- the walrus `:=`, `...`, `eval`, `exec` and `compile`, `from module import *`,
+  and `from __future__ import annotations`, which keeps annotations as their
+  text
 - `async def`, `await`, `async for` and `async with`, which `asyncio` runs one
   coroutine at a time (see below)
 - list, dict and set comprehensions, f-strings (`{x=}` too), slicing, slice
-  assignment, unpacking with a starred target (`first, *rest = items`), type
-  annotations (read and ignored)
+  assignment, and unpacking with a starred target (`first, *rest = items`)
+- type annotations: a class's and a module's are evaluated into
+  `__annotations__` where they stand, a function's the first time its
+  `__annotations__` is read, and one naming something not defined yet is kept
+  as its text
 - your own exceptions: `class NotFound(Exception): pass`, and every builtin
-  exception class Python has, `ExceptionGroup` apart
+  exception class Python has, `ExceptionGroup` and `BaseExceptionGroup`
+  included, with `split`, `subgroup` and `add_note` (there is no `except*`)
 - subclasses of `dict`, `list`, `str`, `int`, `float`, `tuple`, `set` and
   `bytes`, with `super()` reaching the type's methods and `__missing__` for a
   dict subclass
@@ -116,18 +121,22 @@ needs:
   live `obj.__dict__`, in-place methods such as `__iadd__`, and the number
   hooks (`__index__`, `__int__`, `__float__`, `__abs__`, `__round__` and the
   rest) that the builtins and `math` ask
+- what packages use to look at code: a class's `__dict__` and `vars(cls)` are
+  read-only views, `__mro_entries__` and `__orig_bases__`, a module's own
+  `__getattr__`, `__spec__` on every module, and finders in `sys.meta_path`
 
 `hash()` of a number or a tuple is CPython's, so `hash(2)` is 2 and
 `hash(2.5)` is the same on the phone as on a computer.
 
-Not there: `compile`, `open` and `%` formatting of bytes.
+`open` raises `PermissionError` and `input` raises `EOFError`, as there are
+no files and no console to read. `%` formatting of bytes is not there.
 
 **Modules you can import:**
 
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings.aliases`, `enum`, `errno`, `fnmatch`, `fractions`, `functools`, `gettext`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` and `html.entities`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pathlib`, `pickle`, `platform`, `pprint`, `queue`, `reprlib`, `secrets`, `shlex`, `stat`, `statistics`, `string`, `struct`, `subprocess`, `textwrap`, `threading` and `_thread`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zlib`, `zoneinfo` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings.aliases`, `enum`, `errno`, `fnmatch`, `fractions`, `functools`, `gettext`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` and `html.entities`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pathlib`, `pickle`, `platform`, `pprint`, `queue`, `reprlib`, `secrets`, `shlex`, `shutil`, `stat`, `statistics`, `string`, `struct`, `subprocess`, `textwrap`, `threading` and `_thread`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zlib`, `zoneinfo` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -138,8 +147,12 @@ Not there: `compile`, `open` and `%` formatting of bytes.
 `strptime`, `mktime`, `asctime`, `perf_counter` and `time_ns`. It has no
 `sleep`: a plugin waits with a timer. `sys` has `version_info` (3.12),
 `platform` (`"android"`), `maxsize`, `argv`, `exit`, `getrecursionlimit`,
-`setrecursionlimit`, `float_info`, `int_info`, `hash_info` and
-`set_int_max_str_digits`. `sys.stdout.write`, `print(..., file=sys.stderr)`,
+`setrecursionlimit`, `float_info`, `int_info`, `hash_info`,
+`set_int_max_str_digits`, `getsizeof` (CPython's sizes), `flags` (none set),
+`implementation` (named `"cpython"`), empty `prefix` and `base_prefix`, and
+`modules` and `meta_path`, which imports read: a finder put in `meta_path`
+supplies modules nothing else has, as with CPython's importlib.
+`sys.stdout.write`, `print(..., file=sys.stderr)`,
 `logging` and `warnings` all write to the plugin's log, where `print` goes.
 `os` is only its path functions and an empty `environ`: files go through
 [`wm.storage`](#storage) and [`wm.files`](#files).
@@ -157,6 +170,10 @@ them still load:
   finds nothing. Reading or writing raises `PermissionError`.
 - `subprocess` has its constants, exceptions and `CompletedProcess`. Starting
   a program raises `PermissionError`.
+- `shutil` has `get_terminal_size` (80 by 24 unless `COLUMNS` and `LINES` in
+  `os.environ` say otherwise), `copyfileobj` and `ignore_patterns`. Copying,
+  moving and deleting files raise `PermissionError`, and `which` finds
+  nothing.
 - `platform` says Android on a 64-bit ARM phone, running the Python version
   `sys.version_info` gives. It leaves out who the phone is, so `node()` and
   `release()` are empty.
@@ -203,8 +220,15 @@ a seed taken once from the system's random source. `uuid` has `uuid1`,
 a random node, as CPython does when it finds none. `io.TextIOWrapper` reads
 and writes text over a `BytesIO`.
 
-`decimal`, `pickle`, `ipaddress` and `tokenize` are CPython's own modules,
-run as they are. `decimal` is the pure-Python one CPython keeps beside its C
+`decimal`, `pickle`, `ipaddress`, `random`, `typing` and `tokenize` are
+CPython's own modules, run as they are. `random` draws from CPython's Mersenne
+Twister, so `random.seed(5)` gives the numbers CPython gives, and has
+`Random`, `gauss` and the other distributions. `typing` is CPython 3.13's, with
+the part CPython writes in C (`TypeVar`, `ParamSpec`, `TypeVarTuple`,
+`Generic`, `TypeAliasType`) written in Python beside it; `typing_extensions`
+and `attrs` run on it. A class's `__bases__` cannot be changed after it is
+made, so a `NamedTuple` that is also `Generic` cannot be subscripted.
+`decimal` is the pure-Python one CPython keeps beside its C
 copy: exact and complete, but slower. A `Decimal` hashes like the int it
 equals, though it is a different dict key from that int. `pickle` turns
 values to bytes and back with `dumps` and `loads`, protocols 0 to 5, and

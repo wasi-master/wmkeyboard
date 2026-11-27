@@ -1876,6 +1876,294 @@ except SyntaxError as e:
     rows.append(type(e).__name__)
 repr((rows, issubclass(UnicodeTranslateError, ValueError)))
 '''),
+    ("re_scanner_lexes", "regex", r'''
+import re
+def s_ident(scanner, token): return ("id", token)
+def s_op(scanner, token): return ("op", token, scanner.match.span())
+scanner = re.Scanner([
+    (r"[a-zA-Z_]\w*", s_ident),
+    (r"\d+\.\d*", lambda s, t: float(t)),
+    (r"\d+", lambda s, t: int(t)),
+    (r"=|\+|-|\*|/", s_op),
+    (r"\s+", None),
+    (r"#.*", "comment"),
+])
+repr((scanner.scan("sum = 3*foo + 312.50 + bar # hi"), scanner.scan("x = 1 $ 2"), re.Scanner.__name__))
+'''),
+    ("random_is_cpythons_mersenne_twister", "stdlib", r'''
+import random
+random.seed(5)
+a = [random.random() for _ in range(3)]
+b = [random.randint(1, 100) for _ in range(5)]
+xs = list(range(10))
+random.shuffle(xs)
+c = (random.choice("abcdef"), random.sample(range(50), 4), random.getrandbits(70), round(random.gauss(0, 1), 12), round(random.uniform(1, 2), 12))
+r = random.Random("seed text")
+d = [r.randrange(1000) for _ in range(3)]
+state = r.getstate()
+e = r.random()
+r.setstate(state)
+repr((a, b, xs, c, d, e == r.random(), random.Random(7).choices("xyz", k=5)))
+'''),
+    ("json_load_and_dump_take_files", "stdlib", r'''
+import io, json
+buf = io.StringIO()
+json.dump({"a": [1, 2], "b": None}, buf, sort_keys=True)
+text = buf.getvalue()
+repr((text, json.load(io.StringIO(text)), json.load(io.StringIO('[1.5, "x"]'))))
+'''),
+    ("exception_groups", "errors", r'''
+eg = ExceptionGroup("many", [ValueError(1), TypeError(2), ExceptionGroup("inner", [ValueError(3)])])
+match, rest = eg.split(ValueError)
+only = eg.subgroup(lambda e: isinstance(e, TypeError))
+try:
+    ExceptionGroup("x", [KeyboardInterrupt()])
+    made = "made"
+except TypeError as e:
+    made = str(e)
+beg = BaseExceptionGroup("b", [KeyboardInterrupt()])
+repr((str(eg), repr(match), repr(rest), repr(only), made, type(beg).__name__, type(BaseExceptionGroup("c", [ValueError()])).__name__,
+      isinstance(eg, Exception), issubclass(ExceptionGroup, BaseExceptionGroup), eg.derive([OSError()]).message,
+      len(eg.exceptions), eg.subgroup(KeyError)))
+'''),
+    ("oserror_picks_its_subclass", "errors", r'''
+e = OSError(2, "No such file", "a.txt")
+f = OSError(13, "Denied", "x", None, "y")
+g = OSError("plain")
+repr((type(e).__name__, e.errno, e.strerror, e.filename, str(e), e.args, type(f).__name__, str(f), f.filename2,
+      type(OSError(17, "x")).__name__, g.errno, str(g), isinstance(e, OSError), type(OSError(99, "z")).__name__))
+'''),
+    ("module_spec_and_meta_path", "imports", r'''
+import sys, importlib.util
+import email.message
+class Finder:
+    def find_spec(self, name, path=None, target=None):
+        if name == "virtual_mod":
+            return importlib.util.spec_from_loader(name, self)
+        return None
+    def create_module(self, spec):
+        return None
+    def exec_module(self, module):
+        module.answer = 42
+sys.meta_path.insert(0, Finder())
+import virtual_mod
+try:
+    import no_such_module_anywhere
+    missing = "found"
+except ModuleNotFoundError as e:
+    missing = (type(e).__name__, e.name)
+sys.meta_path.pop(0)
+repr((email.message.__spec__.name, email.message.__spec__.parent, email.__spec__.submodule_search_locations is not None,
+      virtual_mod.answer, missing, "virtual_mod" in sys.modules, issubclass(ModuleNotFoundError, ImportError)))
+'''),
+    ("typing_runtime_parity", "typing", r'''
+__name__ = '__main__'
+from typing import (Generic, TypeVar, List, Dict, Optional, Union, Callable, Literal, Annotated, NamedTuple,
+                    TypedDict, Protocol, runtime_checkable, NewType, get_type_hints, get_origin, get_args, ParamSpec,
+                    TypeVarTuple, Unpack, Tuple, Any, cast, overload, get_overloads, final)
+T = TypeVar("T")
+V = TypeVar("V", bound=int)
+P = ParamSpec("P")
+Ts = TypeVarTuple("Ts")
+class Box(Generic[T]):
+    def __init__(self, item: T):
+        self.item = item
+class IntBox(Box[int]):
+    pass
+@runtime_checkable
+class Closable(Protocol):
+    def close(self) -> None: ...
+class F:
+    def close(self): pass
+class Movie(TypedDict, total=False):
+    name: str
+    year: int
+class Pt(NamedTuple):
+    x: int
+    y: int = 0
+UserId = NewType("UserId", int)
+def f(a: int, b: "List[str]" = None) -> Optional[int]: ...
+repr((T, V, V.__bound__, P.args, Ts, Box[int], IntBox.__orig_bases__, IntBox.__mro__, Box.__parameters__,
+      Union[int, str], Optional[int], Dict[str, T][int], Callable[[int], str], Callable[P, T][[int], str],
+      Literal[1, 2, 1], Annotated[int, "m"], get_args(Annotated[int, "m"]), get_origin(List[int]), Tuple[int, Unpack[Ts]],
+      isinstance(F(), Closable), isinstance(1, Closable), sorted(Movie.__optional_keys__), Pt(1), Pt._field_defaults,
+      UserId(5), UserId.__supertype__, get_type_hints(f), int | T, T | None, cast(str, 1), Any))
+'''),
+    ("annotations_are_evaluated", "syntax", r'''
+class C:
+    x: int = 1
+    y: list[str]
+    z: "Later"
+def g(a: int, *args: str, b: "bytes" = b"", **kw: float) -> dict[str, int]:
+    pass
+n: int = 5
+repr((C.__annotations__, g.__annotations__, __annotations__ if "__annotations__" in dir() else None))
+'''),
+    ("future_annotations_are_text", "syntax", r'''
+from __future__ import annotations
+class C:
+    x: list[int]
+    y: Optional["X"] | None
+def g(a: dict[str, int], b: "q" = 1) -> tuple[int, ...]:
+    pass
+repr((C.__annotations__, g.__annotations__))
+'''),
+    ("compile_eval_exec_and_syntax_errors", "syntax", r'''
+c = compile("1 + 2", "<s>", "eval")
+ns = {}
+exec(compile("x = 5\ny = x * 2", "<s>", "exec"), ns)
+errors = []
+for src, mode in [("1 +", "eval"), ("x = 1", "eval"), ("def", "exec")]:
+    try:
+        compile(src, "<s>", mode)
+    except SyntaxError:
+        errors.append("SyntaxError")
+try:
+    eval("(")
+except SyntaxError:
+    errors.append("eval SyntaxError")
+try:
+    compile("1", "<s>", "bad")
+except ValueError as e:
+    errors.append(str(e))
+repr((type(c).__name__, c.co_filename, eval(c), ns["y"], eval(compile("z = 1", "<s>", "exec"), {}), errors))
+'''),
+    ("generic_alias_substitution", "typing", r'''
+from typing import TypeVar
+T = TypeVar("T")
+K = TypeVar("K")
+try:
+    isinstance([], list[int])
+    inst = "checked"
+except TypeError as e:
+    inst = str(e)
+try:
+    list[int][str]
+    sub = "subscripted"
+except TypeError as e:
+    sub = str(e)
+repr((list[T][int], dict[K, list[T]][str, int], dict[K, list[T]].__parameters__, tuple[int, ...], tuple[()],
+      list[int] == list[int], hash(list[int]) == hash(list[int]), list[int].__origin__, list[int].__args__,
+      [*tuple[int, str]], inst, sub, type[int], (int | list[T])[str]))
+'''),
+    ("class_dict_is_a_read_only_view", "classes", r'''
+class C:
+    def get(self): return "method"
+    def items(self): return "method"
+    x = 5
+d = C.__dict__
+try:
+    d["y"] = 1
+    w = "written"
+except TypeError as e:
+    w = str(e)
+repr((type(d).__name__, d.get("x"), d["x"], sorted(k for k in vars(C) if not k.startswith("__")), w,
+      "bit_length" in int.__dict__, "__reduce_ex__" in object.__dict__, "__reduce_ex__" in list.__dict__,
+      "__int__" in dir(int), "append" in vars(list), type(vars(int)).__name__))
+'''),
+    ("functions_are_descriptors", "classes", r'''
+class O:
+    def m(self):
+        return self.v
+def free(self, k):
+    return k * 2
+o = O()
+object.__setattr__.__get__(o)("v", 7)
+cm = classmethod(free)
+sm = staticmethod(free)
+repr((o.v, O.m.__get__(o)(), free.__get__(o)(3), free.__get__(None, O) is free, cm.__func__ is free, sm.__wrapped__ is free,
+      sm.__func__ is free, property(lambda s: 1).__isabstractmethod__))
+'''),
+    ("generator_throw_forms", "generators", r'''
+class E(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.tag = 1
+def g():
+    try:
+        yield 1
+    except E as e:
+        e.tag += 1
+        raise
+out = []
+for how in ("inst", "pair", "typeval"):
+    x = g(); next(x)
+    try:
+        if how == "inst": x.throw(E("a"))
+        elif how == "pair": x.throw(E, E("b"))
+        else: x.throw(E, "c")
+    except E as e:
+        out.append((how, e.args, e.tag))
+repr(out)
+'''),
+    ("with_keeps_the_raised_object", "errors", r'''
+from contextlib import contextmanager
+class E(Exception):
+    def __init__(self, message, ctx=None):
+        super().__init__(message)
+        self.message = message
+        self.ctx = ctx
+    def __str__(self):
+        return self.message
+@contextmanager
+def aug():
+    try:
+        yield
+    except E as e:
+        if e.ctx is None:
+            e.ctx = "set"
+        raise
+err = E("boom")
+try:
+    with aug():
+        raise err
+except E as e:
+    caught = (e is err, e.ctx, str(e))
+repr(caught)
+'''),
+    ("sys_extras_and_small_modules", "stdlib", r'''
+import sys, os, shutil, urllib.parse
+os.environ["COLUMNS"] = "100"
+os.environ["LINES"] = "30"
+size = shutil.get_terminal_size()
+del os.environ["COLUMNS"], os.environ["LINES"]
+repr((sys.flags.optimize, sys.flags.dev_mode, sys.implementation.name, sys.implementation.cache_tag is None or isinstance(sys.implementation.cache_tag, str),
+      sys.getsizeof(1), sys.getsizeof(1.0), sys.getsizeof(""), sys.getsizeof("abc"), sys.getsizeof([]), sys.getsizeof(()), sys.getsizeof(b"ab"),
+      isinstance(sys.prefix, str), size, size.columns, "https" in urllib.parse.uses_netloc, urllib.parse.scheme_chars[-3:],
+      __debug__, bool.__mro__, KeyError.__bases__, ValueError.__base__))
+'''),
+    ("inspect_refuses_builtins", "stdlib", r'''
+import inspect
+out = []
+for c in (int, str):
+    try:
+        inspect.signature(c)
+        out.append("signature")
+    except ValueError:
+        out.append("ValueError")
+def f(a, b: int = 2, *c, d, **e) -> str: ...
+repr((out, str(inspect.signature(f)), inspect.isfunction(list.append), inspect.isbuiltin(len)))
+'''),
+    ("pep560_bases_and_module_getattr", "classes", r'''
+import types
+class Alias:
+    def __init__(self, *real):
+        self.real = real
+    def __mro_entries__(self, bases):
+        return self.real
+class A: pass
+class B: pass
+class C(Alias(A, B), int.__class__.__mro__[-1]):
+    pass
+mod = types.ModuleType("lazy")
+exec("def __getattr__(name):\n    if name == 'late':\n        return 99\n    raise AttributeError(name)", mod.__dict__)
+try:
+    mod.nope
+    nope = "found"
+except AttributeError:
+    nope = "AttributeError"
+repr(([k.__name__ for k in C.__mro__], [getattr(b, "__name__", type(b).__name__) for b in C.__orig_bases__], mod.late, nope))
+'''),
 ]
 
 

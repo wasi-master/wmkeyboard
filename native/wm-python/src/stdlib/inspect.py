@@ -74,7 +74,7 @@ def _has_code_flag(f, flag):
         f = f.func
     if not isfunction(f):
         return False
-    return bool(f.__code__["co_flags"] & flag)
+    return bool(f.__code__.co_flags & flag)
 
 
 def isgeneratorfunction(obj):
@@ -690,11 +690,11 @@ class Signature:
 
 def _function_signature(func, skip_first=False):
     code = func.__code__
-    argcount = code["co_argcount"]
-    posonlycount = code["co_posonlyargcount"]
-    kwonlycount = code["co_kwonlyargcount"]
-    names = code["co_varnames"]
-    flags = code["co_flags"]
+    argcount = code.co_argcount
+    posonlycount = code.co_posonlyargcount
+    kwonlycount = code.co_kwonlyargcount
+    names = code.co_varnames
+    flags = code.co_flags
     defaults = func.__defaults__ or ()
     kwdefaults = func.__kwdefaults__ or {}
     annotations = getattr(func, "__annotations__", None) or {}
@@ -758,7 +758,10 @@ def _signature_from_callable(obj, follow_wrapped=True, skip_first=False):
         new = vars(obj).get("__new__") if hasattr(obj, "__dict__") else None
         if isfunction(new):
             return _function_signature(new, skip_first=True)
-        # Neither written in Python: object's own, which takes nothing.
+        # Neither written in Python: a built-in type's, which has no
+        # signature to read, or object's own, which takes nothing.
+        if getattr(obj, "__module__", None) == "builtins" and obj is not object:
+            raise ValueError(f"no signature found for builtin type {obj!r}")
         return Signature([])
     call = getattr(type(obj), "__call__", None)
     if call is not None and isfunction(call):

@@ -119,7 +119,7 @@ fn cases() -> Vec<(&'static str, String, String, Host)> {
         ("name_typo", s("count = 1\nprint(cuont)\n"), s("count = 1\nprint(count)\n"), host()),
         ("module_not_imported", s("x = math.pi\n"), s("import math\nx = math.pi\n"), host()),
         ("removed_builtin", s("open('f')\n"), s("len('f')\n"), host()),
-        ("missing_builtin", s("x = ExceptionGroup\n"), s("x = frozenset\n"), host()),
+        ("missing_builtin", s("x = license\n"), s("x = frozenset\n"), host()),
         ("import_not_available", s("import socket\n"), s("import json\n"), host()),
         ("unused_local", s("def f():\n    x = 1\n    return 2\n"), s("def f():\n    x = 1\n    return x\n"), host()),
         ("unused_parameter", s("def f(a):\n    return 1\n"), s("def f(a):\n    return a\n"), host()),

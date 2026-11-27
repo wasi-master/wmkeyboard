@@ -35,8 +35,7 @@ def _compute_abstracts(cls):
     for c in cls.__mro__:
         if c is object:
             continue
-        # dict.items: a class may have its own method called items.
-        for name, value in dict.items(vars(c)):
+        for name, value in vars(c).items():
             if name in seen:
                 continue
             seen.add(name)

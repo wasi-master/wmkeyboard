@@ -863,6 +863,7 @@ impl Interp {
                 }
                 Inner::With(managers) => {
                     let mut swallowed = false;
+                    let mut replaced = false;
                     let mut args = match &exc {
                         Exc::Error(e) if !e.is_abort() => {
                             let value = self.caught_value(e);
@@ -870,12 +871,14 @@ impl Interp {
                         }
                         _ => vec![Value::None, Value::None, Value::None],
                     };
+                    let original = args[1].clone();
                     for m in managers.iter().rev() {
                         let r = match self.call_method(m, "__exit__", args.clone(), Vec::new()) {
                             Ok(r) => r,
                             Err(e) => {
                                 exc = e;
                                 swallowed = false;
+                                replaced = true;
                                 break;
                             }
                         };
@@ -887,6 +890,12 @@ impl Interp {
                     if swallowed {
                         done(&mut g.levels, depth);
                         return Ok(());
+                    }
+                    // Not swallowed: the same object goes on raising.
+                    if let (false, Exc::Error(e)) = (replaced, &exc) {
+                        if !original.is_none() {
+                            self.raised = Some((Rc::from(e.kind.as_str()), e.message.clone(), original));
+                        }
                     }
                 }
                 _ => {}
@@ -1025,9 +1034,23 @@ impl Interp {
                 }
             }
             "throw" => {
-                let exc = match args.first() {
-                    Some(v) => self.exception_from(v),
-                    None => self.error("throw expected at least 1 argument, got 0", "TypeError"),
+                // throw(exc), or the old throw(type, value[, tb]): the value
+                // when it is an exception already, else the type called with it.
+                let exc = match (args.first(), args.get(1)) {
+                    (Some(_), Some(v @ (Value::Instance(_) | Value::Exception(_)))) => self.exception_from(v),
+                    (Some(Value::Class(c)), Some(v)) if !v.is_none() => {
+                        let given = match v {
+                            Value::Tuple(t) => t.to_vec(),
+                            other => vec![other.clone()],
+                        };
+                        match self.construct(&c.clone(), given, Vec::new()) {
+                            Ok(Value::Instance(i)) => self.raise_instance(&i),
+                            Ok(_) => self.error("exceptions must derive from BaseException", "TypeError"),
+                            Err(e) => e,
+                        }
+                    }
+                    (Some(v), _) => self.exception_from(v),
+                    (None, _) => self.error("throw expected at least 1 argument, got 0", "TypeError"),
                 };
                 match self.gen_resume(o, Resume::Throw(exc))? {
                     Step::Yield(v) => Ok(v),

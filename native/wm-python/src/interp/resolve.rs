@@ -412,7 +412,8 @@ impl Resolver {
                 }
                 self.block(body)?;
             }
-            StmtKind::AnnAssign(target, _, value) => {
+            StmtKind::AnnAssign(target, annotation, value) => {
+                self.expr(annotation)?;
                 if let Some(v) = value {
                     self.expr(v)?;
                 }
@@ -693,7 +694,7 @@ fn header_exprs(kind: &StmtKind) -> Vec<&Expr> {
         StmtKind::While(c, ..) => vec![c],
         StmtKind::For(t, it, ..) => vec![t, it],
         StmtKind::With(items, _) => items.iter().flat_map(|(m, t)| std::iter::once(m).chain(t.iter())).collect(),
-        StmtKind::AnnAssign(t, _, v) => std::iter::once(t).chain(v.iter()).collect(),
+        StmtKind::AnnAssign(t, a, v) => [t, a].into_iter().chain(v.iter()).collect(),
         StmtKind::Assert(t, m) => std::iter::once(t).chain(m.iter()).collect(),
         StmtKind::Return(v) => v.iter().collect(),
         StmtKind::Raise(v, c) => v.iter().chain(c.iter()).collect(),
@@ -832,8 +833,9 @@ fn collect_stmt(s: &Stmt, b: &mut Bindings, comp: u32) {
             }
             collect_block(body, b, comp);
         }
-        StmtKind::AnnAssign(t, _, v) => {
+        StmtKind::AnnAssign(t, a, v) => {
             collect_target(t, b);
+            collect_expr(a, b, comp);
             if let Some(v) = v {
                 collect_expr(v, b, comp);
             }

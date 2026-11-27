@@ -5,7 +5,7 @@
 
 use std::rc::Rc;
 
-use super::ast::BinOp;
+use super::ast::{BinOp, Stmt, StmtKind};
 use super::bytes::{encode_with, ByteError};
 use super::error::{Exc, R};
 use super::eval::Interp;
@@ -99,7 +99,7 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
     "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
     "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii", "UnboundLocalError", "GeneratorExit",
-    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__",
+    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__", "__syntax_check__",
 ];
 
 /// The builtins that are types: `type(x)` answers with one, and `str()` of
@@ -126,7 +126,10 @@ pub(crate) fn is_builtin_name(name: &str) -> bool {
 /// Builtins written in Python (`src/stdlib/_builtins.py`), loaded the first
 /// time a script names one.
 pub(crate) const PYTHON_BUILTINS: &[&str] =
-    &["frozenset", "bytearray", "memoryview", "__type_alias__", "GenericAlias", "aiter", "anext", "__union__", "__iter_call__"];
+    &[
+        "frozenset", "bytearray", "memoryview", "__type_alias__", "GenericAlias", "aiter", "anext", "__union__", "__iter_call__",
+        "BaseExceptionGroup", "ExceptionGroup", "input", "open", "breakpoint", "exit", "quit", "help", "compile",
+    ];
 
 /// The builtins that take keyword arguments.
 pub(crate) const KWARG_BUILTINS: &[&str] = &[
@@ -171,6 +174,10 @@ impl Interp {
         if name.as_bytes().first().is_some_and(u8::is_ascii_uppercase) && EXCEPTION_KINDS.contains(&name) {
             // What str(e) gives, as CPython has it: nothing, the one argument
             // (a KeyError's in quotes), or the tuple of them all.
+            let os_error = super::eval::exception_matches("OSError", name) && (2..=5).contains(&args.len());
+            if os_error {
+                return self.os_error(name, args);
+            }
             let message = match args.len() {
                 0 => String::new(),
                 1 if name == "KeyError" => self.to_repr(&args[0])?,
@@ -236,13 +243,23 @@ impl Interp {
                 };
                 let level = args.get(4).or_else(|| kwarg(kwargs, "level")).and_then(Value::as_int).unwrap_or(0);
                 let dotted: Rc<str> = if level > 0 { Rc::from(format!("{}{module}", ".".repeat(level as usize))) } else { module.clone() };
-                let resolved = self.resolve_module(&dotted)?;
+                // The package comes from the globals passed, as importlib reads them.
+                let package = match args.get(1).or_else(|| kwarg(kwargs, "globals")) {
+                    Some(Value::Dict(g)) => {
+                        let g = g.borrow();
+                        let pkg = g.get(&HKey::Str(Rc::from("__package__"))).cloned();
+                        let nm = g.get(&HKey::Str(Rc::from("__name__"))).cloned();
+                        self.package_of(pkg.as_ref(), nm.as_ref())
+                    }
+                    _ => None,
+                };
+                let resolved = self.resolve_module(&dotted, package)?;
                 self.ensure_module(&resolved)?;
                 let fromlist = args.get(3).or_else(|| kwarg(kwargs, "fromlist")).is_some_and(Value::truthy);
                 if fromlist || level > 0 {
-                    return Ok(Value::Module(resolved));
+                    return Ok(self.module_value(&resolved));
                 }
-                Ok(Value::Module(Rc::from(resolved.split('.').next().unwrap_or(&resolved))))
+                Ok(self.module_value(resolved.split('.').next().unwrap_or(&resolved)))
             }
             "ascii" => {
                 self.arity(name, args, 1)?;
@@ -375,6 +392,18 @@ impl Interp {
                 Ok(acc)
             }
             "range" => self.range_builtin(args),
+            // What compile() (in _builtins.py) asks: does [source] parse, as
+            // a module or (mode "eval") as one expression? A SyntaxError if not.
+            "__syntax_check__" => {
+                let (Some(Value::Str(source)), Some(Value::Str(mode))) = (args.first(), args.get(1)) else {
+                    return Err(self.error("__syntax_check__() needs a source and a mode", "TypeError"));
+                };
+                let program = super::parser::parse_dynamic(source, true).map_err(super::eval::syntax_error)?;
+                if mode.as_ref() == "eval" && !matches!(program.as_slice(), [Stmt { kind: StmtKind::Expr(_), .. }]) {
+                    return Err(self.error("invalid syntax", "SyntaxError"));
+                }
+                Ok(Value::None)
+            }
             "complex" => self.complex_builtin(args, kwargs),
             "sorted" => self.sorted_builtin(args, kwargs),
             "reversed" => {
@@ -915,9 +944,9 @@ impl Interp {
             Value::Builtin(n) if n.as_ref() == "Ellipsis" => Value::Builtin(Rc::from("ellipsis")),
             Value::Builtin(n) if is_type_name(n) => Value::Builtin(Rc::from("type")),
             Value::Builtin(n) if n.as_ref() == "NotImplemented" => Value::Builtin(Rc::from("NotImplementedType")),
-            Value::Builtin(n) if !is_type_name(n) && !n.starts_with(super::methods::UNBOUND_PREFIX) => {
-                Value::Builtin(Rc::from("builtin_function_or_method"))
-            }
+            // `len`, and `list.append` read off its type: written in Rust, not
+            // Python functions (inspect tells the two apart by this).
+            Value::Builtin(n) if !is_type_name(n) => Value::Builtin(Rc::from("builtin_function_or_method")),
             Value::HostFunction(_) | Value::ModuleFunction(_) => Value::Builtin(Rc::from("builtin_function_or_method")),
             other => Value::Builtin(Rc::from(other.type_name())),
         }
@@ -1072,6 +1101,41 @@ impl Interp {
             items.reverse();
         }
         Ok(())
+    }
+
+    /// `OSError(errno, strerror[, filename[, winerror[, filename2]]])`, as
+    /// CPython makes it: a plain OSError becomes the subclass its errno names
+    /// (2 is FileNotFoundError), and `str(e)` reads `[Errno 2] text: 'name'`.
+    fn os_error(&mut self, name: &str, args: &[Value]) -> R<Value> {
+        let errno = args[0].as_int();
+        let kind = match (name, errno) {
+            ("OSError", Some(n)) => match n {
+                11 | 114 | 115 => "BlockingIOError",
+                10 => "ChildProcessError",
+                32 | 108 => "BrokenPipeError",
+                103 => "ConnectionAbortedError",
+                111 => "ConnectionRefusedError",
+                104 => "ConnectionResetError",
+                17 => "FileExistsError",
+                2 => "FileNotFoundError",
+                21 => "IsADirectoryError",
+                20 => "NotADirectoryError",
+                4 => "InterruptedError",
+                1 | 13 => "PermissionError",
+                3 => "ProcessLookupError",
+                110 => "TimeoutError",
+                _ => "OSError",
+            },
+            _ => name,
+        };
+        let mut message = format!("[Errno {}] {}", self.to_str(&args[0])?, self.to_str(&args[1])?);
+        if let Some(file) = args.get(2).filter(|f| !matches!(f, Value::None)) {
+            message.push_str(&format!(": {}", self.to_repr(file)?));
+            if let Some(file2) = args.get(4).filter(|f| !matches!(f, Value::None)) {
+                message.push_str(&format!(" -> {}", self.to_repr(file2)?));
+            }
+        }
+        Ok(Value::Exception(Rc::new(ExceptionValue { kind: kind.to_string(), message, args: args.to_vec(), cause: None, context: None })))
     }
 
     /// `frozenset` and `bytearray`, written in Python: the first use loads them.

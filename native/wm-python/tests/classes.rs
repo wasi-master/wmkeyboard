@@ -137,10 +137,23 @@ fn keyword_only_parameters_and_kwargs() {
 }
 
 #[test]
-fn annotations_are_read_and_ignored() {
+fn annotations_are_evaluated_as_cpython_does() {
     assert_eq!("hi", run("def greet(name: str, times: int = 1) -> str:\n    return name * times\ngreet('hi')"));
-    assert_eq!("{'x': 'int', 'y': 'list'}", run("class C:\n    x: int = 1\n    y: list[str]\nC.__annotations__"));
+    // A class's and a module's are evaluated where they stand; a function's
+    // the first time its __annotations__ is read.
+    assert_eq!("{'x': <class 'int'>, 'y': list[str]}", run("class C:\n    x: int = 1\n    y: list[str]\nC.__annotations__"));
     assert_eq!("5", run("count: int = 5\ncount"));
+    assert_eq!(
+        "{'name': <class 'str'>, 'times': <class 'int'>, 'return': 'Later'}",
+        run("def greet(name: str, times: int = 1) -> 'Later':\n    pass\ngreet.__annotations__")
+    );
+    // One that cannot be evaluated yet is kept as its text.
+    assert_eq!("{'nxt': 'Node | None'}", run("class Node:\n    nxt: Node | None\nNode.__annotations__"));
+    // `from __future__ import annotations`: every one is its text.
+    assert_eq!(
+        "{'a': 'list[int]', 'return': \"Optional['X']\"}",
+        run("from __future__ import annotations\ndef f(a: list[int]) -> Optional['X']:\n    pass\nf.__annotations__")
+    );
 }
 
 #[test]

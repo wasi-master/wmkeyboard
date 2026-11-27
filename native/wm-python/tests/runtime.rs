@@ -182,5 +182,5 @@ fn version_is_readable_from_rust_and_from_a_script() {
 #[test]
 fn sys_can_be_switched_off_like_any_other_module() {
     let mut py = Runtime::new(Limits::default(), &["math"]);
-    assert_eq!("ImportError", py_error(py.run("import sys")).kind);
+    assert_eq!("ModuleNotFoundError", py_error(py.run("import sys")).kind);
 }

@@ -51,6 +51,7 @@ mod maths;
 mod mathmod;
 mod methods;
 mod modules;
+mod mt;
 mod parser;
 mod patterns;
 mod regex;
@@ -59,6 +60,7 @@ mod scope;
 mod stdlib;
 mod structs;
 mod text;
+mod unparse;
 mod value;
 
 use std::rc::Rc;
@@ -247,7 +249,7 @@ impl Runtime {
     /// urllib.parse, statistics, abc and copy. Each loads on first import.
     pub fn enable_python_stdlib(&mut self) {
         // cmath only computes, as the Python-written modules do.
-        for native in ["_native", "cmath"] {
+        for native in ["_native", "cmath", "_mt"] {
             if !self.interp.enabled_modules.contains(&native) {
                 self.interp.enabled_modules.push(native);
             }
@@ -258,8 +260,10 @@ impl Runtime {
         if time && !self.interp.enabled_modules.contains(&"_time") {
             self.interp.enabled_modules.push("_time");
         }
+        // So does the `random` written in Python (CPython's own, over _mt).
+        let random = self.interp.enabled_modules.contains(&"random");
         for (name, source, package) in stdlib::PYTHON_MODULES {
-            if *name == "time" && !time {
+            if (*name == "time" && !time) || (matches!(*name, "random" | "_random") && !random) {
                 continue;
             }
             if !self.interp.source_modules.contains_key(*name) {

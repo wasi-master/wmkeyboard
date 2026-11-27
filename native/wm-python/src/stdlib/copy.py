@@ -16,6 +16,8 @@ error = Error
 def _defined(cls, name):
     """Whether a class in cls's resolution order (not a built-in one) defines name."""
     for k in getattr(cls, "__mro__", (cls,)):
+        if getattr(k, "__module__", None) == "builtins":
+            continue
         if name in getattr(k, "__dict__", {}):
             return True
     return False

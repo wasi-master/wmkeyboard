@@ -58,6 +58,8 @@ const DIVERGES: &[(&str, &str)] = &[
     ("183-edge-json-surrogate.py", concat!(r##"ERROR: Line 2: ValueError: invalid \u escape in JSON"##, "\n")),
     ("184-edge-json-trailing.py", concat!(r##"ERROR: Line 2: ValueError: could not parse JSON"##, "\n")),
     ("027-bitwise.py", "[1, 7, 6, 1, 0]\n"),
+    // 2026-11-27: a module that is not there is a ModuleNotFoundError, as in CPython.
+    ("096-import-errors.py", "ERROR: Line 1: ModuleNotFoundError: no module named 'os' (available: json, math, random, re, sys, time)\n"),
     ("034-strings-split.py", concat!(r##"[['a', 'b', 'c'], ['a', 'b', '', 'c'], ['a', 'b,c'], ['a,b', 'c'], ['', 'a', '', 'b', ''], ['a', 'b', 'c'], ['a', 'b c']]"##, "\n")),
     ("045-strings-graphemes.py", concat!(r##"[2, ['é', 'x'], True, 1, '🇫🇷', 1, ['e', 'f', 'é']]"##, "\n")),
     ("049-escapes.py", concat!(r##"['a\tb', '\\', 'A', 'é', '\\q', '\\n', "it's", 'say "hi"', True]"##, "\n")),
