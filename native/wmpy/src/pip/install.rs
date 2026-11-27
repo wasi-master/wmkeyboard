@@ -293,11 +293,14 @@ pub fn choose(project: &Project, spec: &Specifier) -> Result<(String, FileInfo, 
     Err(format!("{} has no release{what} that Python {} can install", project.name, super::marker::python_version().0))
 }
 
-/// The analysis of a new package, with everything else in the plugin as available.
-pub fn analyse(dist: &Dist, available: &[String]) -> wm_python_pip::Report {
-    let own: BTreeSet<&String> = dist.roots.iter().collect();
-    let others: Vec<String> = available.iter().filter(|r| !own.contains(r)).cloned().collect();
-    let opts = wm_python_pip::AnalyseOptions { package: dist.name.clone(), available: others, compiled: dist.compiled.clone() };
+/// The analysis of a new package. [beside] is the top-level names everything
+/// else in the plugin takes: one the package also takes is a namespace they
+/// share (`google`).
+pub fn analyse(dist: &Dist, beside: &[String]) -> wm_python_pip::Report {
+    let mut available = beside.to_vec();
+    available.sort();
+    available.dedup();
+    let opts = wm_python_pip::AnalyseOptions { package: dist.name.clone(), available, compiled: dist.compiled.clone() };
     wm_python_pip::analyse(&dist.analysis_files(), &opts)
 }
 

@@ -304,15 +304,19 @@ fn verdict_of(pick: &Pick, outcome: &Outcome) -> String {
 /// and prints the result. The shared second half of install and update.
 fn apply(dir: &Path, mut lock: Lock, picks: BTreeMap<String, Pick>, notes: Vec<String>, force: bool, allow_warnings: bool, json_out: bool) -> u8 {
     let own = install::own_roots(dir, &lock);
-    let mut available: Vec<String> = picks.values().flat_map(Pick::roots).collect();
-    available.extend(lock.packages.values().flat_map(|e| e.roots.iter().cloned()));
-    available.extend(own.iter().cloned());
+    // What everything but the package itself puts in the plugin.
+    let beside = |key: &str| -> Vec<String> {
+        let mut v: Vec<String> = picks.iter().filter(|(k, _)| k.as_str() != key).flat_map(|(_, p)| p.roots()).collect();
+        v.extend(lock.packages.iter().filter(|(k, _)| k.as_str() != key).flat_map(|(_, e)| e.roots.iter().cloned()));
+        v.extend(own.iter().cloned());
+        v
+    };
     let mut outcomes: BTreeMap<String, Outcome> = BTreeMap::new();
     for (key, pick) in &picks {
         let outcome = match &pick.source {
             Source::Locked(_) => Outcome { action: Action::Kept, report: None, reason: None },
             Source::New(d) => {
-                let report = (!d.modules.is_empty() || !d.native.is_empty()).then(|| install::analyse(d, &available));
+                let report = (!d.modules.is_empty() || !d.native.is_empty()).then(|| install::analyse(d, &beside(key)));
                 let clash = d.roots.iter().find(|r| own.contains(*r)).cloned();
                 let (action, reason) = if let Some(r) = clash {
                     (Action::Refused, Some(format!("the plugin has its own '{r}', which this would overwrite")))
@@ -600,11 +604,11 @@ fn run_check(args: CheckArgs) -> u8 {
         if let Err(e) = r.resolve(reqs) {
             return fail(e, None, 2);
         }
-        let roots: Vec<String> = r.picks.values().flat_map(Pick::roots).collect();
+        let roots: Vec<(String, Vec<String>)> = r.picks.iter().map(|(k, p)| (k.clone(), p.roots())).collect();
         notes = std::mem::take(&mut r.notes);
-        for (_, p) in std::mem::take(&mut r.picks) {
+        for (key, p) in std::mem::take(&mut r.picks) {
             if let Source::New(d) = p.source {
-                let mut deps = roots.clone();
+                let mut deps: Vec<String> = roots.iter().filter(|(k, _)| *k != key).flat_map(|(_, r)| r.iter().cloned()).collect();
                 // With --no-deps the dependencies' import names are only guessed.
                 deps.extend(p.requires.iter().map(|k| k.replace('-', "_")));
                 dists.push((*d, deps));

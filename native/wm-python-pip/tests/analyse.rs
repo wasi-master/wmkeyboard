@@ -99,7 +99,7 @@ fn compiled_files_and_keyboard_limits() {
     let big = format!("X = 1\n{}", "# padding\n".repeat(30_000));
     let r = run(
         &[
-            ("fastpkg/__init__.py", "from . import core\n"),
+            ("fastpkg/__init__.py", "from . import core, big\nfrom .a.b.c import d\n"),
             ("fastpkg/core.py", "def f():\n    return 1\n"),
             ("fastpkg/_speed.cpython-312-darwin.so", ""),
             ("fastpkg/_speed.c", ""),
@@ -115,6 +115,58 @@ fn compiled_files_and_keyboard_limits() {
     assert!(c.contains(&(Severity::Error, "file-too-big", "fastpkg/big.py".into())), "{c:?}");
     assert!(c.contains(&(Severity::Error, "too-deep", "fastpkg/a/b/c/d.py".into())), "{c:?}");
     assert!(c.contains(&(Severity::Error, "module-name", "fastpkg/data-files/x.py".into())), "{c:?}");
+    // Nothing imports them: `wmpy pack` leaves them out unless the plugin's code reaches them.
+    let r = run(&[("fastpkg/__init__.py", ""), ("fastpkg/big.py", &big), ("fastpkg/a/b/c/d.py", "x = 1\n")], &[]);
+    let c: Vec<(Severity, &str, String)> = r.problems().map(|p| (p.severity, p.code, p.file.clone())).collect();
+    assert!(c.contains(&(Severity::Warning, "file-too-big", "fastpkg/big.py".into())), "{c:?}");
+    assert!(c.contains(&(Severity::Warning, "too-deep", "fastpkg/a/b/c/d.py".into())), "{c:?}");
+    assert_eq!(r.verdict, Verdict::Warnings);
+}
+
+#[test]
+fn a_public_module_only_for_a_package_it_does_not_need_is_an_add_on() {
+    let r = run(
+        &[
+            ("net/__init__.py", "from . import core\n"),
+            ("net/core.py", "def get():\n    return 1\n"),
+            ("net/contrib/__init__.py", ""),
+            ("net/contrib/fancy.py", "import OpenSSL\n"),
+        ],
+        &[],
+    );
+    assert_eq!(r.verdict, Verdict::Warnings, "{:?}", codes(&r));
+    assert!(r.problems().any(|p| p.code == "loaded-later" && p.file == "net/contrib/fancy.py"), "{:?}", codes(&r));
+    // One the package loads itself is checked in full.
+    let r = run(&[("net/__init__.py", "from .contrib import fancy\n"), ("net/contrib/__init__.py", ""), ("net/contrib/fancy.py", "import OpenSSL\n")], &[]);
+    assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
+}
+
+#[test]
+fn names_a_star_import_brings_in_are_found() {
+    let r = run(
+        &[
+            ("pkg/__init__.py", "from .base import *\nfrom math import *\n"),
+            ("pkg/base.py", "from .deeper import *\n\ndef helper():\n    return 1\n"),
+            ("pkg/deeper.py", "LIMIT = 3\n"),
+            // Names it makes itself: whatever is asked for may be there.
+            ("pkg/flags/__init__.py", "from ._made import *\n"),
+            ("pkg/flags/_made.py", "import sys\nfor _n in ('A', 'B'):\n    setattr(sys.modules[__name__], _n, 1)\n"),
+            ("pkg/use.py", "from pkg import helper, LIMIT, floor\nfrom pkg.flags import A\nfrom pkg import missing\n"),
+        ],
+        &[],
+    );
+    let names: Vec<String> = r.problems().filter(|p| p.code == "missing-name").map(|p| p.message.clone()).collect();
+    assert_eq!(names, vec!["'pkg' has no 'missing'".to_string()], "{:?}", codes(&r));
+}
+
+#[test]
+fn a_namespace_another_package_shares_is_not_missing() {
+    let list = [("google/cloud/storage/__init__.py", "from google.auth import credentials\nimport google.auth.transport\n")];
+    let r = run(&list, &["google"]);
+    assert!(r.problems().all(|p| p.code != "missing-import"), "{:?}", codes(&r));
+    let r = run(&list, &[]);
+    assert!(r.problems().any(|p| p.code == "missing-import" && p.message.contains("google.auth")), "{:?}", codes(&r));
+    assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
 }
 
 #[test]
@@ -210,8 +262,11 @@ fn branches_for_other_versions_and_systems_never_run() {
 
 #[test]
 fn a_branch_that_cannot_be_worked_out_is_still_checked() {
-    let r = run(&[("maybe.py", "import os\n\nif os.environ.get('X'):\n    import smtplib\n")], &[]);
+    let r = run(&[("maybe.py", "import random\n\nif random.random() > 0.5:\n    import smtplib\n")], &[]);
     assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
+    // A plugin's environment starts empty: what a variable would switch on is off.
+    let r = run(&[("maybe.py", "import os\n\nif os.environ.get('X'):\n    import smtplib\nif 'Y' in os.environ:\n    import smtplib\n")], &[]);
+    assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
 }
 
 #[test]
@@ -264,7 +319,8 @@ fn empty_package_files_too_deep_are_left_out_not_refused() {
     );
     let c = codes(&r);
     assert!(c.contains(&(Severity::Info, "too-deep", "zones/data/America/Argentina/__init__.py".into(), None)), "{c:?}");
-    assert!(c.contains(&(Severity::Error, "too-deep", "zones/data/America/Argentina/extra.py".into(), None)), "{c:?}");
+    // Nothing imports it: an error only for code that does.
+    assert!(c.contains(&(Severity::Warning, "too-deep", "zones/data/America/Argentina/extra.py".into(), None)), "{c:?}");
 }
 
 #[test]
@@ -322,4 +378,66 @@ fn names_a_standard_module_makes_on_demand_are_found() {
     assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
     let r = run(&[("rx.py", "from typing import NoSuchThing\n")], &[]);
     assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
+}
+
+#[test]
+fn the_keyboards_own_modules_beside_wm_are_there_as_attributes() {
+    let r = run(&[("net.py", "import urllib.request\n\nPROXIES = urllib.request.getproxies\n")], &[]);
+    assert!(r.problems().all(|p| p.code != "missing-attribute"), "{:?}", codes(&r));
+}
+
+#[test]
+fn hasattr_on_any_standard_module_is_asked_of_the_interpreter() {
+    let r = run(
+        &[("compat.py", "import typing\n\nif hasattr(typing, \"NoSuchThingAtAll\"):\n    X = typing.NoSuchThingAtAll\nelse:\n    X = None\n")],
+        &[],
+    );
+    assert!(r.problems().all(|p| p.code != "missing-attribute"), "{:?}", codes(&r));
+}
+
+#[test]
+fn a_switch_read_from_the_environment_and_the_platform_is_followed() {
+    // multidict: speedups unless an environment variable or PyPy says no, and off when they fail to import.
+    let r = run(
+        &[
+            ("md/__init__.py", "from ._compat import USE_EXTENSIONS\n\nif not USE_EXTENSIONS:\n    from ._py import MultiDict\nelse:\n    from ._fast import MultiDict\n"),
+            (
+                "md/_compat.py",
+                "import os\nimport platform\n\nNO_EXTENSIONS = bool(os.environ.get(\"MD_NO_EXTENSIONS\"))\nPYPY = platform.python_implementation() == \"PyPy\"\nUSE_EXTENSIONS = not NO_EXTENSIONS and not PYPY\n\nif USE_EXTENSIONS:\n    try:\n        from . import _fast\n    except ImportError:\n        USE_EXTENSIONS = False\n",
+            ),
+            ("md/_py.py", "class MultiDict(dict):\n    pass\n"),
+        ],
+        &[],
+    );
+    assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
+}
+
+#[test]
+fn a_windows_module_taken_through_six_moves_is_for_windows() {
+    let r = run(
+        &[
+            ("tzs/__init__.py", ""),
+            ("tzs/win.py", "from six.moves import winreg\nimport ctypes\n"),
+            ("tzs/tzwin.py", "from .win import *\n"),
+        ],
+        &["six"],
+    );
+    assert_ne!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
+}
+
+#[test]
+fn a_getattr_kept_for_old_names_answers_only_those() {
+    let getattr = "def __getattr__(name):\n    if name == \"upstr\":\n        return str\n    raise AttributeError(name)\n\ndef __dir__():\n    return [*globals(), \"upstr\"]\n";
+    let r = run(&[("md/__init__.py", getattr), ("md/use.py", "from md import upstr\nfrom md import _speedups\n")], &[]);
+    let names: Vec<String> = r.problems().filter(|p| p.severity == Severity::Error).map(|p| p.message.clone()).collect();
+    assert_eq!(names, vec!["'md' has no '_speedups'".to_string()], "{:?}", codes(&r));
+    // One that looks names up some other way may answer anything.
+    let r = run(&[("md/__init__.py", "def __getattr__(name):\n    return _table[name]\n"), ("md/use.py", "from md import anything\n")], &[]);
+    assert!(r.problems().all(|p| p.code != "missing-name"), "{:?}", codes(&r));
+}
+
+#[test]
+fn the_dead_arm_of_a_conditional_expression_is_not_checked() {
+    let r = run(&[("m.py", "import builtins\nimport sys\n\n_UNSET = object() if sys.version_info < (3, 99) else builtins.no_such_thing(\"x\")\n")], &[]);
+    assert!(r.problems().all(|p| p.code != "missing-attribute"), "{:?}", codes(&r));
 }

@@ -123,7 +123,10 @@ is not checked at all:
 - anything under `if TYPE_CHECKING:` or `if __name__ == "__main__":`;
 - a branch for another Python or another system, such as `if PY2:`,
   `if sys.version_info >= (3, 14):`, `if sys.platform == "win32":` or
-  `if hasattr(sys, "pypy_version_info"):`. wmpy also follows such a test
+  `if hasattr(sys, "pypy_version_info"):`. A `hasattr` test on any standard
+  module, such as `hasattr(typing, "TypeForm")`, is asked of the keyboard's
+  Python itself, and an environment variable is unset, since a plugin's
+  `os.environ` starts empty. wmpy also follows such a test
   through a name the package sets, even in another of its modules
   (`from ._compat import WIN`). It follows a switch a package turns off when
   its compiled speedups fail to import, too;
@@ -135,6 +138,20 @@ Where a module is loaded decides how much its problems count. One imported
 only inside functions, or only its tests and command line import, makes only
 that code fail: its problems are warnings. One imported only under
 `except ImportError:` can fail to import and the package goes on without it.
+A public module nothing in the package imports, such as
+`urllib3.contrib.pyopenssl`, loads only if your plugin imports it. Its own
+problems still count, but a package only it imports, one the package does
+not depend on, makes it an add-on for people who have that package: a
+warning. A file over the keyboard's limits that nothing loads when the
+package loads is a warning too, since `wmpy pack` leaves out what your code
+never reaches.
+
+`from .base import *` brings in what `base` defines, and wmpy follows it,
+through as many modules as it goes. A module that makes its names as it
+runs, writing to `globals()` or replacing itself in `sys.modules`, may have
+any name. Packages that share a namespace, such as `google.auth` from
+google-auth and `google.cloud.storage` from google-cloud-storage, find each
+other's modules when both are installed.
 
 By default `install` takes only `ok` packages. `--allow-warnings` takes
 `warnings` too, and `--force` takes anything. A package whose dependency was
@@ -182,7 +199,7 @@ Problems carry a short code. The common ones:
 | `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or one that raises an error in plugins when called: `open` (no file system), `input` (no terminal). Only naming one, as in `prompt = input`, is fine. |
 | `missing-name` | `from x import y` where `x` has no `y`. |
 | `c-extension`, `c-source`, `needs-build` | Compiled code, its sources, or a source archive that would have to be built. |
-| `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 256 KB, more than four folders deep, or a path that is not a module name. |
+| `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 256 KB, more than four folders deep, or a path that is not a module name. An error when the package loads it, a warning when it does not. |
 | `multiple-inheritance`, `metaclass`, `big-int` | Python the parser takes but the interpreter runs differently or not at all. |
 
 ## Keep track

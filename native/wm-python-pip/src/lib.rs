@@ -171,7 +171,10 @@ pub struct AnalyseOptions {
     pub package: String,
     /// Top-level module and package names that will sit beside this package
     /// in the plugin: its dependencies, other vendored packages, the plugin's
-    /// own modules. Imports of them are not reported as missing.
+    /// own modules. Imports of them are not reported as missing. One of the
+    /// package's own top-level names here is a namespace another package
+    /// also puts modules in (`google`), so a module of it the package lacks
+    /// is taken to come from there.
     pub available: Vec<String>,
     /// Modules of the package that are compiled code, left out when it was
     /// taken from a wheel built for a platform (`yaml._yaml`). Importing one

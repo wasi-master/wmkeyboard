@@ -147,6 +147,10 @@ struct Ctx<'a> {
     wm_modules: HashSet<&'static str>,
     /// The package's compiled modules, left out.
     compiled: HashSet<String>,
+    /// The package's modules that make top-level names the analysis cannot
+    /// list: they write to `globals()` (reading it, as `__dir__` does, makes
+    /// nothing) or reach themselves through `sys.modules`.
+    dynamic: HashSet<String>,
 }
 
 impl Ctx<'_> {
@@ -156,7 +160,15 @@ impl Ctx<'_> {
             return if self.wm_modules.contains(name) { Origin::Wm } else { Origin::Missing };
         }
         if self.roots.contains(top) {
-            return if self.program.exists(name) { Origin::Internal } else { Origin::Missing };
+            // A namespace another package also puts modules in (`google`
+            // for google-auth beside google-cloud-storage).
+            return if self.program.exists(name) {
+                Origin::Internal
+            } else if self.available.contains(top) {
+                Origin::Available
+            } else {
+                Origin::Missing
+            };
         }
         // requests, httpx, urllib.request: the keyboard's own, beside `wm`.
         if self.wm_modules.contains(name) {
@@ -188,6 +200,15 @@ pub fn analyse(files: &BTreeMap<String, String>, opts: &AnalyseOptions) -> Repor
         probe: Probe::new(),
         wm_modules: wm_python::host::v5::PRELUDE.iter().map(|(n, _, _)| *n).collect(),
         compiled: opts.compiled.iter().cloned().collect(),
+        dynamic: program
+            .files
+            .iter()
+            .filter(|f| {
+                let text = &files[&f.path];
+                text.contains("globals()[") || text.contains("globals().update") || text.contains("globals().setdefault") || text.contains("sys.modules[__name__]")
+            })
+            .map(|f| f.name.clone())
+            .collect(),
     };
     // What never runs in the keyboard, and how each module gets loaded.
     let host = reach::Host::get();
@@ -257,12 +278,19 @@ fn file_problem(path: &str, severity: Severity, code: &'static str, message: Str
 /// Problems with the file itself, which the keyboard checks whether or not
 /// anything loads it.
 const ARCHIVE_CODES: &[&str] = &["too-deep", "module-name", "reserved-name", "file-too-big", "shadowed"];
+/// Of [ARCHIVE_CODES], those `wmpy pack` gets past by leaving the file out
+/// when the plugin's code never reaches it: they matter only as much as
+/// the module is needed.
+const PACKED_ONLY_IF_USED: &[&str] = &["too-deep", "file-too-big"];
 
 /// A module loaded only when some code runs makes that code fail, not the
 /// package; one that never loads in the keyboard fails nothing.
 fn settle_by_load(path: &str, load: Load, problems: &mut Vec<Problem>) {
+    if load == Load::Direct {
+        return settle_direct(path, problems);
+    }
     let (to, note) = match load {
-        Load::Eager => return,
+        Load::Eager | Load::Direct => return,
         Load::Lazy => (Severity::Warning, "the package loads without this module: only the code that imports it needs it, so what fails here fails that code"),
         Load::Caught => (
             Severity::Warning,
@@ -272,6 +300,14 @@ fn settle_by_load(path: &str, load: Load, problems: &mut Vec<Problem>) {
     };
     let mut moved = false;
     for p in problems.iter_mut() {
+        if PACKED_ONLY_IF_USED.contains(&p.code) {
+            if p.severity < to {
+                p.severity = to;
+                p.help = Some("`wmpy pack` leaves the file out when the plugin's code never reaches it; if it does, the keyboard refuses the plugin".into());
+                moved = true;
+            }
+            continue;
+        }
         if ARCHIVE_CODES.contains(&p.code) {
             continue;
         }
@@ -285,6 +321,86 @@ fn settle_by_load(path: &str, load: Load, problems: &mut Vec<Problem>) {
     if moved {
         problems.insert(0, file_problem(path, Severity::Info, "loaded-later", note.into(), None));
     }
+}
+
+/// A public module the package never imports itself: what it breaks on is
+/// its own, but a package it alone imports, one the package does not
+/// depend on, makes it an add-on for code that has that package
+/// (`urllib3.contrib.pyopenssl` for pyOpenSSL), and a file `wmpy pack` can
+/// leave out stops nothing that does not import it.
+fn settle_direct(path: &str, problems: &mut Vec<Problem>) {
+    let mut moved = false;
+    for p in problems.iter_mut() {
+        let add_on = p.code == "missing-import" && p.help.as_deref().is_some_and(|h| h.starts_with("wmpy pip install"));
+        if p.severity == Severity::Error && (add_on || PACKED_ONLY_IF_USED.contains(&p.code)) {
+            p.severity = Severity::Warning;
+            if !add_on {
+                p.help = Some("`wmpy pack` leaves the file out when the plugin's code never reaches it; if it does, the keyboard refuses the plugin".into());
+            }
+            moved = true;
+        }
+    }
+    if moved {
+        problems.insert(
+            0,
+            file_problem(
+                path,
+                Severity::Info,
+                "loaded-later",
+                "nothing in the package imports this module: it loads only if the plugin imports it, and what fails here fails only then".into(),
+                None,
+            ),
+        );
+    }
+}
+
+/// The names a module's `__getattr__` answers, when it spells them all out
+/// (`if name == "upstr":`, `if name in ("a", "b"):`) and raises for the
+/// rest, as one kept for deprecated names does. None when it may answer
+/// anything.
+fn getattr_names(file: &ModFile) -> Option<Vec<String>> {
+    fn find(body: &[Stmt]) -> Option<&[Stmt]> {
+        body.iter().rev().find_map(|s| match &s.kind {
+            StmtKind::Def { name, body, .. } if name == "__getattr__" => Some(body.as_slice()),
+            StmtKind::If { body, orelse, .. } => find(orelse).or_else(|| find(body)),
+            _ => None,
+        })
+    }
+    fn literals(e: &wm_python_tooling::ast::Expr, out: &mut Vec<String>) -> Option<()> {
+        match &e.kind {
+            ExprKind::Str { value: Some(v), fstring: false, .. } => out.push(v.clone()),
+            ExprKind::Tuple(items) | ExprKind::List(items) | ExprKind::Set(items) => {
+                for i in items {
+                    literals(i, out)?;
+                }
+            }
+            _ => return None,
+        }
+        Some(())
+    }
+    fn walk(body: &[Stmt], out: &mut Vec<String>) -> Option<()> {
+        for (i, s) in body.iter().enumerate() {
+            match &s.kind {
+                StmtKind::Expr(e) if i == 0 && matches!(e.kind, ExprKind::Str { .. }) => {}
+                StmtKind::If { test, orelse, .. } => {
+                    let ExprKind::Compare { left, ops } = &test.kind else { return None };
+                    if !matches!(left.kind, ExprKind::Name(_)) || ops.len() != 1 || !matches!(ops[0].0, "==" | "in") {
+                        return None;
+                    }
+                    literals(&ops[0].1, out)?;
+                    walk(orelse, out)?;
+                }
+                StmtKind::Raise(_) => {}
+                _ => return None,
+            }
+        }
+        Some(())
+    }
+    let body = find(file.source.body())?;
+    let mut out = Vec::new();
+    walk(body, &mut out)?;
+    // It has to end by refusing what it does not name.
+    matches!(body.last()?.kind, StmtKind::Raise(_)).then_some(out)
 }
 
 /// Whether the body of the `try` [s] gets through in the keyboard
@@ -352,22 +468,50 @@ fn try_outcome(ctx: &mut Ctx, file: &ModFile, s: &Stmt) -> Option<bool> {
 /// Whether `from [module] import [name]` finds [name]; [module] exists.
 fn name_importable(ctx: &mut Ctx, module: &str, name: &str) -> bool {
     let sub = format!("{module}.{name}");
-    let top = module.split('.').next().unwrap_or(module);
     if MODULE_DUNDERS_IMPORTABLE.contains(&name) {
         return true;
     }
-    if ctx.roots.contains(top) {
-        return ctx.program.exists(&sub)
-            || ctx.program.get(module).is_some_and(|t| {
-                let scope = &t.source.doc.analysis.scopes[0];
-                scope.names.contains_key(name) || scope.names.contains_key("__getattr__")
-            });
-    }
     match ctx.classify(module) {
+        Origin::Internal => ctx.program.exists(&sub) || module_has(ctx, module, name, &mut HashSet::new()),
         Origin::Stdlib => ctx.probe.module_exists(&sub) || ctx.probe.member_exists(module, name),
         Origin::Missing => false,
         _ => true,
     }
+}
+
+/// Whether the package's own [module] ends up with a top-level [name]:
+/// bound there, taken in by a star import (`from .base import *`), or made
+/// some way the analysis cannot follow (a module `__getattr__`, writes to
+/// `globals()`, a star import from a module it cannot read).
+fn module_has(ctx: &mut Ctx, module: &str, name: &str, seen: &mut HashSet<String>) -> bool {
+    if !seen.insert(module.to_string()) {
+        return false;
+    }
+    let program = ctx.program;
+    let Some(target) = program.get(module) else { return false };
+    let scope = &target.source.doc.analysis.scopes[0];
+    let answers = scope.names.contains_key("__getattr__") && getattr_names(target).is_none_or(|names| names.iter().any(|n| n == name));
+    if scope.names.contains_key(name) || answers || ctx.dynamic.contains(module) {
+        return true;
+    }
+    let package = target.path.ends_with("/__init__.py");
+    for imp in &target.imports {
+        let ImportKind::From { raw, star: true, .. } = &imp.kind else { continue };
+        if imp.in_function || imp.type_checking {
+            continue;
+        }
+        let Some(from) = resolve(raw, &target.name, package) else { continue };
+        let found = match ctx.classify(&from) {
+            Origin::Internal => module_has(ctx, &from, name, seen),
+            Origin::Stdlib => ctx.probe.member_exists(&from, name),
+            Origin::Missing => false,
+            Origin::Wm | Origin::Available => true,
+        };
+        if found {
+            return true;
+        }
+    }
+    false
 }
 
 /// Names every module has that `from m import x` can take.
@@ -561,23 +705,18 @@ fn check_imports(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Pro
                 }
                 for b in names {
                     let sub = format!("{m}.{}", b.name);
-                    let top = m.split('.').next().unwrap_or(m);
-                    if ctx.roots.contains(top) {
+                    let origin = ctx.classify(m);
+                    if matches!(origin, Origin::Internal) {
                         if ctx.program.exists(&sub) {
                             imports.internal.insert(sub);
                             continue;
                         }
-                        match ctx.program.get(m) {
-                            Some(target) => {
-                                let scope = &target.source.doc.analysis.scopes[0];
-                                let dynamic = scope.names.contains_key("__getattr__");
-                                if !scope.names.contains_key(&b.name) && !dynamic && !MODULE_DUNDERS_IMPORTABLE.contains(&b.name.as_str()) {
-                                    out.push(at(file, b.span, severity, "missing-name", format!("'{m}' has no '{}'", b.name), None));
-                                }
-                            }
-                            None => out.push(at(file, b.span, severity, "missing-import", format!("the package has no module '{sub}'"), None)),
+                        if ctx.program.get(m).is_none() {
+                            out.push(at(file, b.span, severity, "missing-import", format!("the package has no module '{sub}'"), None));
+                        } else if !MODULE_DUNDERS_IMPORTABLE.contains(&b.name.as_str()) && !module_has(ctx, m, &b.name, &mut HashSet::new()) {
+                            out.push(at(file, b.span, severity, "missing-name", format!("'{m}' has no '{}'", b.name), None));
                         }
-                    } else if matches!(ctx.classify(m), Origin::Stdlib) {
+                    } else if matches!(origin, Origin::Stdlib) {
                         if ctx.probe.module_exists(&sub) {
                             imports.stdlib.insert(sub);
                         } else if !ctx.probe.member_exists(m, &b.name) {
@@ -727,6 +866,10 @@ fn check_attributes(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<
         }
         for (i, attr) in chain.iter().enumerate() {
             let sub = format!("{current}.{attr}");
+            // The keyboard's own modules beside `wm`, such as urllib.request.
+            if ctx.wm_modules.contains(sub.as_str()) {
+                break;
+            }
             if ctx.probe.module_exists(&sub) {
                 current = sub;
                 continue;

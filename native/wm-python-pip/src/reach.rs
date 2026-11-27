@@ -22,7 +22,7 @@ use wm_python_tooling::ast::{Expr, ExprKind, Stmt, StmtKind};
 use wm_python_tooling::text::Span;
 
 use crate::probe::Probe;
-use crate::program::{resolve, ModFile, Program};
+use crate::program::{resolve, ImportKind, ModFile, Program};
 
 /// What the keyboard answers for the values branch tests read, asked of the
 /// interpreter once.
@@ -33,6 +33,9 @@ pub(crate) struct Host {
     pub os_name: Option<String>,
     /// `module.name` for the members packages test with `hasattr`, and whether each is there.
     pub members: HashMap<String, bool>,
+    /// `platform.python_implementation()` and `platform.system()`.
+    pub implementation: Option<String>,
+    pub system: Option<String>,
 }
 
 /// What packages ask `hasattr` about to tell one Python from another.
@@ -49,8 +52,34 @@ const ASKED: &[(&str, &[&str])] = &[
     ),
     ("os", &["fork", "register_at_fork", "add_dll_directory", "getuid", "geteuid", "sched_getaffinity", "process_cpu_count", "cpu_count", "fspath", "PathLike", "getpid", "symlink", "O_BINARY"]),
     ("builtins", &["ExceptionGroup", "BaseExceptionGroup", "aiter", "anext", "breakpoint", "EncodingWarning"]),
+    // Windows' socket errors, and system calls only some systems have.
+    ("errno", &["WSAECONNRESET", "WSAECONNABORTED", "WSAETIMEDOUT", "WSAEWOULDBLOCK", "WSAEINPROGRESS", "WSAEINTR", "WSAEINVAL", "WSAENOTSOCK", "WSAEADDRINUSE", "ENOTSUP", "ESHUTDOWN", "ECONNABORTED", "EPROTOTYPE"]),
+    ("socket", &["AF_UNIX", "AF_INET6", "SO_REUSEPORT", "SO_EXCLUSIVEADDRUSE", "TCP_KEEPIDLE", "TCP_KEEPALIVE", "TCP_KEEPINTVL", "TCP_KEEPCNT", "MSG_NOSIGNAL", "IPPROTO_IPV6", "IPV6_V6ONLY", "SIO_KEEPALIVE_VALS", "ioctl", "socketpair", "fromfd", "sethostname", "if_nameindex", "AF_PACKET", "AF_BLUETOOTH", "SOCK_NONBLOCK", "SOCK_CLOEXEC"]),
+    ("signal", &["SIGPIPE", "SIGALRM", "SIGCHLD", "SIGHUP", "SIGBREAK", "SIGKILL", "SIGQUIT", "SIGUSR1", "SIGUSR2", "SIGWINCH", "CTRL_C_EVENT", "CTRL_BREAK_EVENT", "setitimer", "pthread_sigmask", "siginterrupt", "set_wakeup_fd", "alarm", "pause"]),
+    ("select", &["poll", "epoll", "kqueue", "devpoll", "PIPE_BUF"]),
+    ("time", &["tzset", "clock_gettime", "clock_gettime_ns", "monotonic_ns", "perf_counter_ns", "thread_time"]),
+    ("asyncio", &["timeout", "TaskGroup", "Runner", "to_thread", "eager_task_factory", "QueueShutDown"]),
     ("typing", &["Self", "TypeAlias", "ParamSpec", "TypeVarTuple", "Unpack", "override", "TypeIs", "ReadOnly", "NoDefault", "get_overloads", "dataclass_transform", "reveal_type", "LiteralString", "Never", "assert_never", "Required", "NotRequired", "Annotated", "TypeGuard"]),
 ];
+
+thread_local! {
+    /// For `hasattr` on a module of the standard library the table above does not list.
+    static ASK: std::cell::RefCell<Option<Probe>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Whether the standard library's [module] has [name], asked of the
+/// interpreter; None when [module] is not one of its modules.
+fn stdlib_has(module: &str, name: &str) -> Option<bool> {
+    let top = module.split('.').next().unwrap_or(module);
+    if top == "wm" || crate::analyse::library_root(top) || wm_python::host::v5::library_modules().any(|m| m == module) {
+        return None;
+    }
+    ASK.with(|cell| {
+        let mut slot = cell.borrow_mut();
+        let probe = slot.get_or_insert_with(Probe::new);
+        probe.module_exists(module).then(|| probe.member_exists(module, name))
+    })
+}
 
 impl Host {
     /// The answers for this build, worked out once per process.
@@ -71,13 +100,21 @@ impl Host {
             .iter()
             .find(|n| test(format!("import os\nif os.name != '{n}':\n    raise ValueError('n')\n")))
             .map(|n| n.to_string());
+        let implementation = ["CPython", "PyPy", "IronPython", "Jython", "GraalVM"]
+            .iter()
+            .find(|n| test(format!("import platform\nif platform.python_implementation() != '{n}':\n    raise ValueError('n')\n")))
+            .map(|n| n.to_string());
+        let system = ["Android", "Linux", "Darwin", "Windows", "Java", "iOS", "Emscripten", "FreeBSD"]
+            .iter()
+            .find(|n| test(format!("import platform\nif platform.system() != '{n}':\n    raise ValueError('n')\n")))
+            .map(|n| n.to_string());
         let mut members = HashMap::new();
         for (module, names) in ASKED {
             for name in *names {
                 members.insert(format!("{module}.{name}"), probe.member_exists(module, name));
             }
         }
-        Host { version, platform, os_name, members }
+        Host { version, platform, os_name, members, implementation, system }
     }
 
     fn value(&self, qualified: &str) -> Option<Val> {
@@ -93,6 +130,8 @@ impl Host {
             "sys.version_info.releaselevel" if known => Val::Str("final".into()),
             "sys.platform" => Val::Str(self.platform.clone()?),
             "os.name" => Val::Str(self.os_name.clone()?),
+            // A plugin's environment is empty: as an empty container, `"X" in os.environ` is false.
+            "os.environ" => Val::Tuple(Vec::new()),
             "typing.TYPE_CHECKING" | "typing_extensions.TYPE_CHECKING" => Val::Bool(false),
             _ => return None,
         })
@@ -338,11 +377,26 @@ impl Eval<'_> {
                 }
                 Some(Val::Bool(true))
             }
+            // os.environ.get("X"), platform.python_implementation(), bool(x)
+            ExprKind::Call { func, args, keywords, .. } if keywords.is_empty() && self.known_callee(func).is_some() => {
+                match (self.known_callee(func)?, args.len()) {
+                    // Nothing is set in a plugin's environment: the default.
+                    ("os.environ.get" | "os.getenv", 1) => Some(Val::None),
+                    ("os.environ.get" | "os.getenv", 2) => self.eval(&args[1]),
+                    ("platform.python_implementation", 0) => self.host.implementation.clone().map(Val::Str),
+                    ("platform.system", 0) => self.host.system.clone().map(Val::Str),
+                    ("bool", 1) => self.eval(&args[0]).map(|v| Val::Bool(v.truthy())),
+                    _ => None,
+                }
+            }
             // hasattr(sys, "pypy_version_info")
             ExprKind::Call { func, args, keywords, .. } if keywords.is_empty() && args.len() == 2 && matches!(&func.kind, ExprKind::Name(n) if n == "hasattr") => {
                 let module = self.qualified(&args[0])?;
                 let ExprKind::Str { value: Some(name), fstring: false, .. } = &args[1].kind else { return None };
-                self.host.members.get(&format!("{module}.{name}")).map(|b| Val::Bool(*b))
+                match self.host.members.get(&format!("{module}.{name}")) {
+                    Some(b) => Some(Val::Bool(*b)),
+                    None => stdlib_has(&module, name).map(Val::Bool),
+                }
             }
             ExprKind::Call { func, args, keywords, .. } if keywords.is_empty() && args.len() == 1 => {
                 let ExprKind::Attribute { value, attr, .. } = &func.kind else { return None };
@@ -358,6 +412,23 @@ impl Eval<'_> {
                     _ => None,
                 }
             }
+            _ => None,
+        }
+    }
+
+    /// The function [func] names when the keyboard's answer to calling it is
+    /// known whatever the plugin: environment lookups, the platform's name,
+    /// and the builtin `bool` (unless the module binds its own).
+    fn known_callee(&self, func: &Expr) -> Option<&'static str> {
+        if let ExprKind::Name(n) = &func.kind {
+            let own = self.file.source.doc.analysis.symbol_at(func.span.start).is_some_and(|s| !s.writes.is_empty() || s.import.is_some());
+            return (n == "bool" && !own).then_some("bool");
+        }
+        match self.qualified(func)?.as_str() {
+            "os.environ.get" => Some("os.environ.get"),
+            "os.getenv" => Some("os.getenv"),
+            "platform.python_implementation" => Some("platform.python_implementation"),
+            "platform.system" => Some("platform.system"),
             _ => None,
         }
     }
@@ -530,6 +601,20 @@ pub(crate) fn dead_regions(eval: &Eval, outcome: &mut TryOutcome) -> Vec<Span> {
     let mut out = Vec::new();
     let mut fallback_dead = |s: &Stmt| outcome(eval.file, s) == Some(true);
     walk_dead(eval, eval.file.source.body(), &mut fallback_dead, &mut out);
+    // `object() if sys.version_info < (3, 15) else builtins.sentinel("x")`
+    wm_python_tooling::ast::walk_stmts(eval.file.source.body(), &mut |s| {
+        for e in wm_python_tooling::ast::stmt_exprs(s) {
+            wm_python_tooling::ast::walk_expr(e, &mut |x| {
+                if let ExprKind::Ternary { body, test, orelse } = &x.kind {
+                    match eval.truth(test) {
+                        Some(true) => out.push(orelse.span),
+                        Some(false) => out.push(body.span),
+                        None => {}
+                    }
+                }
+            });
+        }
+    });
     out
 }
 
@@ -580,6 +665,9 @@ pub(crate) enum Load {
     Caught,
     /// Only when code that needs it runs.
     Lazy,
+    /// Only when the plugin imports it by name: a public module the package
+    /// itself never imports (`urllib3.contrib.pyopenssl`).
+    Direct,
     /// When the package loads.
     Eager,
 }
@@ -610,7 +698,9 @@ pub(crate) fn load_modes(program: &Program, dead: &[Vec<Span>]) -> Vec<Load> {
             let never = imp.type_checking || imp.main_only || dead[i].iter().any(|d| d.contains(imp.span.start));
             let lazy = imp.in_function || imp.guard.import_error;
             let (in_function, caught) = (imp.in_function, imp.guard.import_error);
-            if !never && !lazy && loads_all.iter().any(|m| OTHER_SYSTEMS.contains(&m.as_str())) {
+            // `from six.moves import winreg` takes the Windows module by another road.
+            let takes_one = matches!(&imp.kind, ImportKind::From { names, .. } if names.iter().any(|b| OTHER_SYSTEMS.contains(&b.name.as_str())));
+            if !never && !lazy && (takes_one || loads_all.iter().any(|m| OTHER_SYSTEMS.contains(&m.as_str()))) {
                 other_system[i] = true;
             }
             let loads: Vec<usize> = loads_all.iter().filter_map(|m| program.by_name.get(m).copied()).filter(|&j| j != i).collect();
@@ -644,8 +734,13 @@ pub(crate) fn load_modes(program: &Program, dead: &[Vec<Span>]) -> Vec<Load> {
         .enumerate()
         .map(|(i, f)| {
             let parts: Vec<&str> = f.name.split('.').collect();
+            // The top of what one package puts in a namespace it shares
+            // with others (`google.auth`): it loads as a top-level package does.
+            let namespace_top = parts.len() > 1 && (1..parts.len()).all(|k| program.get(&parts[..k].join(".")).is_none());
             if parts.last() == Some(&"__main__") {
                 Load::Never
+            } else if namespace_top && !parts.iter().any(|p| p.starts_with('_') || ASIDE.contains(p)) {
+                Load::Eager
             } else if parts.len() == 1 && f.name.starts_with('_') && !imported[i] && public_root {
                 // A private shim beside the package (PyYAML's `_yaml`), for old code that imported it by that name.
                 Load::Lazy
@@ -656,7 +751,7 @@ pub(crate) fn load_modes(program: &Program, dead: &[Vec<Span>]) -> Vec<Load> {
             } else if parts.iter().skip(1).any(|p| p.starts_with('_') || ASIDE.contains(p)) {
                 Load::Lazy
             } else {
-                Load::Eager
+                Load::Direct
             }
         })
         .collect();

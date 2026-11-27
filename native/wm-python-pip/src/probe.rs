@@ -37,6 +37,15 @@ pub(crate) struct Features {
 fn runtime() -> Runtime {
     let mut rt = Runtime::new(Default::default(), STANDARD_MODULES);
     rt.enable_python_stdlib();
+    // The keyboard's own modules beside `wm` (urllib.request, requests):
+    // standard modules import some of them, as http.cookiejar does
+    // urllib.request. Their code needs the host, so empty ones stand in;
+    // what they hold is read from the prelude's list, never asked here.
+    for (name, _, package) in wm_python::host::v5::PRELUDE {
+        if *name != "wm" && !name.starts_with("wm.") {
+            rt.add_source_module(name, "", *package);
+        }
+    }
     rt
 }
 
