@@ -307,6 +307,19 @@
 -dontwarn javax.naming.**
 -dontwarn org.bouncycastle.jsse.**
 
+# SnakeYAML's JavaBeans introspection references desktop-only classes that
+# Android does not provide.
+-dontwarn java.beans.BeanInfo
+-dontwarn java.beans.FeatureDescriptor
+-dontwarn java.beans.IntrospectionException
+-dontwarn java.beans.Introspector
+-dontwarn java.beans.PropertyDescriptor
+
+# Onyx brings Joda-Time, whose string-conversion annotations live in the
+# optional joda-convert artifact rather than Joda-Time itself.
+-dontwarn org.joda.convert.FromString
+-dontwarn org.joda.convert.ToString
+
 # PairDrop: libjingle calls back into these by name. That includes jni_zero's
 # JniInit, whose private init() nothing in Java calls: without the rule R8
 # drops the class, the library's FindClass fails and aborts the process the
