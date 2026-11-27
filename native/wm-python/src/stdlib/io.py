@@ -154,6 +154,8 @@ class BytesIO(_Buffer):
 TextIOBase = _Buffer
 IOBase = _Buffer
 BufferedIOBase = _Buffer
+RawIOBase = _Buffer
+DEFAULT_BUFFER_SIZE = 8192
 
 
 class TextIOWrapper:

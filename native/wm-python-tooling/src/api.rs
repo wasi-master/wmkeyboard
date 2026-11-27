@@ -105,17 +105,20 @@ pub const MODULES: &[&str] = &["math", "random", "time", "json", "re", "sys"];
 /// Standard library modules written in Python that API 5 plugins can import.
 /// Their members are not modelled, so code using them is not checked name by name.
 pub const LIBRARY: &[&str] = &[
-    "abc", "argparse", "array", "ast", "asyncio", "base64", "binascii", "bisect", "builtins", "calendar", "cmath", "codecs",
-    "collections", "collections.abc", "configparser", "contextlib", "contextvars", "copy", "copyreg", "csv",
-    "dataclasses", "datetime", "decimal", "difflib", "email", "email.charset", "email.errors", "email.header",
-    "email.message", "email.mime", "email.mime.application", "email.mime.audio", "email.mime.base",
+    "abc", "argparse", "array", "ast", "asyncio", "atexit", "base64", "binascii", "bisect", "builtins", "calendar",
+    "cmath", "codecs", "collections", "collections.abc", "configparser", "contextlib", "contextvars", "copy",
+    "copyreg", "csv", "dataclasses", "datetime", "decimal", "difflib", "email", "email.charset", "email.errors",
+    "email.header", "email.message", "email.mime", "email.mime.application", "email.mime.audio", "email.mime.base",
     "email.mime.image", "email.mime.message", "email.mime.multipart", "email.mime.nonmultipart", "email.mime.text",
-    "email.parser", "email.policy", "email.utils", "enum", "errno", "fnmatch", "fractions", "functools", "gzip", "hashlib",
-    "heapq", "hmac", "html", "importlib", "importlib.metadata", "importlib.resources", "importlib.util", "inspect",
-    "io", "ipaddress", "itertools", "keyword", "logging", "mimetypes", "numbers", "operator", "os", "os.path",
-    "pickle", "pprint", "secrets", "shlex", "statistics", "string", "struct", "textwrap", "token", "tokenize",
-    "traceback", "types", "typing", "unicodedata", "unittest", "unittest.mock", "urllib", "urllib.parse", "uuid",
-    "warnings", "weakref", "zlib",
+    "email.parser", "email.policy", "email.utils", "encodings", "encodings.aliases", "enum", "errno", "fnmatch",
+    "fractions", "functools", "gettext", "gzip", "hashlib", "heapq", "hmac", "html", "html.entities", "importlib",
+    "importlib.metadata", "importlib.resources", "importlib.util", "inspect", "io", "ipaddress", "itertools",
+    "keyword", "linecache", "locale", "logging", "mimetypes", "numbers", "operator", "os", "os.path", "pathlib",
+    "pickle", "platform", "pprint", "queue", "reprlib", "secrets", "shlex", "stat", "statistics", "string", "struct",
+    "subprocess", "textwrap", "_thread", "threading", "token", "tokenize", "traceback", "types", "typing",
+    "unicodedata", "unittest", "unittest.mock", "urllib", "urllib.parse", "uuid", "warnings", "weakref", "xml",
+    "xml.etree", "xml.etree.ElementPath", "xml.etree.ElementTree", "xml.parsers", "xml.parsers.expat", "xml.sax",
+    "xml.sax.handler", "xml.sax.saxutils", "xml.sax.xmlreader", "zlib", "zoneinfo",
 ];
 pub const CONTRACT: &[&str] = &["render", "on_event", "transform"];
 

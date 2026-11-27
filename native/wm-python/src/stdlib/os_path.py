@@ -3,6 +3,12 @@
 sep = "/"
 curdir = "."
 pardir = ".."
+extsep = "."
+altsep = None
+pathsep = ":"
+defpath = "/bin:/usr/bin"
+devnull = "/dev/null"
+supports_unicode_filenames = False
 
 
 def isabs(s):
@@ -127,6 +133,43 @@ def normcase(s):
 
 def exists(path):
     return False
+
+
+def realpath(path, *, strict=False):
+    """The path made absolute and normalised: there are no links to follow."""
+    return abspath(path)
+
+
+def samefile(f1, f2):
+    raise FileNotFoundError(2, "No such file or directory", f1)
+
+
+def getsize(filename):
+    raise FileNotFoundError(2, "No such file or directory", filename)
+
+
+def getmtime(filename):
+    raise FileNotFoundError(2, "No such file or directory", filename)
+
+
+getatime = getmtime
+getctime = getmtime
+
+
+def ismount(path):
+    return path == "/"
+
+
+def isjunction(path):
+    return False
+
+
+def splitroot(p):
+    if not p.startswith("/"):
+        return "", "", p
+    if p.startswith("//") and not p.startswith("///"):
+        return "", "//", p[2:]
+    return "", "/", p.lstrip("/")
 
 
 isfile = exists

@@ -205,6 +205,16 @@ def lookup_error(name):
     return _errors[name]
 
 
+class Codec:
+    """The base of a codec's stateless encode and decode, as packages subclass it."""
+
+    def encode(self, input, errors="strict"):
+        raise NotImplementedError
+
+    def decode(self, input, errors="strict"):
+        raise NotImplementedError
+
+
 class IncrementalEncoder:
     def __init__(self, errors="strict"):
         self.errors = errors
@@ -238,6 +248,33 @@ class IncrementalDecoder:
 
     def setstate(self, state):
         pass
+
+
+class BufferedIncrementalEncoder(IncrementalEncoder):
+    """An encoder that keeps what it cannot encode yet for the next call."""
+
+    def __init__(self, errors="strict"):
+        IncrementalEncoder.__init__(self, errors)
+        self.buffer = ""
+
+    def _buffer_encode(self, input, errors, final):
+        raise NotImplementedError
+
+    def encode(self, input, final=False):
+        data = self.buffer + input
+        result, consumed = self._buffer_encode(data, self.errors, final)
+        self.buffer = data[consumed:]
+        return result
+
+    def reset(self):
+        IncrementalEncoder.reset(self)
+        self.buffer = ""
+
+    def getstate(self):
+        return self.buffer or 0
+
+    def setstate(self, state):
+        self.buffer = state or ""
 
 
 class BufferedIncrementalDecoder(IncrementalDecoder):

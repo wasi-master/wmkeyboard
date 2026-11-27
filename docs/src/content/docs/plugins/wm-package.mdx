@@ -127,7 +127,7 @@ Not there: `compile`, `open` and `%` formatting of bytes.
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `enum`, `errno`, `fnmatch`, `fractions`, `functools`, `gzip`, `hashlib`, `heapq`, `hmac`, `html`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pickle`, `pprint`, `secrets`, `shlex`, `statistics`, `string`, `struct`, `textwrap`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `zlib` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings.aliases`, `enum`, `errno`, `fnmatch`, `fractions`, `functools`, `gettext`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` and `html.entities`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pathlib`, `pickle`, `platform`, `pprint`, `queue`, `reprlib`, `secrets`, `shlex`, `stat`, `statistics`, `string`, `struct`, `subprocess`, `textwrap`, `threading` and `_thread`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zlib`, `zoneinfo` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -142,7 +142,33 @@ Not there: `compile`, `open` and `%` formatting of bytes.
 `set_int_max_str_digits`. `sys.stdout.write`, `print(..., file=sys.stderr)`,
 `logging` and `warnings` all write to the plugin's log, where `print` goes.
 `os` is only its path functions and an empty `environ`: files go through
-[`wm.storage`](#storage) and [`wm.files`](#files). `unicodedata` has normal
+[`wm.storage`](#storage) and [`wm.files`](#files).
+
+Some modules stand in for what plugins go without, so packages that import
+them still load:
+
+- `threading`, `_thread` and `queue` have one thread. A lock is never held by
+  anyone else, and a `Thread` runs its target when `start()` is called. What
+  would wait for another thread raises `RuntimeError` instead of hanging: a
+  blocking `acquire` of a held lock, or `wait()` with no timeout on an unset
+  event or a condition. A `Timer` never fires.
+- `pathlib` paths join, split and match as on Linux. Asking about the disk
+  answers as for a path that is not there: `exists()` is false and `iterdir()`
+  finds nothing. Reading or writing raises `PermissionError`.
+- `subprocess` has its constants, exceptions and `CompletedProcess`. Starting
+  a program raises `PermissionError`.
+- `platform` says Android on a 64-bit ARM phone, running Python 3.12. It
+  leaves out who the phone is, so `node()` and `release()` are empty.
+- `zoneinfo` knows only UTC and its aliases. A naive `datetime` is already in
+  the phone's time zone.
+- `gettext` finds no `.mo` files, so `translation(..., fallback=True)` gives
+  the untranslated text; for your own plugin's languages use
+  [`_()`](#translations). `locale` is the C locale.
+- `xml.etree.ElementTree`, `xml.sax` and `xml.parsers.expat` read and write
+  XML, with namespaces. The parser is written in Python, so it hands over a
+  document once all of it has been fed in.
+- `atexit` keeps its functions, but a plugin never exits the way a program
+  does, so nothing runs them. `linecache` has no lines to give. `unicodedata` has normal
 forms, categories, digit values and character names. Everything in
 `itertools` hands out one item at a time, as in Python: `count`, `cycle` and
 `repeat` go on without end, and `chain`, `groupby` and `tee` read their input

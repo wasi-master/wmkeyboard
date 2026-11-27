@@ -1403,6 +1403,19 @@ pub fn archive_problems(m: &Manifest, files: &[(&str, &[u8])]) -> Vec<Problem> {
             };
             if let Some(why) = why {
                 out.push(error("bad_module", "", format!("{path}: {why}")).in_file(*path).app(app_bad_file.clone()));
+            } else if *path != entry.as_str() {
+                // `import queue` finds the keyboard's own module first, so this file never loads.
+                let top = path.split('/').next().unwrap_or(path).trim_end_matches(".py");
+                let reserved = matches!(top, "wm" | "_wm" | "_native")
+                    || crate::api::MODULES.contains(&top)
+                    || crate::api::LIBRARY.iter().any(|l| l.split('.').next() == Some(top));
+                if reserved {
+                    out.push(
+                        warning("shadowed_module", "", format!("{path}: the keyboard has its own `{top}` module, so `import {top}` finds that one and this file never loads"))
+                            .in_file(*path)
+                            .help("rename the file (and its imports), such as to my_{top}.py"),
+                    );
+                }
             }
         }
     }
@@ -2009,9 +2022,10 @@ mod tests {
             ("assets/Logo.PNG", b"..."),
             ("locales/english.json", b"{}"),
             ("locales/bn.json", b"{\"a\": 1}"),
+            ("queue.py", b"x = 1"),
         ];
         let codes: Vec<&str> = archive_problems(&m, &files).iter().map(|p| p.code).collect();
-        assert_eq!(codes, vec!["empty_script", "bad_module", "bad_asset", "bad_locale", "bad_locale"]);
+        assert_eq!(codes, vec!["empty_script", "bad_module", "bad_asset", "bad_locale", "bad_locale", "shadowed_module"]);
         let none: Vec<(&str, &[u8])> = vec![("plugin.json", b"{}")];
         assert_eq!(archive_problems(&m, &none)[0].code, "missing_script");
     }
