@@ -35,7 +35,7 @@ fn check_reads_a_wheel_and_names_what_will_not_run() {
         &whl,
         &[
             ("tidy/__init__.py", "from .core import shout\n"),
-            ("tidy/core.py", "import re\nimport socket\n\ndef shout(t):\n    return re.sub('a', 'b', t)\n"),
+            ("tidy/core.py", "import re\nimport smtplib\n\ndef shout(t):\n    return re.sub('a', 'b', t)\n"),
             ("tidy/data/words.txt", "a b c"),
             ("tidy-1.0.dist-info/METADATA", "Metadata-Version: 2.1\nName: tidy\nVersion: 1.0\nLicense-Expression: MIT\nRequires-Dist: six\n"),
             ("tidy-1.0.dist-info/licenses/LICENSE", "MIT"),

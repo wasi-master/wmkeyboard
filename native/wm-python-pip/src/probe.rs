@@ -199,8 +199,10 @@ mod tests {
                 }
                 assert!(p.name_exists("print"));
                 assert!(p.module_exists("math"));
-                // Sockets stay out of plugins whatever else the interpreter gains.
-                assert!(!p.module_exists("socket"));
+                // Sockets stay closed to plugins whatever else the interpreter
+                // gains: the module is there for packages to load, but making one raises.
+                assert!(p.source_runs("import socket\ntry:\n    socket.socket()\nexcept PermissionError:\n    pass\nelse:\n    raise ValueError('a socket opened')\n"));
+                assert!(!p.module_exists("sqlite3"));
                 assert!(p.member_exists("sys", "version"));
             })
             .unwrap();

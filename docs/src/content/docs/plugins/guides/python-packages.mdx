@@ -175,7 +175,7 @@ Problems carry a short code. The common ones:
 |---|---|
 | `syntax` | The keyboard's parser rejects the file, and says why. |
 | `missing-import` | Nothing provides this module. `help` says which package to install when it is not a standard one. |
-| `sandbox-import` | A module plugins go without on purpose: `socket`, `ctypes`, `multiprocessing`. `help` names what to use instead, such as `wm.http`. |
+| `sandbox-import` | A module plugins go without on purpose: `sqlite3`, `dbm`, `pty`. `help` names what to use instead, such as `wm.files`. Many others, such as `socket` and `tempfile`, are there as stand-ins that raise only when used: see [the Python you get](/plugins/wm-package/#the-python-you-get). |
 | `missing-attribute` | The keyboard's version of a standard module lacks this, such as `sys.platform`. |
 | `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or one that raises an error in plugins when called: `open` (no file system), `input` (no terminal). Only naming one, as in `prompt = input`, is fine. |
 | `missing-name` | `from x import y` where `x` has no `y`. |

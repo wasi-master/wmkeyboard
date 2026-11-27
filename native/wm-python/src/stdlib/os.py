@@ -18,6 +18,27 @@ defpath = "/bin:/usr/bin"
 devnull = "/dev/null"
 environ = {}
 
+# Constants code reads to talk to file objects (io.BytesIO.seek) and to
+# os.open, which plugins have none of.
+SEEK_SET = 0
+SEEK_CUR = 1
+SEEK_END = 2
+O_RDONLY = 0
+O_WRONLY = 1
+O_RDWR = 2
+O_CREAT = 64
+O_EXCL = 128
+O_NOCTTY = 256
+O_TRUNC = 512
+O_APPEND = 1024
+O_NONBLOCK = 2048
+O_CLOEXEC = 524288
+O_BINARY = 0
+F_OK = 0
+X_OK = 1
+W_OK = 2
+R_OK = 4
+
 
 class terminal_size(tuple):
     """A terminal's size, (columns, lines), as os.get_terminal_size gives it."""

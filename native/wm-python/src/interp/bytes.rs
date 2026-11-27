@@ -2,10 +2,12 @@
 //! with CPython's error handlers, and hex in and out.
 //!
 //! Encodings: UTF-8 (and `utf-8-sig`), UTF-16 and UTF-32 (with a byte order
-//! mark, or `-le` / `-be` without), ASCII, Latin-1 and Windows-1252. Strings
-//! here cannot hold a lone surrogate, so `surrogateescape` is refused rather
-//! than quietly losing bytes. `surrogatepass` is `strict`: it only differs
-//! on a surrogate, which no string here has and no decode here makes.
+//! mark, or `-le` / `-be` without), ASCII, Latin-1, Windows-1252 and IBM
+//! code page 437. Strings here cannot hold a lone surrogate, so
+//! `surrogatepass` and `surrogateescape` are `strict`: encoding is the same,
+//! as no string here has a surrogate, and decoding valid data is the same,
+//! while bytes CPython would keep as surrogates raise UnicodeDecodeError
+//! rather than being quietly lost.
 
 pub(crate) enum ByteError {
     UnknownEncoding(String),
@@ -28,6 +30,7 @@ pub(crate) enum Encoding {
     Ascii,
     Latin1,
     Cp1252,
+    Cp437,
     UnicodeEscape,
     RawUnicodeEscape,
 }
@@ -47,6 +50,7 @@ impl Encoding {
             Encoding::Ascii => "ascii",
             Encoding::Latin1 => "iso8859-1",
             Encoding::Cp1252 => "cp1252",
+            Encoding::Cp437 => "cp437",
             Encoding::UnicodeEscape => "unicode-escape",
             Encoding::RawUnicodeEscape => "raw-unicode-escape",
         }
@@ -56,7 +60,7 @@ impl Encoding {
     fn label(self) -> &'static str {
         match self {
             Encoding::Latin1 => "latin-1",
-            Encoding::Cp1252 => "charmap",
+            Encoding::Cp1252 | Encoding::Cp437 => "charmap",
             Encoding::UnicodeEscape => "unicodeescape",
             Encoding::RawUnicodeEscape => "rawunicodeescape",
             other => other.name(),
@@ -80,6 +84,7 @@ pub(crate) fn encoding(name: &str) -> Result<Encoding, ByteError> {
             Encoding::Latin1
         }
         "cp1252" | "windows_1252" | "1252" => Encoding::Cp1252,
+        "cp437" | "ibm437" | "437" => Encoding::Cp437,
         "unicode_escape" | "unicodeescape" => Encoding::UnicodeEscape,
         "raw_unicode_escape" | "rawunicodeescape" => Encoding::RawUnicodeEscape,
         _ => return Err(ByteError::UnknownEncoding(name.to_string())),
@@ -98,7 +103,7 @@ enum Handler {
 
 fn handler(errors: &str, encoding: bool) -> Result<Handler, ByteError> {
     Ok(match errors {
-        "strict" | "surrogatepass" => Handler::Strict,
+        "strict" | "surrogatepass" | "surrogateescape" => Handler::Strict,
         "ignore" => Handler::Ignore,
         "replace" => Handler::Replace,
         "backslashreplace" => Handler::BackslashReplace,
@@ -115,6 +120,33 @@ const CP1252_HIGH: [Option<char>; 32] = [
     None, Some('\u{2018}'), Some('\u{2019}'), Some('\u{201C}'), Some('\u{201D}'), Some('\u{2022}'), Some('\u{2013}'), Some('\u{2014}'),
     Some('\u{02DC}'), Some('\u{2122}'), Some('\u{0161}'), Some('\u{203A}'), Some('\u{0153}'), None, Some('\u{017E}'), Some('\u{0178}'),
 ];
+
+/// IBM code page 437's 0x80-0xFF, the box-drawing set zip archives name files in; 0x00-0x7F are ASCII.
+const CP437_HIGH: [char; 128] = [
+    '\u{00C7}', '\u{00FC}', '\u{00E9}', '\u{00E2}', '\u{00E4}', '\u{00E0}', '\u{00E5}', '\u{00E7}',
+    '\u{00EA}', '\u{00EB}', '\u{00E8}', '\u{00EF}', '\u{00EE}', '\u{00EC}', '\u{00C4}', '\u{00C5}',
+    '\u{00C9}', '\u{00E6}', '\u{00C6}', '\u{00F4}', '\u{00F6}', '\u{00F2}', '\u{00FB}', '\u{00F9}',
+    '\u{00FF}', '\u{00D6}', '\u{00DC}', '\u{00A2}', '\u{00A3}', '\u{00A5}', '\u{20A7}', '\u{0192}',
+    '\u{00E1}', '\u{00ED}', '\u{00F3}', '\u{00FA}', '\u{00F1}', '\u{00D1}', '\u{00AA}', '\u{00BA}',
+    '\u{00BF}', '\u{2310}', '\u{00AC}', '\u{00BD}', '\u{00BC}', '\u{00A1}', '\u{00AB}', '\u{00BB}',
+    '\u{2591}', '\u{2592}', '\u{2593}', '\u{2502}', '\u{2524}', '\u{2561}', '\u{2562}', '\u{2556}',
+    '\u{2555}', '\u{2563}', '\u{2551}', '\u{2557}', '\u{255D}', '\u{255C}', '\u{255B}', '\u{2510}',
+    '\u{2514}', '\u{2534}', '\u{252C}', '\u{251C}', '\u{2500}', '\u{253C}', '\u{255E}', '\u{255F}',
+    '\u{255A}', '\u{2554}', '\u{2569}', '\u{2566}', '\u{2560}', '\u{2550}', '\u{256C}', '\u{2567}',
+    '\u{2568}', '\u{2564}', '\u{2565}', '\u{2559}', '\u{2558}', '\u{2552}', '\u{2553}', '\u{256B}',
+    '\u{256A}', '\u{2518}', '\u{250C}', '\u{2588}', '\u{2584}', '\u{258C}', '\u{2590}', '\u{2580}',
+    '\u{03B1}', '\u{00DF}', '\u{0393}', '\u{03C0}', '\u{03A3}', '\u{03C3}', '\u{00B5}', '\u{03C4}',
+    '\u{03A6}', '\u{0398}', '\u{03A9}', '\u{03B4}', '\u{221E}', '\u{03C6}', '\u{03B5}', '\u{2229}',
+    '\u{2261}', '\u{00B1}', '\u{2265}', '\u{2264}', '\u{2320}', '\u{2321}', '\u{00F7}', '\u{2248}',
+    '\u{00B0}', '\u{2219}', '\u{00B7}', '\u{221A}', '\u{207F}', '\u{00B2}', '\u{25A0}', '\u{00A0}',
+];
+
+fn cp437_byte(c: char) -> Option<u8> {
+    if (c as u32) < 0x80 {
+        return Some(c as u8);
+    }
+    CP437_HIGH.iter().position(|&x| x == c).map(|i| 0x80 + i as u8)
+}
 
 fn cp1252_byte(c: char) -> Option<u8> {
     let u = c as u32;
@@ -162,6 +194,7 @@ pub(crate) fn encode_with(s: &str, name: &str, errors: &str) -> Result<Vec<u8>, 
         match enc {
             Encoding::Ascii => (c as u32) < 0x80,
             Encoding::Latin1 => (c as u32) < 0x100,
+            Encoding::Cp437 => return cp437_byte(c),
             _ => return cp1252_byte(c),
         }
         .then_some(c as u8)
@@ -200,7 +233,7 @@ pub(crate) fn encode_with(s: &str, name: &str, errors: &str) -> Result<Vec<u8>, 
             }
             out
         }
-        Encoding::Ascii | Encoding::Latin1 | Encoding::Cp1252 => {
+        Encoding::Ascii | Encoding::Latin1 | Encoding::Cp1252 | Encoding::Cp437 => {
             if let Some(b) = s.chars().map(one_byte).collect::<Option<Vec<u8>>>() {
                 return Ok(b);
             }
@@ -223,7 +256,7 @@ pub(crate) fn encode_with(s: &str, name: &str, errors: &str) -> Result<Vec<u8>, 
                             _ => "character maps to <undefined>",
                         };
                         // The charmap codec stops at the first; the others name the whole run.
-                        let at = if run == 1 || enc == Encoding::Cp1252 {
+                        let at = if run == 1 || matches!(enc, Encoding::Cp1252 | Encoding::Cp437) {
                             format!("character {} in position {i}", quoted(chars[i]))
                         } else {
                             format!("characters in position {i}-{}", i + run - 1)
@@ -316,11 +349,12 @@ pub(crate) fn decode(b: &[u8], name: &str, errors: &str) -> Result<String, ByteE
             }
         }
         Encoding::UnicodeEscape | Encoding::RawUnicodeEscape => return unescape(b, enc == Encoding::RawUnicodeEscape, &bad),
-        Encoding::Ascii | Encoding::Latin1 | Encoding::Cp1252 => {
+        Encoding::Ascii | Encoding::Latin1 | Encoding::Cp1252 | Encoding::Cp437 => {
             for (i, &x) in b.iter().enumerate() {
                 let c = match enc {
                     Encoding::Ascii => (x < 0x80).then_some(x as char),
                     Encoding::Latin1 => Some(x as char),
+                    Encoding::Cp437 => Some(if x < 0x80 { x as char } else { CP437_HIGH[(x - 0x80) as usize] }),
                     _ => cp1252_char(x),
                 };
                 match c {

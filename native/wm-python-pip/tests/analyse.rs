@@ -38,13 +38,13 @@ fn a_plain_package_is_ok() {
 }
 
 #[test]
-fn a_socket_at_import_time_is_incompatible() {
-    let r = run(&[("net.py", "import json\nimport socket\n\ndef get(host):\n    return socket.create_connection((host, 80))\n")], &[]);
+fn a_network_module_at_import_time_is_incompatible() {
+    let r = run(&[("net.py", "import json\nimport smtplib\n\ndef get(host):\n    return smtplib.SMTP(host)\n")], &[]);
     assert_eq!(r.verdict, Verdict::Incompatible);
-    let p = r.problems().find(|p| p.code == "sandbox-import").expect("socket flagged");
+    let p = r.problems().find(|p| p.code == "sandbox-import").expect("smtplib flagged");
     assert_eq!((p.severity, p.line, p.col), (Severity::Error, Some(2), Some(8)));
     assert!(p.help.as_deref().unwrap_or("").contains("wm.http"), "{p:?}");
-    assert!(r.imports.missing.contains("socket"));
+    assert!(r.imports.missing.contains("smtplib"));
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn where_an_import_sits_decides_how_bad_it_is() {
     let r = run(
         &[(
             "fast.py",
-            "try:\n    import simplejson as json\nexcept ImportError:\n    import json\n\ndef save(x):\n    import socket\n    return socket.create_connection(('x', 80))\n\nif False:\n    pass\n",
+            "try:\n    import simplejson as json\nexcept ImportError:\n    import json\n\ndef save(x):\n    import smtplib\n    return smtplib.SMTP('x')\n\nif False:\n    pass\n",
         )],
         &[],
     );
@@ -151,14 +151,14 @@ fn runtime_gaps_are_warnings_from_what_the_interpreter_does() {
 
 #[test]
 fn the_json_has_the_shape_the_web_editor_reads() {
-    let r = run(&[("m.py", "import socket\n")], &[]);
+    let r = run(&[("m.py", "import smtplib\n")], &[]);
     let j = r.to_json();
     assert_eq!(j["verdict"], "incompatible");
     let p = &j["problems"][0];
     for k in ["severity", "file", "line", "col", "code", "message"] {
         assert!(p.get(k).is_some(), "{k} missing in {p}");
     }
-    assert_eq!(j["imports"]["missing"][0], "socket");
+    assert_eq!(j["imports"]["missing"][0], "smtplib");
     assert!(j["imports"]["stdlib"].is_array() && j["imports"]["internal"].is_array());
     assert_eq!(j["roots"][0], "m");
 }
@@ -210,7 +210,7 @@ fn branches_for_other_versions_and_systems_never_run() {
 
 #[test]
 fn a_branch_that_cannot_be_worked_out_is_still_checked() {
-    let r = run(&[("maybe.py", "import os\n\nif os.environ.get('X'):\n    import socket\n")], &[]);
+    let r = run(&[("maybe.py", "import os\n\nif os.environ.get('X'):\n    import smtplib\n")], &[]);
     assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
 }
 
@@ -225,7 +225,7 @@ fn the_fallback_of_an_import_that_works_never_runs() {
     );
     assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
     // A fallback for something the keyboard lacks is still read.
-    let r = run(&[("fast.py", "try:\n    import simplejson as json\nexcept ImportError:\n    import socket\n")], &[]);
+    let r = run(&[("fast.py", "try:\n    import simplejson as json\nexcept ImportError:\n    import smtplib\n")], &[]);
     assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
 }
 
@@ -235,9 +235,9 @@ fn a_module_loaded_only_by_some_code_fails_that_code_not_the_package() {
         &[
             ("tool/__init__.py", "from .core import run\n"),
             ("tool/core.py", "def run():\n    return 1\n\ndef pager():\n    from . import _pager\n    return _pager.show()\n"),
-            ("tool/_pager.py", "import socket\n\ndef show():\n    return socket.socketpair()\n"),
-            ("tool/testing.py", "import socket\n"),
-            ("tool/__main__.py", "import socket\nprint(input())\n"),
+            ("tool/_pager.py", "import smtplib\n\ndef show():\n    return smtplib.SMTP('x')\n"),
+            ("tool/testing.py", "import smtplib\n"),
+            ("tool/__main__.py", "import smtplib\nprint(input())\n"),
         ],
         &[],
     );
@@ -248,7 +248,7 @@ fn a_module_loaded_only_by_some_code_fails_that_code_not_the_package() {
     assert!(c.contains(&(Severity::Info, "sandbox-import", "tool/__main__.py".into(), Some(1))), "{c:?}");
     assert!(r.problems().any(|p| p.code == "loaded-later" && p.file == "tool/_pager.py"), "{c:?}");
     // A public module the package does not import is the package's to offer: still checked in full.
-    let r = run(&[("tool/__init__.py", ""), ("tool/net.py", "import socket\n")], &[]);
+    let r = run(&[("tool/__init__.py", ""), ("tool/net.py", "import smtplib\n")], &[]);
     assert_eq!(r.verdict, Verdict::Incompatible, "{:?}", codes(&r));
 }
 

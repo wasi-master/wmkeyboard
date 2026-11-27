@@ -136,7 +136,7 @@ no files and no console to read. `%` formatting of bytes is not there.
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings.aliases`, `enum`, `errno`, `fnmatch`, `fractions`, `functools`, `gettext`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` and `html.entities`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging`, `mimetypes`, `numbers`, `operator`, `os.path`, `pathlib`, `pickle`, `platform`, `pprint`, `queue`, `reprlib`, `secrets`, `shlex`, `shutil`, `stat`, `statistics`, `string`, `struct`, `subprocess`, `textwrap`, `threading` and `_thread`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zlib`, `zoneinfo` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `colorsys`, `concurrent.futures`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings.aliases`, `enum`, `errno`, `fcntl`, `fnmatch`, `fractions`, `functools`, `gc`, `getpass`, `gettext`, `glob`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` with `html.entities` and `html.parser`, `http` with `http.client`, `http.cookies`, `http.cookiejar` and `http.server`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging`, `mimetypes`, `mmap`, `multiprocessing`, `ntpath`, `numbers`, `operator`, `optparse`, `os.path` (and `posixpath`), `pathlib`, `pickle`, `platform`, `pprint`, `queue`, `reprlib`, `secrets`, `select`, `selectors`, `shlex`, `shutil`, `signal`, `socket`, `socketserver`, `ssl`, `stat`, `statistics`, `string`, `struct`, `subprocess`, `sysconfig`, `tarfile`, `tempfile`, `textwrap`, `threading` and `_thread`, `timeit`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `webbrowser`, `xml.dom.minidom`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zipfile`, `zlib`, `zoneinfo` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -185,8 +185,33 @@ them still load:
 - `xml.etree.ElementTree`, `xml.sax` and `xml.parsers.expat` read and write
   XML, with namespaces. The parser is written in Python, so it hands over a
   document once all of it has been fed in.
+- `socket`, `ssl`, `select`, `selectors` and `socketserver` have their
+  constants, exceptions and classes, and `socket`'s address helpers
+  (`inet_aton`, `inet_pton`, `htons`) work. Opening a connection or asking
+  the network anything raises `PermissionError`: web requests go through
+  [`wm.http`](#http), or the keyboard's `requests` and `httpx`. `ssl`'s
+  `SSLContext` keeps the settings it is given.
+- `http.client` reads an HTTP response from any file object, and
+  `http.cookies`, `http.cookiejar` and `http.server`'s request handlers work.
+  Their connections and servers raise `PermissionError` when they would
+  open a socket.
+- `concurrent.futures` executors run each call when it is submitted and
+  hand back a finished `Future`, so `map`, `as_completed` and `wait` work.
+  `multiprocessing` has `cpu_count`, locks and queues, and a `Pool` that runs
+  tasks in the plugin; starting a `Process` raises `PermissionError`.
+- `tempfile.TemporaryFile` and `SpooledTemporaryFile` are held in memory.
+  Anything that needs a name on disk raises `PermissionError`.
+- `zipfile` and `tarfile` read and write archives in memory, such as in a
+  `BytesIO` or a file from [`wm.files`](#files).
+- `signal` keeps the handlers it is given, but no signal ever arrives.
+  `glob` finds no files, `gc.collect()` frees nothing more, and `sysconfig`
+  describes an empty installation. `getpass.getpass()` raises `EOFError`,
+  `webbrowser.open()` answers `False`, and `mmap` and `fcntl` raise
+  `PermissionError`.
 - `atexit` keeps its functions, but a plugin never exits the way a program
-  does, so nothing runs them. `linecache` has no lines to give. `unicodedata` has normal
+  does, so nothing runs them. `linecache` has no lines to give.
+
+`unicodedata` has normal
 forms, categories, digit values and character names. Everything in
 `itertools` hands out one item at a time, as in Python: `count`, `cycle` and
 `repeat` go on without end, and `chain`, `groupby` and `tee` read their input

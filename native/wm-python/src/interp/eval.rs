@@ -2551,6 +2551,8 @@ impl Interp {
                 None if name == "__name__" => Ok(Value::Str(m.clone())),
                 None if name == "__spec__" => self.native_spec(m),
                 None if modules::python_member(m, name).is_some() => self.python_builtin(modules::python_member(m, name).unwrap_or_default()),
+                // A submodule of a native module, once imported: `json.decoder`.
+                None if self.module_envs.contains_key(format!("{m}.{name}").as_str()) => Ok(Value::Module(Rc::from(format!("{m}.{name}")))),
                 None => match self.module_getattr(m, name)? {
                     Some(v) => Ok(v),
                     None => Err(self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
@@ -3411,6 +3413,25 @@ impl Interp {
             }
             let mut spec = String::new();
             while i < chars.len() && !PRINTF_TYPES.contains(&chars[i]) {
+                if chars[i] == "*" {
+                    // `%*d`, `%.*f`: the width or precision is the next argument;
+                    // a negative width left-aligns, as CPython's does.
+                    if keyed.is_some() || next >= args.len() {
+                        return Err(self.error("not enough arguments for format string", "TypeError"));
+                    }
+                    let Some(n) = args[next].as_int() else {
+                        return Err(self.error("* wants int", "TypeError"));
+                    };
+                    next += 1;
+                    if n < 0 && !spec.contains('.') {
+                        spec.push('-');
+                        spec.push_str(&n.unsigned_abs().to_string());
+                    } else {
+                        spec.push_str(&n.max(0).to_string());
+                    }
+                    i += 1;
+                    continue;
+                }
                 spec.push_str(chars[i]);
                 i += 1;
             }
