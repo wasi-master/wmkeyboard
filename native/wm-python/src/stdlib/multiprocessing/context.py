@@ -71,6 +71,27 @@ class SpawnContext(BaseContext):
 ForkContext = ForkServerContext = DefaultContext = SpawnContext
 
 
+from multiprocessing.process import BaseProcess as _BaseProcess
+
+
+class Process(_BaseProcess):
+    """A process plugins cannot start: making one works, start() raises."""
+
+    _start_method = None
+
+
+class SpawnProcess(Process):
+    _start_method = "spawn"
+
+
+class ForkProcess(Process):
+    _start_method = "fork"
+
+
+class ForkServerProcess(Process):
+    _start_method = "forkserver"
+
+
 def get_context(method=None):
     if method not in (None, "fork", "spawn", "forkserver"):
         raise ValueError(f"cannot find context for {method!r}")

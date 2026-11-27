@@ -4,7 +4,7 @@ multipart content type splits into parts."""
 from email.message import Message
 from email.policy import compat32
 
-__all__ = ["Parser", "HeaderParser", "BytesParser", "BytesHeaderParser"]
+__all__ = ["Parser", "HeaderParser", "BytesParser", "BytesHeaderParser", "FeedParser", "BytesFeedParser"]
 
 
 def _parse(text, factory, headersonly, policy):
@@ -151,3 +151,6 @@ class BytesHeaderParser(BytesParser):
 
     def parsebytes(self, text, headersonly=True):
         return BytesParser.parsebytes(self, text, headersonly=True)
+
+
+from email.feedparser import FeedParser, BytesFeedParser

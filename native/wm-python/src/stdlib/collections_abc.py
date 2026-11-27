@@ -553,6 +553,21 @@ class ByteString(Sequence):
     pass
 
 
+class Buffer(metaclass=ABCMeta):
+    """What can be read as bytes without a copy (PEP 688): bytes, bytearray
+    and anything with __buffer__."""
+
+    @abstractmethod
+    def __buffer__(self, flags, /):
+        raise NotImplementedError
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is Buffer:
+            return _check_methods(C, "__buffer__")
+        return NotImplemented
+
+
 class MappingView(Sized):
     def __init__(self, mapping):
         self._mapping = mapping
@@ -600,6 +615,12 @@ Sequence.register(tuple)
 Sequence.register(str)
 Sequence.register(range)
 ByteString.register(bytes)
+Buffer.register(bytes)
+Buffer.register(bytearray)
+try:
+    Buffer.register(memoryview)
+except NameError:
+    pass
 MutableSequence.register(list)
 MutableSet.register(set)
 MutableMapping.register(dict)

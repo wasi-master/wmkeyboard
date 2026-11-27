@@ -217,10 +217,49 @@ def resolve_bases(bases):
         return bases
     return tuple(new_bases)
 
+def _calculate_meta(meta, bases):
+    winner = meta
+    for base in bases:
+        base_meta = type(base)
+        if issubclass(winner, base_meta):
+            continue
+        if issubclass(base_meta, winner):
+            winner = base_meta
+            continue
+        raise TypeError("metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases")
+    return winner
+
+
+def prepare_class(name, bases=(), kwds=None):
+    """(metaclass, namespace, keywords left) for a class about to be made."""
+    kwds = {} if kwds is None else dict(kwds)
+    if "metaclass" in kwds:
+        meta = kwds.pop("metaclass")
+    else:
+        meta = type(bases[0]) if bases else type
+    if isinstance(meta, type):
+        meta = _calculate_meta(meta, bases)
+    if hasattr(meta, "__prepare__"):
+        ns = meta.__prepare__(name, bases, **kwds)
+    else:
+        ns = {}
+    return meta, ns, kwds
+
+
 def new_class(name, bases=(), kwds=None, exec_body=None):
-    ns = {}
+    resolved = resolve_bases(bases)
+    meta, ns, kwds = prepare_class(name, resolved, kwds)
     if exec_body is not None:
         exec_body(ns)
-    kwds = dict(kwds or {})
-    meta = kwds.pop("metaclass", type)
-    return meta(name, tuple(bases), ns, **kwds)
+    if resolved is not bases:
+        ns["__orig_bases__"] = bases
+    return meta(name, resolved, ns, **kwds)
+
+
+def get_original_bases(cls, /):
+    """The bases a class was written with, before __mro_entries__ (PEP 560)."""
+    try:
+        return cls.__dict__.get("__orig_bases__", cls.__bases__)
+    except AttributeError:
+        raise TypeError(f"Expected an instance of type, not {type(cls).__name__!r}") from None
+

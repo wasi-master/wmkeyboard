@@ -68,3 +68,36 @@ def source_hash(source_bytes):
     import hashlib
 
     return hashlib.sha256(source_bytes).digest()[:8]
+
+
+MAGIC_NUMBER = (3571).to_bytes(2, "little") + b"\r\n"
+
+
+def cache_from_source(path, debug_override=None, *, optimization=None):
+    """Where CPython would cache a compiled `.py`: `__pycache__/x.cpython-313.pyc`.
+    The keyboard compiles nothing to files; this is only the name."""
+    import os
+    head, tail = os.path.split(os.fspath(path))
+    base, sep, rest = tail.rpartition(".")
+    tag = "cpython-313"
+    almost = ".".join([(base if sep else rest), tag])
+    if optimization:
+        almost = f"{almost}.opt-{optimization}"
+    return os.path.join(head, "__pycache__", almost + ".pyc")
+
+
+def source_from_cache(path):
+    import os
+    head, pycache_filename = os.path.split(os.fspath(path))
+    head, pycache = os.path.split(head)
+    if pycache != "__pycache__":
+        raise ValueError(f"__pycache__ not bottom-level directory in {path!r}")
+    dot_count = pycache_filename.count(".")
+    if dot_count not in {2, 3}:
+        raise ValueError(f"expected only 2 or 3 dots in {pycache_filename!r}")
+    base_filename = pycache_filename.partition(".")[0]
+    return os.path.join(head, base_filename + ".py")
+
+
+def decode_source(source_bytes):
+    return bytes(source_bytes).decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")

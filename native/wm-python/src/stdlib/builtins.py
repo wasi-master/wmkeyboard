@@ -135,3 +135,78 @@ UserWarning = UserWarning
 ValueError = ValueError
 Warning = Warning
 ZeroDivisionError = ZeroDivisionError
+
+
+# Builtins this build may or may not have: each one it has is here too.
+try:
+    BaseExceptionGroup = BaseExceptionGroup
+except NameError:
+    pass
+try:
+    ExceptionGroup = ExceptionGroup
+except NameError:
+    pass
+try:
+    PythonFinalizationError = PythonFinalizationError
+except NameError:
+    pass
+try:
+    open = open
+except NameError:
+    pass
+try:
+    input = input
+except NameError:
+    pass
+try:
+    help = help
+except NameError:
+    pass
+try:
+    breakpoint = breakpoint
+except NameError:
+    pass
+try:
+    compile = compile
+except NameError:
+    pass
+try:
+    memoryview = memoryview
+except NameError:
+    pass
+try:
+    vars = vars
+except NameError:
+    pass
+try:
+    locals = locals
+except NameError:
+    pass
+try:
+    exit = exit
+except NameError:
+    pass
+try:
+    quit = quit
+except NameError:
+    pass
+try:
+    copyright = copyright
+except NameError:
+    pass
+try:
+    credits = credits
+except NameError:
+    pass
+try:
+    license = license
+except NameError:
+    pass
+try:
+    __import__ = __import__
+except NameError:
+    pass
+try:
+    __build_class__ = __build_class__
+except NameError:
+    pass

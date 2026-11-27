@@ -81,6 +81,18 @@ def ixor(a, b):
 def iconcat(a, b):
     a += b
     return a
+def ilshift(a, b):
+    a <<= b
+    return a
+def irshift(a, b):
+    a >>= b
+    return a
+def ipow(a, b):
+    a **= b
+    return a
+def imatmul(a, b):
+    a @= b
+    return a
 
 
 

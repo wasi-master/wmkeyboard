@@ -139,7 +139,7 @@ no files and no console to read. `%` formatting of bytes is not there.
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio`, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `colorsys`, `concurrent.futures`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings.aliases`, `enum`, `errno`, `fcntl`, `fnmatch`, `fractions`, `functools`, `gc`, `getpass`, `gettext`, `glob`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` with `html.entities` and `html.parser`, `http` with `http.client`, `http.cookies`, `http.cookiejar` and `http.server`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging`, `mimetypes`, `mmap`, `multiprocessing`, `ntpath`, `numbers`, `operator`, `optparse`, `os.path` (and `posixpath`), `pathlib`, `pickle`, `platform`, `pprint`, `queue`, `reprlib`, `secrets`, `select`, `selectors`, `shlex`, `shutil`, `signal`, `socket`, `socketserver`, `ssl`, `stat`, `statistics`, `string`, `struct`, `subprocess`, `sysconfig`, `tarfile`, `tempfile`, `textwrap`, `threading` and `_thread`, `timeit`, `token`, `tokenize`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `webbrowser`, `xml.dom.minidom`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zipfile`, `zlib`, `zoneinfo` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio` and its modules, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `colorsys`, `cProfile`, `concurrent.futures`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings` with `encodings.aliases` and the codec modules, `enum`, `errno`, `fcntl`, `fnmatch`, `fractions`, `functools`, `gc`, `getopt`, `getpass`, `gettext`, `glob`, `graphlib`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` with `html.entities` and `html.parser`, `http` with `http.client`, `http.cookies`, `http.cookiejar` and `http.server`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging` with `logging.config` and `logging.handlers`, `mimetypes`, `mmap`, `multiprocessing`, `netrc`, `ntpath`, `numbers`, `operator`, `optparse`, `os.path` (and `posixpath`), `pathlib`, `pickle`, `platform`, `pprint`, `profile`, `pstats`, `queue`, `reprlib`, `secrets`, `select`, `selectors`, `shlex`, `shutil`, `signal`, `socket`, `socketserver`, `ssl`, `stat`, `statistics`, `string`, `stringprep`, `struct`, `subprocess`, `sysconfig`, `tarfile`, `tempfile`, `textwrap`, `threading` and `_thread`, `timeit`, `token`, `tokenize`, `tomllib`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `webbrowser`, `wsgiref`, `xml.dom.minidom`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zipfile`, `zlib`, `zoneinfo` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -159,8 +159,11 @@ has `version_info` (3.13),
 supplies modules nothing else has, as with CPython's importlib.
 `sys.stdout.write`, `print(..., file=sys.stderr)`,
 `logging` and `warnings` all write to the plugin's log, where `print` goes.
-`os` is only its path functions and an empty `environ`: files go through
-[`wm.storage`](#storage) and [`wm.files`](#files).
+`os` has its path functions, an empty `environ` and what a program asks about
+itself: `getcwd()` is `"/"` and `getuid()` is 0. Its file functions, such as
+`listdir`, `stat` and `rename`, are there for code that names them and raise
+`PermissionError` when called: files go through [`wm.storage`](#storage) and
+[`wm.files`](#files). `walk` finds nothing.
 
 Some modules stand in for what plugins go without, so packages that import
 them still load:
@@ -215,6 +218,16 @@ them still load:
   `PermissionError`.
 - `atexit` keeps its functions, but a plugin never exits the way a program
   does, so nothing runs them. `linecache` has no lines to give.
+- `asyncio` has CPython's protocol, transport and stream classes to
+  subclass, and the submodules packages import them from (`asyncio.events`,
+  `asyncio.protocols`). Opening a connection or a server, or starting a
+  subprocess, raises `PermissionError`.
+- `logging.handlers`' file handlers raise `PermissionError` as they open
+  their file, and its socket, HTTP and mail handlers fail when they reach
+  for the network. `MemoryHandler`, `QueueHandler` and `BufferingHandler` work.
+- `profile` and `cProfile` run what they are given but record no calls, so
+  `pstats` prints empty statistics. `wmpy profile` shows where the time goes
+  on a computer.
 
 `unicodedata` has normal
 forms, categories, digit values and character names. Everything in
@@ -245,7 +258,11 @@ finish, such as an empty `Queue`, raises `RuntimeError`. `unittest` runs
 `seal`. `zlib`, `gzip`, `struct`, `array`, `binascii` and `base64` work on bytes
 in memory. `str.encode`, `bytes.decode` and `codecs` know UTF-8 (with or without
 a signature), UTF-16, UTF-32, ASCII, Latin-1, Windows-1252, `unicode_escape`,
-`rot13` and `hex`. `argparse` parses the list you give it; on bad input it
+`rot13` and `hex`. `dataclasses` has `field`,
+`InitVar`, `KW_ONLY`, `ClassVar` attributes (which are not fields),
+`replace` and `make_dataclass`. `traceback` formats an exception and its
+cause, but frames are not kept, so a traceback shows no call stack and a
+stack summary is empty. `argparse` parses the list you give it; on bad input it
 writes the usage to the log and raises `SystemExit`. `inspect` reads
 signatures (the builtins' too, where CPython has one, such as `len` and
 `sorted`) and kinds of object but has no source to show, `ast` has only
@@ -257,8 +274,10 @@ a seed taken once from the system's random source. `uuid` has `uuid1`,
 a random node, as CPython does when it finds none. `io.TextIOWrapper` reads
 and writes text over a `BytesIO`.
 
-`decimal`, `pickle`, `ipaddress`, `random`, `typing` and `tokenize` are
-CPython's own modules, run as they are. `random` draws from CPython's Mersenne
+`decimal`, `pickle`, `ipaddress`, `random`, `typing`, `tokenize`, `logging`,
+`urllib.parse`, `tomllib`, `graphlib`, `getopt` and `wsgiref` are CPython's
+own modules, run as they are. With no frames to look up, a log record names
+no file or line: `%(filename)s` gives `(unknown file)`. `random` draws from CPython's Mersenne
 Twister, so `random.seed(5)` gives the numbers CPython gives, and has
 `Random`, `gauss` and the other distributions. `typing` is CPython 3.13's, with
 the part CPython writes in C (`TypeVar`, `ParamSpec`, `TypeVarTuple`,

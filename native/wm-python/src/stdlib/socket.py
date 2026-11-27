@@ -68,6 +68,7 @@ class AddressInfo(_IntFlag):
     AI_V4MAPPED = 8
     AI_ALL = 16
     AI_ADDRCONFIG = 32
+    AI_MASK = 1063
     AI_NUMERICSERV = 1024
 
 

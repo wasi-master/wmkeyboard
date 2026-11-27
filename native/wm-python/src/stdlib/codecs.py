@@ -601,3 +601,51 @@ def unicode_escape_decode(input, errors="strict", final=True):
 for _f in (encode, decode, lookup, register, register_error, lookup_error, escape_decode, escape_encode, unicode_escape_encode, unicode_escape_decode):
     _f.__module__ = "_codecs"
 del _f
+
+
+# ---- character maps: how the cp* and other one-byte codecs are written ------
+
+def charmap_build(decoding_table):
+    """The encoding map for a 256-character decoding table: {code point: byte}."""
+    return {ord(ch): i for i, ch in enumerate(decoding_table) if ch != "\ufffe"}
+
+
+def charmap_decode(data, errors="strict", mapping=None):
+    data = bytes(data)
+    if mapping is None:
+        return data.decode("latin-1"), len(data)
+    out = []
+    for i, b in enumerate(data):
+        try:
+            ch = mapping[b]
+        except (IndexError, KeyError, LookupError):
+            ch = None
+        if isinstance(ch, int):
+            ch = chr(ch)
+        if ch is None or ch == "\ufffe":
+            if errors == "strict":
+                raise UnicodeDecodeError("charmap", data, i, i + 1, "character maps to <undefined>")
+            if errors == "ignore":
+                continue
+            ch = "\ufffd"
+        out.append(ch)
+    return "".join(out), len(data)
+
+
+def charmap_encode(input, errors="strict", mapping=None):
+    if mapping is None:
+        return input.encode("latin-1", errors), len(input)
+    out = bytearray()
+    for i, ch in enumerate(input):
+        b = mapping.get(ord(ch)) if isinstance(mapping, dict) else None
+        if isinstance(b, (bytes, bytearray)):
+            out += b
+            continue
+        if b is None:
+            if errors == "strict":
+                raise UnicodeEncodeError("charmap", input, i, i + 1, "character maps to <undefined>")
+            if errors == "ignore":
+                continue
+            b = mapping.get(ord("?"), 0x3F) if isinstance(mapping, dict) else 0x3F
+        out.append(b)
+    return bytes(out), len(input)

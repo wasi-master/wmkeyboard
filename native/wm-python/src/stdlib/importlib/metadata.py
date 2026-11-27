@@ -72,6 +72,34 @@ class EntryPoints:
         return {ep.group for ep in self._eps}
 
 
+class DistributionFinder:
+    """Finds distributions: a plugin's vendored packages carry no metadata, so none."""
+
+    class Context:
+        name = None
+
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+        @property
+        def path(self):
+            return []
+
+    def find_distributions(self, context=None):
+        return iter(())
+
+
+class MetadataPathFinder(DistributionFinder):
+    @classmethod
+    def find_distributions(cls, context=None):
+        return iter(())
+
+    @classmethod
+    def invalidate_caches(cls):
+        pass
+
+
 class Distribution:
     @classmethod
     def from_name(cls, name):
