@@ -1,9 +1,10 @@
 """platform: what the keyboard's Python runs on.
 
 The answers are fixed: Android on a 64-bit ARM phone, and a CPython-style
-implementation of Python 3.12 (the language this interpreter follows). Who
-the phone is (its name, its exact Android release) is not shared with
-plugins, so those answers are empty, as CPython gives when it cannot tell.
+implementation of the Python version sys.version_info gives (the language
+this interpreter follows). Who the phone is (its name, its exact Android
+release) is not shared with plugins, so those answers are empty, as CPython
+gives when it cannot tell.
 """
 
 import sys
