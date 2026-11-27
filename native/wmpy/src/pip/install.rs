@@ -177,23 +177,10 @@ impl Resolver<'_> {
             let bytes = self.index.download(&file)?;
             dist::from_wheel(&bytes, &file.url, &file.sha256)?
         } else {
-            let compiled: Vec<&FileInfo> = files.iter().filter(|f| f.is_wheel()).collect();
-            if !compiled.is_empty() && file.size > MAX_SDIST_PROBE {
-                Dist {
-                    key: key.clone(),
-                    name: project.name.clone(),
-                    version: raw.clone(),
-                    source: file.url.clone(),
-                    sha256: file.sha256.clone(),
-                    refused: Some(format!(
-                        "it has no pure-Python wheel (only {} built for particular platforms, such as {}), and its {} MB source archive needs building",
-                        compiled.len(),
-                        compiled[0].filename,
-                        file.size >> 20
-                    )),
-                    ..Default::default()
-                }
-            } else {
+            let compiled: Vec<&FileInfo> = files.iter().filter(|f| f.is_wheel() && !f.is_pure_wheel()).collect();
+            // The source archive, when it is small enough to look into and builds nothing.
+            let mut from_source = None;
+            if file.is_sdist() && (compiled.is_empty() || file.size <= MAX_SDIST_PROBE) {
                 self.say(&format!("downloading {}", file.filename));
                 let bytes = self.index.download(&file)?;
                 let mut d = dist::from_sdist(&bytes, &file.filename, &file.url, &file.sha256)?;
@@ -201,10 +188,45 @@ impl Resolver<'_> {
                     d.notes.push(format!("{} also ships compiled wheels; their speedups are not used", project.name));
                 }
                 d.notes.push("dependencies read from a source archive can be incomplete".into());
-                d
+                if d.refused.is_none() || compiled.is_empty() {
+                    from_source = Some(d);
+                }
+            }
+            match from_source {
+                Some(d) => d,
+                // Else the .py files of a compiled wheel, which may fall back to Python for what is compiled.
+                None => match best_compiled(&compiled) {
+                    Some(w) => {
+                        self.say(&format!("downloading {}", w.filename));
+                        let bytes = self.index.download(w)?;
+                        let mut d = dist::from_wheel(&bytes, &w.url, &w.sha256)?;
+                        d.leave_out_compiled(&w.filename);
+                        d
+                    }
+                    None => Dist {
+                        key: key.clone(),
+                        name: project.name.clone(),
+                        version: raw.clone(),
+                        source: file.url.clone(),
+                        sha256: file.sha256.clone(),
+                        refused: Some(match compiled.first() {
+                            Some(w) => format!(
+                                "it has no pure-Python wheel (only {} built for particular platforms, such as {}, each over {} MB), and its source archive needs building",
+                                compiled.len(),
+                                w.filename,
+                                MAX_COMPILED_WHEEL >> 20
+                            ),
+                            None => "its source archive needs building, and it has no wheels".into(),
+                        }),
+                        ..Default::default()
+                    },
+                },
             }
         };
         let mut dist = dist;
+        // Small fixes kept for popular packages (wm_python_pip::patches).
+        let patched = wm_python_pip::patches::apply(&key, &mut dist.modules);
+        dist.notes.extend(patched);
         if dist.version.is_empty() {
             dist.version = raw.clone();
         }
@@ -224,8 +246,24 @@ impl Resolver<'_> {
     }
 }
 
+/// The biggest compiled wheel looked into for its `.py` files: past this it
+/// is mostly compiled code (torch, numpy), and the download is not worth it.
+const MAX_COMPILED_WHEEL: u64 = 24 << 20;
+
+/// The compiled wheel whose `.py` files to take: a Linux build for CPython
+/// 3.12 if there is one, as the keyboard's Python reads like that.
+fn best_compiled<'a>(wheels: &[&'a FileInfo]) -> Option<&'a FileInfo> {
+    let score = |f: &FileInfo| {
+        let n = f.filename.to_ascii_lowercase();
+        let platform = if n.contains("linux") && n.contains("x86_64") { 3 } else if n.contains("linux") { 2 } else if n.contains("macosx") { 1 } else { 0 };
+        let python = if n.contains("-cp312-") || n.contains("abi3") { 1 } else { 0 };
+        platform * 2 + python
+    };
+    wheels.iter().copied().filter(|f| f.size == 0 || f.size <= MAX_COMPILED_WHEEL).max_by_key(|f| score(f))
+}
+
 /// The newest release fitting [spec] with a usable file: a pure wheel if
-/// there is one, else the sdist. Pre-releases only when the specifier names
+/// there is one, else the sdist, else a wheel built for a platform. Pre-releases only when the specifier names
 /// one, or nothing else fits.
 pub fn choose(project: &Project, spec: &Specifier) -> Result<(String, FileInfo, Vec<FileInfo>), String> {
     let pinned = spec.clauses.iter().any(|c| c.op == "==" || c.op == "===");
@@ -241,12 +279,8 @@ pub fn choose(project: &Project, spec: &Specifier) -> Result<(String, FileInfo, 
             if let Some(s) = usable.iter().find(|f| f.is_sdist()) {
                 return Ok((raw.clone(), s.clone(), usable.clone()));
             }
-            if usable.iter().any(|f| f.is_wheel()) {
-                return Err(format!(
-                    "{} {raw} has only wheels built for particular platforms ({}) and no source archive, so it is not pure Python",
-                    project.name,
-                    usable.iter().find(|f| f.is_wheel()).map(|f| f.filename.as_str()).unwrap_or("")
-                ));
+            if let Some(w) = usable.iter().find(|f| f.is_wheel()) {
+                return Ok((raw.clone(), w.clone(), usable.clone()));
             }
         }
         if allow_pre {
@@ -261,7 +295,7 @@ pub fn choose(project: &Project, spec: &Specifier) -> Result<(String, FileInfo, 
 pub fn analyse(dist: &Dist, available: &[String]) -> wm_python_pip::Report {
     let own: BTreeSet<&String> = dist.roots.iter().collect();
     let others: Vec<String> = available.iter().filter(|r| !own.contains(r)).cloned().collect();
-    let opts = wm_python_pip::AnalyseOptions { package: dist.name.clone(), available: others };
+    let opts = wm_python_pip::AnalyseOptions { package: dist.name.clone(), available: others, compiled: dist.compiled.clone() };
     wm_python_pip::analyse(&dist.analysis_files(), &opts)
 }
 

@@ -35,6 +35,9 @@ pub struct Dist {
     /// Other files inside the package that matter to the analysis: compiled
     /// code and C sources, by path.
     pub native: Vec<String>,
+    /// Its compiled modules, by module name, when they were left out of a
+    /// wheel built for a platform ([Dist::leave_out_compiled]).
+    pub compiled: Vec<String>,
     /// Licence files: `(file name, bytes)`.
     pub licenses: Vec<(String, Vec<u8>)>,
     pub license: Option<String>,
@@ -59,6 +62,50 @@ impl Dist {
     pub fn bytes(&self) -> usize {
         self.modules.values().map(|s| s.len()).sum()
     }
+
+    /// Takes a wheel built for a platform down to its `.py` files: the
+    /// compiled modules go, named in [Dist::compiled] so the analysis can
+    /// tell an import of one from a missing module. Packages that bring a
+    /// Python fallback for their speedups run on that.
+    pub fn leave_out_compiled(&mut self, wheel: &str) {
+        let (binaries, rest): (Vec<String>, Vec<String>) = std::mem::take(&mut self.native).into_iter().partition(|p| is_binary(p));
+        self.native = rest;
+        self.compiled = binaries.iter().filter_map(|p| binary_module(p)).collect();
+        let shown: Vec<&str> = binaries.iter().map(|p| p.rsplit('/').next().unwrap_or(p)).take(3).collect();
+        let more = if binaries.len() > 3 { format!(" and {} more", binaries.len() - 3) } else { String::new() };
+        self.notes.insert(
+            0,
+            format!(
+                "there is no pure-Python wheel, so its .py files come from {wheel}, without its compiled parts ({}{more}); it works where it can do without them",
+                shown.join(", ")
+            ),
+        );
+    }
+}
+
+fn is_binary(path: &str) -> bool {
+    let lower = path.to_ascii_lowercase();
+    lower.ends_with(".so") || lower.contains(".so.") || lower.ends_with(".pyd") || lower.ends_with(".dylib") || lower.ends_with(".dll")
+}
+
+/// The module a compiled extension imports as: `yaml._yaml` for
+/// `yaml/_yaml.cpython-312-x86_64-linux-gnu.so`. Shared libraries beside them
+/// (`.dylib`, `.dll`, `libfoo.so.1`) are not modules.
+fn binary_module(path: &str) -> Option<String> {
+    let lower = path.to_ascii_lowercase();
+    if !(lower.ends_with(".so") || lower.ends_with(".pyd")) {
+        return None;
+    }
+    let (dir, file) = path.rsplit_once('/').map(|(d, f)| (Some(d), f)).unwrap_or((None, path));
+    let stem = file.split('.').next()?;
+    let valid = |s: &str| s.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_') && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_');
+    if !valid(stem) || dir.is_some_and(|d| !d.split('/').all(valid)) {
+        return None;
+    }
+    Some(match dir {
+        Some(d) => format!("{}.{stem}", d.replace('/', ".")),
+        None => stem.to_string(),
+    })
 }
 
 /// Core metadata (METADATA or PKG-INFO): headers, several values per name.
@@ -463,6 +510,18 @@ mod tests {
         assert_eq!(clean("../etc/passwd"), None);
         assert_eq!(clean("/abs"), None);
         assert_eq!(clean("a/./b.py").as_deref(), Some("a/b.py"));
+    }
+
+    #[test]
+    fn compiled_parts_are_named_by_module() {
+        assert_eq!(binary_module("yaml/_yaml.cpython-312-x86_64-linux-gnu.so").as_deref(), Some("yaml._yaml"));
+        assert_eq!(binary_module("_cffi_backend.cpython-312-darwin.so").as_deref(), Some("_cffi_backend"));
+        assert_eq!(binary_module("markupsafe/_speedups.pyd").as_deref(), Some("markupsafe._speedups"));
+        assert_eq!(binary_module("numpy/.dylibs/libgfortran.5.dylib"), None);
+        let mut d = Dist { native: vec!["yaml/_yaml.cpython-312-x86_64-linux-gnu.so".into(), "yaml/_yaml.h".into()], ..Default::default() };
+        d.leave_out_compiled("PyYAML-6.0.2-cp312-cp312-manylinux_2_17_x86_64.whl");
+        assert_eq!((d.compiled, d.native), (vec!["yaml._yaml".to_string()], vec!["yaml/_yaml.h".to_string()]));
+        assert!(d.notes[0].contains("_yaml.cpython-312-x86_64-linux-gnu.so"));
     }
 
     #[test]

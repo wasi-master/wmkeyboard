@@ -8,7 +8,7 @@ use wm_python_pip::{analyse, built_in_projects, is_built_in, AnalyseOptions, Rep
 
 fn run(list: &[(&str, &str)]) -> Report {
     let f: BTreeMap<String, String> = list.iter().map(|(p, s)| (p.to_string(), s.to_string())).collect();
-    let opts = AnalyseOptions { package: "test".into(), available: Vec::new() };
+    let opts = AnalyseOptions { package: "test".into(), available: Vec::new(), ..Default::default() };
     std::thread::Builder::new().stack_size(64 << 20).spawn(move || analyse(&f, &opts)).unwrap().join().unwrap()
 }
 

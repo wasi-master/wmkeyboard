@@ -1,0 +1,11 @@
+{
+  "project": "click",
+  "edits": [
+    {
+      "file": "click/termui.py",
+      "find": "visible_prompt_func: t.Callable[[str], str] = input",
+      "replace": "def _no_terminal(prompt: str = \"\") -> str:\n    raise EOFError(\"plugins cannot read the terminal\")\n\n\nvisible_prompt_func: t.Callable[[str], str] = _no_terminal",
+      "why": "click keeps the input builtin as its prompt function when it loads, and plugins have no input(); prompting raises EOFError, as with no terminal"
+    }
+  ]
+}

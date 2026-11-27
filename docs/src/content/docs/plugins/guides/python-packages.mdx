@@ -48,12 +48,18 @@ For each package, `wmpy pip install`:
    asked for.
 2. Downloads its pure-Python wheel (`py3-none-any`), or its source archive
    when there is no wheel and nothing in it needs building. A package that
-   only ships compiled wheels is refused, with the reason.
+   ships only compiled wheels gets the `.py` files of one of them (a Linux
+   build for CPython 3.12 when there is one), without the compiled parts.
+   Many packages fall back to Python for those (PyYAML, MarkupSafe, msgpack,
+   multidict), and the analysis checks that they do. A compiled wheel over
+   24 MB is mostly compiled code, so it is refused without downloading it.
 3. Checks the download against the SHA-256 that PyPI lists.
 4. Reads its dependencies and installs those the same way. Markers such as
    `python_version < "3.9"` are read as CPython 3.12 on Linux (aarch64) would
    read them, and extras only when you ask for them: `attrs[tests]`.
-5. Analyses every package and refuses those that will not work.
+5. Applies the small [patches](#patched-packages) the keyboard keeps for a
+   few popular packages, then analyses every package and refuses those that
+   will not work.
 6. Copies the importable `.py` files to the top of the plugin folder, the
    licence files to `licenses/<name>/`, and records it all in `wmpy.lock`.
 
@@ -108,13 +114,42 @@ line and column.
   rejects, compiled code, or a file over the limits.
 
 An import inside `try: ... except ImportError:` is noted but does not count,
-since the package already copes without it. So is anything under
-`if TYPE_CHECKING:` or `if __name__ == "__main__":`, which never runs in a
-plugin.
+since the package already copes without it. Code that never runs in a plugin
+is not checked at all:
+
+- anything under `if TYPE_CHECKING:` or `if __name__ == "__main__":`;
+- a branch for another Python or another system, such as `if PY2:`,
+  `if sys.version_info >= (3, 14):`, `if sys.platform == "win32":` or
+  `if hasattr(sys, "pypy_version_info"):`. wmpy also follows such a test
+  through a name the package sets, even in another of its modules
+  (`from ._compat import WIN`). It follows a switch a package turns off when
+  its compiled speedups fail to import, too;
+- the `except ImportError:` fallback of an import that works;
+- a module only that code imports, a module that needs `winreg` or `msvcrt`
+  when it loads, and a package's `__main__.py`.
+
+Where a module is loaded decides how much its problems count. One imported
+only inside functions, or only its tests and command line import, makes only
+that code fail: its problems are warnings. One imported only under
+`except ImportError:` can fail to import and the package goes on without it.
 
 By default `install` takes only `ok` packages. `--allow-warnings` takes
 `warnings` too, and `--force` takes anything. A package whose dependency was
 refused is refused with it.
+
+## Patched packages
+
+A few popular packages do one thing the keyboard's Python cannot, in one
+place. wmpy changes that line when it installs them, as Pyodide does for the
+packages it ships, and says so in its notes:
+
+| Package | Changed | Why |
+|---|---|---|
+| click | `click/termui.py` | click keeps the `input` builtin as its prompt function when it loads. Prompting raises `EOFError`, as with no terminal. |
+
+A patch that no longer fits a new release is skipped, and wmpy says that too.
+The patches live in
+[`native/wm-python-pip/patches`](https://github.com/wasi-master/WMKeyboard/tree/main/native/wm-python-pip/patches).
 
 ## Check before you install
 
@@ -139,7 +174,7 @@ Problems carry a short code. The common ones:
 |---|---|
 | `syntax` | The keyboard's parser rejects the file, and says why. |
 | `missing-import` | Nothing provides this module. `help` says which package to install when it is not a standard one. |
-| `sandbox-import` | A module plugins go without on purpose: `os`, `socket`, `threading`, `subprocess`. `help` names what to use instead, such as `wm.http`. |
+| `sandbox-import` | A module plugins go without on purpose: `socket`, `ctypes`, `multiprocessing`. `help` names what to use instead, such as `wm.http`. |
 | `missing-attribute` | The keyboard's version of a standard module lacks this, such as `sys.platform`. |
 | `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or keeps from plugins: `open`, `eval`, `exec`. |
 | `missing-name` | `from x import y` where `x` has no `y`. |

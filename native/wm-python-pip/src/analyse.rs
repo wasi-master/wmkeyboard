@@ -8,7 +8,8 @@ use wm_python_tooling::lexer::TokenKind;
 use wm_python_tooling::text::Span;
 
 use crate::probe::{features, Probe, Support};
-use crate::program::{module_of, root_of, Guard, ImportKind, ModFile, Program};
+use crate::program::{module_of, resolve, root_of, Guard, ImportKind, ModFile, Program};
+use crate::reach::{self, Load};
 use crate::source::attribute_chain;
 use crate::{limits, AnalyseOptions, FileReport, Imports, Problem, Report, Severity, Verdict};
 
@@ -144,6 +145,8 @@ struct Ctx<'a> {
     available: HashSet<String>,
     probe: Probe,
     wm_modules: HashSet<&'static str>,
+    /// The package's compiled modules, left out.
+    compiled: HashSet<String>,
 }
 
 impl Ctx<'_> {
@@ -184,7 +187,20 @@ pub fn analyse(files: &BTreeMap<String, String>, opts: &AnalyseOptions) -> Repor
         available: opts.available.iter().map(|s| s.split('.').next().unwrap_or(s).to_string()).collect(),
         probe: Probe::new(),
         wm_modules: wm_python::host::v5::PRELUDE.iter().map(|(n, _, _)| *n).collect(),
+        compiled: opts.compiled.iter().cloned().collect(),
     };
+    // What never runs in the keyboard, and how each module gets loaded.
+    let host = reach::Host::get();
+    let consts = reach::constants(&program, host, &mut |file, s| try_outcome(&mut ctx, file, s));
+    let dead: Vec<Vec<Span>> = program
+        .files
+        .iter()
+        .map(|file| {
+            let eval = reach::Eval { file, host, consts: &consts, local: None };
+            reach::dead_regions(&eval, &mut |f, s| try_outcome(&mut ctx, f, s))
+        })
+        .collect();
+    let modes = reach::load_modes(&program, &dead);
     let mut imports = Imports::default();
     let mut reports = Vec::new();
     for (path, text) in files {
@@ -201,9 +217,11 @@ pub fn analyse(files: &BTreeMap<String, String>, opts: &AnalyseOptions) -> Repor
                 None,
             ));
         } else if path.ends_with(".py") {
-            if let Some(file) = program.files.iter().find(|f| &f.path == path) {
+            if let Some(i) = program.files.iter().position(|f| &f.path == path) {
+                let file = &program.files[i];
                 module = Some(file.name.clone());
-                check_file(&mut ctx, file, text, &mut problems, &mut imports);
+                check_file(&mut ctx, file, text, &dead[i], &mut problems, &mut imports);
+                settle_by_load(path, modes[i], &mut problems);
             } else {
                 problems.push(file_problem(
                     path,
@@ -236,6 +254,125 @@ fn file_problem(path: &str, severity: Severity, code: &'static str, message: Str
     Problem { severity, code, message, file: path.to_string(), line: None, col: None, end_col: None, help }
 }
 
+/// Problems with the file itself, which the keyboard checks whether or not
+/// anything loads it.
+const ARCHIVE_CODES: &[&str] = &["too-deep", "module-name", "reserved-name", "file-too-big", "shadowed"];
+
+/// A module loaded only when some code runs makes that code fail, not the
+/// package; one that never loads in the keyboard fails nothing.
+fn settle_by_load(path: &str, load: Load, problems: &mut Vec<Problem>) {
+    let (to, note) = match load {
+        Load::Eager => return,
+        Load::Lazy => (Severity::Warning, "the package loads without this module: only the code that imports it needs it, so what fails here fails that code"),
+        Load::Caught => (
+            Severity::Warning,
+            "this module is only imported under `except ImportError:`, so the package goes on without it when an import in it fails",
+        ),
+        Load::Never => (Severity::Info, "nothing loads this module in the keyboard: only code for other systems or Python versions imports it"),
+    };
+    let mut moved = false;
+    for p in problems.iter_mut() {
+        if ARCHIVE_CODES.contains(&p.code) {
+            continue;
+        }
+        // An import that fails raises ImportError, which the importer catches.
+        let target = if load == Load::Caught && matches!(p.code, "missing-import" | "c-extension" | "sandbox-import") { Severity::Info } else { to };
+        if p.severity < target {
+            p.severity = target;
+            moved = true;
+        }
+    }
+    if moved {
+        problems.insert(0, file_problem(path, Severity::Info, "loaded-later", note.into(), None));
+    }
+}
+
+/// Whether the body of the `try` [s] gets through in the keyboard
+/// ([reach::TryOutcome]): `Some(true)` when what it imports is all there (or
+/// the builtins it reads are), `Some(false)` when one of them is missing and
+/// a handler catches that, `None` when it cannot be known.
+fn try_outcome(ctx: &mut Ctx, file: &ModFile, s: &Stmt) -> Option<bool> {
+    let StmtKind::Try { body, handlers, .. } = &s.kind else { return None };
+    if body.is_empty() || handlers.is_empty() {
+        return None;
+    }
+    fn names(e: &wm_python_tooling::ast::Expr, out: &mut Vec<String>) {
+        match &e.kind {
+            ExprKind::Name(n) => out.push(n.clone()),
+            ExprKind::Attribute { attr, .. } => out.push(attr.clone()),
+            ExprKind::Tuple(items) | ExprKind::List(items) => items.iter().for_each(|i| names(i, out)),
+            _ => out.push(String::new()),
+        }
+    }
+    let mut caught = Vec::new();
+    for h in handlers {
+        if h.types.is_empty() {
+            return None;
+        }
+        h.types.iter().for_each(|t| names(t, &mut caught));
+    }
+    if !caught.iter().all(|n| matches!(n.as_str(), "ImportError" | "ModuleNotFoundError" | "NameError")) {
+        return None;
+    }
+    let imports_caught = caught.iter().any(|n| n != "NameError");
+    let names_caught = caught.iter().any(|n| n == "NameError");
+    let failed = |caught: bool| if caught { Some(false) } else { None };
+    let package = file.path.ends_with("/__init__.py");
+    for stmt in body {
+        match &stmt.kind {
+            StmtKind::Pass | StmtKind::Assign { .. } | StmtKind::AnnAssign { .. } => {}
+            StmtKind::Expr(e) => match &e.kind {
+                ExprKind::Name(n) if names_caught => {
+                    if !ctx.probe.name_exists(n) {
+                        return Some(false);
+                    }
+                }
+                _ => return None,
+            },
+            StmtKind::Import(list) => {
+                if list.iter().any(|n| matches!(ctx.classify(&n.name), Origin::Missing)) {
+                    return failed(imports_caught);
+                }
+            }
+            StmtKind::ImportFrom { module, names: list, star, .. } => {
+                let m = resolve(module, &file.name, package)?;
+                if m == "__future__" {
+                    return None;
+                }
+                if matches!(ctx.classify(&m), Origin::Missing) || (!*star && !list.iter().all(|n| name_importable(ctx, &m, &n.name))) {
+                    return failed(imports_caught);
+                }
+            }
+            _ => return None,
+        }
+    }
+    Some(true)
+}
+
+/// Whether `from [module] import [name]` finds [name]; [module] exists.
+fn name_importable(ctx: &mut Ctx, module: &str, name: &str) -> bool {
+    let sub = format!("{module}.{name}");
+    let top = module.split('.').next().unwrap_or(module);
+    if MODULE_DUNDERS_IMPORTABLE.contains(&name) {
+        return true;
+    }
+    if ctx.roots.contains(top) {
+        return ctx.program.exists(&sub)
+            || ctx.program.get(module).is_some_and(|t| {
+                let scope = &t.source.doc.analysis.scopes[0];
+                scope.names.contains_key(name) || scope.names.contains_key("__getattr__")
+            });
+    }
+    match ctx.classify(module) {
+        Origin::Stdlib => ctx.probe.module_exists(&sub) || ctx.probe.member_exists(module, name),
+        Origin::Missing => false,
+        _ => true,
+    }
+}
+
+/// Names every module has that `from m import x` can take.
+const MODULE_DUNDERS_IMPORTABLE: &[&str] = &["__doc__", "__name__", "__package__"];
+
 fn at(file: &ModFile, span: Span, severity: Severity, code: &'static str, message: String, help: Option<String>) -> Problem {
     let (line, col, end_col) = file.source.range(span);
     Problem { severity, code, message, file: file.path.clone(), line: Some(line), col: Some(col), end_col: Some(end_col), help }
@@ -254,11 +391,21 @@ fn severity_for(in_function: bool, caught: bool) -> Severity {
     }
 }
 
-fn check_file(ctx: &mut Ctx, file: &ModFile, text: &str, out: &mut Vec<Problem>, imports: &mut Imports) {
+fn check_file(ctx: &mut Ctx, file: &ModFile, text: &str, dead: &[Span], out: &mut Vec<Problem>, imports: &mut Imports) {
     let path = &file.path;
     // ---- what the keyboard does with the file itself ------------------------
     let parts = path.trim_end_matches(".py").split('/').count();
-    if parts > limits::MAX_MODULE_PARTS {
+    if parts > limits::MAX_MODULE_PARTS && path.ends_with("/__init__.py") && text.trim().is_empty() {
+        // A folder of data files (tzdata's zones): `wmpy pip install` leaves the empty file out.
+        out.push(file_problem(
+            path,
+            Severity::Info,
+            "too-deep",
+            format!("this empty file is more than {} folders deep, so installing leaves it out", limits::MAX_MODULE_PARTS - 1),
+            None,
+        ));
+        return;
+    } else if parts > limits::MAX_MODULE_PARTS {
         out.push(file_problem(
             path,
             Severity::Error,
@@ -305,14 +452,29 @@ fn check_file(ctx: &mut Ctx, file: &ModFile, text: &str, out: &mut Vec<Problem>,
         }
         out.push(p);
     }
-    check_imports(ctx, file, out, imports);
-    check_names(ctx, file, out);
-    check_attributes(ctx, file, out);
-    check_features(file, syntax_line, out);
+    check_imports(ctx, file, dead, out, imports);
+    check_names(ctx, file, dead, out);
+    check_attributes(ctx, file, dead, out);
+    check_features(file, dead, syntax_line, out);
+}
+
+/// What the checks pass over: code that never runs in the keyboard, and
+/// annotations, which the keyboard's Python reads and ignores.
+fn never_runs(file: &ModFile, dead: &[Span]) -> Vec<Span> {
+    let mut out = dead.to_vec();
+    walk_stmts(file.source.body(), &mut |s| {
+        if let StmtKind::AnnAssign { annotation, .. } = &s.kind {
+            out.push(annotation.span);
+        }
+    });
+    out
 }
 
 fn missing_import(ctx: &Ctx, file: &ModFile, name: &str, span: Span, severity: Severity) -> Problem {
     let top = name.split('.').next().unwrap_or(name);
+    if ctx.compiled.contains(name) {
+        return at(file, span, severity, "c-extension", format!("'{name}' is compiled code, which plugins cannot load, so installing leaves it out"), None);
+    }
     if ctx.roots.contains(top) {
         return at(file, span, severity, "missing-import", format!("the package has no module '{name}'"), None);
     }
@@ -367,9 +529,9 @@ fn record(ctx: &mut Ctx, name: &str, imports: &mut Imports) -> bool {
     true
 }
 
-fn check_imports(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>, imports: &mut Imports) {
+fn check_imports(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Problem>, imports: &mut Imports) {
     for imp in &file.imports {
-        if imp.type_checking || imp.main_only {
+        if imp.type_checking || imp.main_only || dead.iter().any(|d| d.contains(imp.span.start)) {
             continue;
         }
         let severity = severity_for(imp.in_function, imp.guard.import_error);
@@ -409,7 +571,7 @@ fn check_imports(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>, imports:
                             Some(target) => {
                                 let scope = &target.source.doc.analysis.scopes[0];
                                 let dynamic = scope.names.contains_key("__getattr__");
-                                if !scope.names.contains_key(&b.name) && !dynamic {
+                                if !scope.names.contains_key(&b.name) && !dynamic && !MODULE_DUNDERS_IMPORTABLE.contains(&b.name.as_str()) {
                                     out.push(at(file, b.span, severity, "missing-name", format!("'{m}' has no '{}'", b.name), None));
                                 }
                             }
@@ -466,10 +628,10 @@ fn top_regions(body: &[Stmt], guards: &mut Vec<(Span, Guard)>, skipped: &mut Vec
     }
 }
 
-fn check_names(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>) {
+fn check_names(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Problem>) {
     let a = &file.source.doc.analysis;
     let mut guards = Vec::new();
-    let mut skipped = Vec::new();
+    let mut skipped = never_runs(file, dead);
     top_regions(file.source.body(), &mut guards, &mut skipped);
     let mut shown: HashMap<String, usize> = HashMap::new();
     let mut hidden: BTreeMap<String, usize> = BTreeMap::new();
@@ -512,10 +674,10 @@ fn check_names(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>) {
     }
 }
 
-fn check_attributes(ctx: &mut Ctx, file: &ModFile, out: &mut Vec<Problem>) {
+fn check_attributes(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Problem>) {
     let a = &file.source.doc.analysis;
     let mut guards = Vec::new();
-    let mut skipped = Vec::new();
+    let mut skipped = never_runs(file, dead);
     top_regions(file.source.body(), &mut guards, &mut skipped);
     let mut found = Vec::new();
     walk_stmts(file.source.body(), &mut |s| {
@@ -642,7 +804,7 @@ pub(crate) fn class_header(file: &ModFile, span: Span) -> (Vec<String>, Vec<Stri
 
 /// Python the parser takes but the interpreter may not run as CPython does,
 /// each checked against the interpreter in [features].
-fn check_features(file: &ModFile, syntax_line: Option<u32>, out: &mut Vec<Problem>) {
+fn check_features(file: &ModFile, dead: &[Span], syntax_line: Option<u32>, out: &mut Vec<Problem>) {
     let f = features();
     fn classes(body: &[Stmt], in_function: bool, out: &mut Vec<(Span, bool)>) {
         for s in body {
@@ -664,7 +826,7 @@ fn check_features(file: &ModFile, syntax_line: Option<u32>, out: &mut Vec<Proble
     classes(file.source.body(), false, &mut found);
     for (span, in_function) in found {
         // A header the parser already refused needs no second problem.
-        if syntax_line == Some(file.source.place(span.start).0) {
+        if syntax_line == Some(file.source.place(span.start).0) || dead.iter().any(|d| d.contains(span.start)) {
             continue;
         }
         let (bases, keywords) = class_header(file, span);

@@ -256,7 +256,7 @@ fn files_arg(files_json: &str) -> Result<std::collections::BTreeMap<String, Stri
 
 /// Whether a package can run in a plugin. [files_json] is `{"path": "source"}`
 /// for the package's files (non-`.py` files may map to ""), [options_json]
-/// `{"package": name, "available": [top-level names beside it]}`. Answers
+/// `{"package": name, "available": [top-level names beside it], "compiled": [compiled modules left out]}`. Answers
 /// `{"verdict": "ok"|"warnings"|"incompatible", "problems": [{"severity",
 /// "file", "line", "col", "code", "message", "endCol"?, "help"?}], "imports":
 /// {"stdlib", "internal", "missing", "wm", "available"}, "roots", "files"}`,
@@ -271,6 +271,7 @@ pub fn pip_analyse(files_json: &str, options_json: &str) -> String {
     let opts = wm_python_pip::AnalyseOptions {
         package: o.get("package").and_then(Json::as_str).unwrap_or("").to_string(),
         available: o.get("available").and_then(Json::as_array).map(|a| a.iter().filter_map(Json::as_str).map(String::from).collect()).unwrap_or_default(),
+        compiled: o.get("compiled").and_then(Json::as_array).map(|a| a.iter().filter_map(Json::as_str).map(String::from).collect()).unwrap_or_default(),
     };
     wm_python_pip::analyse(&files, &opts).to_json().to_string()
 }

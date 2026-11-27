@@ -12,8 +12,10 @@
 //! `wm-python-tooling` gives the structure: imports, classes, names.
 
 mod analyse;
+pub mod patches;
 mod probe;
 mod program;
+mod reach;
 mod shake;
 mod source;
 
@@ -163,6 +165,10 @@ pub struct AnalyseOptions {
     /// in the plugin: its dependencies, other vendored packages, the plugin's
     /// own modules. Imports of them are not reported as missing.
     pub available: Vec<String>,
+    /// Modules of the package that are compiled code, left out when it was
+    /// taken from a wheel built for a platform (`yaml._yaml`). Importing one
+    /// fails the way a missing module does.
+    pub compiled: Vec<String>,
 }
 
 #[derive(Clone, Debug, Default)]
