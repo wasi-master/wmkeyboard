@@ -522,6 +522,40 @@ export function pip_analyse(files_json, options_json) {
 }
 
 /**
+ * The modules that carry a package's data files into a plugin, as `wmpy
+ * pip install` writes them ([wm_python_pip::data]). [data_json] is
+ * `{"path": base64}` for the files beside the package's modules,
+ * [packages_json] the top-level packages (folders of its modules). Answers
+ * `{"modules": {path: source}, "kept": n, "notes": [str]}`, or `{"error"}`.
+ * @param {string} data_json
+ * @param {string} packages_json
+ * @returns {string}
+ */
+export function pip_data_modules(data_json, packages_json) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(data_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(packages_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.pip_data_modules(ptr0, len0, ptr1, len1);
+        deferred3_0 = ret[0];
+        deferred3_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
  * Applies the keyboard's patch for [project] (its PEP 503 name), if it has
  * one, to [files_json] (`{"path": "source"}`, the package's files), as
  * `wmpy pip install` does. Answers `{"files": {path: source}, "notes":

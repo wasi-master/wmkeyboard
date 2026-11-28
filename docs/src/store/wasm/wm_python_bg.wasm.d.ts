@@ -14,6 +14,7 @@ export const hover: (a: number, b: number, c: number, d: number, e: number) => [
 export const inInert: (a: number, b: number, c: number) => number;
 export const opensBlock: (a: number, b: number) => number;
 export const pip_analyse: (a: number, b: number, c: number, d: number) => [number, number];
+export const pip_data_modules: (a: number, b: number, c: number, d: number) => [number, number];
 export const pip_patch: (a: number, b: number, c: number, d: number) => [number, number];
 export const pip_shake: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
 export const pip_stand_in: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];

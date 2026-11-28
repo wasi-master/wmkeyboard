@@ -101,6 +101,15 @@ export function opensBlock(line: string): boolean;
 export function pip_analyse(files_json: string, options_json: string): string;
 
 /**
+ * The modules that carry a package's data files into a plugin, as `wmpy
+ * pip install` writes them ([wm_python_pip::data]). [data_json] is
+ * `{"path": base64}` for the files beside the package's modules,
+ * [packages_json] the top-level packages (folders of its modules). Answers
+ * `{"modules": {path: source}, "kept": n, "notes": [str]}`, or `{"error"}`.
+ */
+export function pip_data_modules(data_json: string, packages_json: string): string;
+
+/**
  * Applies the keyboard's patch for [project] (its PEP 503 name), if it has
  * one, to [files_json] (`{"path": "source"}`, the package's files), as
  * `wmpy pip install` does. Answers `{"files": {path: source}, "notes":
@@ -167,6 +176,7 @@ export interface InitOutput {
     readonly inInert: (a: number, b: number, c: number) => number;
     readonly opensBlock: (a: number, b: number) => number;
     readonly pip_analyse: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly pip_data_modules: (a: number, b: number, c: number, d: number) => [number, number];
     readonly pip_patch: (a: number, b: number, c: number, d: number) => [number, number];
     readonly pip_shake: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
     readonly pip_stand_in: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
