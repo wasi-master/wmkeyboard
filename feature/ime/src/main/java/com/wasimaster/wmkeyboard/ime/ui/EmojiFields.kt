@@ -452,7 +452,7 @@ internal fun EmojiGridField(
                 results.getOrNull(index)?.let { callbacks.onEmoji(emojiDisplay(state, it)) }
             },
         )
-        ScrollFocusIntoView(focusedResult) { resultsGrid.animateScrollToItem(it) }
+        ScrollFocusIntoView(focusedResult) { resultsGrid.revealItem(it) }
         LazyVerticalGrid(
             state = resultsGrid,
             columns = session.columns,
@@ -582,7 +582,7 @@ internal fun EmojiGridField(
                         onActivate = { index -> cells.getOrNull(index)?.let(callbacks.onEmoji) },
                     )
                 }
-                ScrollFocusIntoView(focusedHistory) { historyGrid.animateScrollToItem(it) }
+                ScrollFocusIntoView(focusedHistory) { historyGrid.revealItem(it) }
                 LazyVerticalGrid(
                     state = historyGrid,
                     columns = session.columns,
@@ -662,7 +662,7 @@ internal fun EmojiGridField(
                     },
                 )
             }
-            ScrollFocusIntoView(focusedEmoji) { categoryGrid.animateScrollToItem(it) }
+            ScrollFocusIntoView(focusedEmoji) { categoryGrid.revealItem(it) }
             LazyVerticalGrid(
                 state = categoryGrid,
                 columns = session.columns,

@@ -1270,7 +1270,7 @@ private fun ClipboardSearchFieldCell(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 4.dp)
-                    .focusRing(focused == parts.indexOf(ClipSearchPart.PILL), RoundedCornerShape(18.dp)),
+                    .focusRing(focused == parts.indexOf(ClipSearchPart.PILL), LocalKbTheme.current.cardShape()),
             )
             ClipRegexButton(
                 on = session.regex,

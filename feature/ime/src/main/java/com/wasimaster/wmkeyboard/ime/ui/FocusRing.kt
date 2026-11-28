@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +48,33 @@ fun ScrollFocusIntoView(index: Int?, scroll: suspend (Int) -> Unit) {
     LaunchedEffect(index) {
         if (index != null) scroll(index)
     }
+}
+
+/**
+ * Brings grid item [index] into view only as far as it has to: no scroll at
+ * all while it is fully on screen, just the overhang when an edge cuts it off,
+ * and a jump that puts it at the top only when it is nowhere in sight.
+ *
+ * For a grid walked one cell at a time with a D-pad. A plain
+ * `animateScrollToItem` threw the ringed row to the top on every press, even a
+ * press sideways along a row already in view, so on a television remote the
+ * whole emoji grid slid under a highlight that never seemed to move.
+ */
+internal suspend fun LazyGridState.revealItem(index: Int) {
+    val info = layoutInfo
+    val item = info.visibleItemsInfo.firstOrNull { it.index == index }
+    if (item == null) {
+        animateScrollToItem(index)
+        return
+    }
+    val top = item.offset.y
+    val bottom = top + item.size.height
+    val delta = when {
+        top < info.viewportStartOffset -> top - info.viewportStartOffset
+        bottom > info.viewportEndOffset -> bottom - info.viewportEndOffset
+        else -> return
+    }
+    animateScrollBy(delta.toFloat())
 }
 
 /**

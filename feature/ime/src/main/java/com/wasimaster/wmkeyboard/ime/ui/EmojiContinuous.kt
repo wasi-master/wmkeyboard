@@ -166,7 +166,7 @@ internal fun ContinuousEmojiGrid(
             }
         },
     )
-    ScrollFocusIntoView(focused) { grid.animateScrollToItem(it) }
+    ScrollFocusIntoView(focused) { grid.revealItem(it) }
     val clearRecents = state.settings.emojiClearRecentsButton && session.historyMode == EmojiTabMode.RECENTS
     LazyVerticalGrid(
         state = grid,

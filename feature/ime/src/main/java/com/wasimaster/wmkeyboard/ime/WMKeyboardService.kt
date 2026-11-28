@@ -66066,7 +66066,19 @@ open class WMKeyboardService : InputMethodService() {
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER,
             KeyEvent.KEYCODE_NUMPAD_ENTER,
-            -> panelFocus.keyGrid.releasePress()
+            -> {
+                val panelBefore = _uiState.value.panel
+                val released = panelFocus.keyGrid.releasePress()
+                // The press opened a tool (the emoji key, a toolbar button):
+                // the key ring goes behind the panel, so the panel's own ring
+                // comes up on its first item in the same breath. Otherwise a
+                // remote user is left looking at a grid with no highlight
+                // anywhere, which reads as "the remote does nothing here".
+                if (released && panelBefore == PanelMode.NONE && _uiState.value.panel != PanelMode.NONE) {
+                    seedPanelFocus()
+                }
+                released
+            }
 
             else -> false
         }
@@ -66078,11 +66090,32 @@ open class WMKeyboardService : InputMethodService() {
         if (!state.settings.hardwareKeyboard.panelNavigation) return false
         if (state.panel == PanelMode.NONE || !panelFocus.matches(state.panel)) return false
         val keyCode = event.keyCode
+        // Left and right that run out of row stay put while the ring is up,
+        // as `FocusGrid.step` promises. Handed back,
+        // the arrow moved the app's own focus behind the panel: on a remote
+        // that took the field's focus away and the keyboard with it. Up and
+        // down still leave, the way they leave the key grid.
+        val ringUp = state.panelFocus != null
         return when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> movePanelFocus(-1, 0) && consumeHardwareKey(keyCode)
-            KeyEvent.KEYCODE_DPAD_RIGHT -> movePanelFocus(1, 0) && consumeHardwareKey(keyCode)
+            KeyEvent.KEYCODE_DPAD_LEFT -> (movePanelFocus(-1, 0) || ringUp) && consumeHardwareKey(keyCode)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> (movePanelFocus(1, 0) || ringUp) && consumeHardwareKey(keyCode)
             KeyEvent.KEYCODE_DPAD_UP -> movePanelFocus(0, -1) && consumeHardwareKey(keyCode)
             KeyEvent.KEYCODE_DPAD_DOWN -> movePanelFocus(0, 1) && consumeHardwareKey(keyCode)
+            // A remote's OK. Unlike Enter it has no meaning in the field behind
+            // a panel, so it is the ring's either way: it picks the ringed item
+            // (an emoji, a clip, a chip), or with no ring yet puts one up, the
+            // way the first arrow does. Before this it fell through to the app,
+            // so a remote could move the highlight over the emoji grid and never
+            // pick one. Its auto-repeat is swallowed: a held OK is one emoji,
+            // not a row of them.
+            KeyEvent.KEYCODE_DPAD_CENTER -> when {
+                ringUp && event.repeatCount > 0 -> consumeHardwareKey(keyCode)
+                ringUp -> {
+                    activatePanelFocus()
+                    consumeHardwareKey(keyCode)
+                }
+                else -> movePanelFocus(0, 0) && consumeHardwareKey(keyCode)
+            }
             KeyEvent.KEYCODE_TAB -> {
                 // Tab only belongs to the keyboard once the ring is up. Before
                 // that it is still field navigation, and in a terminal it is
@@ -66555,12 +66588,19 @@ open class WMKeyboardService : InputMethodService() {
         val panel = _uiState.value.panel
         if (panel == PanelMode.NONE || panelFocusRegions(panel).isEmpty()) return
         serviceScope.launch {
-            // Two frames at 60Hz: enough for the panel to publish its geometry.
-            delay(32)
-            if (_uiState.value.panel != panel || !panelFocus.matches(panel)) return@launch
-            val region = preferredFocusRegion() ?: return@launch
-            _uiState.update {
-                if (it.panelFocus != null) it else it.copy(panelFocus = PanelFocus(region, 0))
+            // Two frames at 60Hz is usually enough for the panel to publish its
+            // geometry. A television box composing a whole emoji grid can take
+            // several, so keep looking for a while rather than giving up after
+            // the first look and leaving the panel with no highlight at all.
+            repeat(SEED_PANEL_FOCUS_TRIES) {
+                delay(32)
+                if (_uiState.value.panel != panel) return@launch
+                if (!panelFocus.matches(panel)) return@repeat
+                val region = preferredFocusRegion() ?: return@repeat
+                _uiState.update {
+                    if (it.panelFocus != null) it else it.copy(panelFocus = PanelFocus(region, 0))
+                }
+                return@launch
             }
         }
     }
@@ -68330,6 +68370,13 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How long the dedicated language key's confirmation overlay stays up. */
         private const val LANGUAGE_HUD_FLASH_MS = 1200L
+
+        /**
+         * How many two-frame looks [seedPanelFocus] takes for a panel that has
+         * just opened to publish its items: about 400 ms, which covers a slow
+         * television box composing the emoji grid.
+         */
+        private const val SEED_PANEL_FOCUS_TRIES = 12
 
         /**
          * How soon another 🌐 press has to follow for it to walk one further
