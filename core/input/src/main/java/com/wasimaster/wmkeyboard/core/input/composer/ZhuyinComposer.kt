@@ -12,6 +12,11 @@ package com.wasimaster.wmkeyboard.core.input.composer
  * *is* the segmentation alphabet, so consumed lengths need no mapping back to
  * keystrokes and [consumedFor] just sums spans. Only the lookup key is
  * translated, never a length.
+ *
+ * Tones rank rather than look up: the pack has none, so [ZhuyinTones] says
+ * which characters can carry the tone typed after each syllable, and those go
+ * first. The space bar after a syllable is its first tone, as on Taiwan's
+ * Zhuyin keyboards; a second space converts.
  */
 object ZhuyinComposer : Composer {
 
@@ -28,8 +33,28 @@ object ZhuyinComposer : Composer {
     /** Ranked depth for resolving a tap, so the expanded grid can be tapped too. */
     private const val LOOKUP_LIMIT = 128
 
-    /** The buffer is already bopomofo — what the user typed is what is shown. */
-    override fun composeBuffer(buffer: String): String = buffer
+    /**
+     * The buffer is already bopomofo — what the user typed is what is shown,
+     * with the first tone's space drawn as its mark, ˉ, one for one.
+     */
+    override fun composeBuffer(buffer: String): String =
+        buffer.replace(ZhuyinSyllables.FIRST_TONE, 'ˉ')
+
+    /**
+     * The space bar, once a syllable is complete and has no tone yet, is its
+     * first tone, kept in the buffer; a second space converts as before. Also
+     * the neutral tone's ˙, which is no letter, mid-reading.
+     */
+    override fun buffersChar(c: Char, composing: CharSequence): Boolean = when {
+        composing.isEmpty() -> false
+        c == ZhuyinSyllables.FIRST_TONE -> endsInUntonedSyllable(composing.toString())
+        else -> c == '˙'
+    }
+
+    private fun endsInUntonedSyllable(buffer: String): Boolean {
+        if (ZhuyinSyllables.isTone(buffer.last())) return false
+        return ZhuyinSyllables.segment(buffer).sumOf { it.inputLen } == buffer.length
+    }
 
     override fun candidates(buffer: String): List<String> = candidates(buffer, LIMIT)
 
@@ -85,7 +110,32 @@ object ZhuyinComposer : Composer {
         )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             .distinctBy { it.text }
-        return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading })
+        // After the learned picks, so a character learned under the toneless
+        // reading cannot climb back over the tone just typed (系 over 吸 for ㄒㄧ ).
+        return byTone(CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading }), segs)
+    }
+
+    /**
+     * [cands] with those whose characters cannot carry the tones typed put
+     * after the rest that cover as much of the buffer. Only within that
+     * group: each group keeps the places it held, so the whole phrase still
+     * comes before its first syllable whatever their tones, and a candidate
+     * the tone table has no answer for keeps its place. Nothing is dropped —
+     * the table can lack a reading (Taiwan reads some characters with another
+     * tone than the mainland), and the character must still be there to pick.
+     */
+    private fun byTone(cands: List<Cand>, segs: List<ZhuyinSyllables.Seg>): List<Cand> {
+        if (cands.size < 2 || segs.none { it.tone in 1..4 }) return cands
+        val tones = ZhuyinTones.table
+        if (tones.isEmpty) return cands
+        val off = BooleanArray(cands.size) { ZhuyinTones.contradicts(cands[it].text, segs, cands[it].consumed, tones) }
+        if (off.none { it }) return cands
+        val out = cands.toMutableList()
+        for (slots in cands.indices.groupBy { cands[it].consumed }.values) {
+            val order = slots.filter { !off[it] } + slots.filter { off[it] }
+            slots.forEachIndexed { k, slot -> out[slot] = cands[order[k]] }
+        }
+        return out
     }
 
     private val cache = RankCache<List<Cand>>()

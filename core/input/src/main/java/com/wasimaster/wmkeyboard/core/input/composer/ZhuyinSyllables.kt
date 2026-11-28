@@ -11,9 +11,10 @@ package com.wasimaster.wmkeyboard.core.input.composer
  * uses — Zhuyin needs no dictionary of its own. Same derive-don't-ship trick as
  * [T9Pinyin], which encodes the same inventory to keypad digits.
  *
- * Tone marks are typed but never looked up: the pinyin pack is toneless, and a
- * tone mark is a natural syllable terminator, so [segment] folds it into the
- * span of the syllable it follows and drops it from the reading.
+ * Tone marks never reach the lookup: the pinyin pack is toneless, and a tone
+ * mark is a natural syllable terminator, so [segment] folds it into the span of
+ * the syllable it follows and keeps it out of the reading. It records the tone
+ * on the [Seg] instead, for [ZhuyinTones] to rank by.
  */
 object ZhuyinSyllables {
 
@@ -25,14 +26,27 @@ object ZhuyinSyllables {
     private const val MAX_SYLLABLE = 3
 
     /**
-     * Tone 2/3/4 and the neutral tone. Tone 1 is unmarked, so an untoned syllable
-     * is complete on its own — a following initial can only begin a new syllable,
-     * since bopomofo's initials, medials and finals are disjoint character classes.
+     * The tone each mark types. The first tone is unmarked in writing; typing,
+     * it is the space bar after a syllable, as on Taiwan's Zhuyin keyboards,
+     * and the buffer keeps that space ([FIRST_TONE]). ˉ is its printed mark,
+     * which some layouts have a key for. An untoned syllable is complete on its
+     * own too — a following initial can only begin a new syllable, since
+     * bopomofo's initials, medials and finals are disjoint character classes —
+     * and then any tone fits it.
      */
-    private val TONES = setOf('ˊ', 'ˇ', 'ˋ', '˙')
+    private val TONES = mapOf(FIRST_TONE to 1, 'ˉ' to 1, 'ˊ' to 2, 'ˇ' to 3, 'ˋ' to 4, '˙' to 5)
 
-    /** One segmented syllable, its pinyin reading, and the bopomofo chars it spanned. */
-    data class Seg(val syllable: String, val pinyin: String, val inputLen: Int)
+    /** The buffer's first-tone mark: the space bar's own character. */
+    const val FIRST_TONE = ' '
+
+    /** Whether [c] is a tone mark the buffer can hold, the first tone's space included. */
+    fun isTone(c: Char): Boolean = c in TONES
+
+    /**
+     * One segmented syllable, its pinyin reading, the bopomofo chars it spanned,
+     * and the tone typed after it: 1 to 4, 5 for the neutral tone, 0 for none.
+     */
+    data class Seg(val syllable: String, val pinyin: String, val inputLen: Int, val tone: Int = 0)
 
     /**
      * Splits [buffer] into leading syllables against [table], folding any trailing
@@ -47,14 +61,21 @@ object ZhuyinSyllables {
      * keeps one walk to reason about rather than three, and lowercasing is off
      * because bopomofo has no case.
      */
-    fun segment(buffer: String, table: Map<String, String>): List<Seg> =
-        SyllableSegmenter.segment(
+    fun segment(buffer: String, table: Map<String, String>): List<Seg> {
+        var start = 0
+        return SyllableSegmenter.segment(
             buffer,
             table.keys,
             maxUnit = MAX_SYLLABLE,
             skipAfter = { it in TONES },
             lowercase = false,
-        ).map { Seg(it.syllable, table.getValue(it.syllable), it.inputLen) }
+        ).map {
+            // A span longer than its syllable ends in the tone mark folded into it.
+            val tone = if (it.inputLen > it.syllable.length) TONES[buffer[start + it.inputLen - 1]] ?: 0 else 0
+            start += it.inputLen
+            Seg(it.syllable, table.getValue(it.syllable), it.inputLen, tone)
+        }
+    }
 
     /** [segment] against the loaded global table. */
     fun segment(buffer: String): List<Seg> = segment(buffer, table)

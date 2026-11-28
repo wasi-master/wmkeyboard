@@ -918,6 +918,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.T9Pinyin
 import com.wasimaster.wmkeyboard.core.input.composer.T9PinyinComposer
 import com.wasimaster.wmkeyboard.core.input.composer.T9ZhuyinComposer
 import com.wasimaster.wmkeyboard.core.input.composer.ZhuyinSyllables
+import com.wasimaster.wmkeyboard.core.input.composer.ZhuyinTones
 import com.wasimaster.wmkeyboard.core.input.composer.CodeTableDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionWordLists
@@ -27246,6 +27247,15 @@ open class WMKeyboardService : InputMethodService() {
                 runCatching {
                     assets.open("dictionaries/han_levels.txt").bufferedReader().useLines {
                         HanLevels.table = HanLevels.parse(it)
+                    }
+                }
+            }
+            // The tones each character takes, 57 KB, bundled: the pack has
+            // none, and Zhuyin ranks by the tone typed after a syllable.
+            if (ZhuyinTones.table.isEmpty) {
+                runCatching {
+                    assets.open("dictionaries/zh_tones.txt").bufferedReader().useLines {
+                        ZhuyinTones.table = ZhuyinTones.parse(it)
                     }
                 }
             }

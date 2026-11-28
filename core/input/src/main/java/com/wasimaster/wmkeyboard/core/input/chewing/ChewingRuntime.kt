@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.UserManager
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionEngines
+import com.wasimaster.wmkeyboard.core.input.composer.ZhuyinSyllables
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -205,14 +206,21 @@ object ChewingRuntime : ChewingConverter {
 
     override fun convert(reading: String, limit: Int): Menu? = withLock {
         val info = IntArray(2 + 2 * limit)
-        ChewingNative.nativeConvert(reading, limit, info)?.let { unpack(it, info, reading.length) }
+        ChewingNative.nativeConvert(marked(reading), limit, info)?.let { unpack(it, info, reading.length) }
     }
 
     override fun learnPhrase(reading: String, consumed: Int, phrase: String) =
-        learnt { ChewingNative.nativeLearnPhrase(reading, consumed, phrase) }
+        learnt { ChewingNative.nativeLearnPhrase(marked(reading), consumed, phrase) }
 
     override fun learnSentence(reading: String, sentence: Int) =
-        learnt { ChewingNative.nativeLearnSentence(reading, sentence) }
+        learnt { ChewingNative.nativeLearnSentence(marked(reading), sentence) }
+
+    /**
+     * The built-in composer keeps the first tone as the space typed for it;
+     * the bridge reads that tone as its mark, ˉ. One character for one, so
+     * lengths stay the buffer's.
+     */
+    private fun marked(reading: String): String = reading.replace(ZhuyinSyllables.FIRST_TONE, 'ˉ')
 
     /** Forgets every phrase libchewing learned, on disk too. */
     fun clearHistory(context: Context) {
