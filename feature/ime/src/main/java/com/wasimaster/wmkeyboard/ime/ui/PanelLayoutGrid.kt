@@ -218,7 +218,7 @@ internal fun PanelLayoutGrid(
         if (trail.visible) {
             val kb = LocalKbTheme.current
             Canvas(modifier = Modifier.matchParentSize()) {
-                drawTrailBand(trail, kb.gestureTrail, gesture.trailOpacity, gesture.trailWidthDp.dp.toPx(), trailMs)
+                drawTrailBand(trail, kb.trailHead, gesture.trailOpacity, gesture.trailWidthDp.dp.toPx(), trailMs)
             }
         }
         if (hoistedPreview == null) {

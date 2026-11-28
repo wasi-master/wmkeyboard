@@ -138,6 +138,16 @@ import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_LIGHT_RANGE
 import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.TOUCH_BLOOM_WOBBLE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.TouchBloomSpec
+import com.wasimaster.wmkeyboard.core.theme.GlideTrailSpec
+import com.wasimaster.wmkeyboard.core.theme.MAX_TRAIL_COLORS
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_FLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_GLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_RING_SIZE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_SPARKLE_AMOUNT_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TouchRingMode
+import com.wasimaster.wmkeyboard.core.theme.TrailSparkleKind
+import com.wasimaster.wmkeyboard.core.theme.touchRingModeOrNull
+import com.wasimaster.wmkeyboard.core.theme.trailSparkleKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
 import com.wasimaster.wmkeyboard.core.theme.keyLightingColorModeOrNull
@@ -398,6 +408,8 @@ data class KbTheme(
     val keyLighting: KbLighting? = null,
     /** Light from the finger and keys dipping under it; null is off. Read through [liveTouchBloom]. */
     val touchBloom: KbTouchBloom? = null,
+    /** The glide trail's colours, glow and sparkles, and the touch rings. Read through [liveTrail]. */
+    val trail: KbTrail = KbTrail.Plain,
     /** Hand-drawn key art that replaces the faces; null draws them from the colours. */
     val keySkin: KeySkinSpec? = null,
     /** How the key labels' font moves, resolved; null is still. Read through [liveFontMotion]. */
@@ -505,6 +517,64 @@ internal fun resolveTouchBloom(spec: TouchBloomSpec, accent: Color): KbTouchBloo
         motion = keyPressMotionOrNull(spec.motion) ?: KeyPressMotion.SINK,
     )
 }
+
+/**
+ * A [GlideTrailSpec] resolved: its kinds known and its ranges held. [colors]
+ * run tail to head; empty draws the theme's one trail colour.
+ */
+@Immutable
+data class KbTrail(
+    val colors: List<Color> = emptyList(),
+    val flow: Float = 0f,
+    val glow: Float = 0f,
+    val sparkles: TrailSparkleKind? = null,
+    val sparkleAmount: Float = 1f,
+    val liftBurst: Boolean = false,
+    val ring: TouchRingMode? = null,
+    val ringSizeDp: Float = 72f,
+    val lightsKeys: Boolean = true,
+) {
+    /** Whether a glide throws anything off, along the line or where it ends. */
+    val sheds: Boolean get() = sparkles != null || liftBurst
+
+    /**
+     * This trail with its moving parts taken away and its look kept: the
+     * colours stand still and nothing is thrown or ringed. What reduce motion
+     * and power saving's moving-theme drop leave of it.
+     */
+    fun still(): KbTrail = copy(flow = 0f, sparkles = null, liftBurst = false, ring = null)
+
+    companion object {
+        /** The one-colour trail, lighting the keys a glide crosses. */
+        val Plain = KbTrail()
+    }
+}
+
+internal fun resolveTrail(spec: GlideTrailSpec): KbTrail = KbTrail(
+    colors = spec.colors.take(MAX_TRAIL_COLORS).map { Color(it.toInt()) },
+    flow = spec.flow.finiteOr(0f).coerceIn(TRAIL_FLOW_RANGE),
+    glow = spec.glow.finiteOr(0f).coerceIn(TRAIL_GLOW_RANGE),
+    sparkles = trailSparkleKindOrNull(spec.sparkles),
+    sparkleAmount = spec.sparkleAmount.finiteOr(1f).coerceIn(TRAIL_SPARKLE_AMOUNT_RANGE),
+    liftBurst = spec.liftBurst,
+    ring = touchRingModeOrNull(spec.ring),
+    ringSizeDp = spec.ringSizeDp.finiteOr(72f).coerceIn(TRAIL_RING_SIZE_RANGE),
+    lightsKeys = spec.lightsKeys,
+)
+
+/**
+ * The glide trail as the keyboard draws it: its moving parts only while the
+ * theme's effects play, its colours and glow always.
+ */
+internal val KbTheme.liveTrail: KbTrail
+    get() = if (motion.themeEffects) trail else trail.still()
+
+/**
+ * The colour at the trail's head when it holds still: the last of its colours,
+ * or its one colour. What a chord's straight band and a touch ring are drawn in.
+ */
+internal val KbTheme.trailHead: Color
+    get() = trail.colors.lastOrNull() ?: gestureTrail
 
 /**
  * The touch bloom as the keyboard draws it: off under reduce motion and power
@@ -1357,6 +1427,7 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         boardEffect = spec.boardEffect?.let { resolveBoardEffect(it, accent, keyText) },
         keyLighting = spec.keyLighting?.let { resolveLighting(it, accent) },
         touchBloom = spec.touchBloom?.let { resolveTouchBloom(it, accent) },
+        trail = spec.glideTrail?.let(::resolveTrail) ?: KbTrail.Plain,
         fontMotion = resolveFontMotion(spec.fontMotions),
         keySkin = spec.keySkin?.bounded()?.takeIf { it.slots.isNotEmpty() || it.board != null },
     )
@@ -1526,6 +1597,7 @@ private fun KbTheme.mapColors(f: (Color) -> Color): KbTheme = copy(
     boardEffect = boardEffect?.copy(colors = boardEffect.colors.map(f)),
     keyLighting = keyLighting?.copy(color = f(keyLighting.color)),
     touchBloom = touchBloom?.copy(color = f(touchBloom.color)),
+    trail = if (trail.colors.isEmpty()) trail else trail.copy(colors = trail.colors.map(f)),
 )
 
 /** Near-black or near-white, whichever reads on [background]. */
@@ -1589,6 +1661,9 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             boardEffect = null,
             keyLighting = null,
             touchBloom = null,
+            // The one colour the trail always had, which the contrast pass
+            // left alone; a glide still lights nothing, the lighting being gone.
+            trail = KbTrail.Plain,
             fontMotion = null,
             keySkin = null,
             key = key,
@@ -1625,7 +1700,8 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
     // per frame stops, and everything it paints once stays. The animated
     // background shows its first frame as a plain image, the board effect
     // holds one frame, and the effects that exist only as motion (lighting,
-    // the touch bloom, press particles, the colour cycle) go.
+    // the touch bloom, press particles, the trail's sparkles, rings and
+    // flowing colours, the colour cycle) go.
     if (!settings.accessibility.themeMotion) {
         kb = kb.copy(
             backgroundAnimated = false,
@@ -1633,6 +1709,7 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             keyEffect = null,
             keyLighting = null,
             touchBloom = null,
+            trail = kb.trail.still(),
             fontMotion = null,
             boardEffectStill = true,
         )
@@ -2360,6 +2437,7 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         boardEffect = if (past) b.boardEffect else a.boardEffect,
         keyLighting = if (past) b.keyLighting else a.keyLighting,
         touchBloom = if (past) b.touchBloom else a.touchBloom,
+        trail = if (past) b.trail else a.trail,
         keySkin = if (past) b.keySkin else a.keySkin,
         fontMotion = if (past) b.fontMotion else a.fontMotion,
         boardEffectStill = if (past) b.boardEffectStill else a.boardEffectStill,

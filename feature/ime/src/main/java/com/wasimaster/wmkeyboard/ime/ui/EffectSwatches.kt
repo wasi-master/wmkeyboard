@@ -22,6 +22,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
@@ -33,6 +35,7 @@ import com.wasimaster.wmkeyboard.core.theme.KeyLightingPattern
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingSpec
 import com.wasimaster.wmkeyboard.core.theme.KeyLightingTarget
 import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
+import com.wasimaster.wmkeyboard.core.theme.TrailSparkleKind
 
 /*
  * The small moving tiles the theme editor's pickers show beside each press
@@ -164,6 +167,81 @@ private fun BoxScope.MiniKey(colors: SwatchColors) {
             .background(Color(colors.key.toInt()), RoundedCornerShape(MINI_KEY_RADIUS_DP.dp)),
     )
 }
+
+/**
+ * A glide trail in a tile: a short wave of comet in [trailColors], tail to head
+ * (empty draws it in [solid]), with its [glow] and a few of its [sparkles].
+ * The colours flow along it at [flow] while [animate].
+ */
+@Composable
+fun TrailPickerTile(
+    trailColors: List<Long>,
+    solid: Long,
+    glow: Float,
+    flow: Float,
+    sparkles: TrailSparkleKind?,
+    colors: SwatchColors,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val moving = animate && flow > 0f && trailColors.size > 1
+    val clock = swatchClock(moving)
+    val palette = remember(trailColors) { trailColors.map { Color(it.toInt()) } }
+    val star = remember { unitStar() }
+    SwatchFrame(colors, modifier) {
+        Canvas(Modifier.matchParentSize()) {
+            val trail = KbTrail(colors = palette, flow = if (moving) flow else 0f)
+            val phase = trail.flowPhase(clock.longValue)
+            val solidColor = Color(solid.toInt())
+            var prev = tileTrailPoint(0f)
+            for (k in 1..TILE_TRAIL_STEPS) {
+                val u = k / TILE_TRAIL_STEPS.toFloat()
+                val p = tileTrailPoint(u)
+                val c = trailColorAt(palette, u, phase, solidColor)
+                // Thin at the tail, full at the head, as the comet is.
+                val width = (1.2f + 3.6f * u) * density
+                if (glow > 0f) {
+                    drawLine(c, prev, p, strokeWidth = width * GLOW_OUTER_WIDTH, cap = StrokeCap.Round, alpha = 0.3f * glow)
+                }
+                drawLine(c, prev, p, strokeWidth = width, cap = StrokeCap.Round)
+                prev = p
+            }
+            if (sparkles != null) {
+                val head = trailColorAt(palette, 1f, phase, solidColor)
+                for (j in TILE_SPARKS.indices) {
+                    val (u, side) = TILE_SPARKS[j]
+                    val shape = if (sparkles == TrailSparkleKind.MIXED) j % 4 else sparkShapeFor(sparkles)
+                    val at = tileTrailPoint(u)
+                    val tint = if (shape == SPARK_FLAKE && palette.isNotEmpty()) palette[j % palette.size] else lerp(head, Color.White, 0.45f)
+                    drawSparkShape(
+                        shapeId = shape,
+                        px = at.x,
+                        py = at.y + side * 6f * density,
+                        sizePx = 6f * density,
+                        color = tint,
+                        alpha = 1f,
+                        dirX = 0f,
+                        dirY = side,
+                        turnDeg = 30f * j,
+                        twinkle = 1f,
+                        star = star,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Where a tile's trail is [u] of the way along: one wave across the tile. */
+private fun DrawScope.tileTrailPoint(u: Float): Offset = Offset(
+    size.width * (0.14f + 0.72f * u),
+    size.height * (0.5f + 0.22f * kotlin.math.sin(u * 2f * kotlin.math.PI.toFloat())),
+)
+
+private const val TILE_TRAIL_STEPS = 16
+
+/** Where a tile's sparkles sit along its trail, and to which side of it. */
+private val TILE_SPARKS = listOf(0.3f to -1f, 0.5f to 1f, 0.72f to -1f, 0.9f to 1f)
 
 /**
  * The tile's clock in milliseconds, ticking a frame at a time while [animate].

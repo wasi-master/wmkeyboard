@@ -55,6 +55,15 @@ class ThemeLooksTest {
             boardEffect = BoardEffectSpec(kind = "SNOW", colors = listOf(0xFFFFFFFF), reactive = 0.5f),
             keyLighting = KeyLightingSpec(pattern = "RIPPLE", target = "EDGE", hueSpanDeg = 180f),
             touchBloom = TouchBloomSpec(color = 0xFF22D3EE, radiusDp = 120f, wobble = 0.8f),
+            glideTrail = GlideTrailSpec(
+                colors = TrailPalette.NEON.colors,
+                flow = 0.5f,
+                glow = 0.4f,
+                sparkles = TrailSparkleKind.MIXED.name,
+                liftBurst = true,
+                ring = TouchRingMode.LIFT.name,
+                lightsKeys = false,
+            ),
             keySkin = KeySkinSpec(
                 slots = mapOf(
                     SkinSlotName.LETTER to SkinSlot(
@@ -79,6 +88,7 @@ class ThemeLooksTest {
         assertNull(old.boardEffect)
         assertNull(old.keyLighting)
         assertNull(old.touchBloom)
+        assertNull(old.glideTrail)
         assertNull(old.keySkin)
     }
 
@@ -116,5 +126,21 @@ class ThemeLooksTest {
         // A theme written before the fields existed keeps the old behaviour.
         assertNull(TouchBloomSpec().motion)
         assertNull(KeyLightingSpec(pattern = "KEY").colorMode)
+    }
+
+    @Test
+    fun `trail kinds read back by name and a palette is known by its colours`() {
+        assertEquals(TrailSparkleKind.CONFETTI, trailSparkleKindOrNull("confetti"))
+        assertNull(trailSparkleKindOrNull("FIREWORKS"))
+        assertEquals(TouchRingMode.BOTH, touchRingModeOrNull("both"))
+        assertEquals(TrailPalette.FIRE, TrailPalette.matching(TrailPalette.FIRE.colors))
+        assertNull(TrailPalette.matching(TrailPalette.FIRE.colors.reversed()))
+        assertNull(TrailPalette.matching(emptyList()))
+        // Every palette fits the cap, and none has fewer than two colours to run between.
+        for (palette in TrailPalette.entries) {
+            assertTrue(palette.name, palette.colors.size in 2..MAX_TRAIL_COLORS)
+        }
+        // A theme written before the field keeps a glide lighting the keys it crosses.
+        assertTrue(GlideTrailSpec().lightsKeys)
     }
 }

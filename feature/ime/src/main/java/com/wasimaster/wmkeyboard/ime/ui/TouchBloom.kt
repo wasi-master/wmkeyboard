@@ -30,6 +30,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
+import com.wasimaster.wmkeyboard.core.theme.TouchRingMode
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.abs
 import kotlin.math.cos
@@ -288,11 +289,14 @@ internal fun settleMs(wobble: Float): Long {
  *
  * Both grids run it: the typing grid and a panel's ([PanelLayoutGrid], the
  * Numpad among them), whose keys dip and light like the typing grid's (#1491).
+ * The typing grid also passes the theme's [rings], and the touches they name
+ * start a ring in [TouchRings].
  */
 internal fun Modifier.touchBloomFingers(
     origin: () -> Offset,
+    rings: TouchRingMode? = null,
     accepts: (Offset) -> Boolean = { true },
-): Modifier = pointerInput(Unit) {
+): Modifier = pointerInput(rings) {
     try {
         awaitPointerEventScope {
             while (true) {
@@ -305,6 +309,7 @@ internal fun Modifier.touchBloomFingers(
                         change.changedToDownIgnoreConsumed() -> if (accepts(change.position)) {
                             TouchBloom.down(change.id.value, x, y, change.uptimeMillis)
                             FontMotionFingers.down(change.id.value, x, y, change.uptimeMillis)
+                            if (rings?.onPress == true) TouchRings.add(x, y, change.uptimeMillis)
                         }
                         change.pressed -> {
                             TouchBloom.move(change.id.value, x, y)
@@ -313,6 +318,7 @@ internal fun Modifier.touchBloomFingers(
                         change.previousPressed -> {
                             TouchBloom.up(change.id.value, change.uptimeMillis)
                             FontMotionFingers.up(change.id.value, change.uptimeMillis)
+                            if (rings?.onLift == true) TouchRings.add(x, y, change.uptimeMillis)
                         }
                     }
                 }

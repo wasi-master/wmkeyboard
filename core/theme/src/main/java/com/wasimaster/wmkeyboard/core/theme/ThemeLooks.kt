@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 /*
  * Ways a theme can look like more than flat colour: what the keys are made
  * of ([KeyMaterialSpec]), what moves on the board behind them
- * ([BoardEffectSpec]), how they light up ([KeyLightingSpec]) and how the board
- * answers the finger ([TouchBloomSpec]). Hand-drawn key art is [KeySkinSpec]
- * in KeySkin.kt.
+ * ([BoardEffectSpec]), how they light up ([KeyLightingSpec]), how the board
+ * answers the finger ([TouchBloomSpec]) and how the glide trail looks
+ * ([GlideTrailSpec]). Hand-drawn key art is [KeySkinSpec] in KeySkin.kt.
  *
  * Every kind travels as a string rather than an enum, for the reason spelled
  * out above [PhotoAttribution]: a kind from a later build costs that one field
@@ -587,3 +587,105 @@ val TOUCH_BLOOM_LIGHT_RANGE = 0f..1f
 val TOUCH_BLOOM_RADIUS_RANGE = 40f..240f
 val TOUCH_BLOOM_DIP_RANGE = 0f..1f
 val TOUCH_BLOOM_WOBBLE_RANGE = 0f..1f
+
+// ---- glide trail ------------------------------------------------------------
+
+/**
+ * What the glide trail throws off as it moves. Drawn shapes rather than emoji,
+ * so they take the trail's own colours.
+ */
+enum class TrailSparkleKind {
+    /** Four-point stars that twinkle as they fade. */
+    SPARKLES,
+
+    /** Short bright streaks flung off the line. */
+    SPARKS,
+
+    /** Small turning flakes in the trail's colours. */
+    CONFETTI,
+
+    /** Fine glittering dust that hangs in the air. */
+    DUST,
+
+    /** All four together. */
+    MIXED,
+}
+
+/** Where a ring spreads out from the finger. */
+enum class TouchRingMode {
+    /** Where a finger touches down, a tap or the start of a glide. */
+    PRESS,
+
+    /** Where a finger lifts. */
+    LIFT,
+
+    /** Both. */
+    BOTH,
+    ;
+
+    val onPress: Boolean get() = this != LIFT
+    val onLift: Boolean get() = this != PRESS
+}
+
+/**
+ * How the glide trail looks beyond its one colour ([ThemeSpec.gestureTrailColor]),
+ * and what a glide does to the board around it.
+ *
+ * [colors] run along the trail from its tail to its head; empty keeps the one
+ * colour. [flow] moves them along the trail, in turns a second, so the colours
+ * run toward the finger; 0 holds a still gradient. [glow] is a soft halo round
+ * the line. [sparkles] names a [TrailSparkleKind] the trail sheds as it moves,
+ * [sparkleAmount] how many. [liftBurst] throws a burst of them where a glide
+ * ends. [ring] names a [TouchRingMode]: a ring that spreads out from a touch,
+ * [ringSizeDp] across at its widest. [lightsKeys] has every key the glide
+ * passes over answer as if it were pressed: the key lighting, the press
+ * splashes and a board that reacts to typing all follow the finger.
+ *
+ * Kinds travel as strings, like the other looks, so a kind from a later build
+ * costs only itself on an older one.
+ */
+@Serializable
+data class GlideTrailSpec(
+    val colors: List<Long> = emptyList(),
+    val flow: Float = 0f,
+    val glow: Float = 0f,
+    /** A [TrailSparkleKind] name; null sheds nothing. */
+    val sparkles: String? = null,
+    val sparkleAmount: Float = 1f,
+    val liftBurst: Boolean = false,
+    /** A [TouchRingMode] name; null draws no ring. */
+    val ring: String? = null,
+    val ringSizeDp: Float = 72f,
+    val lightsKeys: Boolean = true,
+)
+
+/** Most colours a trail runs through. */
+const val MAX_TRAIL_COLORS = 6
+
+val TRAIL_FLOW_RANGE = 0f..2f
+val TRAIL_GLOW_RANGE = 0f..1f
+val TRAIL_SPARKLE_AMOUNT_RANGE = 0.25f..3f
+val TRAIL_RING_SIZE_RANGE = 24f..200f
+
+fun trailSparkleKindOrNull(name: String?): TrailSparkleKind? = enumOrNull<TrailSparkleKind>(name)
+fun touchRingModeOrNull(name: String?): TouchRingMode? = enumOrNull<TouchRingMode>(name)
+
+/**
+ * Ready colour runs for the trail, tail to head. The editor writes the colours
+ * themselves into [GlideTrailSpec.colors], so a theme never depends on this
+ * list and a later change to a palette changes no theme already made.
+ */
+enum class TrailPalette(val colors: List<Long>) {
+    RAINBOW(listOf(0xFFFF3B30, 0xFFFF9500, 0xFFFFCC00, 0xFF34C759, 0xFF0A84FF, 0xFFAF52DE)),
+    NEON(listOf(0xFF00E5FF, 0xFF2979FF, 0xFFD500F9, 0xFFFF2D95)),
+    FIRE(listOf(0xFFB71C1C, 0xFFFF3D00, 0xFFFF9100, 0xFFFFE082)),
+    GALAXY(listOf(0xFF283593, 0xFF7B1FA2, 0xFFE040FB, 0xFF80DEEA)),
+    PASTEL(listOf(0xFFFFB3BA, 0xFFFFDFBA, 0xFFFFFFBA, 0xFFBAFFC9, 0xFFBAE1FF)),
+    OCEAN(listOf(0xFF01579B, 0xFF0097A7, 0xFF26C6DA, 0xFFB2EBF2)),
+    ;
+
+    companion object {
+        /** The palette [colors] are, if they are one exactly. */
+        fun matching(colors: List<Long>): TrailPalette? = entries.firstOrNull { it.colors == colors }
+    }
+}

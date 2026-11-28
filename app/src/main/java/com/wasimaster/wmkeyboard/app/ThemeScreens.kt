@@ -276,9 +276,21 @@ import com.wasimaster.wmkeyboard.core.theme.KeyLightingColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyPressMotion
 import com.wasimaster.wmkeyboard.core.theme.keyLightingColorModeOrNull
 import com.wasimaster.wmkeyboard.core.theme.keyPressMotionOrNull
+import com.wasimaster.wmkeyboard.core.theme.GlideTrailSpec
+import com.wasimaster.wmkeyboard.core.theme.MAX_TRAIL_COLORS
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_FLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_GLOW_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_RING_SIZE_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TRAIL_SPARKLE_AMOUNT_RANGE
+import com.wasimaster.wmkeyboard.core.theme.TouchRingMode
+import com.wasimaster.wmkeyboard.core.theme.TrailPalette
+import com.wasimaster.wmkeyboard.core.theme.TrailSparkleKind
+import com.wasimaster.wmkeyboard.core.theme.touchRingModeOrNull
+import com.wasimaster.wmkeyboard.core.theme.trailSparkleKindOrNull
 import com.wasimaster.wmkeyboard.ime.ui.BoardEffectPickerTile
 import com.wasimaster.wmkeyboard.ime.ui.KeyLightPickerTile
 import com.wasimaster.wmkeyboard.ime.ui.KeyMotionPickerTile
+import com.wasimaster.wmkeyboard.ime.ui.TrailPickerTile
 import com.wasimaster.wmkeyboard.ime.ui.SwatchColors
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialKind
 import com.wasimaster.wmkeyboard.core.theme.KeyMaterialSpec
@@ -6769,7 +6781,8 @@ private fun ThemeEditorContent(
     // Either way the theme's effects can be let through it, which is the
     // second way out the note offers; once they are, it has nothing to say.
     val anyMotion = look.watch {
-        it.boardEffect != null || it.keyLighting != null || it.touchBloom != null || it.fontMotions.isNotEmpty()
+        it.boardEffect != null || it.keyLighting != null || it.touchBloom != null || it.fontMotions.isNotEmpty() ||
+            it.glideTrail?.let { g -> g.sparkles != null || g.liftBurst || g.ring != null || g.flow > 0f } == true
     }
     val motionHeld = settings.watch { it.reduceMotion }
     val effectsLetThrough = settings.watch { it.accessibility.themeEffectsWithReduceMotion }
@@ -7139,6 +7152,189 @@ private fun ThemeEditorContent(
                     info = stringResource(R.string.theme_touch_bloom_wobble_body),
                 ) { v -> updateBloom { it.copy(wobble = (v * 20).roundToInt() / 20f) } }
             }
+        }
+    }
+
+    // The glide trail's look: its colours, glow and sparkles, the rings round a
+    // touch, and whether a glide lights the keys it crosses. One group for all
+    // of it, since every row answers the same question: what a glide looks like.
+    val glideTrail = look.watch { it.glideTrail } ?: GlideTrailSpec()
+    val trailSolid = look.watch { it.gestureTrailColor ?: it.accent }
+    val trailAccent = look.watch { it.accent }
+    // A look put back to every default is dropped, so the theme reads as the
+    // plain one it was rather than carrying an empty block.
+    fun updateTrail(change: (GlideTrailSpec) -> GlideTrailSpec) = update { t ->
+        t.copy(glideTrail = change(t.glideTrail ?: GlideTrailSpec()).takeUnless { it == GlideTrailSpec() })
+    }
+    SettingsGroup(
+        stringResource(R.string.theme_glide_trail_section_title),
+        foldKey = "theme/glide_trail",
+        info = stringResource(R.string.theme_glide_trail_section_body),
+    ) {
+        item {
+            // One colour, a ready palette, or the user's own run, which is only
+            // a choice to show while it is what the theme has: it is made by
+            // editing a palette's colours below, not picked here.
+            val palette = TrailPalette.matching(glideTrail.colors)
+            val selected = when {
+                glideTrail.colors.isEmpty() -> TRAIL_ONE_COLOUR
+                palette != null -> palette.name
+                else -> TRAIL_OWN_COLOURS
+            }
+            val keys = listOf(TRAIL_ONE_COLOUR) + TrailPalette.entries.map { it.name } +
+                listOfNotNull(TRAIL_OWN_COLOURS.takeIf { selected == TRAIL_OWN_COLOURS })
+            ChoiceSetting(
+                title = R.string.theme_glide_trail_colors_title,
+                info = stringResource(R.string.theme_glide_trail_colors_body),
+                options = keys.map { key ->
+                    key to when (key) {
+                        TRAIL_ONE_COLOUR -> stringResource(R.string.theme_glide_trail_colors_one_label)
+                        TRAIL_OWN_COLOURS -> stringResource(R.string.theme_glide_trail_colors_own_label)
+                        else -> stringResource(trailPaletteLabel(TrailPalette.valueOf(key)))
+                    }
+                },
+                selected = selected,
+                detail = { key ->
+                    val tileColors = when (key) {
+                        TRAIL_ONE_COLOUR -> emptyList()
+                        TRAIL_OWN_COLOURS -> glideTrail.colors
+                        else -> TrailPalette.valueOf(key).colors
+                    }
+                    ChoiceDetail(
+                        leading = {
+                            TrailPickerTile(
+                                tileColors, trailSolid, glideTrail.glow, glideTrail.flow,
+                                trailSparkleKindOrNull(glideTrail.sparkles), swatchColors, swatchesMove,
+                            )
+                        },
+                    )
+                },
+            ) { key ->
+                when (key) {
+                    TRAIL_ONE_COLOUR -> updateTrail { it.copy(colors = emptyList()) }
+                    TRAIL_OWN_COLOURS -> Unit
+                    else -> updateTrail { it.copy(colors = TrailPalette.valueOf(key).colors) }
+                }
+            }
+        }
+        glideTrail.colors.forEachIndexed { slot, colour ->
+            item(level = SettingLevel.STANDARD) {
+                NullableColorRow(
+                    stringResource(R.string.theme_glide_trail_color_title, slot + 1),
+                    colour,
+                    fallback = trailSolid,
+                    // Clearing a colour takes it out of the run.
+                    onChange = { c ->
+                        updateTrail { spec ->
+                            val colors = spec.colors.toMutableList()
+                            if (slot < colors.size) {
+                                if (c == null) colors.removeAt(slot) else colors[slot] = c
+                            }
+                            spec.copy(colors = colors)
+                        }
+                    },
+                )
+            }
+        }
+        item(level = SettingLevel.STANDARD, visible = glideTrail.colors.size < MAX_TRAIL_COLORS) {
+            OutlinedButton(
+                onClick = {
+                    updateTrail { spec ->
+                        // From one colour, the trail colour and the accent; after
+                        // that, the last colour again, ready to be changed.
+                        val colors = spec.colors.ifEmpty { listOf(trailSolid) }
+                        spec.copy(colors = colors + (if (spec.colors.isEmpty()) trailAccent else colors.last()))
+                    }
+                },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            ) { Text(stringResource(R.string.theme_glide_trail_add_color_action)) }
+        }
+        if (glideTrail.colors.size > 1) {
+            item {
+                SliderRow(
+                    R.string.theme_glide_trail_flow_title,
+                    value = glideTrail.flow,
+                    range = TRAIL_FLOW_RANGE,
+                    display = { "%.2f/s".format(it) },
+                    info = stringResource(R.string.theme_glide_trail_flow_body),
+                ) { v -> updateTrail { it.copy(flow = (v * 20).roundToInt() / 20f) } }
+            }
+        }
+        item {
+            SliderRow(
+                R.string.theme_glide_trail_glow_title,
+                value = glideTrail.glow,
+                range = TRAIL_GLOW_RANGE,
+                display = { "%d%%".format((it * 100).roundToInt()) },
+                info = stringResource(R.string.theme_glide_trail_glow_body),
+            ) { v -> updateTrail { it.copy(glow = (v * 20).roundToInt() / 20f) } }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.theme_glide_trail_sparkles_title,
+                info = stringResource(R.string.theme_glide_trail_sparkles_body),
+                options = listOf<TrailSparkleKind?>(null).plus(TrailSparkleKind.entries).map { kind ->
+                    kind to if (kind == null) stringResource(CommonR.string.common_none) else stringResource(trailSparkleLabel(kind))
+                },
+                selected = trailSparkleKindOrNull(glideTrail.sparkles),
+                detail = { kind ->
+                    kind?.let {
+                        ChoiceDetail(
+                            leading = {
+                                TrailPickerTile(
+                                    glideTrail.colors, trailSolid, glideTrail.glow, glideTrail.flow,
+                                    it, swatchColors, swatchesMove,
+                                )
+                            },
+                        )
+                    }
+                },
+            ) { kind -> updateTrail { it.copy(sparkles = kind?.name) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.theme_glide_trail_lift_burst_title,
+                stringResource(R.string.theme_glide_trail_lift_burst_subtitle),
+                checked = glideTrail.liftBurst,
+            ) { on -> updateTrail { it.copy(liftBurst = on) } }
+        }
+        if (glideTrail.sparkles != null || glideTrail.liftBurst) {
+            item(level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_glide_trail_sparkle_amount_title,
+                    value = glideTrail.sparkleAmount,
+                    range = TRAIL_SPARKLE_AMOUNT_RANGE,
+                    display = { "%.2f×".format(it) },
+                ) { v -> updateTrail { it.copy(sparkleAmount = (v * 20).roundToInt() / 20f) } }
+            }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.theme_glide_trail_ring_title,
+                info = stringResource(R.string.theme_glide_trail_ring_body),
+                options = listOf<TouchRingMode?>(null).plus(TouchRingMode.entries).map { mode ->
+                    mode to if (mode == null) stringResource(CommonR.string.common_none) else stringResource(touchRingLabel(mode))
+                },
+                selected = touchRingModeOrNull(glideTrail.ring),
+            ) { mode -> updateTrail { it.copy(ring = mode?.name) } }
+        }
+        if (glideTrail.ring != null) {
+            item(level = SettingLevel.STANDARD) {
+                SliderRow(
+                    R.string.theme_glide_trail_ring_size_title,
+                    value = glideTrail.ringSizeDp,
+                    range = TRAIL_RING_SIZE_RANGE,
+                    display = { "%d dp".format(it.roundToInt()) },
+                ) { v -> updateTrail { it.copy(ringSizeDp = (v / 4).roundToInt() * 4f) } }
+            }
+        }
+        item {
+            ToggleSetting(
+                R.string.theme_glide_trail_lights_keys_title,
+                stringResource(R.string.theme_glide_trail_lights_keys_subtitle),
+                checked = glideTrail.lightsKeys,
+                info = stringResource(R.string.theme_glide_trail_lights_keys_info),
+            ) { on -> updateTrail { it.copy(lightsKeys = on) } }
         }
     }
 
@@ -9599,6 +9795,33 @@ private fun lightingColorModeLabel(value: KeyLightingColorMode): Int = when (val
     KeyLightingColorMode.PASTEL -> R.string.theme_lighting_color_mode_pastel_label
 }
 @StringRes
+/** The trail colour choices that are not a [TrailPalette]: one colour, and the user's own run. */
+private const val TRAIL_ONE_COLOUR = "one"
+private const val TRAIL_OWN_COLOURS = "own"
+
+private fun trailPaletteLabel(value: TrailPalette): Int = when (value) {
+    TrailPalette.RAINBOW -> R.string.theme_glide_trail_palette_rainbow_label
+    TrailPalette.NEON -> R.string.theme_glide_trail_palette_neon_label
+    TrailPalette.FIRE -> R.string.theme_glide_trail_palette_fire_label
+    TrailPalette.GALAXY -> R.string.theme_glide_trail_palette_galaxy_label
+    TrailPalette.PASTEL -> R.string.theme_glide_trail_palette_pastel_label
+    TrailPalette.OCEAN -> R.string.theme_glide_trail_palette_ocean_label
+}
+
+private fun trailSparkleLabel(value: TrailSparkleKind): Int = when (value) {
+    TrailSparkleKind.SPARKLES -> R.string.theme_glide_trail_sparkles_stars_label
+    TrailSparkleKind.SPARKS -> R.string.theme_glide_trail_sparkles_sparks_label
+    TrailSparkleKind.CONFETTI -> R.string.theme_glide_trail_sparkles_confetti_label
+    TrailSparkleKind.DUST -> R.string.theme_glide_trail_sparkles_dust_label
+    TrailSparkleKind.MIXED -> R.string.theme_glide_trail_sparkles_mixed_label
+}
+
+private fun touchRingLabel(value: TouchRingMode): Int = when (value) {
+    TouchRingMode.PRESS -> R.string.theme_glide_trail_ring_press_label
+    TouchRingMode.LIFT -> R.string.theme_glide_trail_ring_lift_label
+    TouchRingMode.BOTH -> R.string.theme_glide_trail_ring_both_label
+}
+
 private fun keyPressMotionLabel(value: KeyPressMotion): Int = when (value) {
     KeyPressMotion.SINK -> R.string.theme_touch_bloom_motion_sink_label
     KeyPressMotion.GROW -> R.string.theme_touch_bloom_motion_grow_label

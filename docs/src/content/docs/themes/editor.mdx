@@ -340,11 +340,25 @@ The keyboard answers your finger itself. Turn on **Touch bloom** and a soft ligh
 
 **Light colour** is the theme's accent unless you pick one. **Light strength** sets how bright the bloom is (0% leaves only the key motion), **Reach** how far from your finger the light spreads and, with **Sink**, the keys move, **Key dip** how far the keys move (0% leaves only the light), and **Wobble** how much they bounce on the way back. A grown or risen key that bounces goes a little past its resting size or place before it settles. Touch bloom is off under reduce motion and power saving; **Theme effects with Reduce motion** brings it back under reduce motion.
 
+### Glide trail
+
+How the glide-typing trail looks, and what a glide does to the keys around it. The trail's single colour is **Gesture trail** under [Accent](#accent) and its width and opacity are under [Layout](#layout); this group adds the rest.
+
+**Trail colours** runs the trail through a set of colours, from its tail to your finger. Pick **Rainbow**, **Neon**, **Fire**, **Galaxy**, **Pastel** or **Ocean**, then change any colour in the rows under it, or add more with **Add a colour**, up to six. Clearing a colour takes it out of the set. Once the colours stop matching a palette the choice reads **Your own**, and **One colour** goes back to the single trail colour. **Colour flow** moves the colours along the trail toward your finger, up to two full turns a second. At 0 they stay put. **Glow** draws a soft halo round the line.
+
+**Sparkles** makes the trail throw things off as your finger moves: **Stars** that twinkle and drift, **Sparks** flung off to the side, **Confetti** in all of the trail's colours, fine **Glitter dust** that hangs in the air, or **Mixed**. Stars, sparks and dust take a paler tone of the colour at your finger. **Burst on lift** throws a handful out where a glide ends (stars, if the trail sheds nothing along the way), and **Sparkle amount** sets how many of both.
+
+**Rings** spreads a ring out from your finger **On touch**, **On lift** or **Both**, for taps and glides alike, in the colour at the head of the trail. **Ring size** sets how wide it gets.
+
+**Glide lights keys** is on unless you turn it off. Each key you glide over then reacts as if you had pressed it, so [key lighting](#key-lighting) with a pattern that answers presses, the splashes under [Moving background](#moving-background) and **Reacts to typing** all follow your finger along the word. With it off, only the key where the glide starts reacts. On a theme with none of those it has nothing to do.
+
+In the **Trail colours** and **Sparkles** lists, each option has a small tile that draws a piece of trail in your theme's colours. Sparkles, rings, the burst and the colour flow stop under reduce motion and power saving, while the colours and the glow stay. **Theme effects with Reduce motion** brings them back under reduce motion.
+
 ### Key art
 
 Hand-drawn keys from a file. **Load key art from a file** reads a skin: each kind of key (letters, special keys, enter, space, delete, shift, the mode key, punctuation, emoji, the globe) drawn as layers of vector shapes, plus an optional picture for the board. The colours in it are names of the theme's own colours, such as the key's face or the accent, made lighter, darker or more see-through, so the art takes whatever palette the theme has. Layers can move, fade, grow or turn while a key is held. A key with no drawing of its own uses its group's, then the letter key's. Key art replaces the key colours, material and border on the keys it draws. A file can also draw the popups: the bubble over a pressed key, the alternates and the language list then wear that drawing.
 
-The file layout is the one the Kyng keyboard uses for its skins, so a skin document in that layout loads as it is. High contrast drops key art, materials, the moving background, lighting and touch bloom with the rest of the decoration.
+The file layout is the one the Kyng keyboard uses for its skins, so a skin document in that layout loads as it is. High contrast drops key art, materials, the moving background, lighting, touch bloom and the trail's colours, glow, sparkles and rings with the rest of the decoration.
 
 ### Font and sound
 
@@ -395,7 +409,7 @@ The set travels with an exported theme as the pack's id. A phone that has a pack
 ### Accent
 
 - **Accent** paints the shift-on tint, the patch behind a locked Shift, the active-tool color, the buttons across the panels, and the [smart chips](/smart/chips/) on the suggestion strip, the contact chip among them. Those chips stay in Accent rather than the suggestion text color, so they read as answers rather than words.
-- **Gesture trail** is the color of the swipe-typing trail. Auto falls back to Accent, and the field supports alpha.
+- **Gesture trail** is the color of the swipe-typing trail. Auto falls back to Accent, and the field supports alpha. To run the trail through several colours, see [Glide trail](#glide-trail).
 
 ### Popups
 

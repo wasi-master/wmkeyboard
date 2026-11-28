@@ -2731,6 +2731,15 @@ internal object SettingsRowIcons {
         put(R.string.theme_touch_bloom_dip_title) { Icons.Outlined.Compress }
         put(R.string.theme_touch_bloom_wobble_title) { Icons.Outlined.Waves }
         put(R.string.theme_touch_bloom_motion_title) { Icons.Outlined.Animation }
+        put(R.string.theme_glide_trail_colors_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_glide_trail_flow_title) { Icons.Outlined.Speed }
+        put(R.string.theme_glide_trail_glow_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_glide_trail_sparkles_title) { Icons.Outlined.Grain }
+        put(R.string.theme_glide_trail_sparkle_amount_title) { Icons.Outlined.Tune }
+        put(R.string.theme_glide_trail_lift_burst_title) { Icons.Outlined.Animation }
+        put(R.string.theme_glide_trail_ring_title) { Icons.Outlined.TouchApp }
+        put(R.string.theme_glide_trail_ring_size_title) { Icons.Outlined.ZoomOutMap }
+        put(R.string.theme_glide_trail_lights_keys_title) { Icons.Outlined.Lightbulb }
         put(R.string.theme_skin_load_title) { Icons.Outlined.FileOpen }
         put(R.string.appearance_toolbox_back_lowers_title) { Icons.Outlined.Keyboard }
         put(R.string.backup_pcloud_region_title) { Icons.Outlined.Public }

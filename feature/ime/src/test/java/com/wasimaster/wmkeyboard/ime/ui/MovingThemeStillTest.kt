@@ -7,6 +7,8 @@ import com.wasimaster.wmkeyboard.core.settings.PowerSavingSettings
 import com.wasimaster.wmkeyboard.core.settings.underPowerSaving
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
+import com.wasimaster.wmkeyboard.core.theme.TouchRingMode
+import com.wasimaster.wmkeyboard.core.theme.TrailSparkleKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -27,6 +29,14 @@ class MovingThemeStillTest {
         animation = ThemeAnimation.HUE_CYCLE,
         keyEffect = KeyEffectKind.STARS,
         touchBloom = KbTouchBloom(color = Color.White, light = 0.5f, radiusDp = 80f, dip = 0.3f, wobble = 0.2f),
+        trail = KbTrail(
+            colors = listOf(Color.Red, Color.Blue),
+            flow = 1f,
+            glow = 0.5f,
+            sparkles = TrailSparkleKind.SPARKLES,
+            liftBurst = true,
+            ring = TouchRingMode.BOTH,
+        ),
     )
 
     @Test
@@ -37,6 +47,10 @@ class MovingThemeStillTest {
         assertEquals(ThemeAnimation.NONE, still.animation)
         assertNull(still.keyEffect)
         assertNull(still.touchBloom)
+        assertNull("the trail sheds nothing", still.trail.sparkles)
+        assertNull(still.trail.ring)
+        assertEquals("the trail's colours hold still", 0f, still.trail.flow)
+        assertEquals("and keep their look", moving.trail.colors, still.trail.colors)
         assertTrue("the board effect keeps one frame rather than going", still.boardEffectStill)
         assertEquals("the colours are the theme's own", moving.board, still.board)
         assertFalse("the theme's own reduce-motion flag is left as it was", still.reduceMotion)
@@ -50,6 +64,7 @@ class MovingThemeStillTest {
         val kept = moving.accessibilityAdjusted(saving)
         assertTrue(kept.backgroundAnimated)
         assertNotNull(kept.touchBloom)
+        assertEquals(moving.trail, kept.trail)
         assertFalse(kept.boardEffectStill)
     }
 

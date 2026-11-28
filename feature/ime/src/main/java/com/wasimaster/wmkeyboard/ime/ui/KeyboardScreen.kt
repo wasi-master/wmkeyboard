@@ -19115,14 +19115,6 @@ internal class KeyRects {
     /** The face outline [key] is drawn in; null for the theme's. */
     fun shapeOf(key: Key): Shape? = if (faceShapes.isEmpty()) null else faceShapes[key]
 
-    /** The cell holding [point], in root space, or null outside the grid. */
-    fun cellAt(point: Offset): Rect? {
-        for (rect in cells.keys) {
-            if (rect.contains(point)) return rect
-        }
-        return null
-    }
-
     /** The key whose cell holds [point], or null outside the grid. */
     fun keyAt(point: Offset): Key? {
         for ((rect, key) in cells) {
@@ -22143,7 +22135,11 @@ private fun KeyRows(
     // parts already gone under reduce motion and power saving; and whether a
     // glide lights the keys it crosses, which feeds the same pulse a press
     // does and so means something only while something listens to it.
-    val trailLook = kbTheme.liveTrail
+    // A trail power saving has faded out (its Glide trail drop) sheds nothing
+    // either: sparkles flying off a line nobody can see.
+    val trailLook = kbTheme.liveTrail.let {
+        if (state.settings.gesture.trailOpacity > 0f) it else it.copy(sparkles = null, liftBurst = false)
+    }
     val trailSparks = remember { TrailSparkField() }
     val glideLightsKeys = pulseOn && trailLook.lightsKeys
     // Which touches ring; the finger pass below records them, and only this
@@ -24437,16 +24433,16 @@ private fun KeyRows(
         // lambda below, where it invalidates the draw alone.
         // Two of them under two-thumb typing (#638), one per thumb, and one per
         // finger of a multi-finger swipe (#647).
-        for (stroke in arrayOf(trail, trail2, *fingerTrails)) {
+        for (stroke in allTrails) {
             if (!stroke.visible) continue
             Canvas(modifier = Modifier.matchParentSize()) {
                 // Comet-style trail: each segment fades and thins with age,
                 // so the tail dissolves behind the finger instead of leaving
                 // the whole path on screen. Head width, life span and peak
-                // opacity all come from the gesture settings.
+                // opacity all come from the gesture settings; the colours and
+                // the glow from the theme.
                 val count = stroke.sampleCount(stroke.revision)
                 val headWidth = trailHeadWidth.dp.toPx()
-                val tailWidth = headWidth * 0.3f
                 // A modifier chord drag is a rubber band, not a comet: one
                 // even line from the key it started on to the fingertip, so
                 // what it draws is the pair of keys it will fire (issue #67).
@@ -24459,92 +24455,33 @@ private fun KeyRows(
                 // cone and a line that leaned with the finger would promise a
                 // precision the test never asks for (discussion #102).
                 if (stroke.straight || stroke.flick) {
-                    drawTrailBand(stroke, trailColor, trailOpacity, headWidth, trailMs)
+                    drawTrailBand(stroke, kbTheme.trailHead, trailOpacity, headWidth, trailMs)
                     return@Canvas
                 }
-                // The comet is *filled* as a ribbon rather than stroked as a
-                // chain of round-capped lines, in one piece per sample.
-                //
-                // A round cap put a whole disc at both ends of every segment,
-                // so each interior sample was painted twice — and translucent
-                // paint over translucent paint composites: 0.55 over 0.55 is
-                // 0.80. Every sample showed as a brighter bead, worst at the
-                // head where the stroke is widest, which read as the trail
-                // stuttering rather than flowing.
-                //
-                // A piece runs from the midpoint of the edge behind it to the
-                // midpoint of the edge ahead, curving through the sample's own
-                // edge point as the control. Neighbours therefore meet at that
-                // midpoint sharing a tangent as well as a point: no pixel is
-                // covered twice (no beads), no pixel is left uncovered (no
-                // seam), and the ribbon reads as a curve rather than as the
-                // polygon the raw samples spell. It also closes the gaps the
-                // old draw left when a fast flick spaced the samples further
-                // apart than the stroke was thick.
-                //
-                // Per-piece rather than one path for the whole trail because
-                // the age fade is per sample, and one path can carry only one
-                // opacity. The cost is a drawPath per sample where the old one
-                // cost a drawLine.
-                fun edgeAt(i: Int): Offset = stroke.sampleEdge(
-                    i,
-                    count,
-                    stroke.sampleHalfWidth(i, trailMs, headWidth, tailWidth),
-                )
-                var prevEdge = edgeAt(0)
-                var edge = prevEdge
-                for (i in 0 until count) {
-                    val nextEdge = if (i + 1 < count) edgeAt(i + 1) else edge
-                    val life = stroke.sampleLife(i, trailMs)
-                    if (life > 0f) {
-                        val here = Offset(stroke.x(i), stroke.y(i))
-                        val back = if (i > 0) Offset(stroke.x(i - 1), stroke.y(i - 1)) else here
-                        val ahead =
-                            if (i + 1 < count) Offset(stroke.x(i + 1), stroke.y(i + 1)) else here
-                        // The tail end and the head end have no neighbour to
-                        // meet halfway, so they take the sample itself and the
-                        // ribbon simply stops there.
-                        val fromLeft = (back + prevEdge + here + edge) / 2f
-                        val toLeft = (here + edge + ahead + nextEdge) / 2f
-                        val fromRight = (back - prevEdge + here - edge) / 2f
-                        val toRight = (here - edge + ahead - nextEdge) / 2f
-                        trailQuad.reset()
-                        trailQuad.moveTo(fromLeft.x, fromLeft.y)
-                        trailQuad.quadraticTo(here.x + edge.x, here.y + edge.y, toLeft.x, toLeft.y)
-                        if (i == count - 1) {
-                            // The head would be cut square otherwise, which
-                            // shows as soon as the finger lifts and the trail
-                            // is left on screen to fade. One quadratic bulging
-                            // forward by the half width rounds it off, inside
-                            // the same fill so it costs no second coverage.
-                            // The forward direction is the edge offset turned a
-                            // quarter turn, so it needs no second derivation.
-                            trailQuad.quadraticTo(
-                                here.x + edge.y * 2f,
-                                here.y - edge.x * 2f,
-                                toRight.x,
-                                toRight.y,
-                            )
-                        } else {
-                            trailQuad.lineTo(toRight.x, toRight.y)
-                        }
-                        trailQuad.quadraticTo(
-                            here.x - edge.x,
-                            here.y - edge.y,
-                            fromRight.x,
-                            fromRight.y,
-                        )
-                        trailQuad.close()
-                        drawPath(
-                            trailQuad,
-                            color = trailColor.copy(alpha = trailOpacity * life),
-                        )
-                    }
-                    prevEdge = edge
-                    edge = nextEdge
+                // The theme's colours run tail to head, and flow toward the
+                // finger on the clock the trail already keeps for its fade.
+                val phase = trailLook.flowPhase(stroke.nowMs)
+                val colors = trailLook.colors
+                if (trailLook.glow > 0f) {
+                    // The glow: the same ribbon twice more under the line, wider
+                    // and fainter, which reads as a soft halo without a blur.
+                    drawCometPass(
+                        stroke, count, trailMs, headWidth * GLOW_OUTER_WIDTH, trailQuad,
+                        trailOpacity * trailLook.glow * GLOW_OUTER_ALPHA, trailColor, colors, phase,
+                    )
+                    drawCometPass(
+                        stroke, count, trailMs, headWidth * GLOW_INNER_WIDTH, trailQuad,
+                        trailOpacity * trailLook.glow * GLOW_INNER_ALPHA, trailColor, colors, phase,
+                    )
                 }
+                drawCometPass(stroke, count, trailMs, headWidth, trailQuad, trailOpacity, trailColor, colors, phase)
             }
         }
+
+        // The sparkles the trail sheds, over its line, and the rings round a
+        // touch. Each is composed only while something of it is alive.
+        TrailSparksOverlay(trailSparks)
+        if (ringMode != null) TouchRingsOverlay(kbTheme.trailHead, trailLook.ringSizeDp) { boxOrigin }
 
         // Handwriting ink drawn over the keys: the finished strokes still
         // waiting to be recognized (service state) plus the one under the

@@ -892,6 +892,13 @@ data class ThemeSpec(
     val keyLighting: KeyLightingSpec? = null,
     /** Light from the finger and keys that dip under it; see [TouchBloomSpec]. */
     val touchBloom: TouchBloomSpec? = null,
+    /**
+     * The glide trail's colours, glow and sparkles, the rings round a touch
+     * and whether a glide lights the keys it crosses; see [GlideTrailSpec].
+     * Null is the one-colour trail every theme had before the field existed,
+     * with a glide lighting the keys it crosses.
+     */
+    val glideTrail: GlideTrailSpec? = null,
     /** Hand-drawn key art that replaces the key faces; see [KeySkinSpec]. */
     val keySkin: KeySkinSpec? = null,
     /**
