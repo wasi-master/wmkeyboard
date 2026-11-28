@@ -24,6 +24,12 @@ def speak(iso3: str, text: str) -> np.ndarray:
     name = f"facebook/mms-tts-{iso3}"
     model = VitsModel.from_pretrained(name)
     tokenizer = AutoTokenizer.from_pretrained(name)
+    if getattr(tokenizer, "is_uroman", False):
+        # Voices for scripts other than Latin (Tigrinya's, Amharic's) read
+        # romanized text, as their model cards say.
+        import uroman
+
+        text = uroman.Uroman().romanize_string(text)
     with torch.no_grad():
         wave = model(**tokenizer(text, return_tensors="pt")).waveform[0].numpy()
     rate = model.config.sampling_rate

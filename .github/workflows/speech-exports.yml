@@ -92,10 +92,11 @@ jobs:
           sudo swapon "$dir/wmkb.swap"
           free -h
 
-      # NeMo's main branch wants 3.12 or newer, omnilingual-asr 3.12 at most.
+      # NeMo's main branch wants 3.12 or newer; omnilingual-asr's
+      # `<=3.12` shuts out every 3.12 patch release, so it gets 3.11.
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: ${{ inputs.family == 'addis' && '3.12' || '3.11' }}
 
       # fairseq2 and NeMo both read audio through libsndfile.
       - name: System libraries
@@ -113,12 +114,12 @@ jobs:
             pip install -q Cython packaging
             pip install -q "nemo_toolkit[asr] @ git+https://github.com/NVIDIA/NeMo.git@main"
             pip install -q onnx onnxruntime ipython sentencepiece kaldi-native-fbank soundfile librosa
-            pip install -q huggingface_hub sherpa-onnx transformers
+            pip install -q huggingface_hub sherpa-onnx transformers uroman
           else
             # fairseq2 0.6 is built against torch 2.8 and pins huggingface_hub
             # to 0.3x, which also holds transformers below 5.
             pip install -q torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu
-            pip install -q "omnilingual-asr==0.2.0" onnx onnxruntime "huggingface_hub~=0.32" "transformers<5" sherpa-onnx
+            pip install -q "omnilingual-asr==0.2.0" onnx onnxruntime "huggingface_hub~=0.32" "transformers<5" sherpa-onnx uroman
           fi
           pip freeze | grep -iE '^(torch|nemo|omnilingual|fairseq2|onnx|onnxruntime|sherpa)' | tee versions.txt
 
