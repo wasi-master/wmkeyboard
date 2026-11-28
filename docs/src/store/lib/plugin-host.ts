@@ -478,26 +478,6 @@ export function makeBridge(ctx: HostContext): Bridge {
 				window.open(url, '_blank', 'noopener');
 				return reply(null);
 			}
-			case 'clock.alarm': {
-				const at = Number(args.at);
-				if (!Number.isFinite(at)) return fail('ValueError', 'at must be a number of seconds');
-				const now = Date.now() / 1000;
-				if (at < now + 60) return fail('ValueError', 'an alarm must be at least a minute away');
-				if (at > now + 86400) return fail('ValueError', 'an alarm rings within the next 24 hours; use reminders for later');
-				const when = new Date(at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-				ctx.log(`[clock] alarm at ${when}${args.label ? `: ${String(args.label)}` : ''} (the phone adds it to its Clock)`);
-				return reply(null);
-			}
-			case 'clock.timer': {
-				const seconds = Number(args.seconds);
-				if (!Number.isFinite(seconds) || seconds < 1 || seconds > 86400) return fail('ValueError', 'a timer runs from 1 second to 24 hours');
-				ctx.log(`[clock] ${Math.round(seconds)} s timer${args.label ? `: ${String(args.label)}` : ''} (the phone starts it in its Clock)`);
-				return reply(null);
-			}
-			case 'time.zone': {
-				const rows = zoneRows(String(args.zone ?? ''));
-				return rows ? reply({ zone: String(args.zone ?? ''), rows }) : fail('ValueError', `unknown time zone: ${String(args.zone).slice(0, 64)}`);
-			}
 			case 'notify.show':
 				ctx.log(`[notification] ${args.title ? `${String(args.title)}: ` : ''}${String(args.text ?? '')}`);
 				return reply(null);
@@ -534,6 +514,26 @@ export function makeBridge(ctx: HostContext): Bridge {
 			case 'keyboard.restore':
 				ctx.log('[keyboard] back to your own layout');
 				return reply(null);
+			case 'clock.alarm': {
+				const at = Number(args.at);
+				if (!Number.isFinite(at)) return fail('ValueError', 'at must be a number of seconds');
+				const now = Date.now() / 1000;
+				if (at < now + 60) return fail('ValueError', 'an alarm must be at least a minute away');
+				if (at > now + 86400) return fail('ValueError', 'an alarm rings within the next 24 hours; use reminders for later');
+				const when = new Date(at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+				ctx.log(`[clock] alarm at ${when}${args.label ? `: ${String(args.label)}` : ''} (the phone adds it to its Clock)`);
+				return reply(null);
+			}
+			case 'clock.timer': {
+				const seconds = Number(args.seconds);
+				if (!Number.isFinite(seconds) || seconds < 1 || seconds > 86400) return fail('ValueError', 'a timer runs from 1 second to 24 hours');
+				ctx.log(`[clock] ${Math.round(seconds)} s timer${args.label ? `: ${String(args.label)}` : ''} (the phone starts it in its Clock)`);
+				return reply(null);
+			}
+			case 'time.zone': {
+				const rows = zoneRows(String(args.zone ?? ''));
+				return rows ? reply({ zone: String(args.zone ?? ''), rows }) : fail('ValueError', `unknown time zone: ${String(args.zone).slice(0, 64)}`);
+			}
 			case 'sensors.list':
 				return reply(PRETEND_SENSORS);
 			case 'sensors.subscribe': {

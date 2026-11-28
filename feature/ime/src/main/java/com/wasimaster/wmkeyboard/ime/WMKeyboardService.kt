@@ -43035,15 +43035,6 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * One phrase as it went into the field: [text] exactly as committed,
-     * spaces included, and whether the caret stood at a sentence start when
-     * it did, so a rewrite of it is cased by the same rule ([VoiceCasing]).
-     * [heard] is the phrase in the script it was heard in when [text] is its
-     * romanized spelling still to be checked by [respellVoiceThen], else null.
-     */
-    private class VoiceLanding(val text: String, val sentenceStart: Boolean, val heard: String? = null)
-
-    /**
      * Pattern snippets over a phrase just dictated (#1550), the way typed
      * words meet them at the space. The phrase is tried whole first
      * ([SnippetStore.matchUtterance]), so a pattern written for what is said
@@ -43093,6 +43084,15 @@ open class WMKeyboardService : InputMethodService() {
         )
         return true
     }
+
+    /**
+     * One phrase as it went into the field: [text] exactly as committed,
+     * spaces included, and whether the caret stood at a sentence start when
+     * it did, so a rewrite of it is cased by the same rule ([VoiceCasing]).
+     * [heard] is the phrase in the script it was heard in when [text] is its
+     * romanized spelling still to be checked by [respellVoiceThen], else null.
+     */
+    private class VoiceLanding(val text: String, val sentenceStart: Boolean, val heard: String? = null)
 
     /**
      * Runs [then] once the phrase that just [landed] has been tidied by the AI
@@ -64136,16 +64136,6 @@ open class WMKeyboardService : InputMethodService() {
     )
 
     /**
-     * The clipboard header's keyboard button (#414): the panel shrinks to a
-     * strip of clips with the keys under it, typing into the app, or goes
-     * back to filling the keyboard.
-     */
-    fun onClipboardKeysToggle() {
-        vibrate()
-        _uiState.update { it.copy(clipboardWithKeys = !it.clipboardWithKeys, panelFocus = null) }
-    }
-
-    /**
      * The clips the panel shows (#1542): the open clipboard's, or every clip
      * while there is no named clipboard. What the clear button clears.
      */
@@ -64185,6 +64175,16 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         val name = clip.clipboards.firstOrNull { it.id == shelf }?.name ?: getString(R.string.ime_clip_shelf_main)
         toast(getString(R.string.ime_clip_moved_toast, name))
+    }
+
+    /**
+     * The clipboard header's keyboard button (#414): the panel shrinks to a
+     * strip of clips with the keys under it, typing into the app, or goes
+     * back to filling the keyboard.
+     */
+    fun onClipboardKeysToggle() {
+        vibrate()
+        _uiState.update { it.copy(clipboardWithKeys = !it.clipboardWithKeys, panelFocus = null) }
     }
 
     /**
