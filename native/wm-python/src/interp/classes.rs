@@ -66,6 +66,10 @@ pub(crate) const HIDDEN_STATICMETHOD_GET: &str = "__staticmethod_get__";
 pub(crate) const HIDDEN_PROPERTY_REMAKE_SETTER: &str = "__property_remake_setter__";
 pub(crate) const HIDDEN_PROPERTY_REMAKE_GETTER: &str = "__property_remake_getter__";
 
+/// Where `__file__` puts the plugin's own modules, and the interpreter's.
+pub(crate) const PLUGIN_ROOT: &str = "/plugin";
+pub(crate) const LIBRARY_ROOT: &str = "/lib/python3.13";
+
 /// `C.__subclasses__()`: the classes still alive that name [C] as a base.
 pub(crate) const HIDDEN_SUBCLASSES: &str = "__type_subclasses__";
 
@@ -1863,7 +1867,7 @@ impl Interp {
             || self.is_package_prefix(name)
     }
 
-    fn is_package_prefix(&self, name: &str) -> bool {
+    pub(crate) fn is_package_prefix(&self, name: &str) -> bool {
         let prefix = format!("{name}.");
         self.source_modules.keys().any(|k| k.starts_with(&prefix)) || self.host_modules.keys().any(|k| k.starts_with(&prefix))
     }
@@ -2123,7 +2127,9 @@ impl Interp {
         }
         let package = self.packages.contains(name);
         let parent = if package { name } else { name.rsplit_once('.').map(|(p, _)| p).unwrap_or("") };
-        let origin = self.module_files.get(name).map(Value::str).unwrap_or(Value::None);
+        // As CPython's, the spec's origin is the module's `__file__`.
+        let file = self.module_file_path(name, package);
+        let origin = file.as_deref().map(Value::str).unwrap_or(Value::None);
         let saved = self.current_line;
         let class = self.python_builtin("ModuleSpec")?;
         let kwargs = vec![(Rc::from("origin"), origin.clone()), (Rc::from("is_package"), Value::Bool(package))];
@@ -2135,10 +2141,31 @@ impl Interp {
         env.define(&Rc::from("__spec__"), spec);
         env.define(&Rc::from("__package__"), Value::str(parent));
         env.define(&Rc::from("__loader__"), Value::None);
+        // Where the module's file would be: under /plugin/ for the plugin's
+        // own, /lib/python3.13/ for the standard library. Packages work out
+        // paths from it at load time; reading them still raises PermissionError.
+        if let Some(path) = &file {
+            env.define(&Rc::from("__file__"), Value::str(path));
+        }
         if package {
-            env.define(&Rc::from("__path__"), Value::list(Vec::new()));
+            let dir = file.as_deref().and_then(|f| f.rsplit_once('/')).map(|(d, _)| Value::str(d));
+            env.define(&Rc::from("__path__"), Value::list(dir.into_iter().collect()));
         }
         Ok(())
+    }
+
+    /// The `__file__` of module [name]: its plugin file under /plugin/, or
+    /// for a module written in Python that the interpreter brings, where
+    /// CPython's would be. None for a native module.
+    pub(crate) fn module_file_path(&self, name: &str, package: bool) -> Option<String> {
+        if let Some(file) = self.module_files.get(name) {
+            return Some(format!("{PLUGIN_ROOT}/{}", file.trim_start_matches("./")));
+        }
+        if !self.source_modules.contains_key(name) {
+            return None;
+        }
+        let path = name.replace('.', "/");
+        Some(if package { format!("{LIBRARY_ROOT}/{path}/__init__.py") } else { format!("{LIBRARY_ROOT}/{path}.py") })
     }
 
     /// A member of a module written in Python, or a submodule already loaded.

@@ -132,14 +132,18 @@ needs:
 `hash(2.5)` is the same on the phone as on a computer.
 
 `open` raises `PermissionError` and `input` raises `EOFError`, as there are
-no files and no console to read. `%` formatting of bytes is not there.
+no files and no console to read. A module still has a `__file__`, so
+packages can work out paths when they load: `/plugin/` and the module's
+path in your plugin, such as `/plugin/helpers.py`, or `/lib/python3.13/`
+for the standard library. A package's `__path__` is its folder. `%`
+formatting of bytes is not there.
 
 **Modules you can import:**
 
 | | |
 |---|---|
 | Built in | `math`, `random`, `time`, `json`, `re`, `sys` |
-| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio` and its modules, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `colorsys`, `cProfile`, `concurrent.futures`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings` with `encodings.aliases` and the codec modules, `enum`, `errno`, `fcntl`, `fnmatch`, `fractions`, `functools`, `gc`, `getopt`, `getpass`, `gettext`, `glob`, `graphlib`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` with `html.entities` and `html.parser`, `http` with `http.client`, `http.cookies`, `http.cookiejar` and `http.server`, `importlib` (with `.util`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging` with `logging.config` and `logging.handlers`, `mimetypes`, `mmap`, `multiprocessing`, `netrc`, `ntpath`, `numbers`, `operator`, `optparse`, `os.path` (and `posixpath`), `pathlib`, `pickle`, `platform`, `pprint`, `profile`, `pstats`, `queue`, `reprlib`, `secrets`, `select`, `selectors`, `shlex`, `shutil`, `signal`, `socket`, `socketserver`, `ssl`, `stat`, `statistics`, `string`, `stringprep`, `struct`, `subprocess`, `sysconfig`, `tarfile`, `tempfile`, `textwrap`, `threading` and `_thread`, `timeit`, `token`, `tokenize`, `tomllib`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `webbrowser`, `wsgiref`, `xml.dom.minidom`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zipfile`, `zlib`, `zoneinfo` |
+| Python's own | `abc`, `argparse`, `array`, `ast`, `asyncio` and its modules, `atexit`, `base64`, `binascii`, `bisect`, `builtins`, `calendar`, `cmath`, `codecs`, `collections`, `collections.abc`, `colorsys`, `cProfile`, `concurrent.futures`, `configparser`, `contextlib`, `contextvars`, `copy`, `copyreg`, `csv`, `dataclasses`, `datetime`, `decimal`, `difflib`, `email` and its modules, `encodings` with `encodings.aliases` and the codec modules, `enum`, `errno`, `fcntl`, `fnmatch`, `fractions`, `functools`, `gc`, `getopt`, `getpass`, `gettext`, `glob`, `graphlib`, `gzip`, `hashlib`, `heapq`, `hmac`, `html` with `html.entities` and `html.parser`, `http` with `http.client`, `http.cookies`, `http.cookiejar` and `http.server`, `importlib` (with `.util`, `.machinery`, `.abc`, `.metadata`, `.resources`), `inspect`, `io`, `ipaddress`, `itertools`, `keyword`, `linecache`, `locale`, `logging` with `logging.config` and `logging.handlers`, `mimetypes`, `mmap`, `multiprocessing`, `netrc`, `ntpath`, `numbers`, `operator`, `optparse`, `os.path` (and `posixpath`), `pathlib`, `pickle`, `pkgutil`, `platform`, `pprint`, `profile`, `pstats`, `queue`, `reprlib`, `secrets`, `select`, `selectors`, `shlex`, `shutil`, `signal`, `socket`, `socketserver`, `ssl`, `stat`, `statistics`, `string`, `stringprep`, `struct`, `subprocess`, `sysconfig`, `tarfile`, `tempfile`, `textwrap`, `threading` and `_thread`, `timeit`, `token`, `tokenize`, `tomllib`, `traceback`, `types`, `typing`, `unicodedata`, `unittest` and `unittest.mock`, `urllib.parse`, `uuid`, `warnings`, `weakref`, `webbrowser`, `wsgiref`, `xml.dom.minidom`, `xml.etree.ElementTree`, `xml.sax`, `xml.parsers.expat`, `zipfile`, `zlib`, `zoneinfo` |
 | The keyboard's | `wm` and its modules on this page |
 | Yours | every other `.py` file in your plugin: `import helpers` |
 
@@ -266,8 +270,12 @@ stack summary is empty. `argparse` parses the list you give it; on bad input it
 writes the usage to the log and raises `SystemExit`. `inspect` reads
 signatures (the builtins' too, where CPython has one, such as `len` and
 `sorted`) and kinds of object but has no source to show, `ast` has only
-`literal_eval`, `importlib.import_module` imports by name, and
-`importlib.metadata` finds no installed packages. A `weakref` keeps its object
+`literal_eval`, `importlib.import_module` imports by name,
+`importlib.machinery`'s path finders find nothing and its file loaders
+can't read (`EXTENSION_SUFFIXES` is empty), and `importlib.metadata` finds
+no installed packages. `pkgutil.iter_modules` and `walk_packages` list
+your plugin's modules and the interpreter's, and `pkgutil.get_data` raises
+`FileNotFoundError`. A `weakref` keeps its object
 alive, since there is no garbage collector to watch it go. `secrets` draws on
 a seed taken once from the system's random source. `uuid` has `uuid1`,
 `uuid3`, `uuid4` and `uuid5`; with no hardware address to read, `uuid1` uses

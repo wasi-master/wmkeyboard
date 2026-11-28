@@ -99,7 +99,7 @@ pub(crate) const BUILTIN_NAMES: &[&str] = &[
     "super", "object", "issubclass", "id", "hash", "NotImplemented", "AssertionError", "NotImplementedError",
     "LookupError", "ArithmeticError", "OverflowError", "ImportError", "UnicodeError", "OSError", "PermissionError",
     "TimeoutError", "ConnectionError", "FileNotFoundError", "slice", "ascii", "UnboundLocalError", "GeneratorExit",
-    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__", "__syntax_check__", "__json_encode__", "__json_decode__",
+    "eval", "exec", "Ellipsis", "globals", "locals", "dir", "__import__", "__syntax_check__", "__json_encode__", "__json_decode__", "__module_names__",
 ];
 
 /// The builtins that are types: `type(x)` answers with one, and `str()` of
@@ -404,6 +404,35 @@ impl Interp {
                     return Err(self.error("invalid syntax", "SyntaxError"));
                 }
                 Ok(Value::None)
+            }
+            // pkgutil.iter_modules: the modules right inside package [prefix]
+            // ("" for the top level), as (name, is a package) pairs.
+            "__module_names__" => {
+                let prefix = args.first().and_then(Value::as_str).unwrap_or("").to_string();
+                let all: Vec<String> = self
+                    .enabled_modules
+                    .iter()
+                    .map(|s| s.to_string())
+                    .chain(self.host_modules.keys().cloned())
+                    .chain(self.source_modules.keys().cloned())
+                    .collect();
+                let mut heads: Vec<String> = all
+                    .iter()
+                    .filter_map(|full| if prefix.is_empty() { Some(full.as_str()) } else { full.strip_prefix(prefix.as_str())?.strip_prefix('.') })
+                    .filter_map(|rest| rest.split('.').next().map(str::to_string))
+                    .filter(|head| !head.is_empty() && head != "_builtins")
+                    .collect();
+                heads.sort();
+                heads.dedup();
+                let pairs = heads
+                    .into_iter()
+                    .map(|head| {
+                        let full = if prefix.is_empty() { head.clone() } else { format!("{prefix}.{head}") };
+                        let package = self.packages.contains(&full) || self.is_package_prefix(&full);
+                        Value::tuple(vec![Value::str(head), Value::Bool(package)])
+                    })
+                    .collect();
+                Ok(Value::list(pairs))
             }
             // JSONEncoder.encode and JSONDecoder.decode (in _builtins.py): the
             // json module's own encoder and decoder, given the object's options.

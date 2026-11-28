@@ -295,6 +295,11 @@ impl Runtime {
     /// `main.py` for `__main__`), so errors and their tracebacks say it.
     pub fn set_module_file(&mut self, module: &str, file: &str) {
         self.interp.module_files.insert(module.to_string(), file.to_string());
+        // The script's `__file__`, as CPython gives a script run by path.
+        if module == "__main__" {
+            let path = format!("{}/{}", classes::PLUGIN_ROOT, file.trim_start_matches("./"));
+            self.interp.globals.define(&Rc::from("__file__"), Value::str(path));
+        }
     }
 
     fn in_main_file(&self, mut e: PyError) -> PyError {

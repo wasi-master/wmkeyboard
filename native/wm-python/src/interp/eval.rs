@@ -281,6 +281,8 @@ impl Interp {
         let mut module_envs = HashMap::new();
         // The script itself, as `import __main__` and `sys.modules["__main__"]` reach it.
         module_envs.insert("__main__".to_string(), globals.clone());
+        // sys.version_info, which sys.implementation.version is too.
+        let version_info = Rc::new(vec![Value::Int(3), Value::Int(13), Value::Int(0), Value::str("final"), Value::Int(0)]);
         Interp {
             globals,
             max_steps: limits.steps,
@@ -330,7 +332,7 @@ impl Interp {
             int_max_str_digits: super::bigint::MAX_STR_DIGITS,
             stdout_target: None,
             stderr_target: None,
-            version_info: Rc::new(vec![Value::Int(3), Value::Int(13), Value::Int(0), Value::str("final"), Value::Int(0)]),
+            version_info: version_info.clone(),
             struct_seqs: Rc::new([
                 (
                     "hash_info",
@@ -392,7 +394,8 @@ impl Interp {
                     Rc::new(vec![
                         Value::str("cpython"),
                         Value::None,
-                        Value::tuple(vec![Value::Int(3), Value::Int(13), Value::Int(0), Value::str("final"), Value::Int(0)]),
+                        // sys.version_info itself, so `.major` reads on it.
+                        Value::Tuple(version_info),
                         Value::Int(0x030D_00F0),
                         Value::str("aarch64-linux-android"),
                     ]),
