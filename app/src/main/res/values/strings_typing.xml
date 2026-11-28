@@ -72,6 +72,10 @@
     <string name="typing_autocorrect_confidence_subtitle">How certain the keyboard must be before it corrects a word</string>
     <string name="typing_autocorrect_confidence_info">The keyboard corrects a word only when the best candidate scores higher than the second candidate by this factor. A low value corrects more typos, but it guesses wrong more often. A high value corrects only when the word is almost certain. Below 1.5 it also accepts words two letters away from what you typed, and at 1.0 it takes the best candidate whatever the second one scores. A word already in a dictionary is still left alone. The keyboard always applies a correction that two sources agree on.</string>
 
+    <string name="typing_space_takes_top_title">Space takes the top suggestion</string>
+    <string name="typing_space_takes_top_subtitle">Put in the best word from the strip when you end a word, even when autocorrect is not sure</string>
+    <string name="typing_space_takes_top_info">Autocorrect normally changes a word only when one fix clearly wins, and leaves a close call for you to pick from the strip. With this on, space puts in the word the strip ranks first whenever autocorrect would leave the word alone, so a typo or a half-typed word becomes that word. Enter and the marks that end a word do the same while they correct. A word the keyboard already knows still goes in as you typed it. The word space will put in is coloured on the strip, and backspace right after it puts your word back. Off by default.</string>
+
     <string name="typing_context_rerank_title">Context-aware suggestions</string>
     <string name="typing_context_rerank_subtitle">Reorder suggestions by the words around them</string>
     <string name="typing_context_rerank_info">The keyboard reorders the top suggestions with the words you typed before them: your own word pairs, common English pairs, and words from the current conversation. The reorder applies only when there is real evidence, so the usual order stays for unfamiliar contexts. This never changes which word autocorrect applies.</string>

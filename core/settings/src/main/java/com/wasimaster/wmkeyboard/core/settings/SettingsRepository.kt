@@ -3320,6 +3320,15 @@ data class AutocorrectSettings(
      */
     val confidence: Float = 4f,
     /**
+     * Whether the word that ends a word (space, Enter, a mark) puts in the
+     * strip's best word whenever the confidence gate turns down a correction,
+     * the way SwiftKey's middle suggestion goes in: a typo or a half-typed
+     * word becomes the word the strip ranked first. A word the keyboard
+     * already knows still goes in as typed. Off, as before: only a fix the
+     * gate is sure of is applied.
+     */
+    val spaceTakesTop: Boolean = false,
+    /**
      * Scale the confidence gate by the user's recent revert rate: a keyboard
      * whose corrections keep getting undone demands more certainty before
      * forcing anything. [confidence] stays the anchor either way.
@@ -13428,6 +13437,7 @@ class SettingsRepository(private val context: Context) {
         private val NUMBER_ROW = booleanPreferencesKey("number_row")
         private val AUTOCORRECT = booleanPreferencesKey("autocorrect")
         private val AUTOCORRECT_CONFIDENCE = floatPreferencesKey("autocorrect_confidence")
+        private val AUTOCORRECT_SPACE_TAKES_TOP = booleanPreferencesKey("autocorrect_space_takes_top")
         private val AUTOCORRECT_ADAPTIVE = booleanPreferencesKey("autocorrect_adaptive")
         private val AUTOCORRECT_UNDO_MEMORY =
             stringPreferencesKey("autocorrect_undo_memory")
@@ -15988,6 +15998,7 @@ class SettingsRepository(private val context: Context) {
         AutocorrectSettings(
             enabled = p[AUTOCORRECT] ?: defaults.correction.enabled,
             confidence = p[AUTOCORRECT_CONFIDENCE] ?: defaults.correction.confidence,
+            spaceTakesTop = p[AUTOCORRECT_SPACE_TAKES_TOP] ?: defaults.correction.spaceTakesTop,
             adaptive = p[AUTOCORRECT_ADAPTIVE] ?: defaults.correction.adaptive,
             revertOnBackspace = p[REVERT_AUTOCORRECT_ON_BACKSPACE]
                 ?: defaults.correction.revertOnBackspace,
@@ -24745,6 +24756,9 @@ class SettingsRepository(private val context: Context) {
     /** Bounds mirror `SuggestionEngine.MIN/MAX_AUTOCORRECT_CONFIDENCE`. */
     suspend fun setAutocorrectConfidence(value: Float) =
         editPrefs { it[AUTOCORRECT_CONFIDENCE] = value.coerceIn(1f, 10f) }
+
+    suspend fun setAutocorrectSpaceTakesTop(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_SPACE_TAKES_TOP] = value }
 
     suspend fun setAutocorrectAdaptive(value: Boolean) =
         editPrefs { it[AUTOCORRECT_ADAPTIVE] = value }

@@ -417,6 +417,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.typing_autocorrect_title, R.string.typing_autocorrect_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_autocorrect_confidence_title, R.string.typing_autocorrect_confidence_subtitle),
+        row(R.string.typing_space_takes_top_title, R.string.typing_space_takes_top_subtitle),
         row(R.string.typing_autocorrect_adaptive_title, R.string.typing_autocorrect_adaptive_subtitle),
         row(R.string.typing_timing_signal_title, R.string.typing_timing_signal_subtitle),
         row(R.string.typing_register_priors_title, R.string.typing_register_priors_subtitle),

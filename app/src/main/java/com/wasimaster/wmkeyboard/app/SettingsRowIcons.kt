@@ -1152,6 +1152,7 @@ internal object SettingsRowIcons {
         // ---- Typing ----
         put(R.string.typing_autocorrect_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_autocorrect_confidence_title) { Icons.Outlined.Tune }
+        put(R.string.typing_space_takes_top_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_autocorrect_adaptive_title) { Icons.Outlined.Tune }
         put(R.string.typing_timing_signal_title) { Icons.Outlined.Timer }
         put(R.string.typing_number_row_corrections_title) { Icons.Outlined.Pin }

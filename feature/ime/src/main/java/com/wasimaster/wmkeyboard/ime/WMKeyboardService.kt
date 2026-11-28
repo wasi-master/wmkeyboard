@@ -24189,6 +24189,27 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The strip's best word, for Space takes the top suggestion
+     * ([com.wasimaster.wmkeyboard.core.settings.AutocorrectSettings.spaceTakesTop]):
+     * what a space puts in for [typed] when the confidence gate made no fix,
+     * cased like [typed]. Null when the setting is off, when [typed] is a word
+     * the keyboard knows (it goes in as typed, as SwiftKey keeps a real word),
+     * or when the head is not a plain word: [typed] itself, an emoji, an
+     * address or a phrase. [suggestions] must be the strip for [typed].
+     */
+    private fun stripHeadForSpace(state: KeyboardUiState, typed: String, suggestions: List<String>?): String? {
+        if (!state.settings.correction.spaceTakesTop || typed.isEmpty() || suggestions.isNullOrEmpty()) return null
+        if (!state.correctsWords || !state.allowsTypingIntelligence) return null
+        if (state.composer.isTransliterating || state.composer.isConversion || state.layouts.ambiguousKeys) return null
+        val head = suggestions.first()
+        if (head.equals(typed, ignoreCase = true) || head.any { it.isWhitespace() } || '@' in head) return null
+        if (EmojiGraphemes.isEmojiOnly(head)) return null
+        val engine = suggestionEngine ?: return null
+        if (engine.isKnownWord(typed)) return null
+        return caseLike(head, typed, state.language.letterCaseIsSpelling)
+    }
+
+    /**
      * Commits the composing region. In Avro mode the top phonetic
      * suggestion wins (dictionary sibling over literal); in English mode
      * autocorrect may replace the typed word. Returns true if anything
@@ -24435,6 +24456,9 @@ open class WMKeyboardService : InputMethodService() {
                 null
             }
         var corrected: String? = null
+        // Whether [corrected] is the strip's best word taken by Space takes
+        // the top suggestion rather than a fix the gate made.
+        var stripHeadTaken = false
         // An ambiguous board's reading with its apostrophe put back, when it took one.
         var ambiguousApostrophe: String? = null
         // A candidate that came close to being applied without getting there.
@@ -24584,6 +24608,17 @@ open class WMKeyboardService : InputMethodService() {
                 corrected = decision.apply?.takeIf { it != typed && !declinedHere }
                 offered = decision.offer?.takeIf { it != typed && !declinedHere }
                 obviousness = decision.obviousness
+                // Space takes the top suggestion: what the gate turned down,
+                // the strip's best word goes in anyway. Never obvious, so the
+                // undo chip is always there for it.
+                if (corrected == null && !declinedHere) {
+                    stripHeadForSpace(state, typed, state.suggestions.takeIf { state.stripTyped == typed })?.let {
+                        corrected = it
+                        stripHeadTaken = true
+                        offered = null
+                        obviousness = 0.0
+                    }
+                }
                 corrected ?: typed
             }
             else -> typed
@@ -24658,15 +24693,19 @@ open class WMKeyboardService : InputMethodService() {
             // until the text around it settles, and is counted then — with the
             // taps behind it, which a kept correction turns into evidence of
             // where this hand lands.
-            judgeCorrections(
-                // A phonetic correction's taps spelled Latin letters, and say
-                // nothing about where this hand lands on the word it became.
-                if (correctedReading == null) {
-                    correctionWatch.push(revertible.original, revertible.committed, taps, tapKeys)
-                } else {
-                    correctionWatch.push(revertible.original, revertible.committed)
-                },
-            )
+            // A word the strip handed over was not the gate's judgement, so
+            // it teaches the gate nothing either way.
+            if (!stripHeadTaken) {
+                judgeCorrections(
+                    // A phonetic correction's taps spelled Latin letters, and say
+                    // nothing about where this hand lands on the word it became.
+                    if (correctedReading == null) {
+                        correctionWatch.push(revertible.original, revertible.committed, taps, tapKeys)
+                    } else {
+                        correctionWatch.push(revertible.original, revertible.committed)
+                    },
+                )
+            }
             recordStat { onAutocorrect(offer = false, System.currentTimeMillis()) }
             armRevertGuard()
         } else if (revertible != null) {
@@ -33516,6 +33555,12 @@ open class WMKeyboardService : InputMethodService() {
                     // word a space will write is named there instead.
                     autocorrectWord = commitResolution?.takeIf { it.typed == typed }?.let {
                         if (it.isPhonetic && engine.phoneticFixedStrip != null) it.phoneticTop else it.correction
+                    } ?: if (commitResolution?.takeIf { it.typed == typed }?.isPhonetic == true) {
+                        null
+                    } else {
+                        // Space takes the top suggestion: the word it will put
+                        // in is marked the way a correction is.
+                        stripHeadForSpace(state, typed, results)
                     },
                 )
             }

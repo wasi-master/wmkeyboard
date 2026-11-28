@@ -367,6 +367,15 @@ internal fun TypingCorrectionsSettings(
                     default = SettingsDefaults.correction.confidence,
                 ) { scope.launch { repository.setAutocorrectConfidence(it) } }
             }
+            item {
+                ToggleSetting(
+                    R.string.typing_space_takes_top_title,
+                    stringResource(R.string.typing_space_takes_top_subtitle),
+                    settings.watch { it.correction.spaceTakesTop },
+                    info = stringResource(R.string.typing_space_takes_top_info),
+                    default = SettingsDefaults.correction.spaceTakesTop,
+                ) { scope.launch { repository.setAutocorrectSpaceTakesTop(it) } }
+            }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.typing_autocorrect_adaptive_title,

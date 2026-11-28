@@ -25,6 +25,7 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | --- | --- | --- | --- |
 | Autocorrect | Toggle | On | always |
 | Autocorrect confidence | Slider, ×1–×10 | ×4.0 | Autocorrect on |
+| Space takes the top suggestion | Toggle | Off | Autocorrect on |
 | Adaptive confidence | Toggle | On | Autocorrect on |
 | Typing rhythm | Slider, 0%–100% | 0% (off) | Autocorrect on |
 | Undo autocorrect with backspace | Toggle | On | Autocorrect on |
@@ -65,7 +66,7 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 | Adapt to app tone | Toggle | On | always |
 | Fix missing apostrophes | Toggle | On | always |
 
-**Autocorrect** is this group's master switch, and sixteen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Undo backspace from the strip** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
+**Autocorrect** is this group's master switch, and seventeen rows hang off it: the ones that tune when and how hard it corrects, from Autocorrect confidence down to Add missing spaces. How often to offer the undo also needs Undo a correction from the strip on. From **Undo backspace from the strip** downwards the rows stay whether autocorrect is on or off, because none of them needs it: the keyboard still learns from the typos you fix by hand, spells, filters and ranks the strip, and detects the language you type. Detection strength and Remember each app's language need Detect the language you type on. Fix number row slips shows up only while the [number row](/reference/settings/layout/) is on screen, since it corrects a digit to the letter below it.
 
 **Undo a correction from the strip** puts the word you typed on a chip so you can take a correction back after backspace can no longer reach it, and **How often to offer the undo** is the bar a correction has to fall under to earn that chip. See [Autocorrect](/smart/autocorrect/#taking-a-correction-back-later).
 
@@ -76,6 +77,8 @@ The Typing screen is a hub. Seven of its groups are pages of their own (Automati
 **Stop after I refuse a fix** ends the loop where a correction is deleted, the word retyped, and the correction made again. Once you have undone or deleted a correction at the same place that many times (2 by default), the word you type there is left alone. See [Autocorrect](/smart/autocorrect/#when-you-keep-deleting-the-same-fix).
 
 **Learn from my fixes** remembers the typos you repair by hand, and the slips behind them, and **Learn where my taps land** learns where your finger lands on each key from the words you keep. **Learned corrections** opens the list of both, along with the corrections you undid, and lets you add, change or remove each entry on its own. See [Learning from your own fixes](/smart/autocorrect/#learning-from-your-own-fixes).
+
+**Space takes the top suggestion** puts in the strip's best word whenever autocorrect would leave a word alone, the way SwiftKey's middle suggestion goes in on space. See [Autocorrect](/smart/autocorrect/#options).
 
 **Correct two-letter words** lets autocorrect fix a slip in a two-letter word, and **Typos per word** sets how many typos one correction may fix by the word's length, instead of the built-in one (or two at the lowest confidence). See [Autocorrect](/smart/autocorrect/#options).
 
