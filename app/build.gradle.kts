@@ -1542,6 +1542,11 @@ dependencies {
     // WordKeyParityTest holds the Rust word key to ART's fold, answered by
     // ICU4J at the Unicode version ICU4X carries (`android.icu` is a stub here).
     testImplementation(libs.icu4j)
+    // RemoteFilesLiveTest, RemoteFilesTwinsTest and DateTimesIcuTest run under
+    // Robolectric (a real Context, Android's ICU); ApplicationProvider comes
+    // with androidx.test.ext:junit. Robolectric starts only for those classes.
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -1667,12 +1672,11 @@ if (docShots) {
     }
 
     dependencies {
-        testImplementation(libs.robolectric)
+        // Robolectric and androidx.test.ext:junit are ordinary test dependencies (above).
         testImplementation(libs.roborazzi)
         testImplementation(libs.roborazzi.compose)
         testImplementation(platform(libs.androidx.compose.bom))
         testImplementation(libs.androidx.compose.ui.test.junit4)
-        testImplementation(libs.androidx.junit)
     }
 
     tasks.withType<Test>().configureEach {
