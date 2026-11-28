@@ -34,6 +34,8 @@ interface Row {
 	/** Blockers past the ones the file keeps. */
 	moreBlockers?: number;
 	deps?: { name: string; verdict: string }[];
+	/** Compiled only: the keyboard's pure-Python stand-in goes in its place. */
+	standIn?: boolean;
 }
 interface Props {
 	part: 'totals' | 'blockers' | 'working' | 'packages';
@@ -97,6 +99,7 @@ function said(b: Blocker): string {
 
 /** Why a package won't load, in one cell. */
 function why(r: Row): string {
+	if (r.standIn && (r.verdict === 'ok' || r.verdict === 'warnings')) return "compiled; the keyboard's pure-Python stand-in goes in";
 	if (r.verdict === 'ok') return '';
 	if (r.verdict === 'failed' || r.verdict === 'built-in') return r.reason ?? '';
 	if (r.verdict === 'compiled') return r.reason ?? 'compiled code';
@@ -167,7 +170,7 @@ const working = rows.filter((r) => r.verdict === 'ok' || r.verdict === 'warnings
 			{working.map((r) => (
 				<li>
 					<a href={`https://pypi.org/project/${r.name}/`} rel="nofollow"><code>{r.name}</code></a>
-					{r.verdict === 'warnings' ? ' (with warnings)' : r.verdict === 'built-in' ? ' (comes with the keyboard)' : ''}
+					{r.standIn ? " (the keyboard's stand-in)" : r.verdict === 'warnings' ? ' (with warnings)' : r.verdict === 'built-in' ? ' (comes with the keyboard)' : ''}
 					{r.summary ? `: ${r.summary}` : ''}
 				</li>
 			))}

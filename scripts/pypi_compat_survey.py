@@ -200,6 +200,9 @@ def survey_one(wmpy, cache, timeout, item, meta):
     row["version"] = own.get("version") or row.get("version")
     row["bytes"] = own.get("bytes")
     row["own"] = own.get("verdict")
+    if own.get("standIn"):
+        # Compiled only: the keyboard's pure-Python stand-in goes in its place.
+        row["standIn"] = True
     deps = [{"name": p.get("name"), "verdict": p.get("verdict")} for p in pkgs if p is not own]
     if deps:
         row["deps"] = deps
