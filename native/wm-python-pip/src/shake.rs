@@ -197,6 +197,10 @@ pub fn shake(files: &BTreeMap<String, String>, entry: &str, vendored_roots: &[St
             None => notes.push("symbol shaking was skipped: a shaken file would not parse, so only whole modules were left out".into()),
         }
     }
+    // A package's data files (`<package>/_wmdata.py`) load by name when its
+    // code opens one, so they stay while anything of the package does.
+    let live: HashSet<String> = keep.iter().map(|i| root_of(&program.files[*i].path)).collect();
+    keep.extend((0..program.files.len()).filter(|i| vendored[*i] && crate::data::is_data_module(&program.files[*i].path) && live.contains(&root_of(&program.files[*i].path))));
     for (i, f) in program.files.iter().enumerate() {
         if vendored[i] && !keep.contains(&i) {
             out.remove(&f.path);

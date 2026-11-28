@@ -597,7 +597,15 @@ export interface WheelContents {
 	roots: string[];
 	requiresDist: string[];
 	license: string | null;
+	/**
+	 * Other files inside its packages (JSON schemas, word lists), by path:
+	 * they go into the plugin inside generated modules ([Py.pipDataModules]).
+	 */
+	data?: Record<string, Uint8Array>;
 }
+
+/** Files a package ships that are not data for it to read: compiled code, its sources, typing stubs. */
+const NOT_DATA = /\.(pyc|pyi|so|pyd|dylib|dll|c|cc|cpp|cxx|h|pyx|pxd|rs|go)$|(^|\/)py\.typed$|\.so\./i;
 
 const LICENSE_NAME = /^(licen[cs]e|copying|notice|authors)/i;
 
@@ -615,6 +623,7 @@ export function readWheel(bytes: Uint8Array): WheelContents {
 	const meta = parseMetadata(new TextDecoder().decode(entries[`${distInfo}/METADATA`]!));
 	const modules: Record<string, Uint8Array> = {};
 	const licenses: Record<string, Uint8Array> = {};
+	const dataFiles: Record<string, Uint8Array> = {};
 	for (const [name, data] of Object.entries(entries)) {
 		if (name.endsWith('/') || name.split('/').some((p) => p === '..' || p === '') || name.startsWith('/')) continue;
 		if (name.startsWith(`${distInfo}/`)) {
@@ -626,11 +635,17 @@ export function readWheel(bytes: Uint8Array): WheelContents {
 		const data_ = /^[^/]+\.data\/(purelib|platlib)\/(.+)$/.exec(name);
 		if (data_) path = data_[2]!;
 		else if (/^[^/]+\.data\//.test(name)) continue;
-		if (!path.endsWith('.py') || path.split('/').includes('__pycache__')) continue;
+		const parts = path.split('/');
+		if (parts.includes('__pycache__')) continue;
+		if (!path.endsWith('.py')) {
+			// A package's own data, not its tests' or its build's.
+			if (parts.length > 1 && !NOT_DATA.test(path) && !parts.slice(1, -1).some((p) => p === 'tests' || p === 'test')) dataFiles[path] = data;
+			continue;
+		}
 		modules[path] = data;
 	}
 	const roots = [...new Set(Object.keys(modules).map((p) => (p.includes('/') ? p.split('/')[0]! : p.replace(/\.py$/, ''))))].sort();
-	return { modules, licenses, roots, requiresDist: meta.requiresDist, license: licenseOf(meta.licenseExpression, meta.license, meta.classifiers) };
+	return { modules, licenses, roots, requiresDist: meta.requiresDist, license: licenseOf(meta.licenseExpression, meta.license, meta.classifiers), data: dataFiles };
 }
 
 /** The headers of a core metadata file that matter here. */

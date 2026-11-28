@@ -474,3 +474,15 @@ fn a_desktop_window_module_in_an_add_on_is_a_warning() {
     let r = run(&[("bar/__init__.py", "from .std import tqdm\n"), ("bar/std.py", "class tqdm:\n    pass\n"), ("bar/tk.py", "import tkinter\nfrom tkinter import ttk\n")], &[]);
     assert_eq!(r.verdict, Verdict::Warnings, "{:?}", codes(&r));
 }
+
+#[test]
+fn open_at_load_reads_the_package_data_that_came_with_it() {
+    let reader = "import os\n\nwith open(os.path.join(os.path.dirname(__file__), 'words.txt')) as f:\n    WORDS = f.read().split()\n";
+    // Without its data the read fails when the package loads.
+    let bare = run(&[("words/__init__.py", reader)], &[]);
+    assert_eq!(bare.verdict, Verdict::Incompatible, "{:?}", codes(&bare));
+    // With it (wmpy pip wrote words/_wmdata.py), open() finds the file: a warning that other paths fail.
+    let kept = run(&[("words/__init__.py", reader), ("words/_wmdata.py", "TEXT = {\"words.txt\": \"a b c\"}\nDATA = {}\n")], &[]);
+    assert_eq!(kept.verdict, Verdict::Warnings, "{:?}", codes(&kept));
+    assert!(kept.problems().any(|p| p.message.contains("opens only the data files that came with the package")), "{:?}", codes(&kept));
+}

@@ -24,7 +24,7 @@ so a package qualifies when:
 - it imports only modules the keyboard has, the `wm` package, itself, and
   other vendored packages
 - it does not reach the file system, the network, threads or other
-  processes directly
+  processes directly (reading its own [data files](#data-files) is fine)
 - its files fit the keyboard's [size limits](#size-limits)
 
 Many PyPI packages are written for full CPython and fail one of these:
@@ -66,8 +66,9 @@ For each package, `wmpy pip install`:
 5. Applies the small [patches](#patched-packages) the keyboard keeps for a
    few popular packages, then analyses every package and refuses those that
    will not work.
-6. Copies the importable `.py` files to the top of the plugin folder, the
-   licence files to `licenses/<name>/`, and records it all in `wmpy.lock`.
+6. Copies the importable `.py` files to the top of the plugin folder, writes
+   the package's [data files](#data-files) into a module beside them, puts
+   the licence files in `licenses/<name>/`, and records it all in `wmpy.lock`.
 
 It prints a table of what it did, the problems it found, and how close the
 plugin is to the keyboard's limits.
@@ -201,6 +202,32 @@ ships a pure-Python wheel is installed as it is. The stand-ins are the
 keyboard's own code, under its MIT licence, and live in
 [`native/wm-python-pip/replacements`](https://github.com/wasi-master/WMKeyboard/tree/main/native/wm-python-pip/replacements).
 
+## Data files
+
+Some packages read files they ship beside their modules: jsonschema its
+JSON schemas, a spell checker its word list, a template engine its templates.
+A plugin holds only Python modules, so `wmpy pip` and the web editor write
+those files into a module of the package, `<package>/_wmdata.py`, as text
+(or base64 for binary files). In the plugin they read as files again, at the
+path the package's `__file__` leads to (`/plugin/<package>/...`):
+
+- `open()` reads them, in text or binary mode;
+- `importlib.resources.files(...)`, `read_text`, `open_binary` and `as_file`,
+  and `pkgutil.get_data`, find them;
+- `os.path.exists`, `isfile`, `isdir`, `os.listdir`, `os.scandir`, `os.walk`,
+  `os.stat` and `pathlib` see them.
+
+They are read-only: opening one to write raises `PermissionError`, and so
+does any path outside the plugin's packages. A package's data may take
+2 MB once written as Python, and one module holds up to 1 MB, so more goes
+into `_wmdata_2.py` and on. A package with more data than that, such as
+Babel's locale data, gets none, and the install says so. `wmpy pack` keeps
+a package's data modules while the plugin uses the package.
+
+An `open()` a package makes when it loads counts as a warning, not an error,
+when the package came with data, since it most likely opens one of those
+files.
+
 ## Check before you install
 
 ```bash
@@ -226,7 +253,7 @@ Problems carry a short code. The common ones:
 | `missing-import` | Nothing provides this module. `help` says which package to install when it is not a standard one. |
 | `sandbox-import` | A module plugins go without on purpose: `sqlite3`, `dbm`, `pty`. `help` names what to use instead, such as `wm.files`. Many others, such as `socket` and `tempfile`, are there as stand-ins that raise only when used: see [the Python you get](/plugins/wm-package/#the-python-you-get). |
 | `missing-attribute` | The keyboard's version of a standard module lacks this, such as `sys.platform`. |
-| `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or one that raises an error in plugins when called: `open` (no file system), `input` (no terminal). Only naming one, as in `prompt = input`, is fine. |
+| `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or one that raises an error in plugins when called: `open` (no file system, apart from the package's [data files](#data-files)), `input` (no terminal). Only naming one, as in `prompt = input`, is fine. |
 | `missing-name` | `from x import y` where `x` has no `y`. |
 | `c-extension`, `c-source`, `needs-build` | Compiled code, its sources, or a source archive that would have to be built. |
 | `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 1 MB, deeper than `a/b/c/d/e/f/g/h.py`, or a path that is not a module name. An error when the package loads it, a warning when it does not. |

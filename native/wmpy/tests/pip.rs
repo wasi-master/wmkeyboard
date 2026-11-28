@@ -51,7 +51,8 @@ fn check_reads_a_wheel_and_names_what_will_not_run() {
     for k in ["severity", "message", "col", "endCol", "traceback", "notes", "help"] {
         assert!(problem.get(k).is_some(), "{k} missing: {problem}");
     }
-    assert!(p["notes"].as_array().unwrap().iter().any(|n| n.as_str().unwrap().contains("1 data files were left out")), "{p}");
+    // Its data file travels in a generated module of its package.
+    assert!(p["notes"].as_array().unwrap().iter().any(|n| n.as_str().unwrap().contains("1 data files went into tidy/_wmdata.py")), "{p}");
     // The human form: a code frame and a table.
     let (code, out, err) = cli(&["pip", "check", whl.to_str().unwrap()]);
     assert_eq!(code, 1);

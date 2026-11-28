@@ -53,6 +53,9 @@ pub struct Dist {
     /// It is the keyboard's pure-Python stand-in for a compiled package
     /// ([wm_python_pip::replacements]), not the project's own files.
     pub stand_in: bool,
+    /// Data files beside its modules, by path, while it is read: [finish]
+    /// writes them into generated modules ([wm_python_pip::data]).
+    pub data: BTreeMap<String, Vec<u8>>,
 }
 
 impl Dist {
@@ -251,6 +254,7 @@ fn take_file(dist: &mut Dist, path: &str, bytes: &[u8], skipped: &mut usize, ski
     } else if BUILT_SOURCES.iter().any(|e| lower.ends_with(e)) || lower.ends_with(".h") {
         dist.native.push(path.to_string());
     } else if !(lower.ends_with(".pyi") || lower.ends_with("py.typed") || lower.ends_with(".pyc")) {
+        dist.data.insert(path.to_string(), bytes.to_vec());
         *skipped += 1;
     }
 }
@@ -259,7 +263,17 @@ fn finish(dist: &mut Dist, skipped: usize, skipped_py: Vec<String>) {
     let roots: BTreeSet<String> = dist.modules.keys().map(|p| p.split('/').next().unwrap_or(p).trim_end_matches(".py").to_string()).collect();
     dist.roots = roots.into_iter().collect();
     if skipped > 0 {
-        dist.notes.push(format!("{skipped} data files were left out: plugins cannot open files beside their code"));
+        // Data files beside its modules go into a generated module of their package.
+        let packages: BTreeSet<String> = dist.modules.keys().filter_map(|p| p.split_once('/').map(|(root, _)| root.to_string())).collect();
+        let made = wm_python_pip::data::modules(&std::mem::take(&mut dist.data), &packages);
+        if made.kept > 0 {
+            let names: Vec<&str> = made.modules.keys().map(String::as_str).collect();
+            dist.notes.push(format!("{} data files went into {}, where open(), pathlib and importlib.resources read them", made.kept, names.join(", ")));
+        }
+        for (path, text) in made.modules {
+            dist.modules.insert(path, text);
+        }
+        dist.notes.extend(made.notes);
     }
     if !skipped_py.is_empty() {
         dist.notes.push(format!("{} .py files whose paths are not module names were left out ({})", skipped_py.len(), skipped_py.iter().take(3).cloned().collect::<Vec<_>>().join(", ")));
@@ -614,7 +628,9 @@ mod tests {
         files.insert("LICENSE".to_string(), b"MIT".to_vec());
         let d = from_tree(files.clone(), "x", "y");
         assert!(d.refused.is_none(), "{:?}", d.refused);
-        assert_eq!(d.modules.keys().collect::<Vec<_>>(), vec!["tidy/__init__.py"]);
+        // Its data file travels in a generated module; its tests stay out.
+        assert_eq!(d.modules.keys().collect::<Vec<_>>(), vec!["tidy/__init__.py", "tidy/_wmdata.py"]);
+        assert!(d.modules["tidy/_wmdata.py"].contains("\"data.json\": \"{}\""), "{}", d.modules["tidy/_wmdata.py"]);
         assert_eq!(d.roots, vec!["tidy"]);
         assert_eq!(d.licenses.len(), 1);
         files.insert("src/tidy/_speed.c".to_string(), b"int x;".to_vec());

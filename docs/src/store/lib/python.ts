@@ -471,6 +471,24 @@ export function pipPatch(project: string, files: Record<string, string>): { file
 	}
 }
 
+/**
+ * The modules that carry a package's data files into a plugin, as `wmpy pip
+ * install` writes them: [data] is path to base64, [packages] the package's
+ * top-level packages. Null when this build has no `pip_data_modules`; the
+ * data is then left out.
+ */
+export function pipDataModules(data: Record<string, string>, packages: string[]): { modules: Record<string, string>; kept: number; notes: string[] } | null {
+	const f = pipExport('pip_data_modules', 'pipDataModules');
+	if (!f) return null;
+	try {
+		const raw = JSON.parse(f(JSON.stringify(data), JSON.stringify(packages))) as { modules?: Record<string, string>; kept?: number; notes?: string[] };
+		if (!raw.modules || typeof raw.modules !== 'object') return null;
+		return { modules: raw.modules, kept: raw.kept ?? 0, notes: raw.notes ?? [] };
+	} catch {
+		return null;
+	}
+}
+
 /** The keyboard's pure-Python stand-in for a compiled package ([Py.pipStandIn]). */
 export interface PipStandIn {
 	files: Record<string, string>;

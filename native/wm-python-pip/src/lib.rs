@@ -12,6 +12,7 @@
 //! `wm-python-tooling` gives the structure: imports, classes, names.
 
 mod analyse;
+pub mod data;
 pub mod patches;
 pub mod replacements;
 mod probe;

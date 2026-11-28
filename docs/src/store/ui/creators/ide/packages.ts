@@ -48,6 +48,32 @@ export function standInContents(planned: PlannedPackage): { contents: WheelConte
 	return { contents: { modules, licenses: { LICENSE: encoder.encode(s.license) }, roots: [...s.roots].sort(), requiresDist: [], license: 'MIT' }, note: s.note };
 }
 
+function base64(bytes: Uint8Array): string {
+	let s = '';
+	for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+	return btoa(s);
+}
+
+/**
+ * [contents] with its data files written into generated modules of its
+ * packages (`<package>/_wmdata.py`), where open() and importlib.resources
+ * read them in a plugin, and a note on what went in or was left out.
+ * Unchanged when it has no data, or this build cannot write the modules.
+ */
+export function withDataModules(contents: WheelContents): { contents: WheelContents; notes: string[] } {
+	const data = contents.data ?? {};
+	const paths = Object.keys(data);
+	if (paths.length === 0) return { contents, notes: [] };
+	const packages = [...new Set(Object.keys(contents.modules).filter((p) => p.includes('/')).map((p) => p.split('/')[0]!))];
+	const made = Py.pipDataModules(Object.fromEntries(paths.map((p) => [p, base64(data[p]!)])), packages);
+	if (!made) return { contents, notes: [`${paths.length} data files were left out: this build cannot write them into the plugin`] };
+	const encoder = new TextEncoder();
+	const modules = { ...contents.modules };
+	for (const [path, text] of Object.entries(made.modules)) modules[path] = encoder.encode(text);
+	const notes = made.kept > 0 ? [`${made.kept} data files went into ${Object.keys(made.modules).join(', ')}, where open(), pathlib and importlib.resources read them`] : [];
+	return { contents: { ...contents, modules }, notes: [...notes, ...made.notes] };
+}
+
 export type Changes = Record<string, FileData | null>;
 
 const strictUtf8 = new TextDecoder('utf-8', { fatal: true });

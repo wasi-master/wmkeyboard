@@ -151,6 +151,9 @@ struct Ctx<'a> {
     /// list: they write to `globals()` or hand it on (reading it, as `__dir__`
     /// does, makes nothing), or reach themselves through `sys.modules`.
     dynamic: HashSet<String>,
+    /// The package's top-level packages whose data files came with them
+    /// ([crate::data]): `open()` reads those in a plugin.
+    data_roots: HashSet<String>,
 }
 
 impl Ctx<'_> {
@@ -212,6 +215,7 @@ pub fn analyse(files: &BTreeMap<String, String>, opts: &AnalyseOptions) -> Repor
             })
             .map(|f| f.name.clone())
             .collect(),
+        data_roots: files.keys().filter(|p| crate::data::is_data_module(p)).map(|p| root_of(p)).collect(),
     };
     // What never runs in the keyboard, and how each module gets loaded.
     let host = reach::Host::get();
@@ -815,7 +819,12 @@ fn check_names(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Probl
         }
         let caught = !in_function && guards.iter().any(|(span, g)| span.contains(o.span.start) && g.name_error);
         // An `except X:` clause is passed over by name; it fails only if an exception reaches it.
-        let severity = if o.except_type { Severity::Info } else { severity_for(in_function, caught) };
+        let mut severity = if o.except_type { Severity::Info } else { severity_for(in_function, caught) };
+        // A package that came with its data files reads them with open(); any other file fails.
+        let reads_data = name == "open" && refuses && ctx.data_roots.contains(&root_of(&file.path));
+        if reads_data && severity == Severity::Error {
+            severity = Severity::Warning;
+        }
         let count = shown.entry(name.clone()).or_default();
         if *count >= MAX_PER_NAME {
             *hidden.entry(name).or_default() += 1;
@@ -823,6 +832,14 @@ fn check_names(ctx: &mut Ctx, file: &ModFile, dead: &[Span], out: &mut Vec<Probl
         }
         *count += 1;
         let p = match sandbox_builtin(&name) {
+            Some(_) if reads_data => at(
+                file,
+                o.span,
+                severity,
+                "sandbox-builtin",
+                format!("'{name}' opens only the data files that came with the package in plugins; any other file raises an error"),
+                None,
+            ),
             Some(why) if refuses => at(file, o.span, severity, "sandbox-builtin", format!("'{name}' raises an error in plugins: {why}"), None),
             Some(why) => at(file, o.span, severity, "sandbox-builtin", format!("'{name}' is not available to plugins: {why}"), None),
             None => at(file, o.span, severity, "missing-builtin", format!("the keyboard's Python has no '{name}'"), None),

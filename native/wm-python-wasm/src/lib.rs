@@ -314,6 +314,22 @@ pub fn pip_stand_in(project: &str, name: &str, version: &str) -> String {
     }
 }
 
+/// The modules that carry a package's data files into a plugin, as `wmpy
+/// pip install` writes them ([wm_python_pip::data]). [data_json] is
+/// `{"path": base64}` for the files beside the package's modules,
+/// [packages_json] the top-level packages (folders of its modules). Answers
+/// `{"modules": {path: source}, "kept": n, "notes": [str]}`, or `{"error"}`.
+#[wasm_bindgen]
+pub fn pip_data_modules(data_json: &str, packages_json: &str) -> String {
+    let data: std::collections::BTreeMap<String, String> = match serde_json::from_str(data_json) {
+        Ok(d) => d,
+        Err(e) => return json!({ "error": format!("data: {e}") }).to_string(),
+    };
+    let packages: std::collections::BTreeSet<String> = serde_json::from_str(packages_json).unwrap_or_default();
+    let made = wm_python_pip::data::modules_from_base64(&data, &packages);
+    json!({ "modules": made.modules, "kept": made.kept, "notes": made.notes }).to_string()
+}
+
 /// Tree-shakes the vendored packages ([roots_json], their top-level names)
 /// among [files_json] (every `.py` file of the plugin), reached from [entry]
 /// and the plugin's own modules; [symbols] also drops unused top-level

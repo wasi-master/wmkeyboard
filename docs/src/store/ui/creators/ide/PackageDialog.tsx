@@ -10,7 +10,7 @@ import { fmtBytes, NetError } from '../../../lib/net';
 import * as Py from '../../../lib/python';
 import { downloadWheel, fetchProject, fetchRelease, lockRoots, normalizeName, parseRequirement, PypiError, readWheel, resolvePlan, satisfies, STAND_IN, type Lock, type Plan, type Project, type Requirement } from '../../../lib/pypi';
 import { moduleNames, type DraftFiles } from './draft-files';
-import { addPackages, neededBy, packageSources, patchPackage, removePackage, standInContents, type Changes, type PreparedPackage } from './packages';
+import { addPackages, neededBy, packageSources, patchPackage, removePackage, standInContents, withDataModules, type Changes, type PreparedPackage } from './packages';
 import { Dialog, TextButton } from './parts';
 import { S } from './strings';
 
@@ -96,7 +96,10 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 					return s.contents;
 				}
 				try {
-					return readWheel(await downloadWheel(p.wheel, s));
+					// Its data files go into generated modules, as wmpy pip writes them.
+					const withData = withDataModules(readWheel(await downloadWheel(p.wheel, s)));
+					notes[i]!.push(...withData.notes);
+					return withData.contents;
 				} catch (e) {
 					if (e instanceof PypiError && e.kind === 'bad-wheel') throw new PypiError('bad-wheel', p.name);
 					throw e;

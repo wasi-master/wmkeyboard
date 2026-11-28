@@ -326,3 +326,13 @@ fn the_json_has_the_shape_the_web_editor_reads() {
     assert!(j["removedSymbols"][0].is_array());
     assert!(j["bytesBefore"].as_u64().unwrap() > j["bytesAfter"].as_u64().unwrap());
 }
+
+#[test]
+fn a_package_keeps_its_data_module_while_it_is_used() {
+    let data = ("words/_wmdata.py", "TEXT = {\"words.txt\": \"a b\"}\nDATA = {}\n");
+    let init = ("words/__init__.py", "import os\n\ndef load():\n    with open(os.path.join(os.path.dirname(__file__), 'words.txt')) as f:\n        return f.read()\n");
+    let used = shaken(&[("main.py", "import words\n\ndef render():\n    words.load()\n"), init, data], &["words"], false);
+    assert!(used.files.contains_key("words/_wmdata.py"), "{:?}", used.removed_files);
+    let unused = shaken(&[("main.py", "def render():\n    pass\n"), init, data], &["words"], false);
+    assert!(unused.removed_files.contains(&"words/_wmdata.py".to_string()), "{:?}", unused.removed_files);
+}
