@@ -117,6 +117,18 @@ The mouse works too. Click a control to press it, scroll with the wheel, and
 drag on a canvas that takes drags. A multi-line box takes Enter as a new line
 and Ctrl-S to submit.
 
+### Language, theme and surface
+
+`--locale bn` runs the plugin as a phone set to Bengali would: `plugin.locale`
+is `"bn"`, and an API 5 plugin's text comes from `locales/bn.json`.
+`--theme dark` sets `plugin.theme` and `plugin.dark`, and `--surface float`
+or `--surface action` runs it as a floating window or a selection action
+would, as `plugin.surface` tells it. `wmpy preview` takes the same three.
+
+A plugin folder can keep these, the mock and the settings in
+[wmpy.toml](/plugins/wmpy/#wmpytoml), under `[run]`, so a plain `wmpy run`
+uses them. An option on the command line wins.
+
 A terminal draws with characters, so the panel shows what each widget is and
 does rather than how the keyboard dresses it. Charts and sparklines are drawn
 with ratatui's own charts, and a canvas with braille dots. Pictures and QR
@@ -140,6 +152,7 @@ file reloads the plugin and the page follows on its own.
 | `--port N` | Listen on port N. With no port, wmpy picks a free one |
 | `--host` | 127.0.0.1 (the default), localhost or ::1. The server never listens beyond your computer |
 | `--theme dark` | Dark page, and `plugin.dark` is true |
+| `--locale TAG`, `--surface` | As for `wmpy run`. A right-to-left language, such as Arabic or Urdu, draws the panel right to left |
 | `--no-open` | Print the address and open no browser |
 | `--print-url` | Print one line of JSON, `{"url": ..., "port": ...}`, once the server listens, and open no browser. For editors and scripts |
 | `--mock`, `--set`, `--no-watch` | As for `wmpy run` |

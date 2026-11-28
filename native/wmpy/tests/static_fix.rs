@@ -39,7 +39,8 @@ const MAIN: &str = "from wm import plugin, ui\n\nstate = plugin.state(count=0, p
 fn fix_makes_the_safe_fixes_and_leaves_risky_ones() {
     let dir = plugin("safe", &[("plugin.json", MANIFEST), ("main.py", MAIN)]);
     let (code, out, err) = cli(&["check", s(&dir), "--fix"]);
-    assert_eq!(code, 0, "{out}{err}");
+    // The risky fixes are left, and a missing permission or host is an error.
+    assert_eq!(code, 1, "{out}{err}");
     let main = read(&dir, "main.py");
     // Two names for one `from wm import` line take two rounds.
     assert!(main.starts_with("from wm import plugin, ui, clipboard, http\nimport math\n"), "{main}");
@@ -53,7 +54,7 @@ fn fix_makes_the_safe_fixes_and_leaves_risky_ones() {
     assert!(err.contains("not fixed: add the “network” permission") && err.contains("--fix-risky"), "{err}");
     assert!(err.contains("not fixed: add “api.example.com” to plugin.json's hosts"), "{err}");
     // What is left is checked again.
-    assert!(err.contains("warning[permission_missing]") && err.contains("checked plugin.json and 1 Python file: 0 errors"), "{err}");
+    assert!(err.contains("error[permission_missing]") && err.contains("checked plugin.json and 1 Python file: 3 errors, 0 warnings"), "{err}");
     // Nothing more to do.
     let (_, _, err) = cli(&["check", s(&dir), "--fix"]);
     assert!(err.contains("nothing to fix"), "{err}");
@@ -73,7 +74,8 @@ fn fix_makes_the_safe_fixes_and_leaves_risky_ones() {
 fn dry_run_prints_diffs_and_writes_nothing() {
     let dir = plugin("dry", &[("plugin.json", MANIFEST), ("main.py", MAIN)]);
     let (code, out, err) = cli(&["check", s(&dir), "--fix", "--dry-run"]);
-    assert_eq!(code, 0, "{err}");
+    // What the risky fixes would mend is still an error.
+    assert_eq!(code, 1, "{err}");
     assert_eq!(read(&dir, "main.py"), MAIN);
     assert_eq!(read(&dir, "plugin.json"), MANIFEST);
     assert!(out.starts_with("--- a/main.py\n+++ b/main.py\n@@ -1,10 +1,11 @@\n-from wm import plugin, ui\n+from wm import plugin, ui, clipboard, http\n+import math\n"), "{out}");

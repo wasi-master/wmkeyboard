@@ -32,6 +32,10 @@ flate2 = "1"
 tar = { version = "0.4", default-features = false }
 rustyline = { version = "19", default-features = false, features = ["with-file-history"] }
 signal-hook = "0.3"
+toml_edit = { version = "0.25", default-features = false, features = ["parse"] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [profile.release]
 opt-level = 3

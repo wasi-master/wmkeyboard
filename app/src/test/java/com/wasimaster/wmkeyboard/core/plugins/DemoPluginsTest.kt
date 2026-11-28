@@ -20,8 +20,10 @@ import kotlinx.serialization.json.JsonPrimitive
  * treatment: a demo that needed something plugins do not get would be a
  * documentation bug shipped to every reader.
  *
- * The scripts are mirrored from `plugins-src/` in the addon repository, whose
- * `test.py` files test the same plugins on `wmpy test`. What only this
+ * The API 4 scripts are mirrored from `plugins-src/` in the addon repository,
+ * whose `test.py` files test the same plugins on `wmpy test`; todo-list,
+ * text-tools, ui-kitchen-sink and text-actions are the API 5 templates
+ * `wmpy new`, the app and the web editor start from. What only this
  * side proves is the trip through the app: the session's JSON, the widget
  * codec, events as the keyboard sends them, and the storage and reminders
  * files the app reads afterwards.
@@ -43,7 +45,7 @@ class DemoPluginsTest {
         permissions: List<String> = emptyList(),
         storage: File? = File(temp.newFolder(), PluginStore.STORAGE_FILE),
         reminders: File? = null,
-    ): DemoSession = DemoSession.demo(name, permissions, storage, reminders).also { open += it }
+    ): DemoSession = DemoSession.demo(name, permissions, storage, reminders, apiVersion = apiOf(name)).also { open += it }
 
     private fun remindersFile(): File = File(temp.newFolder(), PluginStore.REMINDERS_FILE)
 
@@ -78,10 +80,11 @@ class DemoPluginsTest {
     @Test
     fun `selection actions rot13 and quote with the style the panel chose`() {
         val storage = File(temp.newFolder(), PluginStore.STORAGE_FILE)
-        val plugin = DemoSession.plugin("text-actions", listOf("storage", "selection"))
+        val plugin = DemoSession.plugin("text-actions", listOf("storage", "selection"), apiVersion = PluginManifestCodec.PACKAGE_API)
         val source = DemoSession.resource("plugins/text-actions.py")
+        fun run(text: String, action: String) = DemoSession.transform(source, plugin, storage, text, action)
         fun transform(text: String, action: String): String? {
-            val result = DemoSession.transform(source, plugin, storage, text, action)
+            val result = run(text, action)
             assertTrue("$action failed: ${result.error}", result.ok)
             return result.value
         }
@@ -90,10 +93,12 @@ class DemoPluginsTest {
         assertEquals("Hello, World!", transform(transform("Hello, World!", "rot13")!!, "rot13"))
         assertEquals("“hi”", transform("hi", "quote"))
 
-        // The panel and the action are two sessions; the choice crosses in storage.
-        load("text-actions", plugin.permissions, storage).click("guillemets")
+        // The panel and the action are two sessions; the choice crosses in
+        // storage, through plugin.state(persist=True).
+        load("text-actions", plugin.permissions, storage).click("button:«Guillemets»")
         assertEquals("«hi»", transform("hi", "quote"))
-        assertNull(transform("hi", "no-such-action"))
+        // An id no @plugin.action answers fails, and leaves the text alone.
+        assertFalse(run("hi", "no-such-action").ok)
     }
 
     // ---- cipher ------------------------------------------------------------
@@ -131,33 +136,38 @@ class DemoPluginsTest {
 
     // ---- todo --------------------------------------------------------------
 
+    private fun DemoSession.add(text: String, due: Long? = null): RenderedUi {
+        if (due != null) date("date:Due (optional)", due)
+        input("input:Something to do", text)
+        return click("button:Add")
+    }
+
     @Test
     fun `todo adds ticks and clears`() {
         val demo = load("todo-list", TODO_PERMISSIONS, reminders = remindersFile())
-        demo.input("draft", "buy milk")
-        assertTrue(demo.click("add").allText().contains("buy milk"))
-        // Adding clears the box through the host, not by writing to it directly.
-        assertEquals(listOf("draft" to ""), demo.writes)
+        val before = demo.writes.size
+        assertTrue(demo.add("buy milk").allText().contains("buy milk"))
+        // Adding empties the box: the value it is drawn with goes back to "",
+        // which the session sends the host as a write to the box.
+        assertEquals(listOf("input:Something to do" to ""), demo.writes.drop(before))
 
-        assertTrue(demo.toggle("done:1", true).allText().contains("0 of 1 left"))
-        assertTrue(demo.click("clear_done").allText().contains("Nothing on the list"))
+        assertTrue(demo.toggle("item1", true).allText().contains("0 of 1 left"))
+        assertTrue(demo.click("button:Clear finished").allText().contains("Nothing on the list"))
     }
 
     @Test
     fun `todo remembers its list through storage`() {
         val storage = File(temp.newFolder("shared"), PluginStore.STORAGE_FILE)
-        val first = load("todo-list", listOf("storage"), storage)
-        first.input("draft", "water the plants")
-        first.click("add")
+        load("todo-list", listOf("storage"), storage).add("water the plants")
 
         // A second session, as if the keyboard had been closed and reopened.
         assertTrue(load("todo-list", listOf("storage"), storage).ui.allText().contains("water the plants"))
     }
 
     @Test
-    fun `todo reads the list its Lua version saved`() {
-        // The shape the retired Lua plugin wrote, which a parked storage.json
-        // brings back when the Python version is installed with the same id.
+    fun `todo reads the list its earlier versions saved`() {
+        // The shape the API 4 version and the retired Lua plugin wrote: the
+        // list as JSON under "items", which is how API 5 storage keeps a list.
         val storage = File(temp.newFolder(), PluginStore.STORAGE_FILE)
         PluginStorage(storage).set(
             "items",
@@ -176,9 +186,7 @@ class DemoPluginsTest {
         val reminders = PluginReminders(file)
         val demo = load("todo-list", TODO_PERMISSIONS, reminders = file)
         val due = System.currentTimeMillis() / 1000 + 3600
-        demo.input("draft", "file taxes")
-        demo.date("draft_due", due)
-        val ui = demo.click("add")
+        val ui = demo.add("file taxes", due)
 
         // Written by the interpreter, read back the way the app's alarm reads it.
         val reminder = reminders.list().single()
@@ -186,7 +194,7 @@ class DemoPluginsTest {
         assertEquals(due * 1000, reminder.at)
         assertTrue(ui.allText().contains("reminder"))
 
-        demo.toggle("done:1", true)
+        demo.toggle("item1", true)
         assertTrue(reminders.list().isEmpty())
     }
 
@@ -195,94 +203,85 @@ class DemoPluginsTest {
         val file = remindersFile()
         val reminders = PluginReminders(file)
         val demo = load("todo-list", TODO_PERMISSIONS, reminders = file)
-        demo.input("draft", "late thing")
-        demo.date("draft_due", System.currentTimeMillis() / 1000 - 7200)
         // A time already past gets no reminder, and the list says it is late.
-        assertTrue(demo.click("add").allText().contains("1 overdue"))
+        assertTrue(demo.add("late thing", System.currentTimeMillis() / 1000 - 7200).allText().contains("1 overdue"))
         assertTrue(reminders.list().isEmpty())
 
         val later = System.currentTimeMillis() / 1000 + 86_400
-        assertFalse(demo.date("due", later).allText().contains("overdue"))
+        assertFalse(demo.date("date:Due", later).allText().contains("overdue"))
         assertEquals(later * 1000, reminders.list().single().at)
 
-        assertTrue(demo.click("delete").allText().contains("Nothing on the list"))
+        assertTrue(demo.click("button:Delete").allText().contains("Nothing on the list"))
         assertTrue(reminders.list().isEmpty())
     }
 
     @Test
     fun `a cleared date reaches the script as None`() {
         val demo = load("todo-list", TODO_PERMISSIONS, reminders = remindersFile())
-        demo.input("draft", "someday")
-        demo.date("draft_due", System.currentTimeMillis() / 1000 + 3600)
-        demo.click("add")
-        val due = demo.ui.widgets().filterIsInstance<PluginWidget.DatePicker>().single { it.id == "due" }
+        demo.add("someday", System.currentTimeMillis() / 1000 + 3600)
+        val due = demo.ui.widgets().filterIsInstance<PluginWidget.DatePicker>().single { it.id == "date:Due" }
         assertTrue(due.value != null)
 
-        val cleared = demo.date("due", null).widgets().filterIsInstance<PluginWidget.DatePicker>().single { it.id == "due" }
+        val cleared = demo.date("date:Due", null).widgets().filterIsInstance<PluginWidget.DatePicker>().single { it.id == "date:Due" }
         assertNull(cleared.value)
     }
 
     @Test
     fun `todo works without the reminders permission`() {
         val demo = load("todo-list", listOf("storage"))
-        demo.input("draft", "buy milk")
-        demo.date("draft_due", System.currentTimeMillis() / 1000 + 3600)
-        val text = demo.click("add").allText()
+        val text = demo.add("buy milk", System.currentTimeMillis() / 1000 + 3600).allText()
         assertTrue(text.contains("buy milk"))
         assertFalse(text.contains("Remind me"))
     }
 
     // ---- text tools --------------------------------------------------------
 
+    private fun DemoSession.run(button: String, text: String): List<String> {
+        input("input:Text", text)
+        return click("button:$button").outputs()
+    }
+
     @Test
     fun `text tools change case`() {
         val demo = load("text-tools")
-        demo.input("text", "hello there")
-        assertTrue(demo.click("upper").allText().contains("HELLO THERE"))
-        assertTrue(demo.click("title").allText().contains("Hello There"))
+        assertEquals(listOf("HELLO THERE"), demo.run("UPPER", "hello there"))
+        assertEquals(listOf("Hello There"), demo.run("Title Case", "hello there"))
     }
 
     @Test
     fun `text tools round trip every encoding`() {
         val demo = load("text-tools")
         val original = "Hello, World! 123 কি 😀"
-        for ((encode, decode) in listOf(
-            "b64_encode" to "b64_decode",
-            "hex_encode" to "hex_decode",
-            "url_encode" to "url_decode",
-        )) {
-            demo.input("text", original)
-            val encoded = demo.click(encode).outputs().single()
+        for ((encode, decode) in listOf("Base64" to "un-Base64", "Hex" to "un-Hex", "URL" to "un-URL")) {
+            val encoded = demo.run(encode, original).single()
             assertTrue("$encode produced nothing", encoded.isNotEmpty())
-
-            demo.input("text", encoded)
-            assertEquals("$encode/$decode did not round trip", original, demo.click(decode).outputs().single())
+            assertEquals("$encode/$decode did not round trip", original, demo.run(decode, encoded).single())
         }
     }
 
     @Test
     fun `base64 matches a known value`() {
         val demo = load("text-tools")
-        demo.input("text", "Hello")
-        assertEquals("SGVsbG8=", demo.click("b64_encode").outputs().single())
+        assertEquals("SGVsbG8=", demo.run("Base64", "Hello").single())
+        // Copied without its padding, it still decodes.
+        assertEquals("Hello", demo.run("un-Base64", "SGVsbG8").single())
     }
 
     @Test
     fun `text tools count what is there`() {
         val demo = load("text-tools")
-        demo.input("text", "one two three")
-        val stats = demo.click("stats").outputs().single()
+        val stats = demo.run("Count it", "one two three").single()
         assertTrue(stats, stats.contains("13 characters"))
         assertTrue(stats, stats.contains("3 words"))
     }
 
     @Test
-    fun `clearing text tools empties the box through the host`() {
+    fun `clearing text tools empties the box`() {
         val demo = load("text-tools")
-        demo.input("text", "abc")
-        demo.click("upper")
-        assertTrue(demo.click("clear").outputs().isEmpty())
-        assertEquals(listOf("text" to ""), demo.writes)
+        demo.run("UPPER", "abc")
+        val before = demo.writes.size
+        assertTrue(demo.click("button:Clear").outputs().isEmpty())
+        assertEquals(listOf("input:Text" to ""), demo.writes.drop(before))
     }
 
     // ---- kitchen sink ------------------------------------------------------
@@ -301,34 +300,45 @@ class DemoPluginsTest {
         assertTrue(flat.any { it is PluginWidget.Button && it.primary })
         assertTrue(flat.any { it is PluginWidget.Toggle })
         assertTrue(flat.any { it is PluginWidget.Input })
+        assertTrue(flat.any { it is PluginWidget.Slider })
+        assertTrue(flat.any { it is PluginWidget.Select })
+        assertTrue(flat.any { it is PluginWidget.Chips })
+        assertTrue(flat.any { it is PluginWidget.Markdown })
         assertTrue(flat.any { it is PluginWidget.Spacer && it.height == 12 })
         assertTrue(flat.any { it is PluginWidget.DatePicker && it.time })
         assertTrue(flat.any { it == PluginWidget.Divider })
         assertTrue(flat.any { it is PluginWidget.Row })
         assertTrue(tabs.pages.size >= 5)
 
-        assertTrue(demo.click("work").widgets().any { it == PluginWidget.Progress })
-        assertTrue(demo.click("toggle_enabled").widgets().any { it is PluginWidget.Button && it.id == "maybe" && !it.enabled })
+        assertTrue(demo.click("button:Pretend to work").widgets().any { it == PluginWidget.Progress })
+        assertTrue(
+            demo.click("button:Disable it").widgets().any { it is PluginWidget.Button && it.text == "Enabled toggles me" && !it.enabled },
+        )
     }
 
     @Test
-    fun `the kitchen sink logs the events it is given`() {
+    fun `the kitchen sink logs what each widget called`() {
         val demo = load("ui-kitchen-sink")
-        demo.click("primary")
-        demo.toggle("demo_toggle", true)
-        demo.input("box", "typed text")
-        demo.tab("sink", 2)
-        val text = demo.date("when", 1_790_000_000L).allText()
-        assertTrue(text, text.contains("date when = "))
+        demo.click("button:Primary button")
+        demo.toggle("toggle:A toggle", true)
+        demo.input("input:A text box", "typed text")
+        demo.tab("tabs", 2)
+        val text = demo.date("date:A date and time", 1_790_000_000L).allText()
+        assertTrue(text, text.contains("date = "))
         assertTrue(text, text.contains("Picked: "))
         assertTrue(text, text.contains("click primary"))
-        assertTrue(text, text.contains("toggle demo_toggle = True"))
-        assertTrue(text, text.contains("input box = typed text"))
-        assertTrue(text, text.contains("tab sink #2"))
+        assertTrue(text, text.contains("toggle = True"))
+        assertTrue(text, text.contains("input = typed text"))
+        assertTrue(text, text.contains("tab #2"))
     }
 
     private companion object {
         /** What the todo demo's manifest declares. */
         val TODO_PERMISSIONS = listOf("storage", "reminders")
+
+        /** The demos written against the wm package; the others use the API 4 globals. */
+        val PACKAGE_DEMOS = setOf("todo-list", "text-tools", "ui-kitchen-sink", "text-actions", "text-generator")
+
+        fun apiOf(name: String) = if (name in PACKAGE_DEMOS) PluginManifestCodec.PACKAGE_API else 1
     }
 }

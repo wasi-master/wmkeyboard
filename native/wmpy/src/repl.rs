@@ -51,9 +51,11 @@ use crate::tui::layout::{self, Action, Local};
 pub struct Args {
     /// A plugin folder; without one, the folder you are in if it holds plugin.json
     pub dir: Option<PathBuf>,
-    /// A JSON file answering host calls by op name before the dev host does
+    /// A JSON file answering host calls by op name before the dev host does [default: wmpy.toml's run.mock]
     #[arg(long, value_name = "FILE")]
     pub mock: Option<PathBuf>,
+    #[command(flatten)]
+    pub look: crate::look::Look,
     /// Neither read nor write the history file
     #[arg(long)]
     pub no_history: bool,
@@ -96,12 +98,21 @@ pub fn run(args: Args) -> u8 {
         },
         None => Path::new("plugin.json").is_file().then(|| PathBuf::from(".")),
     };
+    let config = match &dir {
+        Some(d) => match crate::config::load_or_report(d) {
+            Ok(c) => c,
+            Err(code) => return code,
+        },
+        None => crate::config::Config::default(),
+    };
+    args.look.apply(dir.as_deref().unwrap_or(Path::new(".")), &config);
+    let mock = args.mock.clone().or_else(|| dir.as_ref().and_then(|d| config.run.mock.as_ref().map(|m| crate::config::in_dir(d, m))));
     let tty = std::io::stdin().is_terminal();
     // Ctrl-C while code runs stops it; a second one before it stops ends wmpy.
     let cancel = Arc::new(AtomicBool::new(false));
     let _ = signal_hook::flag::register_conditional_shutdown(signal_hook::consts::SIGINT, 130, cancel.clone());
     let _ = signal_hook::flag::register(signal_hook::consts::SIGINT, cancel.clone());
-    let mut repl = match Repl::new(dir, args.mock.clone(), cancel) {
+    let mut repl = match Repl::new(dir, mock, cancel) {
         Ok(r) => r,
         Err(e) => {
             eprintln!("error: {e}");
@@ -736,7 +747,7 @@ impl Repl {
             return None;
         };
         if self.panel.is_none() {
-            let opts = Options { dir: p.dir.clone(), mock: self.mock.clone(), sets: Vec::new(), dark: false, watch: true };
+            let opts = Options { dir: p.dir.clone(), mock: self.mock.clone(), sets: Vec::new(), dark: crate::project::context().dark(), watch: true };
             match DevHost::open(opts) {
                 Ok(h) => self.panel = Some(h),
                 Err(e) => {
@@ -986,7 +997,8 @@ fn build(plugin: Option<&Plugin>, facts: &PluginFacts, mock: Option<&Path>, scra
     let settings = world.borrow().settings.json(facts);
     rt.set("__wmpy_settings__", Some(json_to_value(&settings)));
     let setup = format!(
-        "{PRELUDE}import _wm\n_wm.settings.update(__wmpy_settings__)\n_wm.context.update({{\"locale\": \"en\", \"theme\": \"light\", \"surface\": \"panel\"}})\ndel _wm\ndel __wmpy_settings__\n"
+        "{PRELUDE}import _wm\n_wm.settings.update(__wmpy_settings__)\n_wm.context.update({})\ndel _wm\ndel __wmpy_settings__\n",
+        crate::project::context().json()
     );
     rt.load(&setup).map_err(|e| format!("the wm package did not load: {}: {}", e.kind, e.message))?;
     Ok((rt, world, rx))

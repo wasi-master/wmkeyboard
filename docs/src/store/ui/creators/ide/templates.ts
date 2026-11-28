@@ -29,10 +29,10 @@ export interface PluginTemplate {
 
 export const TEMPLATES: PluginTemplate[] = [
 	{ id: 'BLANK', name: S.templateBlankName, description: S.templateBlankDescription, script: BLANK_PLUGIN_SCRIPT, permissions: [], apiVersion: 5 },
-	{ id: 'TEXT_TOOLS', name: S.templateTextToolsName, description: S.templateTextToolsDescription, script: textTools, permissions: [] },
+	{ id: 'TEXT_TOOLS', name: S.templateTextToolsName, description: S.templateTextToolsDescription, script: textTools, permissions: [], apiVersion: 5 },
 	{ id: 'CIPHER', name: S.templateCipherName, description: S.templateCipherDescription, script: cipher, permissions: [] },
-	{ id: 'TODO', name: S.templateTodoName, description: S.templateTodoDescription, script: todo, permissions: ['storage', 'reminders'] },
-	{ id: 'KITCHEN_SINK', name: S.templateKitchenSinkName, description: S.templateKitchenSinkDescription, script: kitchenSink, permissions: [] },
+	{ id: 'TODO', name: S.templateTodoName, description: S.templateTodoDescription, script: todo, permissions: ['storage', 'reminders'], apiVersion: 5 },
+	{ id: 'KITCHEN_SINK', name: S.templateKitchenSinkName, description: S.templateKitchenSinkDescription, script: kitchenSink, permissions: [], apiVersion: 5 },
 	{ id: 'TEXT_GENERATOR', name: S.templateTextGeneratorName, description: S.templateTextGeneratorDescription, script: textGenerator, permissions: [], apiVersion: 5 },
 	{
 		id: 'WEATHER', name: S.templateWeatherName, description: S.templateWeatherDescription, script: weather, permissions: ['network', 'storage'], apiVersion: 5,

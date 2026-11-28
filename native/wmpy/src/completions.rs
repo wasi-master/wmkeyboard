@@ -1,6 +1,5 @@
 //! `wmpy completions <shell>`: shell completion scripts.
 
-use clap::CommandFactory;
 
 #[derive(clap::Args, Debug)]
 pub struct Args {
@@ -9,7 +8,7 @@ pub struct Args {
 }
 
 pub fn run(args: Args) -> u8 {
-    let mut cmd = crate::Cli::command();
+    let mut cmd = crate::command();
     clap_complete::generate(args.shell, &mut cmd, "wmpy", &mut std::io::stdout());
     0
 }

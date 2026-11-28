@@ -29,7 +29,7 @@ pub struct Args {
     /// The plugin folder
     #[arg(default_value = ".")]
     pub dir: PathBuf,
-    /// Where to write the archive [default: <Name>-<version>.wmplugin in the plugin folder]
+    /// Where to write the archive [default: <Name>-<version>.wmplugin in the plugin folder, or in wmpy.toml's pack.output]
     #[arg(short, long)]
     pub output: Option<PathBuf>,
     /// Pack without checking the plugin first
@@ -54,6 +54,12 @@ pub fn run(args: Args) -> u8 {
         Ok(d) => d,
         Err(d) => return fail(&d, 2),
     };
+    let config = match crate::config::load_or_report(&dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    let mut args = args;
+    args.shake_symbols |= config.pack.shake_symbols.unwrap_or(false);
     if !args.no_check {
         let outcome = crate::check::check_dir(&dir);
         if outcome.errors() > 0 {
@@ -79,7 +85,22 @@ pub fn run(args: Args) -> u8 {
         Ok(p) => p,
         Err(e) => return fail(&e, 1),
     };
-    let out = args.output.clone().unwrap_or_else(|| dir.join(codec::file_name(&m)));
+    // -o, else wmpy.toml's pack.output (a folder, or a .wmplugin file), else beside plugin.json.
+    let out = match (&args.output, &config.pack.output) {
+        (Some(o), _) => o.clone(),
+        (None, Some(o)) => {
+            let o = crate::config::in_dir(&dir, o);
+            if o.extension().is_some_and(|e| e == "wmplugin") {
+                o
+            } else {
+                if let Err(e) = std::fs::create_dir_all(&o) {
+                    return fail(&Diag::error(format!("cannot make {}: {e}", o.display())), 2);
+                }
+                o.join(codec::file_name(&m))
+            }
+        }
+        (None, None) => dir.join(codec::file_name(&m)),
+    };
     // `./Demo-1.0.wmplugin` reads better without its `./`.
     let out = out.strip_prefix(".").map(Path::to_path_buf).unwrap_or(out);
     if let Err(e) = std::fs::write(&out, &packed.bytes) {
@@ -106,11 +127,11 @@ pub fn run(args: Args) -> u8 {
         );
         return 0;
     }
-    eprintln!("packed {} ({} files, {})", out.display(), packed.names.len(), size(packed.bytes.len()));
-    eprintln!("  sha256 {sha}");
+    crate::note!("packed {} ({} files, {})", out.display(), packed.names.len(), size(packed.bytes.len()));
+    crate::note!("  sha256 {sha}");
     let s = &packed.shake;
     if !s.removed_files.is_empty() || !s.removed_symbols.is_empty() {
-        eprintln!(
+        crate::note!(
             "  tree shaking left out {} vendored files and {} definitions: {} of Python became {}",
             s.removed_files.len(),
             s.removed_symbols.len(),
@@ -119,12 +140,12 @@ pub fn run(args: Args) -> u8 {
         );
     }
     for note in &s.notes {
-        eprintln!("  note: {note}");
+        crate::note!("  note: {note}");
     }
     if !packed.left_out.is_empty() {
         let shown: Vec<&str> = packed.left_out.iter().take(6).map(String::as_str).collect();
         let more = if packed.left_out.len() > 6 { format!(" and {} more", packed.left_out.len() - 6) } else { String::new() };
-        eprintln!("  not in the archive (the keyboard does not read them): {}{more}", shown.join(", "));
+        crate::note!("  not in the archive (the keyboard does not read them): {}{more}", shown.join(", "));
     }
     // The path alone on stdout, for scripts.
     println!("{}", out.display());

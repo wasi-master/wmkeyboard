@@ -46,9 +46,11 @@ pub struct Args {
     /// Run only the tests whose file::name contains this text (implies --tests)
     #[arg(short = 'k', value_name = "TEXT")]
     pub filter: Option<String>,
-    /// A JSON file answering host calls by op name before the dev host does
+    /// A JSON file answering host calls by op name before the dev host does [default: wmpy.toml's run.mock]
     #[arg(long, value_name = "FILE")]
     pub mock: Option<PathBuf>,
+    #[command(flatten)]
+    pub look: crate::look::Look,
     /// How many functions to list
     #[arg(long, default_value_t = 20)]
     pub top: usize,
@@ -72,6 +74,12 @@ pub fn run(args: Args) -> u8 {
             return 2;
         }
     };
+    let config = match crate::config::load_or_report(&dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    args.look.apply(&dir, &config);
+    let mock = args.mock.clone().or_else(|| config.run.mock.as_ref().map(|m| crate::config::in_dir(&dir, m)));
     let plan = match plan_of(args.scenario.as_deref(), args.tests || args.filter.is_some(), args.filter.clone()) {
         Ok(p) => p,
         Err(e) => {
@@ -104,7 +112,7 @@ pub fn run(args: Args) -> u8 {
         dir: copy.dir.path(),
         home: &dir,
         plan: &plan,
-        mock: args.mock.as_deref(),
+        mock: mock.as_deref(),
         settle_for: Duration::from_secs(20),
         backend: suite::Backend::Mock,
         prepare: Some(&prepare),

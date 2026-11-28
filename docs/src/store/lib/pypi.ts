@@ -686,6 +686,10 @@ export interface LockEntry {
 	requires: string[];
 	verdict: LockVerdict;
 	problems: number;
+	/** What was typed to install it, such as `python-dateutil>=2.8,<3`; absent for a package only another one needs. `update` stays inside it. */
+	requested?: string;
+	/** The SHA-256 of each file in `files`, as written, for `wmpy pip verify`. */
+	hashes?: Record<string, string>;
 }
 
 export interface Lock {
@@ -715,6 +719,11 @@ export function parseLock(text: string | null | undefined): Lock | null {
 				verdict: e.verdict === 'ok' || e.verdict === 'incompatible' ? e.verdict : 'warnings',
 				problems: Number(e.problems ?? 0) || 0,
 			};
+			if (typeof e.requested === 'string' && e.requested) packages[name]!.requested = e.requested;
+			if (e.hashes && typeof e.hashes === 'object' && !Array.isArray(e.hashes)) {
+				const hashes = Object.fromEntries(Object.entries(e.hashes).filter((kv): kv is [string, string] => typeof kv[1] === 'string'));
+				if (Object.keys(hashes).length) packages[name]!.hashes = hashes;
+			}
 		}
 		return { version: 1, packages };
 	} catch {
@@ -727,7 +736,10 @@ export function lockText(lock: Lock): string {
 	const packages: Record<string, LockEntry> = {};
 	for (const name of Object.keys(lock.packages).sort()) {
 		const e = lock.packages[name]!;
-		packages[name] = { version: e.version, roots: e.roots, files: e.files, source: e.source, sha256: e.sha256, license: e.license, requires: e.requires, verdict: e.verdict, problems: e.problems };
+		const out: LockEntry = { version: e.version, roots: e.roots, files: e.files, source: e.source, sha256: e.sha256, license: e.license, requires: e.requires, verdict: e.verdict, problems: e.problems };
+		if (e.requested) out.requested = e.requested;
+		if (e.hashes && Object.keys(e.hashes).length) out.hashes = Object.fromEntries(Object.keys(e.hashes).sort().map((f) => [f, e.hashes![f]!]));
+		packages[name] = out;
 	}
 	return JSON.stringify({ version: 1, packages }, null, 2) + '\n';
 }
@@ -751,6 +763,8 @@ export interface PlannedPackage {
 	requires: string[];
 	/** Who asked for it: null for the package typed in. */
 	requiredBy: string | null;
+	/** What was typed, for the package typed in; what the lock kept, for one already there. */
+	requested: string | null;
 	/** It replaces this version already in the lock. */
 	replaces: string | null;
 }
@@ -817,6 +831,7 @@ export async function resolvePlan(request: Requirement, lock: Lock, hooks: Resol
 		const planned: PlannedPackage = {
 			key, name: release.name, version: release.version, release, wheel, extras: [...req.extras],
 			requires: [...new Set(deps.map((d) => normalizeName(d.name)))], requiredBy: by, replaces: held && held.version !== release.version ? held.version : null,
+			requested: top ? request.raw.trim() || request.name : (held?.requested ?? null),
 		};
 		if (held && held.version === release.version && !top) {
 			satisfied.add(`${key} ${held.version}`);

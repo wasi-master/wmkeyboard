@@ -1,7 +1,9 @@
 //! Everything wrong with a script, as the plugin editor shows it.
 //!
-//! Each problem is a [`Code`] with a fixed severity, a span and up to two
-//! arguments. The words live with the consumer (the app has one string
+//! Each problem is a [`Code`] with a severity, a span and up to two
+//! arguments. The severity is the code's, except where a check knows the
+//! problem may not happen (a name looked up inside `try: ... except
+//! NameError`) and gives it a lower one. The words live with the consumer (the app has one string
 //! resource per code); [`Code::message`] is the English, with `{0}` and `{1}`
 //! for the arguments, for the web editor and for tests.
 //!
@@ -81,8 +83,8 @@ codes! {
     Unsupported = "unsupported", Error, "WM Keyboard plugins cannot use {0}.";
     WillNotRun = "will_not_run", Error, "This plugin will not run. {1}: {0}";
     // ---- names -------------------------------------------------------------
-    UndefinedName = "undefined_name", Warning, "“{0}” is not defined.";
-    NameTypo = "name_typo", Warning, "“{0}” is not defined. Did you mean “{1}”?";
+    UndefinedName = "undefined_name", Error, "“{0}” is not defined.";
+    NameTypo = "name_typo", Error, "“{0}” is not defined. Did you mean “{1}”?";
     ModuleNotImported = "module_not_imported", Warning, "“{0}” is a module. Add “import {0}” at the top first.";
     RemovedBuiltin = "removed_builtin", Error, "“{0}” is not available to plugins: it could reach outside the plugin.";
     MissingBuiltin = "missing_builtin", Warning, "“{0}” is not one of the builtins plugins have.";
@@ -97,9 +99,9 @@ codes! {
     MemberTypo = "member_typo", Warning, "“{0}” does not exist. Did you mean “{1}”?";
     UseInstead = "use_instead", Warning, "“{0}” does not exist here. Use “{1}”.";
     NeverInApi = "never_in_api", Error, "“{0}” does not exist: plugins cannot see keystrokes or the file system.";
-    StorageNotDeclared = "storage_not_declared", Warning, "wm.storage needs the storage permission in plugin.json.";
-    RemindersNotDeclared = "reminders_not_declared", Warning, "wm.reminders needs the reminders permission in plugin.json.";
-    SelectionNotDeclared = "selection_not_declared", Warning, "transform() runs selection actions, which need the selection permission in plugin.json.";
+    StorageNotDeclared = "storage_not_declared", Error, "wm.storage needs the storage permission in plugin.json.";
+    RemindersNotDeclared = "reminders_not_declared", Error, "wm.reminders needs the reminders permission in plugin.json.";
+    SelectionNotDeclared = "selection_not_declared", Error, "transform() runs selection actions, which need the selection permission in plugin.json.";
     PanelOnly = "panel_only", Warning, "“{0}” only works in a plugin with a panel.";
     // ---- the plugin contract -----------------------------------------------
     MissingRender = "missing_render", Error, "There is no render(). A plugin with a panel needs one.";
@@ -123,8 +125,8 @@ codes! {
     DuplicateId = "duplicate_id", Info, "Another widget already has the id “{0}”.";
     TooManyTabs = "too_many_tabs", Warning, "A tab strip shows at most 8 pages.";
     // ---- the keyboard: plugin.json and the wm package ----------------------
-    PermissionMissing = "permission_missing", Warning, "{0} needs the “{1}” permission in plugin.json.";
-    HostMissing = "host_missing", Warning, "“{0}” is not in plugin.json's hosts, so this request is refused.";
+    PermissionMissing = "permission_missing", Error, "{0} needs the “{1}” permission in plugin.json.";
+    HostMissing = "host_missing", Error, "“{0}” is not in plugin.json's hosts, so this request is refused.";
     UnknownProviderTool = "unknown_provider_tool", Error, "There is no provider list “{0}”.";
     ProviderToolTypo = "provider_tool_typo", Error, "There is no provider list “{0}”. Did you mean “{1}”?";
     ProviderNotDeclared = "provider_not_declared", Warning, "plugin.json's providers list no {0} provider “{1}”, so nothing asks this.";
@@ -155,6 +157,8 @@ pub struct Diagnostic {
     pub args: Vec<String>,
     /// What one tap does about it, when there is one obvious thing.
     pub fix: Option<Fix>,
+    /// A severity other than the code's, when the check knows better.
+    pub severity_override: Option<Severity>,
 }
 
 /// A change that settles a diagnostic.
@@ -192,11 +196,34 @@ fn shown(arg: &str) -> String {
 
 impl Diagnostic {
     pub fn new(code: Code, span: Span, args: &[&str]) -> Diagnostic {
-        Diagnostic { code, span, args: args.iter().map(|s| shown(s)).collect(), fix: None }
+        Diagnostic { code, span, args: args.iter().map(|s| shown(s)).collect(), fix: None, severity_override: None }
     }
 
     pub fn severity(&self) -> Severity {
-        self.code.severity()
+        self.severity_override.unwrap_or(self.code.severity())
+    }
+
+    /// Whether `# wmpy: ignore` may silence it: everything but what makes the
+    /// keyboard refuse the file (text, brackets, indentation, syntax, Python
+    /// plugins cannot use), which no comment changes.
+    pub fn can_be_ignored(&self) -> bool {
+        !matches!(
+            self.code,
+            Code::UnknownCharacter
+                | Code::UnclosedString
+                | Code::UnclosedTripleString
+                | Code::BadNumber
+                | Code::UnclosedBracket
+                | Code::StrayCloser
+                | Code::WrongCloser
+                | Code::UnexpectedIndent
+                | Code::InconsistentDedent
+                | Code::EmptyBlock
+                | Code::SyntaxExpected
+                | Code::SyntaxAtEnd
+                | Code::Unsupported
+                | Code::WillNotRun
+        )
     }
 
     /// The English message with its arguments filled in.
@@ -228,11 +255,88 @@ pub fn diagnose(doc: &Document, host: &Host) -> Report {
     checks::run(doc, host, &mut out);
     crate::fixes::attach(doc, &mut out);
     let verdict_used = verdict(doc, host, &mut out);
+    ignored(doc, &mut out);
     let mut seen = std::collections::HashSet::new();
     out.retain(|d| seen.insert(d.clone()));
     out.sort_by_key(|d| (d.span.start, d.severity(), d.span.end));
     out.truncate(MAX_DIAGNOSTICS);
     Report { diagnostics: out, verdict_used }
+}
+
+/// What a `# wmpy: ignore` comment silences: every code, or the ones named.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Ignore {
+    All,
+    Codes(Vec<String>),
+}
+
+impl Ignore {
+    fn covers(&self, code: &str) -> bool {
+        match self {
+            Ignore::All => true,
+            Ignore::Codes(c) => c.iter().any(|x| x == code),
+        }
+    }
+}
+
+/// The directive in one comment, `# wmpy: ignore` or `# wmpy: ignore[code, code]`
+/// (`ignore-file` for the whole file): `(whole_file, what)`. Other text may
+/// follow the directive, or come before it after another `#`.
+pub fn ignore_directive(comment: &str) -> Option<(bool, Ignore)> {
+    let at = comment.find("wmpy:")?;
+    if !comment[..at].trim_end().ends_with('#') {
+        return None;
+    }
+    let rest = comment[at + 5..].trim_start();
+    let (file, rest) = if let Some(r) = rest.strip_prefix("ignore-file") {
+        (true, r)
+    } else if let Some(r) = rest.strip_prefix("ignore") {
+        (false, r)
+    } else {
+        return None;
+    };
+    if let Some(list) = rest.strip_prefix('[') {
+        let list = list.split(']').next().unwrap_or("");
+        let codes: Vec<String> = list.split(',').map(|c| c.trim().to_string()).filter(|c| !c.is_empty()).collect();
+        return Some((file, if codes.is_empty() { Ignore::All } else { Ignore::Codes(codes) }));
+    }
+    // `ignore` must end the word: `ignored` is prose, not the directive.
+    if rest.chars().next().is_some_and(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+        return None;
+    }
+    Some((file, Ignore::All))
+}
+
+/// Drops what a `# wmpy: ignore` comment on a problem's first line, or a
+/// `# wmpy: ignore-file` anywhere, silences.
+fn ignored(doc: &Document, out: &mut Vec<Diagnostic>) {
+    let t = &doc.tokens;
+    let mut lines: std::collections::HashMap<usize, Vec<Ignore>> = std::collections::HashMap::new();
+    let mut file: Vec<Ignore> = Vec::new();
+    for i in 0..t.len() {
+        if t.kind(i) != TokenKind::Comment {
+            continue;
+        }
+        if let Some((whole, what)) = ignore_directive(&t.text(i)) {
+            if whole {
+                file.push(what);
+            } else {
+                lines.entry(doc.lines.line_of(t.start(i))).or_default().push(what);
+            }
+        }
+    }
+    if lines.is_empty() && file.is_empty() {
+        return;
+    }
+    out.retain(|d| {
+        if !d.can_be_ignored() {
+            return true;
+        }
+        let code = d.code.name();
+        let line = doc.lines.line_of(d.span.start);
+        let on_line = lines.get(&line).is_some_and(|l| l.iter().any(|i| i.covers(code)));
+        !(on_line || file.iter().any(|i| i.covers(code)))
+    });
 }
 
 fn lexical(doc: &Document, out: &mut Vec<Diagnostic>) {
@@ -344,7 +448,9 @@ fn verdict(doc: &Document, host: &Host, out: &mut Vec<Diagnostic>) -> bool {
         _ => doc.lines.trimmed(units, 1),
     };
     let line = doc.lines.line_of(span.start);
-    let taken = out.iter().any(|d| d.severity() == Severity::Error && doc.lines.line_of(d.span.start) == line);
+    // Only a problem that makes the keyboard refuse the file explains its
+    // refusal; a name error on the same line is another matter.
+    let taken = out.iter().any(|d| d.severity() == Severity::Error && !d.can_be_ignored() && doc.lines.line_of(d.span.start) == line);
     if taken {
         return false;
     }

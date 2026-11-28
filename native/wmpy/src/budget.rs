@@ -1,7 +1,7 @@
 //! `wmpy budget`: how close each part of a run comes to the keyboard's limits.
 //!
 //! ```text
-//! wmpy budget [dir] [--scenario file.json] [--tests [-k text]] [--mock file] [--device-speed F] [--json]
+//! wmpy budget [dir] [--scenario file.json] [--tests] [-k text] [--mock file] [--locale tag] [--theme t] [--device-speed F] [--json]
 //! ```
 //!
 //! The plugin loads on the dev host ([crate::devhost]) and draws, then runs
@@ -43,12 +43,14 @@ pub struct Args {
     /// Run the plugin's tests instead, measuring every session they make
     #[arg(long)]
     pub tests: bool,
-    /// With --tests: only the tests whose file::name contains this text
+    /// Run only the tests whose file::name contains this text (implies --tests)
     #[arg(short = 'k', value_name = "TEXT")]
     pub filter: Option<String>,
-    /// A JSON file answering host calls by op name before the dev host does
+    /// A JSON file answering host calls by op name before the dev host does [default: wmpy.toml's run.mock]
     #[arg(long, value_name = "FILE")]
     pub mock: Option<PathBuf>,
+    #[command(flatten)]
+    pub look: crate::look::Look,
     /// How fast the phone is next to this computer: 0.3 for one three times slower
     #[arg(long, value_name = "F")]
     pub device_speed: Option<f64>,
@@ -65,6 +67,12 @@ pub fn run(args: Args) -> u8 {
             return 2;
         }
     };
+    let config = match crate::config::load_or_report(&dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    args.look.apply(&dir, &config);
+    let mock = args.mock.clone().or_else(|| config.run.mock.as_ref().map(|m| crate::config::in_dir(&dir, m)));
     let speed = match args.device_speed {
         Some(s) if !(s.is_finite() && s > 0.0) => {
             eprintln!("error: --device-speed is a number above 0, such as 0.3 for a phone three times slower than this computer");
@@ -84,7 +92,7 @@ pub fn run(args: Args) -> u8 {
         dir: &dir,
         home: &dir,
         plan: &plan,
-        mock: args.mock.as_deref(),
+        mock: mock.as_deref(),
         settle_for: Duration::from_secs(20),
         backend: suite::Backend::Mock,
         prepare: None,

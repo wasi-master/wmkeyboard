@@ -166,19 +166,22 @@ mock = {"http.request": {"status": 200, "text": json.dumps({"temp": 21}), "heade
 
 def test_it_loads():
     s = plugin_test.session(mock=mock, settings={"units": "metric"})
-    r = s["load"]()
-    assert r["ok"], r
+    r = s.load()
+    assert r.ok, r.error
 
 
 def test_refresh_shows_the_temperature():
     s = plugin_test.session(mock=mock, settings={"units": "metric"})
-    s["load"]()
-    r = s["event"]({"type": "click", "id": "button:Refresh"})
-    assert "21" in json.dumps(r["ui"]), r["ui"]
+    s.load()
+    r = s.event({"type": "click", "id": "button:Refresh"})
+    assert "21" in json.dumps(r.ui), r.ui
 ```
 
 The file's top level runs first, so the `mock` above is there for every
-test. A `test.py` with no test functions is one test, its whole file, as it
+test. A session and its results read as attributes, as above, or as keys:
+`s["load"]()` and `r["ok"]` are the same calls, and older tests use them.
+
+A `test.py` with no test functions is one test, its whole file, as it
 was before wmpy had test functions.
 
 For more than one file, put them in a `tests/` folder as `tests/test_*.py`.
@@ -192,22 +195,45 @@ FAIL test.py::test_refresh_shows_the_temperature (6 ms)
 error[AssertionError]: {'root': [...]}
   --> test.py:16
    |
-16 |     assert "21" in json.dumps(r["ui"]), r["ui"]
+16 |     assert "21" in json.dumps(r.ui), r.ui
 
 1 passed, 1 failed in 0.03 s
+```
+
+When the call itself failed, the plugin's error is the one that matters, not
+the `assert`. A test that fails on such a result, as `assert r.ok, r.error`
+does, reports the plugin's error at its own line, with its traceback, and
+names the test's line as a note:
+
+```text
+FAIL test.py::test_it_loads (46 ms)
+error[KeyError]: 'units'
+ --> main.py:7
+  |
+7 |     unit = config["units"]
+  = note: the test stopped at test.py:4: assert r.ok, r.error
 ```
 
 | Option | Does |
 |---|---|
 | `-k TEXT` | Runs only the tests whose `file::name` contains the text: `wmpy test -k refresh`. |
+| `-j N` | Runs N test files at once, each in its own interpreter. `-j 0` is one per processor. |
+| `-x`, `--fail-fast` | Stops at the first failing test. |
+| `--locale TAG`, `--theme`, `--surface` | What the plugin is told it runs in, for every session that does not say. |
 | `--json` | Prints the results as JSON, each test with what it printed and its error. |
 | `--junit FILE` | Also writes JUnit XML, for a CI service's test table. |
 | `--watch` | Runs the tests again each time you save a file. |
 
+`jobs` and `fail-fast` under `[test]` in [wmpy.toml](/plugins/wmpy/#wmpytoml)
+set the first two for the plugin, and `[run]` the locale, theme and surface.
+
 The exit code is 1 when a test failed, so a CI step fails with it.
 
-`plugin_test.session(mock=, settings=)` gives you the plugin as the keyboard
-runs it:
+`plugin_test.session(mock=, settings=, locale=, theme=, surface=)` gives you
+the plugin as the keyboard runs it. `locale="bn"` translates an API 5 plugin
+with its `locales/bn.json` and sets `plugin.locale`, `theme="dark"` sets
+`plugin.theme` and `plugin.dark`, and `surface` is `"panel"`, `"float"` or
+`"action"`:
 
 | | Does |
 |---|---|
@@ -219,8 +245,9 @@ runs it:
 | `settle()` | answers every waiting `then=` call from the mock, then any calls those answers started, and gives back the last result, or the first one that failed |
 | `calls()` | every host call so far, as `{"op", "args"}` dicts, to check what the plugin sent |
 
-Each gives back a dict: `ok`, the drawn `ui`, any `error`, and the `host`
-block (timers, header buttons, how many `then=` answers are waiting).
+Each gives back a result: `ok`, the drawn `ui`, any `error`, what the plugin
+printed as `log`, and the `host` block (timers, header buttons, how many
+`then=` answers are waiting).
 
 `plugin_test.preview(id, file, mock=None, name=None, mime=None)` runs a
 [file preview](/plugins/guides/file-previews/) on `file`, a file in your
@@ -245,8 +272,8 @@ every `plugin.after`) in the session: the first look-up is `"http:1"`, and an
 `ai.ask` after it would be `"ai:2"`.
 
 ```python
-s["event"]({"type": "click", "id": "button:Look up"})
-r = s["event"]({"type": "result", "token": "http:1", "value": mock["http.request"]})
+s.event({"type": "click", "id": "button:Look up"})
+r = s.event({"type": "result", "token": "http:1", "value": mock["http.request"]})
 ```
 
 `settle()` saves you counting tokens. It answers each waiting call the way the
@@ -254,8 +281,8 @@ mock would answer it, so a click that starts a look-up, whose answer starts a
 second request, is one `event` and one `settle`:
 
 ```python
-s["event"]({"type": "click", "id": "button:Look up"})
-r = s["settle"]()
+s.event({"type": "click", "id": "button:Look up"})
+r = s.settle()
 ```
 
 `ui.toast` and `ui.dialog` are calls to the keyboard too. A plugin that shows a
@@ -289,7 +316,7 @@ To check what was sent, look through `calls()`. For a request, `args` holds
 `method`, `url`, `params`, `headers` and the `body` as text:
 
 ```python
-posts = [c["args"] for c in s["calls"]() if c["op"] == "http.request" and c["args"]["method"] == "POST"]
+posts = [c["args"] for c in s.calls() if c["op"] == "http.request" and c["args"]["method"] == "POST"]
 assert json.loads(posts[0]["body"]) == {"amount": 2}
 ```
 

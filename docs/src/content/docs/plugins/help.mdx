@@ -33,9 +33,10 @@ not. The
 
 ### Can I use a package from PyPI?
 
-No. A plugin can import the bundled modules, the `wm` package, and its own
-`.py` files. To use a small pure-Python library, copy its source into your
-plugin as a module, if its licence allows.
+A pure-Python one, often. `wmpy pip install` or **Packages** in the web
+editor copies it into your plugin after checking that it runs in the
+keyboard, as [Python packages](/plugins/guides/python-packages/) explains.
+Packages with compiled code, such as `numpy`, cannot run.
 
 ### API 4 or API 5?
 
@@ -92,6 +93,14 @@ the user presses something in its panel, and never in a password field.
   `network` for your plugin, risky permissions are off for all plugins, or
   Data saver is on. The editors treat permissions as allowed; a real install
   does not.
+
+### wmpy check calls my working code an error
+
+A name check fails for certain when the line runs, so it is an error. When
+the name does exist, because your code makes it at run time, put
+`# wmpy: ignore[undefined_name]` at the end of the line, or add the code to
+`ignore` in [wmpy.toml](/plugins/wmpy/#wmpytoml). `wmpy explain <code>`
+says what a code means; see [Silence a problem](/plugins/wmpy/#silence-a-problem).
 
 ## Error messages
 

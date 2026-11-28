@@ -85,3 +85,12 @@ Run it again after you change the code: it adds the new text and keeps your
 translations. `wmpy i18n check` fails when a translation is missing or its
 `{names}` don't match the English, and `wmpy i18n stats` shows how far each
 language has got.
+
+### See a translation on your computer
+
+`wmpy preview --locale bn` draws the panel with `locales/bn.json`, as a phone
+set to Bengali would, and `wmpy run` and `wmpy render` take `--locale` too.
+A test can ask for one with `plugin_test.session(locale="bn")`, and
+`wmpy test --locale bn` runs every test that way. wmpy picks the file as the
+keyboard does: `pt-BR.json` for `--locale pt-BR`, or `pt.json` when there is
+none. The preview draws Arabic, Persian, Hebrew and Urdu right to left.

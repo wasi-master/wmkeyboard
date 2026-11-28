@@ -85,10 +85,97 @@ cargo install --git https://github.com/wasi-master/wmkeyboard wmpy
 Check it works with `wmpy --version`. It prints its own version, the
 interpreter's, and the plugin API level it runs.
 
+## How commands work
+
 Every command takes the plugin folder as its first argument, and uses the
 folder you are in when you leave it out. A command exits with 0 when all
 went well, 1 when the plugin failed (a check, a test), and 2 when wmpy could
-not do the work, such as a folder that does not exist.
+not do the work, such as a folder that does not exist. `wmpy --help` lists
+the commands in groups, with these codes and a few examples at the end.
+
+### Options every command takes
+
+| Option | Does |
+|---|---|
+| `-C DIR` | Runs as if wmpy had been started in `DIR`, as `git -C` does: `wmpy -C plugins/weather pack`. `wmpy pip` also takes `--dir`. |
+| `--color WHEN` | `auto` (the default), `always` or `never`. Auto colours a terminal and GitHub Actions logs, and follows `NO_COLOR`, `CLICOLOR_FORCE` and `FORCE_COLOR`. |
+| `-q`, `--quiet` | Prints only problems and results: no progress lines, hints or summaries of success. `wmpy -q pack` prints the archive's path and nothing else. |
+
+They go before or after the command: `wmpy -q test` and `wmpy test -q` are
+the same.
+
+### Keep wmpy up to date
+
+```bash
+wmpy upgrade
+wmpy upgrade --check
+```
+
+`wmpy upgrade` installs the newest release the way this wmpy was installed:
+`brew upgrade`, `scoop update`, `npm install -g`, `pipx upgrade`,
+`uv tool upgrade` or `cargo install`. A wmpy from the install scripts, or one
+you copied by hand, downloads the release archive for your computer, checks
+it against its SHA-256 and replaces itself. `--check` only says whether a
+newer one is out, and `--version 0.2.0` picks one.
+
+Once a day at most, a command run in a terminal asks GitHub which release is
+newest, in the background while it runs, and the next run after a newer one
+appears ends with a line saying so. It never asks in CI (when `CI` is set),
+with `--quiet`, from the language server or the MCP server, or when output is
+meant for scripts. The request carries no more than `wmpy/<version>`. Set
+`WMPY_NO_UPDATE_CHECK=1` to turn it off.
+
+### wmpy.toml
+
+A plugin can keep its own settings for wmpy in a `wmpy.toml` beside
+`plugin.json`, or in the `[tool.wmpy]` table of a `pyproject.toml`. Options
+on the command line win over both, and neither file goes into the
+`.wmplugin`.
+
+```toml title="wmpy.toml"
+[check]
+strict = true                       # wmpy check fails on warnings too
+ignore = ["unused_local"]           # codes never reported for this plugin
+
+[run]                               # test, run, preview, render, budget, profile, repl
+locale = "bn"
+theme = "dark"
+surface = "panel"
+mock = "mocks/dev.json"             # run, preview, render, budget, profile, repl
+settings = { units = "imperial" }   # run, preview, render
+
+[test]
+jobs = 4
+fail-fast = true
+
+[pack]
+output = "dist"                     # a folder, or a file ending in .wmplugin
+shake-symbols = true
+
+[device]
+serial = "192.168.1.20:5555"
+```
+
+Paths are read from the plugin folder. A key wmpy does not know is a
+warning, so a typo does not go unseen, and a value of the wrong kind stops
+the command with exit code 2.
+
+### Locale, theme and surface
+
+`wmpy test`, `run`, `preview`, `render`, `repl`, `budget`, `profile` and
+`mock record` take `--locale`, `--theme` and `--surface`, which are what the
+plugin reads as `plugin.locale`, `plugin.theme` (and `plugin.dark`) and
+`plugin.surface`. An API 5 plugin is translated with the `locales/<tag>.json`
+the keyboard would pick for that locale: the whole tag, then the language,
+so `--locale pt-BR` uses `pt-BR.json`, or else `pt.json`. A locale no file
+fits shows the English, and wmpy says so. `wmpy preview` draws the panel
+right to left for Arabic, Persian, Hebrew, Urdu and the other right-to-left
+languages.
+
+```bash
+wmpy preview --locale bn --theme dark
+wmpy test --locale ar
+```
 
 ## wmpy new
 
@@ -108,6 +195,8 @@ takes the defaults: a blank plugin named after the folder.
 | `--id` | The plugin's id. By default `my.` and the name, such as `my.weather`. |
 | `--author` | Shown on the install screen. |
 | `--force` | Write into a folder that already has files in it. |
+| `--ci github` | Also write `.github/workflows/plugin.yml`, which checks, tests and packs the plugin on every push. See [In CI](#in-ci). |
+| `--list` | Print the templates, with what each one shows, and make nothing. |
 | `--json` | Print what it made as JSON. |
 
 The folder it makes:
@@ -123,8 +212,9 @@ my-tool/
 └── .wmpy/stubs/             the wm package, for editors (see wmpy stubs)
 ```
 
-Some templates are written for API 4, the older `wm` and `ui` globals, and
-keep that `apiVersion`. Change it to 5 when you move one to `from wm import`.
+Every template but `cipher` is written for API 5, `from wm import`. The
+cipher is the plugin the [API 4 guide](/plugins/getting-started/) builds,
+with the older `wm` and `ui` globals, and keeps `"apiVersion": 4`.
 
 ## wmpy check
 
@@ -148,6 +238,13 @@ plugin:
   `hosts`, a provider or action `plugin.json` does not declare, and Python
   plugins cannot run. Test files are checked for syntax only.
 
+A problem that fails for certain when its line runs is an error: a name that
+is not defined (a `NameError`), a call that needs a permission `plugin.json`
+does not ask for, and an address on a host it does not list. A name looked up
+inside a `try` that catches `NameError`, or in a module that makes names at
+run time (with `globals()`, `exec`, `setattr` or a module `__getattr__`), is a
+warning instead.
+
 ```text
 error[unknown_permission]: WM Keyboard does not know the permission "netwrok"
  --> plugin.json:8:30
@@ -159,9 +256,39 @@ error[unknown_permission]: WM Keyboard does not know the permission "netwrok"
 ```
 
 It ends with a line such as `checked plugin.json and 3 Python files: 1 error,
-0 warnings`. It exits with 1 when there is an error. `--strict` fails on
-warnings too, and `--json` prints `{"ok", "errors", "warnings", "problems"}`
-for other tools.
+0 warnings`. It exits with 1 when there is an error. `--strict` (or
+`strict = true` under `[check]` in [wmpy.toml](#wmpytoml)) fails on warnings
+too, `--watch` checks again each time you save, and `--json` prints
+`{"ok", "errors", "warnings", "problems"}` for other tools.
+
+### Silence a problem
+
+When wmpy is wrong about a line, say so on the line:
+
+```python
+value = registry[name]  # wmpy: ignore[undefined_name]
+total = compute()       # wmpy: ignore
+```
+
+`# wmpy: ignore[code, code]` silences those codes on its line, and a bare
+`# wmpy: ignore` silences every code there. `# wmpy: ignore-file[code]`
+anywhere in a file silences the code in the whole file, and `ignore` under
+`[check]` in [wmpy.toml](#wmpytoml) in the whole plugin. The editors and the
+language server read the same comments. Python the keyboard cannot read,
+such as an unclosed string, cannot be silenced: the keyboard refuses the file
+whatever the comment says.
+
+### What a code means
+
+```bash
+wmpy explain name_typo
+wmpy explain
+```
+
+Each problem has a code in brackets, `error[host_missing]`. `wmpy explain`
+says what one means, whether a quick fix exists, how to silence it and where
+the docs say more; with no code it lists them all, from the checks of the
+Python, of `plugin.json` and of packages from PyPI. `--json` prints the same.
 
 ### Fix what it finds
 
@@ -275,19 +402,30 @@ import json
 
 def test_it_loads():
     s = plugin_test.session()
-    r = s["load"]()
-    assert r["ok"], r["error"]
+    r = s.load()
+    assert r.ok, r.error
 
 
 def test_rot13():
     s = plugin_test.session()
-    s["load"]()
-    assert s["transform"]("Hello", "rot13")["value"] == "Uryyb"
+    s.load()
+    assert s.transform("Hello", "rot13").value == "Uryyb"
+
+
+def test_in_bengali():
+    s = plugin_test.session(locale="bn")
+    assert "খুঁজুন" in json.dumps(s.load().ui, ensure_ascii=False)
 ```
+
+A session and its results read as attributes, `s.load()` and `r.ok`, or as
+keys, `s["load"]()` and `r["ok"]`, which older tests use.
 
 What the tests print goes to the terminal as they run. Each test's result
 and each failure, with the line it stopped on, go after it, and the last line
-is the count: `2 passed, 0 failed in 0.05 s`.
+is the count: `2 passed, 0 failed in 0.05 s`. When a test fails on a result
+whose call failed, as `assert r.ok, r.error` does, the report leads with the
+plugin's own error, at its line in the plugin's file with its traceback, and
+names the line of the test that stopped as a note.
 
 | Option | Does |
 |---|---|
@@ -295,6 +433,9 @@ is the count: `2 passed, 0 failed in 0.05 s`.
 | `--json` | Prints `{"ok", "passed", "failed", "durationMs", "tests"}`, each test with its output and its error. |
 | `--junit FILE` | Also writes the results as JUnit XML, which most CI services show as a table. |
 | `--watch` | Runs again each time a file in the folder changes. Stop it with Ctrl-C. |
+| `-j N` | Runs N test files at once, each in its own interpreter; `-j 0` is one per processor. Their prints then come with each result. |
+| `-x`, `--fail-fast` | Stops at the first failing test. |
+| `--locale`, `--theme`, `--surface` | What the plugin is told, for every session the tests make that does not name its own. See [Locale, theme and surface](#locale-theme-and-surface). |
 
 [Testing and debugging](/plugins/guides/testing/#automatic-tests) explains
 `plugin_test`: sessions, mock answers for host calls, events, previews and
@@ -349,9 +490,10 @@ phone the time, not the steps, is what stops a plugin.
 functions that took the most time, with their calls and average. A
 function's time includes the functions it calls.
 
-Both run a scenario (`--scenario events.json`), the tests (`--tests`,
-`-k TEXT`), or by default a click on each button of the first draw and each
-timer once. `--mock FILE` answers host calls before the real ones are made,
+Both run a scenario (`--scenario events.json`), the tests (`--tests`, or
+`-k TEXT`, which runs the tests it matches), or by default a click on each
+button of the first draw and each timer once. They take `--locale`,
+`--theme` and `--surface` too. `--mock FILE` answers host calls before the real ones are made,
 and `--json` prints the report. Storage, settings and secrets are copied
 first, so a measured run leaves your plugin's saved state alone.
 
@@ -359,11 +501,14 @@ first, so a measured run leaves your plugin's saved state alone.
 
 ```bash
 wmpy render my-tool --mock mock.json
+wmpy render --set units=imperial --locale bn --pretty
 ```
 
 Loads the plugin as a panel and prints its first draw as JSON, with host
 calls answered from the mock file. It is the quickest way to see what a
-change does to the widget tree.
+change does to the widget tree. `--set KEY=VALUE` gives a setting a value
+for the draw, `--locale`, `--theme` and `--surface` say what the plugin is
+told, and `--pretty` indents the JSON. It exits with 1 when the draw failed.
 
 ## wmpy pack
 
@@ -375,15 +520,16 @@ wmpy pack --entry-json
 
 Builds the `.wmplugin` file the keyboard installs. It checks the plugin first
 and refuses to pack one with an error. The file goes in the plugin folder as
-`<Name>-<version>.wmplugin`, the name the editors give it, and the command
-prints its size and SHA-256.
+`<Name>-<version>.wmplugin`, the name the editors give it, or where `output`
+under `[pack]` in [wmpy.toml](#wmpytoml) says. The command prints the path on
+its own line, then its size and SHA-256 (left out with `-q`).
 
 What goes in: `plugin.json`, the entry script, and for API 5 the other `.py`
 files, `assets/` and `locales/`. The `licenses/` folder goes in too, with the
 licence of each package `wmpy pip` added. The keyboard does not keep those
 files when it installs the plugin, but they stay in the file you share.
-Tests, `tests/`, dotfiles, `__pycache__`, `pyrightconfig.json`, `wmpy.lock`
-and other `.wmplugin` files stay out. The
+Tests, `tests/`, dotfiles, `__pycache__`, `pyrightconfig.json`, `wmpy.lock`,
+`wmpy.toml`, `pyproject.toml` and other `.wmplugin` files stay out. The
 archive is the same byte for byte each time you pack the same files, so its
 SHA-256 only changes when the plugin does.
 
@@ -406,6 +552,7 @@ pyright, mypy and PyCharm know `from wm import plugin, ui`: every function
 and its arguments, with the reference's text as its help. They also cover
 `plugin_test` in test files, and the `wm` and `ui` globals of an API 4
 plugin. `wmpy new` writes them for you; run this again after updating wmpy.
+`--json` prints the folder and the files written.
 
 The `pyrightconfig.json` from `wmpy new` has `"stubPath": ".wmpy/stubs"`.
 For mypy, set `MYPYPATH=.wmpy/stubs`. In PyCharm, mark `.wmpy/stubs` as a
@@ -419,7 +566,9 @@ a module used without its permission, is what `wmpy check` and the
 
 `wmpy run` runs the plugin in the terminal: its panel, its buttons and its
 log. `wmpy preview` opens it in the browser and draws it again each time you
-save. See [Terminal and browser preview](/plugins/guides/terminal-and-preview/).
+save. Both take `--locale`, `--theme` and `--surface`, and read the mock and
+the settings under `[run]` in [wmpy.toml](#wmpytoml). See
+[Terminal and browser preview](/plugins/guides/terminal-and-preview/).
 
 ## wmpy repl
 
@@ -478,13 +627,22 @@ in the keyboard. See [Test on your phone](/plugins/guides/phone-dev-loop/).
   log prints in the same terminal until you press Ctrl-C.
 - `wmpy logs` follows what a plugin prints on the phone, with errors in red.
   Give it a folder or a plugin id; `--since 10m` starts earlier. When the
-  system log has nothing yet, it shows the plugin's saved log.
+  system log has nothing yet, it shows the plugin's saved log. `--json`
+  prints each line as `{"time", "level", "plugin", "text"}` on a line of its
+  own.
+
+`serial` under `[device]` in [wmpy.toml](#wmpytoml) names the phone when
+more than one is connected, as `-s` does.
 
 ## wmpy pip
 
 `wmpy pip install` copies a pure-Python package from PyPI into the plugin, after
 checking that it can run in the keyboard. `wmpy pack` then leaves out the
-parts the plugin never imports. See [Python packages](/plugins/guides/python-packages/),
+parts the plugin never imports. `wmpy.lock` keeps what you asked for, so
+`wmpy pip update` stays inside `"python-dateutil>=2.8,<3"`; `wmpy pip verify`
+checks the vendored files against the SHA-256 the lock keeps of each, and
+`wmpy pip sync` puts back what is missing or changed. `-r requirements.txt`
+installs a list. See [Python packages](/plugins/guides/python-packages/),
 and [Which packages work](/plugins/guides/package-compatibility/) for the
 results of checking the most used ones.
 
@@ -507,6 +665,30 @@ checks and fixes as the plugin editor. See [Language server](/plugins/language-s
 
 `wmpy editor` installs the wmpy extension for VS Code, Zed or a JetBrains
 IDE. See [Editors](/plugins/editors/).
+
+## In CI
+
+```bash
+wmpy new my-tool --ci github
+```
+
+writes a GitHub Actions workflow that installs wmpy with its action, then
+runs `wmpy check --strict`, `wmpy test --junit test-results.xml` and
+`wmpy pack`, and keeps the `.wmplugin` and the test results as an artifact:
+
+```yaml title=".github/workflows/plugin.yml"
+steps:
+  - uses: actions/checkout@v7
+  - uses: wasi-master/wmpy@v0
+  - run: wmpy check --strict
+  - run: wmpy test --junit test-results.xml
+  - run: wmpy pack -o plugin.wmplugin
+```
+
+`wasi-master/wmpy@v0` installs the newest wmpy 0.x release on Linux, macOS
+or Windows runners and puts it on the `PATH`; `with: version: 0.1.0` pins
+one. In other CI services, use the [install script](#install). Colour is on
+in GitHub Actions logs; elsewhere, pass `--color always`.
 
 ## wmpy completions
 

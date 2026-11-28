@@ -58,13 +58,16 @@ class PluginTemplatesTest {
     fun `a template declares each permission exactly when it uses it`() {
         for (template in PluginTemplate.entries) {
             val script = script(template)
-            // API 5 keeps state with plugin.state(persist=True), which saves through storage.
-            val storage = "wm.storage" in script || "persist=True" in script
+            // API 5 imports what it uses from the wm package, and keeps state
+            // with plugin.state(persist=True), which saves through storage.
+            fun imports(name: String) = Regex("""from wm import [^\n]*\b$name\b""").containsMatchIn(script)
+            val storage = "wm.storage" in script || "persist=True" in script || imports("storage")
+            val actions = "def transform(" in script || "@plugin.action(" in script
             assertEquals(template.name, storage, PluginPermission.Storage in template.permissions)
             assertEquals(template.name, "http." in script, PluginPermission.Network in template.permissions)
-            assertEquals(template.name, "wm.reminders" in script, PluginPermission.Reminders in template.permissions)
-            assertEquals(template.name, "def transform(" in script, PluginPermission.SelectedText in template.permissions)
-            assertEquals(template.name, "def transform(" in script, template.actions.isNotEmpty())
+            assertEquals(template.name, "wm.reminders" in script || imports("reminders"), PluginPermission.Reminders in template.permissions)
+            assertEquals(template.name, actions, PluginPermission.SelectedText in template.permissions)
+            assertEquals(template.name, actions, template.actions.isNotEmpty())
         }
     }
 

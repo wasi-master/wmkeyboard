@@ -121,6 +121,7 @@ export function lockEntry(p: PreparedPackage, files: string[]): LockEntry {
 		// With no check in this build the package is taken on trust, and marked so.
 		verdict: p.analysis?.verdict ?? 'warnings',
 		problems: p.analysis?.problems.length ?? 0,
+		...(p.planned.requested ? { requested: p.planned.requested } : {}),
 	};
 }
 

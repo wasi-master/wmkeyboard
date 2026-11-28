@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 use wm_python::host::Session;
 
 use crate::mock::Mock;
-use crate::project::{inside, manifest, session_config};
+use crate::project::{inside, manifest, session_config_in, Context};
 
 /// Most sessions alive at once; the oldest is stopped for a new one.
 pub const MAX_SESSIONS: usize = 16;
@@ -26,12 +26,12 @@ fn parse(text: &str) -> Value {
 }
 
 impl Live {
-    /// The plugin in [dir], loaded. Returns it and the first draw.
-    pub fn start(dir: &Path, mock: Value, settings: Value) -> Result<(Live, Value), String> {
+    /// The plugin in [dir], loaded in [ctx]. Returns it and the first draw.
+    pub fn start(dir: &Path, mock: Value, settings: Value, ctx: &Context) -> Result<(Live, Value), String> {
         let m = manifest(dir)?;
         let path = inside(dir, &m.entry)?;
         let source = std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", m.entry))?;
-        let config = session_config(dir, &m, settings);
+        let config = session_config_in(dir, &m, settings, ctx);
         let mut session = Session::new(&config.to_string())?;
         let mock = Mock::new(if mock.is_object() { mock } else { json!({}) });
         session.set_bridge(Some(mock.bridge()));

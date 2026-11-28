@@ -284,7 +284,7 @@ pub fn run(setup: &Setup) -> Result<Outcome, String> {
         dir: setup.dir.to_path_buf(),
         mock: mock_path,
         sets: scenario.map(|s| s.settings.clone()).unwrap_or_default(),
-        dark: false,
+        dark: crate::project::context().dark(),
         watch: false,
     };
     let calls: Calls = Rc::new(RefCell::new(Vec::new()));

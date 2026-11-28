@@ -61,9 +61,11 @@ pub struct RecordArgs {
     /// Run the plugin's tests instead (their own mocks are not used)
     #[arg(long)]
     pub tests: bool,
-    /// With --tests: only the tests whose file::name contains this text
+    /// Run only the tests whose file::name contains this text (implies --tests)
     #[arg(short = 'k', value_name = "TEXT")]
     pub filter: Option<String>,
+    #[command(flatten)]
+    pub look: crate::look::Look,
     /// Also redact headers, query values and JSON fields with this name (repeatable)
     #[arg(long, value_name = "NAME")]
     pub redact: Vec<String>,
@@ -89,6 +91,11 @@ fn record(args: RecordArgs) -> u8 {
             return 2;
         }
     };
+    let config = match crate::config::load_or_report(&dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    args.look.apply(&dir, &config);
     let plan = match plan_of(args.scenario.as_deref(), args.tests || args.filter.is_some(), args.filter.clone()) {
         Ok(p) => p,
         Err(e) => {

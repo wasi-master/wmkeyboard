@@ -1,7 +1,7 @@
 //! `wmpy run`: a plugin's panel in the terminal, live as you edit.
 //!
 //! ```text
-//! wmpy run [dir] [--mock file.json] [--set key=value]... [--theme dark|light] [--width N] [--no-watch]
+//! wmpy run [dir] [--mock file.json] [--set key=value]... [--locale tag] [--theme dark|light] [--surface panel|float] [--width N] [--no-watch]
 //! ```
 //!
 //! The panel is drawn at a phone's width (52 columns unless `--width`
@@ -33,9 +33,8 @@ pub struct Args {
     /// A setting's value for this run, over plugin.json's default (repeatable)
     #[arg(long = "set", value_name = "KEY=VALUE", value_parser = parse_set)]
     pub sets: Vec<(String, String)>,
-    /// The theme the plugin sees (plugin.dark)
-    #[arg(long, value_parser = ["dark", "light"], default_value = "light")]
-    pub theme: String,
+    #[command(flatten)]
+    pub look: crate::look::Look,
     /// The panel's width in columns (a phone is about 48 to 60)
     #[arg(long, default_value_t = 52)]
     pub width: u16,
@@ -49,7 +48,10 @@ pub fn run(args: Args) -> u8 {
         eprintln!("wmpy run needs a terminal; use `wmpy render` or `wmpy preview --print-url` from scripts");
         return 2;
     }
-    let opts = Options { dir: args.dir.clone(), mock: args.mock.clone(), sets: args.sets.clone(), dark: args.theme == "dark", watch: !args.no_watch };
+    let opts = match options(&args.dir, &args.look, args.mock.as_deref(), &args.sets, !args.no_watch) {
+        Ok(o) => o,
+        Err(code) => return code,
+    };
     let host = match DevHost::open(opts) {
         Ok(h) => h,
         Err(e) => {
@@ -82,6 +84,18 @@ pub fn run(args: Args) -> u8 {
             2
         }
     }
+}
+
+/// The dev host's options from the flags, with wmpy.toml's `[run]` under
+/// them: its mock when no --mock, its settings under each --set. Also sets
+/// the context every session of the run gets. Err with the exit code.
+pub fn options(dir: &std::path::Path, look: &crate::look::Look, mock: Option<&std::path::Path>, sets: &[(String, String)], watch: bool) -> Result<Options, u8> {
+    let config = crate::config::load_or_report(dir)?;
+    let ctx = look.apply(dir, &config);
+    let mock = mock.map(std::path::Path::to_path_buf).or_else(|| config.run.mock.as_ref().map(|m| crate::config::in_dir(dir, m)));
+    let mut all: Vec<(String, String)> = config.run.settings.iter().filter(|(k, _)| !sets.iter().any(|(s, _)| s == k)).cloned().collect();
+    all.extend(sets.iter().cloned());
+    Ok(Options { dir: dir.to_path_buf(), mock, sets: all, dark: ctx.dark(), watch })
 }
 
 fn event_loop(terminal: &mut ratatui::DefaultTerminal, app: &mut app::App) -> std::io::Result<()> {

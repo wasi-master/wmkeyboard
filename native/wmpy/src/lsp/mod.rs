@@ -850,7 +850,7 @@ impl Server {
             "wmpy.test" => {
                 let filter = args.get(1).and_then(Value::as_str).map(str::to_string);
                 std::thread::spawn(move || {
-                    let answer = commands::test(&exe, &dir, filter.as_deref());
+                    let answer = commands::test(&exe, &dir, filter.as_deref(), None);
                     match &answer {
                         Ok(v) => {
                             if let Some(summary) = commands::test_summary(v) {

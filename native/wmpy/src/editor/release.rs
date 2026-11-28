@@ -26,6 +26,16 @@ pub fn fetch(asset: &str) -> Result<Vec<u8>, String> {
     }
 }
 
+/// The bytes of [asset] in release `v`[version], after its SHA-256 matched.
+pub fn fetch_version(version: &str, asset: &str) -> Result<Vec<u8>, String> {
+    if let Ok(base) = std::env::var("WMPY_RELEASE_BASE") {
+        if !base.is_empty() {
+            return fetch_from(base.trim_end_matches('/'), asset);
+        }
+    }
+    fetch_from(&format!("{RELEASES}/download/v{version}"), asset)
+}
+
 fn fetch_from(base: &str, asset: &str) -> Result<Vec<u8>, String> {
     let bytes = get(&format!("{base}/{asset}"))?;
     let sums = get(&format!("{base}/{asset}.sha256"))?;

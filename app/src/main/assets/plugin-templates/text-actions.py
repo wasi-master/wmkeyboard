@@ -1,13 +1,14 @@
 # Selection actions: buttons on the bar over text you select.
 #
-# plugin.json lists them under "actions", and asks for the "selection"
-# permission. Tapping one calls transform(text, action) with the selected
-# text and the action's id, and the string it returns takes the selection's
-# place. Returning None leaves the text as it was. Undo on the bar takes the
-# change back.
+# plugin.json lists them under "actions" and asks for the "selection"
+# permission. Each @plugin.action function gets the selected text, and the
+# string it returns takes the selection's place; returning None leaves the
+# text as it was. Undo on the bar takes the change back.
 #
-# The panel picks the quotes that Wrap in quotes uses. The choice is kept in
-# wm.storage, which an action can read as well as the panel.
+# The panel picks the quotes that Wrap in quotes uses. The choice is kept with
+# plugin.state(persist=True), so an action reads it as well as the panel.
+
+from wm import plugin, ui
 
 STYLES = [
     {"id": "curly", "open": "“", "close": "”", "label": "“Curly”"},
@@ -19,11 +20,12 @@ STYLES = [
 UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 LOWER = "abcdefghijklmnopqrstuvwxyz"
 
+state = plugin.state(quotes="curly", persist=True)
+
 
 def current_style():
-    chosen = wm.storage.get("quotes", "curly")
     for style in STYLES:
-        if style["id"] == chosen:
+        if style["id"] == state.quotes:
             return style
     return STYLES[0]
 
@@ -42,31 +44,25 @@ def rot13(text):
     return "".join(out)
 
 
-def transform(text, action):
-    if action == "rot13":
-        return rot13(text)
-    if action == "quote":
-        style = current_style()
-        return style["open"] + text + style["close"]
-    return None
+@plugin.action("rot13")
+def shift_letters(text):
+    return rot13(text)
+
+
+@plugin.action("quote")
+def wrap_in_quotes(text):
+    style = current_style()
+    return style["open"] + text + style["close"]
+
+
+def pick(style_id):
+    state.quotes = style_id
 
 
 def render():
     chosen = current_style()
-    rows = [ui.label("Quotes for Wrap in quotes", style="title")]
-    for style in STYLES:
-        rows.append(ui.button(
-            style["id"],
-            style["label"],
-            style="primary" if style["id"] == chosen["id"] else None,
-        ))
-    rows.append(ui.label(
-        "Select some text, then tap ROT13 or Wrap in quotes on the bar.",
-        style="caption",
-    ))
-    return ui.column(rows)
-
-
-def on_event(e):
-    if e["type"] == "click":
-        wm.storage.set("quotes", e["id"])
+    with ui.column():
+        ui.title("Quotes for Wrap in quotes")
+        for style in STYLES:
+            ui.button(style["label"], on_click=lambda s=style["id"]: pick(s), primary=style["id"] == chosen["id"])
+        ui.caption("Select some text, then tap ROT13 or Wrap in quotes on the bar.")

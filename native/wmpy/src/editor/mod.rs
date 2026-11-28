@@ -21,7 +21,7 @@
 
 mod doctor;
 mod find;
-mod release;
+pub mod release;
 
 use std::path::{Path, PathBuf};
 use std::process::Command;

@@ -1278,7 +1278,7 @@ pub fn is_dev_file(path: &str) -> bool {
         || file.ends_with(".wmplugin")
         || file.ends_with(".pyc")
         || file.ends_with(".pyi")
-        || matches!(file, "wmpy.lock" | "pyrightconfig.json")
+        || matches!(file, "wmpy.lock" | "wmpy.toml" | "pyproject.toml" | "pyrightconfig.json")
 }
 
 /// What [path] (relative, with `/`) becomes in the archive of [m], or None

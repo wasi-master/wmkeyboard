@@ -1,8 +1,8 @@
 //! `wmpy test` and `wmpy render`: WM Keyboard's Python plugins, headless.
 //!
 //! ```text
-//! wmpy test <plugin-dir> [-k text] [--json] [--junit file] [--watch]
-//! wmpy render <plugin-dir> [--mock <file>]   load the plugin as a panel and print the first render's JSON
+//! wmpy test <plugin-dir> [-k text] [-j N] [-x] [--json] [--junit file] [--watch] [--locale tag] [--theme t] [--surface s]
+//! wmpy render <plugin-dir> [--mock <file>] [--set key=value]... [--locale tag] [--theme t] [--surface s]
 //! ```
 //!
 //! `wmpy test` runs `test.py` and every `tests/**/test_*.py`, each in a fresh
@@ -32,13 +32,18 @@
 //!   whose functions stay callable (`m = plugin_test.load("main.py", wm, ui)`,
 //!   then `m["transform"]("x")` or `m.transform("x")`)
 //!
-//! * `plugin_test.session(mock=None, settings=None)`: the plugin itself as the
-//!   keyboard runs it (API 5 or not), with [mock] answering host calls as the
-//!   mock file does. It returns a dict of functions, each giving back the
-//!   result as a dict: `load()`, `render()`, `event(e)`, `transform(text, id)`,
-//!   plus `storage()`, `calls()` (every host call so far, `{"op", "args"}`)
-//!   and `settle()`, which answers each waiting `then=` call from the mock as
-//!   its `result` event, round after round until none waits.
+//! * `plugin_test.session(mock=None, settings=None, locale=None, theme=None,
+//!   surface=None)`: the plugin itself as the keyboard runs it (API 5 or
+//!   not), with [mock] answering host calls as the mock file does, in the
+//!   run's `--locale`/`--theme`/`--surface` unless the call names others. It
+//!   returns an object of functions (`s.load()`, or `s["load"]()`), each
+//!   giving back the result (`r.ok`, `r.ui`, `r.error`): `load()`,
+//!   `render()`, `event(e)`, `transform(text, id)`, plus `storage()`,
+//!   `calls()` (every host call so far, `{"op", "args"}`) and `settle()`,
+//!   which answers each waiting `then=` call from the mock as its `result`
+//!   event, round after round until none waits. When a test fails on a
+//!   result whose call failed (`assert r.ok, r.error`), the report shows the
+//!   plugin's error, in its own file with its traceback.
 //! * `plugin_test.preview(id, file, mock=None, name=None, mime=None)` and
 //!   `plugin_test.thumbnail(...)`: the plugin's `@plugin.preview(id)` or
 //!   `@plugin.thumbnail(id)` run on [file] (a file name inside the plugin
@@ -51,6 +56,10 @@
 //! A test fails by raising. Its budget is generous (500M steps, 10 minutes)
 //! because one run drives a whole corpus of cases.
 //!
+//! `-j N` runs N test files at once, each in its own interpreter; their
+//! prints then come with each result rather than as they happen. `-x`
+//! stops at the first failure.
+//!
 //! Output: what the tests print goes to stdout as they print it. Each
 //! test's result, each failure with its code frame (and traceback, when the
 //! interpreter gives one) and the summary go to stderr. A lone `test.py`
@@ -62,6 +71,8 @@
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 
 use serde_json::json;
@@ -72,10 +83,10 @@ use wm_python::interp::{Limits, PyError, Runtime, SystemClock, Value, STANDARD_M
 
 use crate::diag::{color_stderr, folder_source, Diag};
 use crate::mock::Mock;
-use crate::project::{inside, manifest, modules, read_inside, session_config, Manifest, DEFAULT_PREVIEW_BYTES};
+use crate::project::{inside, manifest, modules, read_inside, session_config, session_config_in, Context, Manifest, DEFAULT_PREVIEW_BYTES};
 
 /// `wmpy test`: run the plugin's tests.
-#[derive(clap::Args, Debug)]
+#[derive(clap::Args, Debug, Clone)]
 pub struct TestArgs {
     /// The plugin folder
     #[arg(default_value = ".")]
@@ -92,6 +103,14 @@ pub struct TestArgs {
     /// Run again whenever a file in the plugin folder changes
     #[arg(long)]
     pub watch: bool,
+    /// Run this many test files at once [default: 1, or wmpy.toml's test.jobs; 0 is one per processor]
+    #[arg(short = 'j', long, value_name = "N")]
+    pub jobs: Option<usize>,
+    /// Stop at the first failing test
+    #[arg(short = 'x', long)]
+    pub fail_fast: bool,
+    #[command(flatten)]
+    pub look: crate::look::Look,
 }
 
 /// `wmpy render`: load the plugin as a panel and print the first draw's JSON.
@@ -100,17 +119,45 @@ pub struct RenderArgs {
     /// The plugin folder
     #[arg(default_value = ".")]
     pub dir: PathBuf,
-    /// A JSON file answering host calls by op name
+    /// A JSON file answering host calls by op name [default: wmpy.toml's run.mock]
     #[arg(long)]
     pub mock: Option<PathBuf>,
+    /// A setting's value for this draw, over plugin.json's default (repeatable)
+    #[arg(long = "set", value_name = "KEY=VALUE", value_parser = crate::devhost::parse_set)]
+    pub sets: Vec<(String, String)>,
+    /// Indent the JSON
+    #[arg(long)]
+    pub pretty: bool,
+    /// Accepted for scripts that pass it to every command: render always prints JSON
+    #[arg(long, hide = true)]
+    pub json: bool,
+    #[command(flatten)]
+    pub look: crate::look::Look,
 }
 
-pub fn run_test(args: TestArgs) -> u8 {
+pub fn run_test(mut args: TestArgs) -> u8 {
     let dir = if args.dir.is_file() { args.dir.parent().map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from(".")) } else { args.dir.clone() };
     let dir = if dir.as_os_str().is_empty() { PathBuf::from(".") } else { dir };
     if !dir.is_dir() {
-        eprintln!("{}: no such folder", dir.display());
+        let mut d = Diag::error(format!("there is no folder {}", args.dir.display()));
+        d.help = Some("give the plugin's folder, the one that holds plugin.json and test.py".into());
+        if args.json {
+            println!("{}", json!({"ok": false, "passed": 0, "failed": 0, "durationMs": 0, "tests": [], "error": d.to_json()}));
+        } else {
+            eprint!("{}", d.render(&|_| None, color_stderr()));
+        }
         return 2;
+    }
+    let config = match crate::config::load_or_report(&dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    args.look.apply(&dir, &config);
+    if args.jobs.is_none() {
+        args.jobs = config.test.jobs;
+    }
+    if !args.fail_fast {
+        args.fail_fast = config.test.fail_fast.unwrap_or(false);
     }
     if args.watch {
         return watch(&dir, &args);
@@ -119,7 +166,15 @@ pub fn run_test(args: TestArgs) -> u8 {
 }
 
 pub fn run_render(args: RenderArgs) -> u8 {
-    render(&args.dir, args.mock.as_deref())
+    let config = match crate::config::load_or_report(&args.dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    args.look.apply(&args.dir, &config);
+    let mock = args.mock.clone().or_else(|| config.run.mock.as_ref().map(|m| crate::config::in_dir(&args.dir, m)));
+    let mut sets: Vec<(String, String)> = config.run.settings.iter().filter(|(k, _)| !args.sets.iter().any(|(s, _)| s == k)).cloned().collect();
+    sets.extend(args.sets.iter().cloned());
+    render(&args.dir, mock.as_deref(), &sets, args.pretty)
 }
 
 pub fn report(e: &PyError) {
@@ -182,9 +237,24 @@ fn test(dir: &Path, args: &TestArgs) -> u8 {
     } else {
         Style::Rich
     };
+    let jobs = match args.jobs {
+        Some(0) => std::thread::available_parallelism().map_or(1, |n| n.get()),
+        Some(n) => n,
+        None => 1,
+    }
+    .min(files.len().max(1));
+    let stop = Arc::new(AtomicBool::new(false));
+    let opts = RunOpts { filter: args.filter.clone(), fail_fast: args.fail_fast, stop: stop.clone() };
     let mut results: Vec<TestResult> = Vec::new();
-    for file in &files {
-        results.extend(run_file(dir, file, args.filter.as_deref(), style));
+    if jobs <= 1 {
+        for file in &files {
+            if stop.load(Ordering::Relaxed) {
+                break;
+            }
+            results.extend(run_file(dir, file, &opts, style));
+        }
+    } else {
+        results = run_parallel(dir, &files, &opts, style, jobs);
     }
     let elapsed = started.elapsed();
     let passed = results.iter().filter(|r| r.ok).count();
@@ -209,7 +279,8 @@ fn test(dir: &Path, args: &TestArgs) -> u8 {
             if results.is_empty() {
                 eprintln!("no test matches -k {}", args.filter.as_deref().unwrap_or(""));
             } else {
-                eprintln!("{passed} passed, {failed} failed in {:.2} s", elapsed.as_secs_f64());
+                let stopped = if stop.load(Ordering::Relaxed) { " (stopped at the first failure, -x)" } else { "" };
+                eprintln!("{passed} passed, {failed} failed in {:.2} s{stopped}", elapsed.as_secs_f64());
             }
         }
         Style::Legacy => {}
@@ -229,8 +300,78 @@ fn test_names(source: &str) -> Vec<String> {
         .collect()
 }
 
+/// What every test file of a run shares.
+#[derive(Clone)]
+struct RunOpts {
+    filter: Option<String>,
+    fail_fast: bool,
+    /// Set at the first failure under `-x`: no more tests start.
+    stop: Arc<AtomicBool>,
+}
+
+impl RunOpts {
+    fn failed(&self, r: &TestResult) {
+        if !r.ok && self.fail_fast {
+            self.stop.store(true, Ordering::Relaxed);
+        }
+    }
+}
+
+/// The test files on [jobs] threads, each in its own interpreter, the
+/// results in the order of [files] and shown as each file finishes in turn.
+fn run_parallel(dir: &Path, files: &[String], opts: &RunOpts, style: Style, jobs: usize) -> Vec<TestResult> {
+    let next = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let (tx, rx) = std::sync::mpsc::channel::<(usize, Vec<TestResult>)>();
+    let mut workers = Vec::new();
+    for _ in 0..jobs {
+        let (next, tx, files, dir, opts) = (next.clone(), tx.clone(), files.to_vec(), dir.to_path_buf(), opts.clone());
+        let worker = std::thread::Builder::new().stack_size(256 << 20).spawn(move || loop {
+            let i = next.fetch_add(1, Ordering::Relaxed);
+            if i >= files.len() || opts.stop.load(Ordering::Relaxed) {
+                return;
+            }
+            // Collected quietly: the main thread shows them in order.
+            let out = run_file(&dir, &files[i], &opts, Style::Json);
+            if tx.send((i, out)).is_err() {
+                return;
+            }
+        });
+        if let Ok(w) = worker {
+            workers.push(w);
+        }
+    }
+    drop(tx);
+    let mut done: std::collections::BTreeMap<usize, Vec<TestResult>> = std::collections::BTreeMap::new();
+    let mut shown = 0;
+    let mut out = Vec::new();
+    for (i, results) in rx {
+        done.insert(i, results);
+        while let Some(results) = done.remove(&shown) {
+            for r in results {
+                if style == Style::Rich {
+                    if !r.output.is_empty() {
+                        print!("{}", r.output);
+                    }
+                    show(&r, dir);
+                }
+                out.push(r);
+            }
+            shown += 1;
+        }
+    }
+    for w in workers {
+        let _ = w.join();
+    }
+    // Files after one that never ran (a stop under -x) are left out.
+    for (_, results) in done {
+        out.extend(results);
+    }
+    out
+}
+
 /// Runs one test file: its top level, then each selected test function.
-fn run_file(dir: &Path, file: &str, filter: Option<&str>, style: Style) -> Vec<TestResult> {
+fn run_file(dir: &Path, file: &str, opts: &RunOpts, style: Style) -> Vec<TestResult> {
+    let filter = opts.filter.as_deref();
     let source = match std::fs::read_to_string(dir.join(file)) {
         Ok(s) => s,
         Err(e) => {
@@ -247,10 +388,11 @@ fn run_file(dir: &Path, file: &str, filter: Option<&str>, style: Style) -> Vec<T
     }
     let output = Rc::new(RefCell::new(String::new()));
     let started = Instant::now();
-    let mut rt = match runtime(dir, output.clone(), style != Style::Json) {
+    let (mut rt, last_failure) = match runtime(dir, output.clone(), style != Style::Json) {
         Ok(rt) => rt,
         Err(e) => {
             let r = TestResult { file: file.into(), name: MODULE.into(), ok: false, duration: started.elapsed(), output: take(&output), error: Some(Diag::from_py_error(&e, file)) };
+            opts.failed(&r);
             return vec![finished_or_legacy(r, &e, dir, style)];
         }
     };
@@ -258,7 +400,9 @@ fn run_file(dir: &Path, file: &str, filter: Option<&str>, style: Style) -> Vec<T
     rt.set_module_file("__main__", file);
     rt.set_deadline(Some(Instant::now() + Duration::from_secs(600)));
     if let Err(e) = rt.load(&source) {
-        let r = TestResult { file: file.into(), name: MODULE.into(), ok: false, duration: started.elapsed(), output: take(&output), error: Some(Diag::from_py_error(&e, file)) };
+        let error = failure_diag(&e, file, &source, &last_failure);
+        let r = TestResult { file: file.into(), name: MODULE.into(), ok: false, duration: started.elapsed(), output: take(&output), error: Some(error) };
+        opts.failed(&r);
         return vec![finished_or_legacy(r, &e, dir, style)];
     }
     if names.is_empty() {
@@ -272,18 +416,63 @@ fn run_file(dir: &Path, file: &str, filter: Option<&str>, style: Style) -> Vec<T
         if !rt.has_function(&name) {
             continue;
         }
+        if opts.stop.load(Ordering::Relaxed) {
+            break;
+        }
         let started = Instant::now();
         rt.set_deadline(Some(Instant::now() + Duration::from_secs(600)));
+        *last_failure.borrow_mut() = None;
         let result = rt.call(&name, Vec::new());
         let mut text = std::mem::take(&mut carried);
         text.push_str(&take(&output));
         let r = match result {
             Ok(_) => TestResult { file: file.into(), name, ok: true, duration: started.elapsed(), output: text, error: None },
-            Err(e) => TestResult { file: file.into(), name, ok: false, duration: started.elapsed(), output: text, error: Some(Diag::from_py_error(&e, file)) },
+            Err(e) => TestResult { file: file.into(), name, ok: false, duration: started.elapsed(), output: text, error: Some(failure_diag(&e, file, &source, &last_failure)) },
         };
+        opts.failed(&r);
         out.push(finished(r, dir, style));
     }
     out
+}
+
+/// The last session call of a test that failed: its error as the session
+/// gave it, and the plugin's entry, which the error blames when it names no file.
+type LastFailure = Rc<RefCell<Option<(serde_json::Value, String)>>>;
+
+/// What a failed test reports. When it failed on a session result whose
+/// call failed (`assert r.ok, r.error`), the plugin's error leads, in the
+/// plugin's own file with its traceback, and the assert follows as a note;
+/// a test that went on past the failed call and broke on what was missing
+/// gets the plugin's error as a note.
+fn failure_diag(e: &PyError, file: &str, source: &str, last: &LastFailure) -> Diag {
+    let own = Diag::from_py_error(e, file);
+    let Some((err, entry)) = last.borrow().clone() else { return own };
+    let session = Diag::from_session_error(&err, &entry);
+    let at = own.line.map(|l| format!("{}:{l}", own.file.as_deref().unwrap_or(file))).unwrap_or_else(|| file.to_string());
+    let line_text = own.line.and_then(|l| source.lines().nth(l.saturating_sub(1) as usize)).map(str::trim).filter(|t| !t.is_empty());
+    let raw_message = err.get("message").and_then(|m| m.as_str()).unwrap_or("");
+    let about_it = e.kind == "AssertionError"
+        && (e.message.trim_start().starts_with("{'kind'")
+            || e.message.trim().is_empty()
+            || (!session.message.is_empty() && (e.message.contains(&session.message) || e.message == raw_message)));
+    if about_it {
+        let mut d = session;
+        let assert = match line_text {
+            Some(t) => format!("the test stopped at {at}: {t}"),
+            None => format!("the test stopped at {at}"),
+        };
+        d.notes.insert(0, assert);
+        return d;
+    }
+    let mut d = own;
+    let place = match (&session.file, session.line) {
+        (Some(f), Some(l)) => format!(" ({f}:{l})"),
+        (Some(f), None) => format!(" ({f})"),
+        _ => String::new(),
+    };
+    let kind = session.code.as_deref().map(|k| format!("{k}: ")).unwrap_or_default();
+    d.notes.push(format!("the plugin's last call failed first: {kind}{}{place}", session.message));
+    d
 }
 
 fn take(buffer: &Rc<RefCell<String>>) -> String {
@@ -293,16 +482,25 @@ fn take(buffer: &Rc<RefCell<String>>) -> String {
 /// Shows a result as it comes in, and hands it on.
 fn finished(r: TestResult, dir: &Path, style: Style) -> TestResult {
     if style == Style::Rich {
-        let color = color_stderr();
-        let paint = |code: &str, text: &str| if color { format!("\x1b[{code}m{text}\x1b[0m") } else { text.to_string() };
-        let mark = if r.ok { paint("32", "ok  ") } else { paint("1;31", "FAIL") };
-        eprintln!("{mark} {} ({} ms)", r.id(), r.duration.as_millis());
-        if let Some(d) = &r.error {
-            eprint!("{}", d.render(&folder_source(dir), color));
-            eprintln!();
-        }
+        show(&r, dir);
     }
     r
+}
+
+/// One result's line, and its failure with the code frame. `--quiet` keeps
+/// only the failures.
+fn show(r: &TestResult, dir: &Path) {
+    if r.ok && crate::output::quiet() {
+        return;
+    }
+    let color = color_stderr();
+    let paint = |code: &str, text: &str| if color { format!("\x1b[{code}m{text}\x1b[0m") } else { text.to_string() };
+    let mark = if r.ok { paint("32", "ok  ") } else { paint("1;31", "FAIL") };
+    eprintln!("{mark} {} ({} ms)", r.id(), r.duration.as_millis());
+    if let Some(d) = &r.error {
+        eprint!("{}", d.render(&folder_source(dir), color));
+        eprintln!();
+    }
 }
 
 fn finished_or_legacy(r: TestResult, e: &PyError, dir: &Path, style: Style) -> TestResult {
@@ -317,8 +515,10 @@ fn finished_or_legacy(r: TestResult, e: &PyError, dir: &Path, style: Style) -> T
 }
 
 /// A fresh interpreter for one test file of the plugin in [dir], printing
-/// into [output] (and to stdout when [echo]).
-fn runtime(dir: &Path, output: Rc<RefCell<String>>, echo: bool) -> Result<Runtime, PyError> {
+/// into [output] (and to stdout when [echo]), and where its sessions put
+/// the last call that failed.
+fn runtime(dir: &Path, output: Rc<RefCell<String>>, echo: bool) -> Result<(Runtime, LastFailure), PyError> {
+    let last_failure: LastFailure = Rc::new(RefCell::new(None));
     let m = manifest(dir).unwrap_or(Manifest {
         id: String::new(),
         version: String::new(),
@@ -372,6 +572,7 @@ fn runtime(dir: &Path, output: Rc<RefCell<String>>, echo: bool) -> Result<Runtim
     let (d1, d2, d3) = (dir.to_path_buf(), dir.to_path_buf(), dir.to_path_buf());
     let (d4, d5) = (dir.to_path_buf(), dir.to_path_buf());
     let (m4, m5) = (manifest(dir).ok(), manifest(dir).ok());
+    let failures = last_failure.clone();
     rt.define_module("plugin_test", move |module| {
         module.define("session", move |call| {
             let Some(m) = manifest_for_sessions.as_ref() else {
@@ -379,14 +580,15 @@ fn runtime(dir: &Path, output: Rc<RefCell<String>>, echo: bool) -> Result<Runtim
             };
             let mock = call.value(0, Some("mock")).map(|v| wm_python::host::v5::to_json(v, 0)).unwrap_or(serde_json::Value::Null);
             let settings = call.value(1, Some("settings")).map(|v| wm_python::host::v5::to_json(v, 0)).unwrap_or(serde_json::Value::Null);
+            let ctx = context_arg(call, crate::project::context())?;
             let source = read_inside(&d3, &m.entry)?;
-            let config = session_config(&d3, m, settings);
+            let config = session_config_in(&d3, m, settings, &ctx);
             let mut session = Session::new(&config.to_string()).map_err(|e| PyError::new(e, "ValueError"))?;
             let mock = (!mock.is_null()).then(|| Mock::new(mock));
             if let Some(mock) = &mock {
                 session.set_bridge(Some(mock.bridge()));
             }
-            Ok(session_value(session, source, mock))
+            Ok(session_value(session, source, mock, failures.clone(), m.entry.clone()))
         });
         module.define("preview", move |call| preview_call(call, &d4, m4.as_ref(), false));
         module.define("thumbnail", move |call| preview_call(call, &d5, m5.as_ref(), true));
@@ -403,7 +605,37 @@ fn runtime(dir: &Path, output: Rc<RefCell<String>>, echo: bool) -> Result<Runtim
         });
     });
     rt.set("plugin_test", Some(Value::Module(Rc::from("plugin_test"))));
-    Ok(rt)
+    Ok((rt, last_failure))
+}
+
+/// `locale=`, `theme=` and `surface=` of a `session()` call, over [base].
+fn context_arg(call: &mut wm_python::interp::Call, base: Context) -> Result<Context, PyError> {
+    let mut ctx = base;
+    let text = |call: &mut wm_python::interp::Call, at: usize, name: &str| -> Option<String> {
+        match call.value(at, Some(name)) {
+            Some(Value::Str(s)) => Some(s.to_string()),
+            _ => None,
+        }
+    };
+    if let Some(l) = text(call, 2, "locale") {
+        if !crate::project::is_locale_tag(&l) {
+            return Err(PyError::new(format!("session(locale={l:?}): give a language tag such as \"bn\" or \"pt-BR\""), "ValueError"));
+        }
+        ctx.locale = l;
+    }
+    if let Some(t) = text(call, 3, "theme") {
+        if t != "light" && t != "dark" {
+            return Err(PyError::new(format!("session(theme={t:?}): the theme is \"light\" or \"dark\""), "ValueError"));
+        }
+        ctx.theme = t;
+    }
+    if let Some(s) = text(call, 4, "surface") {
+        if !matches!(s.as_str(), "panel" | "float" | "action") {
+            return Err(PyError::new(format!("session(surface={s:?}): the surface is \"panel\", \"float\" or \"action\""), "ValueError"));
+        }
+        ctx.surface = s;
+    }
+    Ok(ctx)
 }
 
 /// The results as JUnit XML, one suite a file.
@@ -470,7 +702,7 @@ fn watch(dir: &Path, args: &TestArgs) -> u8 {
             })
             .collect()
     };
-    let once = TestArgs { dir: dir.to_path_buf(), filter: args.filter.clone(), json: args.json, junit: args.junit.clone(), watch: false };
+    let once = TestArgs { dir: dir.to_path_buf(), watch: false, ..args.clone() };
     loop {
         let seen = snapshot();
         test(dir, &once);
@@ -556,14 +788,21 @@ fn preview_call(call: &mut wm_python::interp::Call, dir: &Path, m: Option<&Manif
 /// whose every answer starts another call would otherwise never stop.
 const MAX_SETTLE_ROUNDS: usize = 64;
 
-/// A session as the dict `plugin_test.session()` returns.
-fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Value {
+/// A session as the dict `plugin_test.session()` returns. Each result whose
+/// call failed goes into [failures], for the report when the test then fails.
+fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>, failures: LastFailure, entry: String) -> Value {
     use wm_python::interp::HostFunction;
     let s = Rc::new(RefCell::new(session));
-    let decode = |text: String| -> Result<Value, PyError> {
+    let decode = move |text: String| -> Result<Value, PyError> {
         let json: serde_json::Value = serde_json::from_str(&text).map_err(|e| PyError::new(e.to_string(), "ValueError"))?;
+        if json.get("ok") == Some(&serde_json::Value::Bool(false)) {
+            if let Some(err) = json.get("error").filter(|e| e.is_object()) {
+                *failures.borrow_mut() = Some((err.clone(), entry.clone()));
+            }
+        }
         Ok(wm_python::host::json_to_value(&json))
     };
+    let (d1, d2, d3, d4, d5, d6) = (decode.clone(), decode.clone(), decode.clone(), decode.clone(), decode.clone(), decode);
     let (s6, m6, m7) = (s.clone(), mock.clone(), mock);
     // Answer every waiting then= call from the mock, round after round,
     // since an answer's callback may start the next call.
@@ -579,8 +818,8 @@ fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Va
             let waiting = std::mem::take(&mut *mock.waiting.borrow_mut());
             if waiting.is_empty() {
                 return match first_failure.or(last) {
-                    Some(text) => decode(text),
-                    None => decode(s6.borrow_mut().render()),
+                    Some(text) => d6(text),
+                    None => d6(s6.borrow_mut().render()),
                 };
             }
             for (token, op, args) in waiting {
@@ -605,19 +844,19 @@ fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Va
         Ok(wm_python::host::json_to_value(&serde_json::Value::Array(list)))
     });
     let (s1, s2, s3, s4, s5) = (s.clone(), s.clone(), s.clone(), s.clone(), s.clone());
-    let load = HostFunction::new("load", move |_| decode(s1.borrow_mut().load(&source)));
-    let render = HostFunction::new("render", move |_| decode(s2.borrow_mut().render()));
+    let load = HostFunction::new("load", move |_| d1(s1.borrow_mut().load(&source)));
+    let render = HostFunction::new("render", move |_| d2(s2.borrow_mut().render()));
     let event = HostFunction::new("event", move |call| {
         let e = call.value(0, Some("event")).cloned().unwrap_or(Value::None);
         let text = wm_python::host::v5::to_json(&e, 0).to_string();
-        decode(s3.borrow_mut().event(&text))
+        d3(s3.borrow_mut().event(&text))
     });
     let transform = HostFunction::new("transform", move |call| {
         let text: String = call.arg(0, Some("text"))?;
         let id: String = call.arg_or(1, Some("action_id"), String::new())?;
-        decode(s4.borrow_mut().transform(&text, &id))
+        d4(s4.borrow_mut().transform(&text, &id))
     });
-    let storage = HostFunction::new("storage", move |_| decode(s5.borrow().storage_json()));
+    let storage = HostFunction::new("storage", move |_| d5(s5.borrow().storage_json()));
     Value::dict(vec![
         ("load", Value::HostFunction(load)),
         ("render", Value::HostFunction(render)),
@@ -629,7 +868,7 @@ fn session_value(session: Session, source: String, mock: Option<Rc<Mock>>) -> Va
     ])
 }
 
-fn render(dir: &Path, mock: Option<&Path>) -> u8 {
+fn render(dir: &Path, mock: Option<&Path>, sets: &[(String, String)], pretty: bool) -> u8 {
     let m = match manifest(dir) {
         Ok(m) => m,
         Err(e) => {
@@ -644,7 +883,19 @@ fn render(dir: &Path, mock: Option<&Path>) -> u8 {
             return 2;
         }
     };
-    let config = session_config(dir, &m, serde_json::Value::Null);
+    // Settings as the settings page would hold them: plugin.json's defaults, then each --set.
+    let settings = match crate::devhost::plugin::PluginFacts::read(dir) {
+        Ok(facts) => {
+            if let Some((k, _)) = sets.iter().find(|(k, _)| facts.spec(k).is_none()) {
+                eprintln!("error: --set {k}: plugin.json declares no setting '{k}'");
+                return 2;
+            }
+            let none = std::env::temp_dir().join(format!("wmpy-render-{}-none.json", std::process::id()));
+            crate::devhost::plugin::SettingValues::load(none, sets).json(&facts)
+        }
+        Err(_) => serde_json::Value::Null,
+    };
+    let config = session_config(dir, &m, settings);
     let mut session = match Session::new(&config.to_string()) {
         Ok(s) => s,
         Err(e) => {
@@ -663,7 +914,10 @@ fn render(dir: &Path, mock: Option<&Path>) -> u8 {
         }
     }
     let result = session.load(&source);
-    println!("{result}");
+    match serde_json::from_str::<serde_json::Value>(&result) {
+        Ok(v) if pretty => println!("{}", serde_json::to_string_pretty(&v).unwrap_or(result.clone())),
+        _ => println!("{result}"),
+    }
     let ok = serde_json::from_str::<serde_json::Value>(&result).ok().and_then(|v| v["ok"].as_bool()).unwrap_or(false);
     if ok {
         0

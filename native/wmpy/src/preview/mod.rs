@@ -3,7 +3,7 @@
 //!
 //! ```text
 //! wmpy preview [dir] [--port N] [--host 127.0.0.1] [--no-open] [--print-url]
-//!              [--theme light|dark] [--mock file.json] [--set key=value]... [--no-watch]
+//!              [--locale tag] [--theme light|dark] [--surface panel|float] [--mock file.json] [--set key=value]... [--no-watch]
 //! ```
 //!
 //! The server listens on loopback only. Every request needs the random
@@ -35,7 +35,7 @@ use std::time::{Duration, Instant};
 
 use serde_json::{json, Value as Json};
 
-use crate::devhost::{parse_set, DevHost, Options};
+use crate::devhost::{parse_set, DevHost};
 
 const APP_JS: &[u8] = include_bytes!("../../preview-ui/dist/app.js");
 const APP_CSS: &[u8] = include_bytes!("../../preview-ui/dist/app.css");
@@ -63,9 +63,8 @@ pub struct Args {
     /// Print {"url", "port"} as one JSON line once listening, for editors (opens no browser)
     #[arg(long)]
     pub print_url: bool,
-    /// The page's theme and the one the plugin sees (plugin.dark)
-    #[arg(long, value_parser = ["dark", "light"], default_value = "light")]
-    pub theme: String,
+    #[command(flatten)]
+    pub look: crate::look::Look,
     /// A JSON file answering host calls by op name, as `wmpy test` reads it
     #[arg(long)]
     pub mock: Option<PathBuf>,
@@ -94,7 +93,11 @@ pub fn run(args: Args) -> u8 {
             return 2;
         }
     };
-    let opts = Options { dir: args.dir.clone(), mock: args.mock.clone(), sets: args.sets.clone(), dark: args.theme == "dark", watch: !args.no_watch };
+    let opts = match crate::tui::options(&args.dir, &args.look, args.mock.as_deref(), &args.sets, !args.no_watch) {
+        Ok(o) => o,
+        Err(code) => return code,
+    };
+    let ctx = crate::project::context();
     let mut host = match DevHost::open(opts) {
         Ok(h) => h,
         Err(e) => {
@@ -127,13 +130,13 @@ pub fn run(args: Args) -> u8 {
         let _ = std::io::stdout().flush();
     } else {
         eprintln!("wmpy preview: {} at {url}", host.facts.name);
-        eprintln!("Saving a file in {} reloads it. Ctrl-C stops.", args.dir.display());
+        crate::note!("Saving a file in {} reloads it. Ctrl-C stops.", args.dir.display());
     }
     if !args.no_open && !args.print_url {
         open_browser(&url);
     }
     let (tx, rx) = channel::<Cmd>();
-    let site = Site { token, port, theme: args.theme.clone() };
+    let site = Site { token, port, theme: ctx.theme.clone(), lang: ctx.locale.clone(), rtl: ctx.rtl() };
     std::thread::spawn(move || {
         for request in server.incoming_requests() {
             let (tx, site) = (tx.clone(), site.clone());
@@ -215,6 +218,10 @@ struct Site {
     token: String,
     port: u16,
     theme: String,
+    /// The plugin's locale, as the page's `lang`.
+    lang: String,
+    /// The locale reads right to left: the page's `dir="rtl"`.
+    rtl: bool,
 }
 
 /// 128 random bits, as hex.
@@ -290,7 +297,7 @@ fn handle(mut request: tiny_http::Request, site: &Site, tx: &Sender<Cmd>) {
                 Some(t @ ("dark" | "light")) => t.to_string(),
                 _ => site.theme.clone(),
             };
-            respond(request, 200, "text/html; charset=utf-8", page(&site.token, &theme).into_bytes());
+            respond(request, 200, "text/html; charset=utf-8", page(&site.token, &theme, &site.lang, site.rtl).into_bytes());
         }
         (tiny_http::Method::Get, "/app.js") => respond(request, 200, "text/javascript; charset=utf-8", APP_JS.to_vec()),
         (tiny_http::Method::Get, "/app.css") => respond(request, 200, "text/css; charset=utf-8", APP_CSS.to_vec()),
@@ -354,9 +361,13 @@ fn stream(request: tiny_http::Request, tx: &Sender<Cmd>) {
     }
 }
 
-fn page(token: &str, theme: &str) -> String {
+fn page(token: &str, theme: &str, lang: &str, rtl: bool) -> String {
+    // The tag was checked as a language tag, so it needs no escaping. Only
+    // the panel turns right to left, as in the keyboard; the page around it
+    // stays as it is.
+    let rtl_style = if rtl { "<style>.wp-panel{direction:rtl}</style>\n" } else { "" };
     format!(
-        "<!doctype html>\n<html lang=\"en\" data-theme=\"{theme}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"referrer\" content=\"no-referrer\">\n<title>wmpy preview</title>\n<link rel=\"stylesheet\" href=\"/app.css?t={token}\">\n</head>\n<body>\n<div id=\"app\"></div>\n<script src=\"/app.js?t={token}\"></script>\n</body>\n</html>\n"
+        "<!doctype html>\n<html lang=\"{lang}\" data-theme=\"{theme}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"referrer\" content=\"no-referrer\">\n<title>wmpy preview</title>\n<link rel=\"stylesheet\" href=\"/app.css?t={token}\">\n{rtl_style}</head>\n<body>\n<div id=\"app\"></div>\n<script src=\"/app.js?t={token}\"></script>\n</body>\n</html>\n"
     )
 }
 

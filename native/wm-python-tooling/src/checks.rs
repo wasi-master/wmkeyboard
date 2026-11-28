@@ -151,8 +151,49 @@ impl<'a> Checks<'a> {
                     Some(near) => self.add(Code::NameTypo, o.span, &[name, &near]),
                     None => self.add(Code::UndefinedName, o.span, &[name]),
                 }
+                // Looked up where a NameError is caught, or in a module that
+                // makes names at run time: it may not fail, so it warns.
+                if self.name_may_exist(o.span) {
+                    if let Some(d) = self.out.last_mut() {
+                        d.severity_override = Some(crate::diagnostics::Severity::Warning);
+                    }
+                }
             }
         }
+    }
+
+    /// Whether a name read at [span] may be defined when it runs after all:
+    /// inside a `try` whose handlers catch NameError (or Exception, or
+    /// everything), or in a module that defines `__getattr__` or writes
+    /// through `globals()`, `exec` or `setattr` on itself.
+    fn name_may_exist(&self, span: Span) -> bool {
+        let units = self.doc.units();
+        let text = |e: &Expr| crate::text::slice(units, e.span);
+        let mut guarded = false;
+        walk_stmts(&self.doc.module.body, &mut |stmt| {
+            if let StmtKind::Try { body, handlers, .. } = &stmt.kind {
+                let inside = body.first().zip(body.last()).is_some_and(|(f, l)| f.span.start <= span.start && span.end <= l.span.end);
+                let catches = handlers.iter().any(|h| {
+                    h.types.is_empty()
+                        || h.types.iter().any(|t| {
+                            let names = text(t);
+                            ["NameError", "Exception", "BaseException"].iter().any(|n| names.split(|c: char| !c.is_alphanumeric() && c != '_').any(|w| w == *n))
+                        })
+                });
+                guarded |= inside && catches;
+            }
+        });
+        if guarded {
+            return true;
+        }
+        let mut dynamic = self.a.top_function("__getattr__").is_some();
+        all_exprs(&self.doc.module.body, &mut |e| {
+            if let ExprKind::Call { func, .. } = &e.kind {
+                let f = text(func);
+                dynamic |= matches!(f.as_str(), "globals" | "exec" | "setattr" | "vars");
+            }
+        });
+        dynamic
     }
 
     /// Unused locals and parameters, and assignments that were meant for a module variable.

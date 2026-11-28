@@ -1,13 +1,21 @@
 //! `wmpy pip`: pure-Python packages from PyPI, vendored into a plugin.
 //!
 //! ```text
-//! wmpy pip install <spec>... [--dir .] [--no-deps] [--force] [--allow-warnings] [--json]
+//! wmpy pip install <spec>... [-r requirements.txt]... [--dir .] [--no-deps] [--force] [--allow-warnings] [--json]
 //! wmpy pip check <spec|folder|wheel>... [--no-deps] [--json]
 //! wmpy pip list [--dir .] [--json]
-//! wmpy pip remove <name> [--dir .] [--force]
-//! wmpy pip why <name> [--dir .]
-//! wmpy pip update [name] [--dir .] [--force] [--allow-warnings] [--json]
+//! wmpy pip remove <name> [--dir .] [--force] [--json]
+//! wmpy pip why <name> [--dir .] [--json]
+//! wmpy pip update [name] [--latest] [--dir .] [--force] [--allow-warnings] [--json]
+//! wmpy pip verify [--dir .] [--json]
+//! wmpy pip sync [--dir .] [--all] [--json]
 //! ```
+//!
+//! What was asked for is kept in `wmpy.lock` as typed, and `update` stays
+//! inside it (`--latest` leaves it behind and records the bare name);
+//! `install` with a new spec replaces it. `verify` compares the folder with
+//! the SHA-256 the lock keeps of each file, and `sync` puts back what is
+//! missing or changed, at the locked versions, from PyPI.
 //!
 //! A package goes in as its importable `.py` files at the top of the plugin
 //! folder (`humanize/__init__.py`, `six.py`), the way the keyboard loads a
@@ -68,15 +76,22 @@ pub enum Command {
     Remove(RemoveArgs),
     /// Say why a package is in the plugin
     Why(WhyArgs),
-    /// Move packages to their newest releases
+    /// Move packages to their newest releases, inside what was asked for
     Update(UpdateArgs),
+    /// Check that the vendored files are as wmpy wrote them
+    Verify(DirArgs),
+    /// Put back vendored files that are missing or changed, at the locked versions
+    Sync(SyncArgs),
 }
 
 #[derive(clap::Args, Debug)]
 pub struct InstallArgs {
     /// Packages, as pip takes them: humanize, "python-dateutil>=2.8", "attrs[tests]"
-    #[arg(required = true)]
+    #[arg(required_unless_present = "requirements")]
     pub specs: Vec<String>,
+    /// Also the packages listed in this file, one a line, as pip's requirements.txt (repeatable)
+    #[arg(short = 'r', long = "requirement", value_name = "FILE")]
+    pub requirements: Vec<PathBuf>,
     /// The plugin folder
     #[arg(long, default_value = ".")]
     pub dir: PathBuf,
@@ -127,6 +142,9 @@ pub struct RemoveArgs {
     /// Remove it even though another package needs it
     #[arg(long)]
     pub force: bool,
+    /// Print what was removed as JSON on stdout
+    #[arg(long)]
+    pub json: bool,
 }
 
 #[derive(clap::Args, Debug)]
@@ -136,12 +154,31 @@ pub struct WhyArgs {
     /// The plugin folder
     #[arg(long, default_value = ".")]
     pub dir: PathBuf,
+    /// Print the chain as JSON on stdout
+    #[arg(long)]
+    pub json: bool,
+}
+
+#[derive(clap::Args, Debug)]
+pub struct SyncArgs {
+    /// The plugin folder
+    #[arg(long, default_value = ".")]
+    pub dir: PathBuf,
+    /// Fetch every locked package again, not only those with missing or changed files
+    #[arg(long)]
+    pub all: bool,
+    /// Print the result as JSON on stdout
+    #[arg(long)]
+    pub json: bool,
 }
 
 #[derive(clap::Args, Debug)]
 pub struct UpdateArgs {
     /// Only this package (and what it newly needs); every package when left out
     pub name: Option<String>,
+    /// The newest release even outside what was asked for (`>=2.8,<3`), which then becomes the bare name
+    #[arg(long)]
+    pub latest: bool,
     /// The plugin folder
     #[arg(long, default_value = ".")]
     pub dir: PathBuf,
@@ -164,7 +201,14 @@ pub fn run(args: Args) -> u8 {
         Command::Remove(a) => run_remove(a),
         Command::Why(a) => run_why(a),
         Command::Update(a) => run_update(a),
+        Command::Verify(a) => run_verify(a),
+        Command::Sync(a) => run_sync(a),
     }
+}
+
+/// The cache folder wmpy keeps downloads and answers in.
+pub fn index_cache_dir() -> Option<PathBuf> {
+    index::cache_dir()
 }
 
 // ---- printing ---------------------------------------------------------------
@@ -302,7 +346,7 @@ fn verdict_of(pick: &Pick, outcome: &Outcome) -> String {
 
 /// Analyses the new picks, decides, writes what is accepted and the lock,
 /// and prints the result. The shared second half of install and update.
-fn apply(dir: &Path, mut lock: Lock, picks: BTreeMap<String, Pick>, notes: Vec<String>, force: bool, allow_warnings: bool, json_out: bool) -> u8 {
+fn apply(dir: &Path, mut lock: Lock, picks: BTreeMap<String, Pick>, notes: Vec<String>, requested: &BTreeMap<String, Option<String>>, force: bool, allow_warnings: bool, json_out: bool) -> u8 {
     let own = install::own_roots(dir, &lock);
     // What everything but the package itself puts in the plugin.
     let beside = |key: &str| -> Vec<String> {
@@ -369,6 +413,12 @@ fn apply(dir: &Path, mut lock: Lock, picks: BTreeMap<String, Pick>, notes: Vec<S
             Err(e) => return fail(format!("could not write {}: {e}", pick.name), None, 2),
         };
         let report = o.report.as_ref();
+        // What was asked for: this run's, else what the lock kept.
+        let asked = match requested.get(key) {
+            Some(r) => r.clone(),
+            None => lock.packages.get(key).and_then(|e| e.requested.clone()),
+        };
+        let hashes = files.iter().filter_map(|f| std::fs::read(dir.join(f)).ok().map(|b| (f.clone(), index::sha256_hex(&b)))).collect();
         lock.packages.insert(
             key.clone(),
             Entry {
@@ -381,9 +431,20 @@ fn apply(dir: &Path, mut lock: Lock, picks: BTreeMap<String, Pick>, notes: Vec<S
                 requires: pick.requires.iter().filter(|r| picks.contains_key(*r) || lock.packages.contains_key(*r)).cloned().collect(),
                 verdict: report.map_or("incompatible".into(), |r| r.verdict.name().to_string()),
                 problems: report.map_or(0, |r| r.problem_count() as u64),
+                requested: asked,
+                hashes,
             },
         );
         written_any = true;
+    }
+    // A package already locked that this run asked for by a new spec keeps it.
+    for (key, r) in requested {
+        if let (Some(e), Some(Source::Locked(_))) = (lock.packages.get_mut(key), picks.get(key).map(|p| &p.source)) {
+            if e.requested != *r {
+                e.requested = r.clone();
+                written_any = true;
+            }
+        }
     }
     if written_any {
         if let Err(e) = lock.write(dir) {
@@ -480,10 +541,19 @@ fn run_install(args: InstallArgs) -> u8 {
             return 2;
         }
     };
-    let requested = match parse_specs(&args.specs) {
+    let mut specs = args.specs.clone();
+    for file in &args.requirements {
+        match requirements_file(file) {
+            Ok(mut more) => specs.append(&mut more),
+            Err(e) => return fail(e, None, 2),
+        }
+    }
+    let requested = match parse_specs(&specs) {
         Ok(r) => r,
         Err(e) => return fail(e, Some("give packages as pip takes them: humanize, \"tabulate>=0.9\", \"attrs[tests]\"".into()), 2),
     };
+    // Each package as asked for, kept in the lock for `update`.
+    let asked: BTreeMap<String, Option<String>> = requested.iter().zip(&specs).map(|(r, s)| (r.key(), Some(s.trim().to_string()))).collect();
     let lock = match Lock::read(&dir) {
         Ok(l) => l,
         Err(e) => return fail(e, None, 2),
@@ -499,7 +569,33 @@ fn run_install(args: InstallArgs) -> u8 {
         // Everything asked for is built in (`wmpy pip install requests`).
         return print_notes_only(&notes, args.json);
     }
-    apply(&dir, lock, picks, notes, args.force, args.allow_warnings, args.json)
+    apply(&dir, lock, picks, notes, &asked, args.force, args.allow_warnings, args.json)
+}
+
+/// The requirement lines of a requirements.txt: comments, blank lines and
+/// `\` continuations as pip reads them; option lines (`-e`, `--index-url`)
+/// are refused, as wmpy installs from PyPI only.
+fn requirements_file(path: &Path) -> Result<Vec<String>, String> {
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let joined = text.replace("\\\r\n", " ").replace("\\\n", " ");
+    let mut out = Vec::new();
+    for (i, raw) in joined.lines().enumerate() {
+        // A comment starts at a # at the line's start or after a space.
+        let line = match raw.find(" #") {
+            Some(at) => &raw[..at],
+            None if raw.trim_start().starts_with('#') => "",
+            None => raw,
+        };
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if line.starts_with('-') {
+            return Err(format!("{}:{}: “{line}”: wmpy reads package lines only, and installs from PyPI", path.display(), i + 1));
+        }
+        out.push(line.to_string());
+    }
+    Ok(out)
 }
 
 /// The result when nothing was installed or checked: only notes, such as
@@ -531,16 +627,29 @@ fn run_update(args: UpdateArgs) -> u8 {
         println!("nothing to update: the plugin has no wmpy.lock");
         return 0;
     }
+    // Each package as it was asked for, unless --latest.
+    let spec_of = |key: &str| -> String {
+        match (args.latest, lock.packages.get(key).and_then(|e| e.requested.clone())) {
+            (false, Some(r)) => r,
+            _ => key.to_string(),
+        }
+    };
     let (requested, fresh, all_fresh): (Vec<String>, HashSet<String>, bool) = match &args.name {
         Some(name) => {
             let key = normalize(name);
             if !lock.packages.contains_key(&key) {
                 return fail(format!("{name} is not installed in this plugin"), Some(format!("wmpy pip install {name}")), 1);
             }
-            (vec![key.clone()], [key].into_iter().collect(), false)
+            (vec![spec_of(&key)], [key].into_iter().collect(), false)
         }
-        // What nothing else needs; the rest follows from it.
-        None => (lock.packages.keys().filter(|k| lock.dependents(k).is_empty()).cloned().collect(), HashSet::new(), true),
+        // What was asked for by name; the rest follows from it.
+        None => (lock.direct().iter().map(|k| spec_of(k)).collect(), HashSet::new(), true),
+    };
+    // --latest: what was asked for becomes the bare name.
+    let asked: BTreeMap<String, Option<String>> = if args.latest {
+        lock.packages.iter().filter(|(k, e)| e.requested.is_some() && args.name.as_deref().is_none_or(|n| normalize(n) == **k)).map(|(k, _)| (k.clone(), Some(k.clone()))).collect()
+    } else {
+        BTreeMap::new()
     };
     let reqs = match parse_specs(&requested) {
         Ok(r) => r,
@@ -569,7 +678,134 @@ fn run_update(args: UpdateArgs) -> u8 {
             notes.push(format!("nothing needs {k} any more: `wmpy pip remove {k}` takes it out"));
         }
     }
-    apply(&dir, lock, picks, notes, args.force, args.allow_warnings, args.json)
+    apply(&dir, lock, picks, notes, &asked, args.force, args.allow_warnings, args.json)
+}
+
+// ---- verify and sync --------------------------------------------------------
+
+/// How a locked package's files stand against the lock.
+struct Standing {
+    missing: Vec<String>,
+    changed: Vec<String>,
+    /// The lock keeps no SHA-256s for it (written before they were kept).
+    unhashed: bool,
+}
+
+fn standing(dir: &Path, e: &Entry) -> Standing {
+    let mut s = Standing { missing: Vec::new(), changed: Vec::new(), unhashed: e.hashes.is_empty() };
+    for f in &e.files {
+        match std::fs::read(dir.join(f)) {
+            Err(_) => s.missing.push(f.clone()),
+            Ok(bytes) => {
+                if let Some(want) = e.hashes.get(f) {
+                    if index::sha256_hex(&bytes) != *want {
+                        s.changed.push(f.clone());
+                    }
+                }
+            }
+        }
+    }
+    s
+}
+
+fn run_verify(args: DirArgs) -> u8 {
+    let (dir, lock) = match open_lock(&args.dir) {
+        Ok(x) => x,
+        Err(c) => return c,
+    };
+    let mut bad = false;
+    let mut rows = Vec::new();
+    for (k, e) in &lock.packages {
+        let s = standing(&dir, e);
+        bad |= !s.missing.is_empty() || !s.changed.is_empty();
+        rows.push((k.clone(), e.version.clone(), s));
+    }
+    if args.json {
+        let list: Vec<Json> = rows
+            .iter()
+            .map(|(k, v, s)| json!({"name": k, "version": v, "ok": s.missing.is_empty() && s.changed.is_empty(), "missing": s.missing, "changed": s.changed, "hashed": !s.unhashed}))
+            .collect();
+        println!("{}", serde_json::to_string_pretty(&json!({"ok": !bad, "packages": list})).expect("json"));
+        return u8::from(bad);
+    }
+    if rows.is_empty() {
+        println!("no packages: the plugin has no wmpy.lock");
+        return 0;
+    }
+    let color = crate::output::stdout();
+    for (k, v, s) in &rows {
+        let state = if !s.missing.is_empty() || !s.changed.is_empty() {
+            crate::output::paint(color, "31", &format!("{} missing, {} changed", s.missing.len(), s.changed.len()))
+        } else if s.unhashed {
+            crate::output::paint(color, "33", "present (the lock keeps no SHA-256s: `wmpy pip sync` records them)")
+        } else {
+            crate::output::paint(color, "32", "as installed")
+        };
+        println!("{k} {v}: {state}");
+        for f in s.missing.iter().take(SHOWN) {
+            println!("  missing  {f}");
+        }
+        for f in s.changed.iter().take(SHOWN) {
+            println!("  changed  {f}");
+        }
+    }
+    if bad {
+        crate::note!("`wmpy pip sync` puts them back from PyPI at the locked versions");
+    }
+    u8::from(bad)
+}
+
+fn run_sync(args: SyncArgs) -> u8 {
+    let (dir, mut lock) = match open_lock(&args.dir) {
+        Ok(x) => x,
+        Err(c) => return c,
+    };
+    if lock.packages.is_empty() {
+        println!("nothing to sync: the plugin has no wmpy.lock");
+        return 0;
+    }
+    let mut repair: Vec<String> = Vec::new();
+    let mut recorded = false;
+    let keys: Vec<String> = lock.packages.keys().cloned().collect();
+    for k in keys {
+        let e = lock.packages.get_mut(&k).expect("listed");
+        let s = standing(&dir, e);
+        if args.all || !s.missing.is_empty() || !s.changed.is_empty() {
+            repair.push(k);
+        } else if s.unhashed {
+            // Every file is there: what is there is taken as installed.
+            e.hashes = e.files.iter().filter_map(|f| std::fs::read(dir.join(f)).ok().map(|b| (f.clone(), index::sha256_hex(&b)))).collect();
+            recorded = true;
+        }
+    }
+    if repair.is_empty() {
+        if recorded {
+            if let Err(e) = lock.write(&dir) {
+                return fail(e, None, 2);
+            }
+            crate::note!("every vendored file is there; wrote their SHA-256s into wmpy.lock");
+        }
+        if args.json {
+            println!("{}", serde_json::to_string_pretty(&json!({"packages": [], "notes": [], "recorded": recorded})).expect("json"));
+        } else {
+            println!("every vendored file is as installed");
+        }
+        return 0;
+    }
+    let specs: Vec<String> = repair.iter().map(|k| format!("{k}=={}", lock.packages[k].version)).collect();
+    let reqs = match parse_specs(&specs) {
+        Ok(r) => r,
+        Err(e) => return fail(e, None, 2),
+    };
+    let index = Index::new();
+    let fresh: HashSet<String> = repair.iter().cloned().collect();
+    let mut r = Resolver { index: &index, lock: &lock, fresh, all_fresh: false, no_deps: true, picks: BTreeMap::new(), notes: Vec::new(), quiet: args.json || crate::output::quiet() };
+    if let Err(e) = r.resolve(reqs) {
+        return fail(e, None, 2);
+    }
+    let (picks, notes) = (std::mem::take(&mut r.picks), std::mem::take(&mut r.notes));
+    // The lock already holds the decision to install each one: no analysis veto.
+    apply(&dir, lock, picks, notes, &BTreeMap::new(), true, true, args.json)
 }
 
 // ---- check ------------------------------------------------------------------
@@ -763,14 +999,54 @@ fn run_why(args: WhyArgs) -> u8 {
     };
     let key = normalize(&args.name);
     let Some(entry) = lock.packages.get(&key) else {
+        if args.json {
+            println!("{}", json!({"ok": false, "error": format!("{} is not installed in this plugin", args.name)}));
+            return 1;
+        }
         return fail(format!("{} is not installed in this plugin", args.name), None, 1);
     };
+    if args.json {
+        // Every chain from something asked for by name down to it.
+        fn chains(lock: &Lock, key: &str, seen: &mut Vec<String>) -> Vec<Vec<String>> {
+            let by = lock.dependents(key);
+            if by.is_empty() || seen.len() > 32 {
+                return vec![vec![key.to_string()]];
+            }
+            let mut out = Vec::new();
+            for d in by {
+                if seen.contains(&d) {
+                    continue;
+                }
+                seen.push(d.clone());
+                for mut c in chains(lock, &d, seen) {
+                    c.push(key.to_string());
+                    out.push(c);
+                }
+                seen.pop();
+            }
+            if out.is_empty() {
+                out.push(vec![key.to_string()]);
+            }
+            out
+        }
+        let direct = entry.requested.is_some() || lock.dependents(&key).is_empty();
+        println!(
+            "{}",
+            json!({"name": key, "version": entry.version, "requested": entry.requested, "direct": direct, "neededBy": lock.dependents(&key), "chains": chains(&lock, &key, &mut Vec::new())})
+        );
+        return 0;
+    }
     println!("{key} {}", entry.version);
+    if let Some(r) = &entry.requested {
+        println!("  asked for directly, as {r}");
+    }
     let mut seen = HashSet::new();
     fn walk(lock: &Lock, key: &str, depth: usize, seen: &mut HashSet<String>) {
         let by = lock.dependents(key);
         if by.is_empty() {
-            println!("{}installed directly: nothing else here needs it", "  ".repeat(depth));
+            if lock.packages.get(key).is_none_or(|e| e.requested.is_none()) {
+                println!("{}installed directly: nothing else here needs it", "  ".repeat(depth));
+            }
             return;
         }
         for d in by {
@@ -806,11 +1082,14 @@ fn run_remove(args: RemoveArgs) -> u8 {
         return fail(e, None, 2);
     }
     let kept = entry.files.len() - gone.len();
+    let orphans: Vec<&String> = entry.requires.iter().filter(|dep| lock.packages.contains_key(*dep) && lock.dependents(dep).is_empty() && lock.packages[*dep].requested.is_none()).collect();
+    if args.json {
+        println!("{}", json!({"removed": key, "version": entry.version, "files": gone, "kept": kept, "unneeded": orphans, "stillNeededBy": by}));
+        return 0;
+    }
     println!("removed {key} {} ({} files{})", entry.version, gone.len(), if kept > 0 { format!("; {kept} another package also lists stay") } else { String::new() });
-    for dep in &entry.requires {
-        if lock.packages.contains_key(dep) && lock.dependents(dep).is_empty() {
-            println!("  nothing here needs {dep} any more: `wmpy pip remove {dep}` takes it out too");
-        }
+    for dep in orphans {
+        println!("  nothing here needs {dep} any more: `wmpy pip remove {dep}` takes it out too");
     }
     if !by.is_empty() {
         warn(&format!("{} still needs {key}, so it may fail to import", by.join(", ")));

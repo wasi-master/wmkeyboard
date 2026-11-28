@@ -163,11 +163,14 @@ pub fn json_of(out: &Output) -> Option<Value> {
 
 /// `wmpy test <dir> --json [-k filter]`, as JSON. A run that printed no JSON
 /// becomes `{"ok", "output"}`.
-pub fn test(exe: &Path, dir: &Path, filter: Option<&str>) -> Result<Value, String> {
+pub fn test(exe: &Path, dir: &Path, filter: Option<&str>, locale: Option<&str>) -> Result<Value, String> {
     let dir_text = dir.to_string_lossy().to_string();
     let mut args = vec!["test", dir_text.as_str(), "--json"];
     if let Some(k) = filter {
         args.extend(["-k", k]);
+    }
+    if let Some(l) = locale {
+        args.extend(["--locale", l]);
     }
     let out = run(exe, &args, None)?;
     match json_of(&out) {

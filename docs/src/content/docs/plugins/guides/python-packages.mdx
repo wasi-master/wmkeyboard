@@ -209,7 +209,10 @@ wmpy pip list
 wmpy pip why six
 wmpy pip update
 wmpy pip update humanize
+wmpy pip update humanize --latest
 wmpy pip remove tabulate
+wmpy pip verify
+wmpy pip sync
 ```
 
 - `list` shows every vendored package with its version, verdict, size,
@@ -217,10 +220,24 @@ wmpy pip remove tabulate
 - `why` says why a package is there: you installed it, or another package
   needs it.
 - `update` moves packages to their newest releases and analyses them again.
-  With a name it updates that package alone.
+  With a name it updates that package alone. It stays inside what you asked
+  for: a package installed as `"python-dateutil>=2.8,<3"` moves to the newest
+  2.x. `--latest` takes the newest release anyway, and from then on the lock
+  asks for the bare name.
 - `remove` takes a package out: its files, its licences and its line in
   `wmpy.lock`. It refuses a package another one needs, unless you add
   `--force`, and tells you when a dependency is no longer needed by anything.
+- `verify` checks each vendored file against the SHA-256 the lock keeps of
+  it, and exits with 1 when a file is missing or was changed by hand. Run it
+  in CI to catch a package edited in place.
+- `sync` puts back what `verify` finds, downloading the locked versions
+  again; `--all` downloads every package. A lock written by an older wmpy
+  keeps no SHA-256s, and `sync` records them when every file is there.
+
+`list`, `why`, `remove`, `verify` and `sync` take `--json`, and `install`
+takes `-r requirements.txt` (more than once, too) for the packages a list
+names. Options lines in such a list, such as `--index-url`, are refused,
+since wmpy installs from PyPI only.
 
 ## wmpy.lock
 
@@ -236,8 +253,10 @@ and writes the same file.
       "version": "4.17.0",
       "roots": ["humanize"],
       "files": ["humanize/__init__.py", "humanize/number.py", "licenses/humanize/LICENCE"],
+      "requested": "humanize>=4",
       "source": "https://files.pythonhosted.org/packages/.../humanize-4.17.0-py3-none-any.whl",
       "sha256": "02d08995...",
+      "hashes": {"humanize/__init__.py": "5b0f2e81...", "humanize/number.py": "c19a7d04..."},
       "license": "MIT",
       "requires": [],
       "verdict": "ok",
@@ -249,7 +268,10 @@ and writes the same file.
 
 Keys are package names in PyPI's normalized form (`python-dateutil`).
 `roots` are the top-level modules the package adds, and `requires` the
-normalized names of the packages it needs. `wmpy pack` leaves `wmpy.lock`
+normalized names of the packages it needs. `requested` is what you typed, for
+a package you installed by name, and `update` keeps to it; a package that is
+there only because another needs it has none. `sha256` is the wheel's, and
+`hashes` each file's, which `verify` checks. `wmpy pack` leaves `wmpy.lock`
 out of the `.wmplugin`. Keep it with your plugin's source.
 
 ## Licences

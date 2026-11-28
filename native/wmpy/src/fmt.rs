@@ -98,7 +98,7 @@ pub fn run(args: Args) -> u8 {
                     continue;
                 }
                 if !args.json {
-                    eprintln!("formatted {shown}");
+                    crate::note!("formatted {shown}");
                 }
             } else if args.diff && !args.json {
                 print!("{diff}");
@@ -125,7 +125,10 @@ pub fn run(args: Args) -> u8 {
             (true, n) => format!("formatted {}, {rest} already formatted", count(n)),
             (false, n) => format!("{} would be formatted, {rest} already formatted", count(n)),
         };
-        eprintln!("{line}");
+        // --quiet keeps the line only when something needs formatting.
+        if !crate::output::quiet() || (!write && !changed.is_empty()) {
+            eprintln!("{line}");
+        }
     }
     if failed {
         2

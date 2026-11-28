@@ -58,8 +58,7 @@ pub fn run(args: Args) -> u8 {
 }
 
 fn color_stdout() -> bool {
-    use std::io::IsTerminal;
-    std::env::var_os("NO_COLOR").is_none() && std::io::stdout().is_terminal()
+    crate::output::stdout()
 }
 
 fn tier(known: bool, risky: bool) -> &'static str {

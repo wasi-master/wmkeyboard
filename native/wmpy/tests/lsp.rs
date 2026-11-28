@@ -178,10 +178,11 @@ fn an_editor_session_over_stdio() {
     lsp.notify("initialized", json!({}));
     lsp.notify("textDocument/didOpen", json!({"textDocument": {"uri": main_uri, "languageId": "python", "version": 1, "text": MAIN}}));
 
-    // http.get without the network permission: a warning with a fix that edits plugin.json.
+    // http.get without the network permission: an error (LSP severity 1) with a fix that edits plugin.json.
     let diagnostics = lsp.diagnostics_with(&main_uri, "permission_missing");
     let problem = diagnostics.as_array().unwrap().iter().find(|d| d["code"] == "permission_missing").unwrap().clone();
     assert_eq!(problem["source"], "wmpy");
+    assert_eq!(problem["severity"], 1, "{problem}");
     let actions = lsp.request(
         "textDocument/codeAction",
         json!({"textDocument": {"uri": main_uri}, "range": problem["range"], "context": {"diagnostics": [problem]}}),
@@ -235,8 +236,8 @@ fn an_editor_session_over_stdio() {
     assert_eq!(check["errors"], 1, "{check}");
     lsp.notify("textDocument/didClose", json!({"textDocument": {"uri": manifest_uri}}));
     let check = lsp.request("workspace/executeCommand", json!({"command": "wmpy.check", "arguments": [uri(&dir)]}));
-    assert_eq!(check["errors"], 0, "{check}");
-    assert!(check["warnings"].as_u64().unwrap() >= 1, "{check}");
+    // http with no "network" permission and a host not in "hosts": errors, as the request would be refused.
+    assert_eq!(check["errors"], 2, "{check}");
 
     // Rename across modules: `double` in main.py renames the def in helpers.py too.
     let at = pos_after(MAIN, "str(doub");

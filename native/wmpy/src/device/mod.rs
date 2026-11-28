@@ -110,6 +110,17 @@ pub struct LogsArgs {
     /// Only lines since then: 30s, 10m, 2h, 1d, or a logcat time like '11-26 14:00:00.000'
     #[arg(long)]
     pub since: Option<String>,
+    /// Print each line as a JSON object on its own line: {"time", "level", "plugin", "text"}
+    #[arg(long)]
+    pub json: bool,
+}
+
+/// `wmpy logs --json`: lines as JSON, one a line.
+static JSON_LINES: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// The phone wmpy.toml's `[device] serial` names for the plugin in [dir], under `-s`.
+fn serial_for(given: Option<&str>, dir: &Path) -> Option<String> {
+    given.map(String::from).or_else(|| crate::config::load(dir).ok().and_then(|c| c.device.serial))
 }
 
 // ---- the phone ------------------------------------------------------------------
@@ -397,7 +408,7 @@ pub fn push(a: PushArgs) -> u8 {
         Ok(d) => d,
         Err(d) => return Fail(d, 2).print(),
     };
-    let phone = match connect(a.serial.as_deref()) {
+    let phone = match connect(serial_for(a.serial.as_deref(), &dir).as_deref()) {
         Ok(p) => p,
         Err(f) => return f.print(),
     };
@@ -522,7 +533,7 @@ pub fn dev(a: DevArgs) -> u8 {
         Err(d) => return Fail(d, 2).print(),
     };
     let id = project::manifest(&dir).map(|m| m.id).unwrap_or_default();
-    let phone = match connect(a.serial.as_deref()) {
+    let phone = match connect(serial_for(a.serial.as_deref(), &dir).as_deref()) {
         Ok(p) => p,
         Err(f) => return f.print(),
     };
@@ -646,11 +657,13 @@ fn line_channel<R: std::io::Read + Send + 'static>(pipe: R) -> mpsc::Receiver<St
 // ---- wmpy logs --------------------------------------------------------------
 
 pub fn logs(a: LogsArgs) -> u8 {
+    JSON_LINES.store(a.json, std::sync::atomic::Ordering::Relaxed);
     let id = match plugin_id(a.plugin.as_deref()) {
         Ok(id) => id,
         Err(f) => return f.print(),
     };
-    let phone = match connect(a.serial.as_deref()) {
+    let here = a.plugin.as_deref().map(Path::new).filter(|p| p.exists()).unwrap_or(Path::new("."));
+    let phone = match connect(serial_for(a.serial.as_deref(), here).as_deref()) {
         Ok(p) => p,
         Err(f) => return f.print(),
     };
@@ -744,7 +757,7 @@ fn fallback(phone: &Phone, id: Option<&str>) {
             }
             eprintln!("{}", paint(color, "2", &format!("nothing from {id} in the system log yet; its saved log, from when its panel last closed:")));
             for line in lines {
-                print_text(color_stdout(), saved_level(line), "", line);
+                print_text(color_stdout(), saved_level(line), "", Some(id), line);
             }
             eprintln!("{}", paint(color, "2", "new lines follow as it prints:"));
         }
@@ -767,8 +780,11 @@ fn print_log(raw: &str, id: Option<&str>) {
     }
     let color = color_stdout();
     let time = line.time.rsplit(' ').next().unwrap_or(&line.time);
+    if JSON_LINES.load(std::sync::atomic::Ordering::Relaxed) {
+        return print_text(color, line.level, &line.time, Some(&line.plugin), &line.text);
+    }
     let who = if id.is_none() { format!("{}: ", line.plugin) } else { String::new() };
-    print_text(color, line.level, time, &format!("{who}{}", line.text));
+    print_text(color, line.level, time, None, &format!("{who}{}", line.text));
 }
 
 /// The level the keyboard would have logged a saved line at, by its prefix (as `PluginDevMode.priorityOf`).
@@ -782,7 +798,17 @@ fn saved_level(line: &str) -> char {
     }
 }
 
-fn print_text(color: bool, level: char, time: &str, text: &str) {
+fn print_text(color: bool, level: char, time: &str, plugin: Option<&str>, text: &str) {
+    if JSON_LINES.load(std::sync::atomic::Ordering::Relaxed) {
+        let level = match level {
+            'E' | 'F' => "error",
+            'W' => "warning",
+            'D' | 'V' => "debug",
+            _ => "info",
+        };
+        println!("{}", serde_json::json!({"time": (!time.is_empty()).then_some(time), "level": level, "plugin": plugin, "text": text}));
+        return;
+    }
     let body = match level {
         'E' | 'F' => paint(color, "1;31", text),
         'W' => paint(color, "33", text),
@@ -803,10 +829,9 @@ fn paint(color: bool, code: &str, text: &str) -> String {
     }
 }
 
-/// Whether stdout is a terminal that takes colour (and NO_COLOR is unset).
+/// Whether to colour stdout (`--color`, NO_COLOR and the rest).
 fn color_stdout() -> bool {
-    use std::io::IsTerminal;
-    std::env::var_os("NO_COLOR").is_none() && std::io::stdout().is_terminal()
+    crate::output::stdout()
 }
 
 #[cfg(test)]

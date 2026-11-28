@@ -24,22 +24,32 @@ pub struct Args {
     /// Where to write them, relative to the plugin folder
     #[arg(long, default_value = ".wmpy/stubs")]
     pub out: PathBuf,
+    /// Print {"dir", "files"} as JSON on stdout
+    #[arg(long)]
+    pub json: bool,
 }
 
 pub fn run(args: Args) -> u8 {
     let dir = if args.dir.is_file() { args.dir.parent().map(Path::to_path_buf).unwrap_or_default() } else { args.dir.clone() };
     let dir = if dir.as_os_str().is_empty() { PathBuf::from(".") } else { dir };
     if !dir.is_dir() {
-        eprintln!("{}: no such folder", args.dir.display());
+        let mut d = crate::diag::Diag::error(format!("there is no folder {}", args.dir.display()));
+        d.help = Some("give the plugin's folder".into());
+        eprint!("{}", d.render(&|_| None, crate::diag::color_stderr()));
         return 2;
     }
     let api = crate::project::manifest(&dir).map(|m| m.api).unwrap_or(5);
     let out = if args.out.is_absolute() { args.out.clone() } else { dir.join(&args.out) };
     match write(&out, api) {
         Ok(written) => {
-            eprintln!("wrote {} stub files to {}", written.len(), out.display());
+            if args.json {
+                let files: Vec<String> = written.iter().map(|p| p.strip_prefix(&out).unwrap_or(p).to_string_lossy().replace('\\', "/")).collect();
+                println!("{}", serde_json::json!({"dir": out.display().to_string(), "files": files}));
+                return 0;
+            }
+            crate::note!("wrote {} stub files to {}", written.len(), out.display());
             if !dir.join("pyrightconfig.json").is_file() && !dir.join("pyproject.toml").is_file() {
-                eprintln!("  point your checker at them: pyrightconfig.json with {{\"stubPath\": \"{}\"}}, or MYPYPATH for mypy", args.out.display());
+                crate::note!("  point your checker at them: pyrightconfig.json with {{\"stubPath\": \"{}\"}}, or MYPYPATH for mypy", args.out.display());
             }
             0
         }
@@ -102,9 +112,9 @@ const PLUGIN_TEST: &[(&str, &str, &str, &str)] = &[
     ),
     (
         "session",
-        "mock: dict[str, Any] | None = None, settings: dict[str, Any] | None = None",
+        "mock: dict[str, Any] | None = None, settings: dict[str, Any] | None = None, locale: str | None = None, theme: str | None = None, surface: str | None = None",
         "Session",
-        "The plugin as the keyboard runs it, with mock answering its host calls by op name, and settings as its settings page's values.",
+        "The plugin as the keyboard runs it, with mock answering its host calls by op name, settings as its settings page's values, and locale, theme and surface as plugin.locale, plugin.theme and plugin.surface (the run's --locale, --theme and --surface when left out).",
     ),
     (
         "preview",
@@ -120,23 +130,49 @@ const PLUGIN_TEST: &[(&str, &str, &str, &str)] = &[
     ),
 ];
 
-/// The functions a session dict holds.
-const SESSION: &str = r#"class Session(TypedDict):
-    """A plugin session: each function gives back the result as a dict with ok, ui, error and host."""
-    load: Callable[[], dict[str, Any]]
-    """Runs the file and draws the panel."""
-    render: Callable[[], dict[str, Any]]
-    """Draws the panel again."""
-    event: Callable[[dict[str, Any]], dict[str, Any]]
-    """Sends one event, such as {"type": "click", "id": "button:Look up"}, then draws."""
-    transform: Callable[..., dict[str, Any]]
-    """transform(text, id): runs a selection action, or a provider as provider:<tool>/<id>."""
-    storage: Callable[[], dict[str, Any]]
-    """What the plugin saved."""
-    settle: Callable[[], dict[str, Any]]
-    """Answers every waiting then= call from the mock, round after round, and gives back the last result, or the first that failed."""
-    calls: Callable[[], list[dict[str, Any]]]
-    """Every host call so far, as {"op", "args"} dicts."""
+/// A session and what its calls give back. Both read as attributes
+/// (`s.load()`, `r.ok`) or as keys (`s["load"]()`, `r["ok"]`).
+const SESSION: &str = r#"class Result:
+    """What a session call gives back: r.ok, r.ui, r.error, or r["ok"] and so on."""
+    ok: bool
+    """Whether the call ran without an error."""
+    ui: dict[str, Any] | None
+    """The widget tree the panel draws."""
+    error: dict[str, Any] | None
+    """The plugin's error, with kind, message, file, line and traceback, when ok is false."""
+    host: dict[str, Any]
+    """Timers, header buttons and the then= calls still waiting."""
+    log: list[str]
+    """What the plugin printed."""
+    value: Any
+    """What a selection action or a provider gave back."""
+    def __getitem__(self, key: str) -> Any: ...
+    def get(self, key: str, default: Any = None) -> Any: ...
+
+class Session:
+    """A plugin session. Each call gives back a Result."""
+    def load(self) -> Result:
+        """Runs the file and draws the panel."""
+        ...
+    def render(self) -> Result:
+        """Draws the panel again."""
+        ...
+    def event(self, event: dict[str, Any]) -> Result:
+        """Sends one event, such as {"type": "click", "id": "button:Look up"}, then draws."""
+        ...
+    def transform(self, text: str, action_id: str = "") -> Result:
+        """Runs a selection action, or a provider as provider:<tool>/<id>."""
+        ...
+    def storage(self) -> dict[str, Any]:
+        """What the plugin saved."""
+        ...
+    def settle(self) -> Result:
+        """Answers every waiting then= call from the mock, round after round, and gives back the last result, or the first that failed."""
+        ...
+    def calls(self) -> list[dict[str, Any]]:
+        """Every host call so far, as {"op", "args"} dicts."""
+        ...
+    def __getitem__(self, key: str) -> Callable[..., Any]: ...
 "#;
 
 fn plugin_test_module() -> String {
@@ -150,7 +186,7 @@ fn plugin_test_module() -> String {
 }
 
 fn plugin_test_class() -> String {
-    let mut s = SESSION.replace("class Session(", "class _Session(");
+    let mut s = SESSION.replace("class Session:", "class _Session:").replace("class Result:", "class _Result:").replace("-> Result", "-> _Result");
     s.push_str("\nclass _PluginTest:\n");
     for (name, params, ret, doc) in PLUGIN_TEST {
         let ret = if *ret == "Session" { "_Session" } else { ret };

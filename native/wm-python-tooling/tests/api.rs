@@ -90,7 +90,8 @@ fn json_shapes() {
     let v: Value = serde_json::from_str(&api_json::analyse(source, r#"{"panel":true,"verdict":{"message":"m","kind":"K","line":2}}"#)).unwrap();
     let d = v["diagnostics"].as_array().unwrap().iter().find(|d| d["code"] == "undefined_name").unwrap();
     assert_eq!(d["code"], "undefined_name");
-    assert_eq!(d["severity"], "warning");
+    // A NameError for certain when the line runs.
+    assert_eq!(d["severity"], "error");
     assert_eq!(d["args"], serde_json::json!(["nope"]));
     assert_eq!(v["verdictUsed"], true);
     assert_eq!(v["outline"][0]["name"], "render");

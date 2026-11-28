@@ -13,6 +13,10 @@
 //! ├── .vscode/extensions.json recommends the wmpy extension
 //! └── .wmpy/stubs/            the wm package for Pylance, pyright, mypy, PyCharm
 //! ```
+//!
+//! `--ci github` adds `.github/workflows/plugin.yml`, which checks, tests
+//! and packs the plugin on every push with the wmpy action. `--list` prints
+//! the templates.
 
 use std::io::{BufRead, IsTerminal, Write};
 use std::path::{Path, PathBuf};
@@ -23,7 +27,14 @@ use wm_python_tooling::manifest as codec;
 #[derive(clap::Args, Debug)]
 pub struct Args {
     /// The folder to make (it may exist, if it is empty)
-    pub dir: PathBuf,
+    #[arg(required_unless_present = "list")]
+    pub dir: Option<PathBuf>,
+    /// Print the templates, with what each one shows, and make nothing
+    #[arg(long, conflicts_with_all = ["template", "name", "id", "author", "force", "ci"])]
+    pub list: bool,
+    /// Also write a CI workflow that checks, tests and packs the plugin on every push
+    #[arg(long, value_enum, value_name = "SERVICE")]
+    pub ci: Option<Ci>,
     /// What to start from
     #[arg(long, value_enum)]
     pub template: Option<TemplateId>,
@@ -43,6 +54,41 @@ pub struct Args {
     #[arg(long)]
     pub json: bool,
 }
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Ci {
+    /// GitHub Actions: .github/workflows/plugin.yml
+    Github,
+}
+
+/// The GitHub Actions workflow `--ci github` writes.
+pub const GITHUB_WORKFLOW: &str = r#"# Checks, tests and packs the plugin on every push and pull request, with
+# the wmpy action: https://wmkeyboard.pages.dev/plugins/wmpy/#in-ci
+name: Plugin
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: wasi-master/wmpy@v0
+      - run: wmpy check --strict
+      - run: wmpy test --junit test-results.xml
+      - run: wmpy pack -o plugin.wmplugin
+      - uses: actions/upload-artifact@v7
+        with:
+          name: plugin
+          path: |
+            plugin.wmplugin
+            test-results.xml
+"#;
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TemplateId {
@@ -110,7 +156,7 @@ pub const TEMPLATES: &[Template] = &[
         description: "Changes the case of the text typed into its box, encodes it and counts it.",
         script: include_str!("../../../app/src/main/assets/plugin-templates/text-tools.py"),
         permissions: &[],
-        api: 4,
+        api: 5,
         hosts: &[],
         actions: "",
         settings: "",
@@ -119,7 +165,7 @@ pub const TEMPLATES: &[Template] = &[
         id: TemplateId::Cipher,
         slug: "cipher",
         title: "Cipher tool",
-        description: "Caesar and Vigenère ciphers. The plugin the getting started guide builds.",
+        description: "Caesar and Vigenère ciphers, written the API 4 way: the plugin the getting started guide builds.",
         script: include_str!("../../../app/src/main/assets/plugin-templates/cipher-tool.py"),
         permissions: &[],
         api: 4,
@@ -134,7 +180,7 @@ pub const TEMPLATES: &[Template] = &[
         description: "A list the plugin keeps on this device with the storage permission.",
         script: include_str!("../../../app/src/main/assets/plugin-templates/todo-list.py"),
         permissions: &["storage", "reminders"],
-        api: 4,
+        api: 5,
         hosts: &[],
         actions: "",
         settings: "",
@@ -143,10 +189,10 @@ pub const TEMPLATES: &[Template] = &[
         id: TemplateId::KitchenSink,
         slug: "kitchen-sink",
         title: "Every widget",
-        description: "Each widget and each event in one panel, to copy from.",
+        description: "Each widget and what each one calls, in one panel, to copy from.",
         script: include_str!("../../../app/src/main/assets/plugin-templates/ui-kitchen-sink.py"),
         permissions: &[],
-        api: 4,
+        api: 5,
         hosts: &[],
         actions: "",
         settings: "",
@@ -182,7 +228,7 @@ pub const TEMPLATES: &[Template] = &[
         description: "ROT13 and Wrap in quotes on the bar over selected text, with a panel that picks the quotes.",
         script: include_str!("../../../app/src/main/assets/plugin-templates/text-actions.py"),
         permissions: &["storage", "selection"],
-        api: 4,
+        api: 5,
         hosts: &[],
         actions: r#"[{"id": "rot13", "name": "ROT13", "summary": "Shift each letter 13 places", "icon": "lock"}, {"id": "quote", "name": "Wrap in quotes", "summary": "Put quotes around the selection"}]"#,
         settings: "",
@@ -193,9 +239,31 @@ pub fn template(id: TemplateId) -> &'static Template {
     TEMPLATES.iter().find(|t| t.id == id).unwrap_or(&TEMPLATES[0])
 }
 
+fn list(json_out: bool) -> u8 {
+    if json_out {
+        let all: Vec<Json> = TEMPLATES.iter().map(|t| json!({"template": t.slug, "title": t.title, "description": t.description, "apiVersion": t.api, "permissions": t.permissions})).collect();
+        println!("{}", Json::Array(all));
+        return 0;
+    }
+    let width = TEMPLATES.iter().map(|t| t.slug.len()).max().unwrap_or(10);
+    for t in TEMPLATES {
+        let perms = if t.permissions.is_empty() { String::new() } else { format!(" [{}]", t.permissions.join(", ")) };
+        println!("{:<width$}  {}{perms}", t.slug, t.description);
+    }
+    println!("\nwmpy new <folder> --template <name>");
+    0
+}
+
 pub fn run(args: Args) -> u8 {
+    if args.list {
+        return list(args.json);
+    }
+    let Some(dir) = args.dir.clone() else {
+        eprintln!("error: give the folder to make: wmpy new <folder>");
+        return 2;
+    };
     let interactive = !args.json && std::io::stdin().is_terminal() && std::io::stderr().is_terminal();
-    let folder = args.dir.file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_default();
+    let folder = dir.file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_default();
     let mut name = args.name.clone().unwrap_or_default();
     if name.trim().is_empty() {
         let default = title_of(&folder);
@@ -234,14 +302,24 @@ pub fn run(args: Args) -> u8 {
         eprintln!("error: the plugin needs a name: pass --name");
         return 2;
     }
-    match make(&args.dir, t, &name, &id, &author, args.force) {
-        Ok(files) => {
+    match make(&dir, t, &name, &id, &author, args.force) {
+        Ok(mut files) => {
+            if args.ci == Some(Ci::Github) {
+                let path = ".github/workflows/plugin.yml";
+                let target = dir.join(path);
+                let written = target.parent().map_or(Ok(()), std::fs::create_dir_all).and_then(|_| std::fs::write(&target, GITHUB_WORKFLOW));
+                if let Err(e) = written {
+                    eprintln!("error: cannot write {}: {e}", target.display());
+                    return 2;
+                }
+                files.push(path.into());
+            }
             if args.json {
-                println!("{}", json!({"dir": args.dir.display().to_string(), "id": id, "name": name, "template": t.slug, "files": files}));
+                println!("{}", json!({"dir": dir.display().to_string(), "id": id, "name": name, "template": t.slug, "files": files}));
             } else {
-                eprintln!("made {} ({}, {}) in {}", name, t.title.to_lowercase(), id, args.dir.display());
-                let cd = args.dir.display().to_string();
-                eprintln!("next:\n  cd {}\n  wmpy test      run test.py\n  wmpy preview   see the panel in the browser\n  wmpy pack      build the .wmplugin", shell_quote(&cd));
+                eprintln!("made {} ({}, {}) in {}", name, t.title.to_lowercase(), id, dir.display());
+                let cd = dir.display().to_string();
+                crate::note!("next:\n  cd {}\n  wmpy test      run test.py\n  wmpy preview   see the panel in the browser\n  wmpy pack      build the .wmplugin", shell_quote(&cd));
             }
             0
         }
@@ -326,7 +404,8 @@ fn test_py(t: &Template, name: &str) -> String {
 
 Each def test_...() runs on its own, and fails by raising, so a plain
 assert works. plugin_test.session() runs the plugin the way the keyboard
-does: https://wmkeyboard.pages.dev/plugins/guides/testing/
+does; `assert r.ok, r.error` shows the plugin's own error when a call
+fails: https://wmkeyboard.pages.dev/plugins/guides/testing/
 """
 
 import json
@@ -351,15 +430,15 @@ MOCK = {
 
 def test_it_loads_and_draws():
     s = plugin_test.session(mock=MOCK, settings={"units": "metric"})
-    r = s["load"]()
-    assert r["ok"], r["error"]
-    assert r["ui"], "the panel drew nothing"
+    r = s.load()
+    assert r.ok, r.error
+    assert r.ui, "the panel drew nothing"
 
 
 def test_it_shows_the_forecast():
     s = plugin_test.session(mock=MOCK, settings={"units": "metric"})
-    r = s["load"]()
-    text = json.dumps(r["ui"])
+    r = s.load()
+    text = json.dumps(r.ui)
     assert "Dhaka" in text, text
     assert "30°" in text, text
 "#;
@@ -369,9 +448,9 @@ def test_it_shows_the_forecast():
 
 def test_it_loads_and_draws():
     s = plugin_test.session()
-    r = s["load"]()
-    assert r["ok"], r["error"]
-    assert r["ui"], "the panel drew nothing"
+    r = s.load()
+    assert r.ok, r.error
+    assert r.ui, "the panel drew nothing"
 "#;
     match t.id {
         TemplateId::Blank => s.push_str(
@@ -379,10 +458,10 @@ def test_it_loads_and_draws():
 
 def test_the_button_counts():
     s = plugin_test.session()
-    s["load"]()
-    r = s["event"]({"type": "click", "id": "add"})
-    assert r["ok"], r["error"]
-    assert "Pressed 1 times" in json.dumps(r["ui"]), r["ui"]
+    s.load()
+    r = s.event({"type": "click", "id": "add"})
+    assert r.ok, r.error
+    assert "Pressed 1 times" in json.dumps(r.ui), r.ui
 "#,
         ),
         TemplateId::TextActions => s.push_str(
@@ -390,10 +469,10 @@ def test_the_button_counts():
 
 def test_rot13():
     s = plugin_test.session()
-    s["load"]()
-    r = s["transform"]("Hello", "rot13")
-    assert r["ok"], r["error"]
-    assert r["value"] == "Uryyb", r
+    s.load()
+    r = s.transform("Hello", "rot13")
+    assert r.ok, r.error
+    assert r.value == "Uryyb", r
 "#,
         ),
         _ => s.push_str(
@@ -401,10 +480,10 @@ def test_rot13():
 
 def test_it_draws_again():
     s = plugin_test.session()
-    s["load"]()
-    r = s["render"]()
-    assert r["ok"], r["error"]
-    assert json.dumps(r["ui"]), r
+    s.load()
+    r = s.render()
+    assert r.ok, r.error
+    assert json.dumps(r.ui), r
 "#,
         ),
     }

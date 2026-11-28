@@ -319,10 +319,9 @@ impl Diag {
     }
 }
 
-/// Whether stderr is a terminal that takes colour (and NO_COLOR is unset).
+/// Whether to colour stderr (`--color`, NO_COLOR and the rest: [crate::output]).
 pub fn color_stderr() -> bool {
-    use std::io::IsTerminal;
-    std::env::var_os("NO_COLOR").is_none() && std::io::stderr().is_terminal()
+    crate::output::stderr()
 }
 
 /// A source lookup over a plugin folder, for [Diag::render].

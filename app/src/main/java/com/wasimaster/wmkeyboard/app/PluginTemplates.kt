@@ -52,6 +52,7 @@ internal enum class PluginTemplate(
         R.string.plugin_ide_template_text_tools_description,
         "text-tools.py",
         emptyList(),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
     ),
     CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.py", emptyList()),
     TODO(
@@ -59,12 +60,14 @@ internal enum class PluginTemplate(
         R.string.plugin_ide_template_todo_description,
         "todo-list.py",
         listOf(PluginPermission.Storage, PluginPermission.Reminders),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
     ),
     KITCHEN_SINK(
         R.string.plugin_ide_template_kitchen_sink_name,
         R.string.plugin_ide_template_kitchen_sink_description,
         "ui-kitchen-sink.py",
         emptyList(),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
     ),
     TEXT_ACTIONS(
         R.string.plugin_ide_template_text_actions_name,
@@ -75,6 +78,7 @@ internal enum class PluginTemplate(
             PluginActionSpec(id = "rot13", name = "ROT13", summary = "Shift each letter 13 places", icon = "lock"),
             PluginActionSpec(id = "quote", name = "Wrap in quotes", summary = "Put quotes around the selection"),
         ),
+        apiVersion = PluginManifestCodec.PACKAGE_API,
     ),
     TEXT_GENERATOR(
         R.string.plugin_ide_template_text_generator_name,

@@ -27,6 +27,7 @@ fn fail(message: impl Into<String>) -> Outcome {
 
 const DIR: &str = "The plugin folder: the folder that holds plugin.json. Absolute, or relative to the folder the MCP server runs in.";
 const SESSION: &str = "The id session_start returned.";
+const LOCALE: &str = "The user's language as the plugin sees it (plugin.locale), such as \"bn\" or \"pt-BR\"; an API 5 plugin is then translated with its locales/<tag>.json. Default \"en\".";
 const EVENT: &str = "One event, as the keyboard sends it. A widget's id is its type and text, such as \"button:Look up\" or \"input:Word\", unless the code gave it key=. Shapes: {\"type\": \"click\", \"id\": \"button:Flip\"}, {\"type\": \"change\", \"id\": \"input:Word\", \"value\": \"rain\"}, {\"type\": \"submit\", \"id\": \"input:Word\", \"value\": \"rain\"}, {\"type\": \"keyword\", \"id\": \"define\", \"value\": \"rain\"}, {\"type\": \"command\", \"id\": \"clear\"}, and {\"type\": \"result\", \"token\": \"http:1\", \"value\": ...} to answer a then= call by hand.";
 const SCENARIO: &str = "A JSON file inside the plugin folder with the events to run, as a list or as {\"events\": [...], \"mock\": {...}, \"settings\": {...}}. Without it (and without tests), the run clicks each button of the first draw once and fires each timer once.";
 const SERIAL: &str = "Which phone, by its adb serial, when more than one is connected; list_devices lists them.";
@@ -90,6 +91,7 @@ pub fn list() -> Vec<Value> {
             "inputSchema": {"type": "object", "properties": {
                 "dir": dir_prop(),
                 "filter": {"type": "string", "description": "Run only the tests whose name contains this."},
+                "locale": {"type": "string", "description": LOCALE},
             }, "required": ["dir"], "additionalProperties": false},
             "annotations": runs,
         }),
@@ -103,6 +105,9 @@ pub fn list() -> Vec<Value> {
                 "mock": {"type": "object", "description": MOCK},
                 "mock_file": {"type": "string", "description": "A JSON file inside the plugin folder to read the mock from, such as tests/mock.json, instead of `mock`."},
                 "settings": {"type": "object", "description": "Values of the plugin's settings, by key, as the user set them."},
+                "locale": {"type": "string", "description": LOCALE},
+                "theme": {"type": "string", "enum": ["light", "dark"], "description": "The theme the plugin sees (plugin.dark).", "default": "light"},
+                "surface": {"type": "string", "enum": ["panel", "float"], "description": "Where the plugin draws (plugin.surface).", "default": "panel"},
                 "settle": {"type": "boolean", "description": "After loading and after each event, answer every waiting then= call from the mock, and the calls those answers start.", "default": true},
             }, "required": ["dir"], "additionalProperties": false},
             "annotations": runs,
@@ -116,6 +121,9 @@ pub fn list() -> Vec<Value> {
                 "mock": {"type": "object", "description": MOCK},
                 "mock_file": {"type": "string", "description": "A JSON file inside the plugin folder to read the mock from, instead of `mock`."},
                 "settings": {"type": "object", "description": "Values of the plugin's settings, by key."},
+                "locale": {"type": "string", "description": LOCALE},
+                "theme": {"type": "string", "enum": ["light", "dark"], "description": "The theme the plugin sees (plugin.dark).", "default": "light"},
+                "surface": {"type": "string", "enum": ["panel", "float"], "description": "Where the plugin draws (plugin.surface).", "default": "panel"},
             }, "required": ["dir"], "additionalProperties": false},
             "outputSchema": {"type": "object", "properties": {"session": {"type": "string"}, "result": {"type": "object"}}, "required": ["session", "result"]},
             "annotations": runs,
@@ -461,15 +469,15 @@ impl Tools {
                 "check_plugin" => ok(check(&exe, &plugin_dir(args)?)),
                 "run_tests" => {
                     let dir = plugin_dir(args)?;
-                    ok(commands::test(&exe, &dir, str_arg(args, "filter"))?)
+                    ok(commands::test(&exe, &dir, str_arg(args, "filter"), str_arg(args, "locale"))?)
                 }
                 "render_plugin" => {
                     let dir = plugin_dir(args)?;
-                    ok(render(&dir, mock_of(args, &dir)?, args.get("settings").cloned().unwrap_or(Value::Null), args.get("events"), args.get("settle").and_then(Value::as_bool).unwrap_or(true))?)
+                    ok(render(&dir, mock_of(args, &dir)?, args.get("settings").cloned().unwrap_or(Value::Null), &context_of(args)?, args.get("events"), args.get("settle").and_then(Value::as_bool).unwrap_or(true))?)
                 }
                 "session_start" => {
                     let dir = plugin_dir(args)?;
-                    let (live, first) = Live::start(&dir, mock_of(args, &dir)?, args.get("settings").cloned().unwrap_or(Value::Null))?;
+                    let (live, first) = Live::start(&dir, mock_of(args, &dir)?, args.get("settings").cloned().unwrap_or(Value::Null), &context_of(args)?)?;
                     let id = self.sessions.add(live);
                     ok(json!({"session": id, "result": first}))
                 }
@@ -677,8 +685,32 @@ pub fn check(exe: &Path, dir: &Path) -> Value {
 }
 
 /// Load, send [events], and gather what happened.
-fn render(dir: &Path, mock: Value, settings: Value, events: Option<&Value>, settle: bool) -> Result<Value, String> {
-    let (mut live, first) = Live::start(dir, mock, settings)?;
+/// The `locale`, `theme` and `surface` a tool call asks for, over the defaults.
+fn context_of(args: &Value) -> Result<crate::project::Context, String> {
+    let mut ctx = crate::project::Context::default();
+    if let Some(l) = str_arg(args, "locale") {
+        if !crate::project::is_locale_tag(l) {
+            return Err(format!("`locale` is a language tag such as \"bn\" or \"pt-BR\", not \"{l}\""));
+        }
+        ctx.locale = l.to_string();
+    }
+    if let Some(t) = str_arg(args, "theme") {
+        if t != "light" && t != "dark" {
+            return Err("`theme` is \"light\" or \"dark\"".into());
+        }
+        ctx.theme = t.to_string();
+    }
+    if let Some(s) = str_arg(args, "surface") {
+        if s != "panel" && s != "float" {
+            return Err("`surface` is \"panel\" or \"float\"".into());
+        }
+        ctx.surface = s.to_string();
+    }
+    Ok(ctx)
+}
+
+fn render(dir: &Path, mock: Value, settings: Value, ctx: &crate::project::Context, events: Option<&Value>, settle: bool) -> Result<Value, String> {
+    let (mut live, first) = Live::start(dir, mock, settings, ctx)?;
     let mut last = first;
     let mut steps = vec![json!({"step": "load", "ok": last["ok"], "error": last.get("error")})];
     if settle {

@@ -1,131 +1,176 @@
-# UI Kitchen Sink: every widget, and every event, in one place.
+# UI Kitchen Sink: every widget, and what each one calls, in one place.
 #
 # Not useful on its own. It exists so you can see what each widget looks like
-# on a real keyboard, and watch what arrives in on_event when you touch it.
-# Copy the bits you want.
+# on a real keyboard, and watch what each callback hears when you touch it:
+# the Events tab lists them. Copy the bits you want.
+#
+# An API 5 plugin: each widget takes the function to call (on_click,
+# on_change, on_submit) instead of an id to match in on_event, and the panel
+# draws again after every call.
 
-import time
+import datetime
 
-log = []
-checked = False
-disabled = False
-typed = ""
-working = False
-picked = None  # seconds since the epoch, or None
+from wm import plugin, ui
+
+state = plugin.state(
+    log=[],
+    checked=False,
+    disabled=False,
+    typed="",
+    working=False,
+    picked=None,
+    level=40,
+    count=3,
+    size="Medium",
+    tags=[],
+)
 
 
 def note(line):
     """Keeps the last few events, newest first."""
-    global log
-    log = [line] + log[:7]
+    state.log = [line] + state.log[:7]
 
 
-def on_event(e):
-    global checked, disabled, typed, working, picked, log
-    # Every event has a type and an id; some carry a value or an index. An
-    # event is a dict, and it also answers attribute reads, so e.type works
-    # as well as e["type"].
-    kind = e["type"]
-    eid = e["id"]
-    if kind == "click":
-        note("click " + eid)
-        if eid == "toggle_enabled":
-            disabled = not disabled
-        if eid == "work":
-            working = not working
-        if eid == "clear":
-            log = []
-
-    elif kind == "toggle":
-        note("toggle " + eid + " = " + str(e["value"]))
-        if eid == "demo_toggle":
-            checked = e["value"]
-
-    elif kind == "input_changed":
-        # Fired for every keystroke into *this plugin's own box*. A plugin
-        # never sees keys typed anywhere else.
-        note("input " + eid + " = " + e["value"])
-        typed = e["value"]
-
-    elif kind == "tab_selected":
-        note("tab " + eid + " #" + str(e["index"]))
-
-    elif kind == "date_changed":
-        # value is seconds, as time.time() gives, or None when the date was cleared.
-        value = e.get("value")
-        shown = time.format("yyyy-MM-dd HH:mm", value) if value is not None else "None"
-        note("date " + eid + " = " + shown)
-        picked = value
+def clicked(name):
+    return lambda: note("click " + name)
 
 
-def event_log():
-    if not log:
-        return ui.label("Touch something and the events show up here.", style="caption")
-    return ui.output("\n".join(log), id="log", mono=True, insertable=False)
+def toggle_enabled():
+    state.disabled = not state.disabled
+    note("click toggle_enabled")
+
+
+def set_checked(value):
+    state.checked = value
+    note("toggle = " + str(value))
+
+
+def set_typed(text):
+    # Every edit of *this plugin's own box*. A plugin never sees keys typed
+    # anywhere else.
+    state.typed = text
+    note("input = " + text)
+
+
+def set_picked(value):
+    # Seconds since 1970, or None when the date was cleared.
+    state.picked = value
+    note("date = " + (shown(value) if value is not None else "None"))
+
+
+def set_level(value):
+    state.level = value
+    note("slider = " + str(value))
+
+
+def set_count(value):
+    state.count = value
+    note("stepper = " + str(value))
+
+
+def set_size(value):
+    state.size = value
+    note("select = " + value)
+
+
+def set_tags(value):
+    state.tags = value
+    note("chips = " + ", ".join(value))
+
+
+def work():
+    state.working = not state.working
+    note("click work")
+
+
+def clear_log():
+    state.log = []
+
+
+def shown(seconds):
+    return datetime.datetime.fromtimestamp(seconds).strftime("%A %d %B %Y, %H:%M")
+
+
+def text_page():
+    return ui.page(
+        "Text",
+        ui.title("A title"),
+        ui.label("A body label. This is the default style."),
+        ui.caption("A caption, for asides."),
+        ui.divider(),
+        ui.output("An output block.\nIt gets Insert and Copy buttons.", id="out"),
+        ui.output("mono=True keeps columns lined up", id="mono", mono=True),
+        ui.markdown("Markdown: **bold**, *italic* and `code`."),
+    )
+
+
+def controls_page():
+    return ui.page(
+        "Controls",
+        ui.button("Primary button", on_click=clicked("primary"), primary=True),
+        ui.button("Secondary button", on_click=clicked("secondary")),
+        ui.button("Enabled toggles me", on_click=clicked("maybe"), enabled=not state.disabled),
+        ui.button("Enable it" if state.disabled else "Disable it", on_click=toggle_enabled),
+        ui.divider(),
+        ui.toggle("A toggle", value=state.checked, on_change=set_checked),
+        ui.caption("The toggle is on." if state.checked else "The toggle is off."),
+        ui.slider(state.level, min=0, max=100, step=10, on_change=set_level, label="A slider"),
+        ui.stepper(state.count, min=1, max=9, on_change=set_count, label="A stepper"),
+        ui.select(["Small", "Medium", "Large"], value=state.size, on_change=set_size, style="segmented"),
+        ui.chips(["red", "green", "blue"], value=state.tags, on_change=set_tags, multi=True),
+    )
+
+
+def input_page():
+    return ui.page(
+        "Input",
+        ui.input(label="A text box", value=state.typed, placeholder="Type or paste here", on_change=set_typed),
+        ui.label("You typed: " + (state.typed if state.typed != "" else "(nothing yet)")),
+        ui.caption("The keyboard owns this box. Tap it, then use the keys; Paste puts the clipboard in it."),
+    )
+
+
+def date_page():
+    return ui.page(
+        "Date",
+        ui.date(label="A date and time", value=state.picked, time=True, on_change=set_picked),
+        ui.label("Picked: " + shown(state.picked) if state.picked is not None else "Nothing picked yet."),
+        ui.caption("The keyboard draws the buttons. You get each new value in on_change and draw whatever you keep. Leave out time for a date alone."),
+    )
+
+
+def layout_page():
+    return ui.page(
+        "Layout",
+        ui.label("A row splits the width evenly:"),
+        ui.row(
+            ui.button("One", on_click=clicked("one")),
+            ui.button("Two", on_click=clicked("two")),
+            ui.button("Three", on_click=clicked("three")),
+        ),
+        ui.spacer(12),
+        ui.label("Above is a 12pt spacer. Below is a divider."),
+        ui.divider(),
+        ui.button("Stop pretending" if state.working else "Pretend to work", on_click=work),
+        ui.progress() if state.working else ui.caption("(no progress bar)"),
+    )
+
+
+def events_page():
+    if state.log:
+        shown_log = ui.output("\n".join(state.log), id="log", mono=True, insertable=False)
+    else:
+        shown_log = ui.caption("Touch something and what it called shows up here.")
+    return ui.page("Events", shown_log, ui.button("Clear log", on_click=clear_log))
 
 
 def render():
-    return ui.tabs(
-        "sink",
-        ui.page(
-            "Text",
-            ui.label("A title label", style="title"),
-            ui.label("A body label. This is the default style."),
-            ui.label("A caption label, for asides.", style="caption"),
-            ui.divider(),
-            ui.output("An output block.\nIt gets Insert and Copy buttons.", id="out"),
-            ui.output("mono=True keeps columns lined up", id="mono", mono=True),
-        ),
-        ui.page(
-            "Controls",
-            ui.button("primary", "Primary button", style="primary"),
-            ui.button("secondary", "Secondary button"),
-            ui.button("maybe", "Enabled toggles me", enabled=not disabled),
-            ui.button("toggle_enabled", "Enable it" if disabled else "Disable it"),
-            ui.divider(),
-            ui.toggle("demo_toggle", "A toggle", checked=checked),
-            ui.label("The toggle is on." if checked else "The toggle is off.", style="caption"),
-        ),
-        ui.page(
-            "Input",
-            ui.input("box", label="A text box", placeholder="Type or paste here"),
-            ui.label("You typed: " + (typed if typed != "" else "(nothing yet)")),
-            ui.label(
-                "The keyboard owns this box. Tap it, then use the keys; Paste puts "
-                "the clipboard in it.",
-                style="caption",
-            ),
-        ),
-        ui.page(
-            "Date",
-            ui.date("when", label="A date and time", value=picked, time=True),
-            ui.label(
-                "Picked: " + time.format("EEEE d MMMM yyyy, HH:mm", picked)
-                if picked is not None else "Nothing picked yet."
-            ),
-            ui.label(
-                "The keyboard draws the buttons. You get each new value in on_event "
-                "and draw whatever you keep. Leave out time for a date alone.",
-                style="caption",
-            ),
-        ),
-        ui.page(
-            "Layout",
-            ui.label("A row splits the width evenly:"),
-            ui.row(
-                ui.button("one", "One"),
-                ui.button("two", "Two"),
-                ui.button("three", "Three"),
-            ),
-            ui.spacer(height=12),
-            ui.label("Above is a 12pt spacer. Below is a divider."),
-            ui.divider(),
-            ui.button("work", "Stop pretending" if working else "Pretend to work"),
-            ui.progress() if working else ui.label("(no progress bar)", style="caption"),
-        ),
-        ui.page(
-            "Events",
-            event_log(),
-            ui.button("clear", "Clear log"),
-        ),
+    ui.tabs(
+        text_page(),
+        controls_page(),
+        input_page(),
+        date_page(),
+        layout_page(),
+        events_page(),
+        on_change=lambda index: note("tab #" + str(index)),
     )

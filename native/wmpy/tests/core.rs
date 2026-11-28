@@ -151,10 +151,32 @@ fn check_runs_the_language_service_across_modules() {
 
 #[test]
 fn check_strict_fails_on_warnings() {
-    let main = "from wm import ui, http\n\ndef render():\n    ui.label('x')\n    http.get('https://api.example.com/')\n";
-    let dir = plugin("strict", &[("plugin.json", MANIFEST.replace(", \"providers\": [{\"tool\": \"search\", \"id\": \"shop\"}]", "").as_str()), ("main.py", main)]);
+    // The provider plugin.json declares and nothing answers is a warning.
+    let main = "from wm import ui\n\ndef render():\n    ui.label('x')\n";
+    let dir = plugin("strict", &[("plugin.json", MANIFEST), ("main.py", main)]);
     assert_eq!(cli(&["check", s(&dir)]).0, 0);
     assert_eq!(cli(&["check", s(&dir), "--strict"]).0, 1);
+    // wmpy.toml says the same as --strict.
+    std::fs::write(dir.join("wmpy.toml"), "[check]\nstrict = true\n").unwrap();
+    assert_eq!(cli(&["check", s(&dir)]).0, 1);
+    // And can silence the code for the whole plugin.
+    std::fs::write(dir.join("wmpy.toml"), "[check]\nstrict = true\nignore = [\"provider_unanswered\"]\n").unwrap();
+    assert_eq!(cli(&["check", s(&dir)]).0, 0);
+}
+
+#[test]
+fn check_certain_failures_are_errors_and_ignore_comments_silence_them() {
+    let main = "from wm import ui\n\ndef render():\n    ui.label(nope)\n";
+    let manifest = MANIFEST.replace(",\n  \"providers\": [{\"tool\": \"search\", \"id\": \"shop\"}]", "");
+    let dir = plugin("certain", &[("plugin.json", manifest.as_str()), ("main.py", main)]);
+    let (code, out, _) = cli(&["check", s(&dir), "--json"]);
+    let report = json(&out);
+    let undefined = report["problems"].as_array().unwrap().iter().find(|p| p["code"] == "undefined_name").expect("undefined_name");
+    assert_eq!(undefined["severity"], "error", "{report:#}");
+    assert_eq!(code, 1);
+    std::fs::write(dir.join("main.py"), "from wm import ui\n\ndef render():\n    ui.label(nope)  # wmpy: ignore[undefined_name]\n").unwrap();
+    let (code, out, _) = cli(&["check", s(&dir), "--json"]);
+    assert_eq!(code, 0, "{out}");
 }
 
 #[test]
@@ -346,7 +368,7 @@ fn stubs_cover_the_package_and_the_test_module() {
     let builtins = std::fs::read_to_string(stubs.join("__builtins__.pyi")).unwrap();
     assert!(builtins.contains("plugin_test: _PluginTest") && builtins.contains("wm: _Api4_wm") && builtins.contains("ui: _Api4_ui"), "{builtins}");
     let module = std::fs::read_to_string(stubs.join("plugin_test.pyi")).unwrap();
-    assert!(module.contains("def session(") && module.contains("class Session(TypedDict):"));
+    assert!(module.contains("def session(") && module.contains("class Session:") && module.contains("class Result:"), "{module}");
     // A stub of ours that the model no longer has goes; anything else stays.
     std::fs::write(stubs.join("wm/gone.pyi"), format!("{}\n", wm_python_tooling::stubs::HEADER)).unwrap();
     std::fs::write(stubs.join("wm/mine.pyi"), "x: int\n").unwrap();

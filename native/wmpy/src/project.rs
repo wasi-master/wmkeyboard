@@ -120,13 +120,131 @@ pub fn test_files(dir: &Path) -> Vec<String> {
         .collect()
 }
 
-/// The session config the keyboard would build for the plugin in [dir].
+/// What a plugin is told about where it runs: `plugin.locale`,
+/// `plugin.theme` (and `plugin.dark`) and `plugin.surface`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Context {
+    /// A language tag: `en`, `bn`, `pt-BR`.
+    pub locale: String,
+    /// `light` or `dark`.
+    pub theme: String,
+    /// `panel` or `float` (`action` for a selection action's run).
+    pub surface: String,
+}
+
+impl Default for Context {
+    fn default() -> Context {
+        Context { locale: "en".into(), theme: "light".into(), surface: "panel".into() }
+    }
+}
+
+impl Context {
+    pub fn dark(&self) -> bool {
+        self.theme == "dark"
+    }
+
+    /// Whether the locale's script runs right to left.
+    pub fn rtl(&self) -> bool {
+        let lang = self.locale.split(['-', '_']).next().unwrap_or("").to_ascii_lowercase();
+        matches!(lang.as_str(), "ar" | "fa" | "he" | "iw" | "ur" | "ps" | "sd" | "ug" | "yi" | "dv" | "ckb" | "syr")
+    }
+
+    pub fn json(&self) -> serde_json::Value {
+        serde_json::json!({"locale": self.locale, "theme": self.theme, "surface": self.surface})
+    }
+}
+
+static CONTEXT: std::sync::OnceLock<std::sync::Mutex<Context>> = std::sync::OnceLock::new();
+
+fn context_cell() -> &'static std::sync::Mutex<Context> {
+    CONTEXT.get_or_init(|| std::sync::Mutex::new(Context::default()))
+}
+
+/// The context every session this run makes starts from: what `--locale`,
+/// `--theme` and `--surface` (or wmpy.toml) said, else English, light, panel.
+pub fn context() -> Context {
+    context_cell().lock().map(|c| c.clone()).unwrap_or_default()
+}
+
+pub fn set_context(c: Context) {
+    if let Ok(mut held) = context_cell().lock() {
+        *held = c;
+    }
+}
+
+/// `bn`, `pt-BR`, `es-419`, `zh-Hant`: a tag `locales/<tag>.json` may have,
+/// as PluginLocales.TAG reads it.
+pub fn is_locale_tag(tag: &str) -> bool {
+    let (lang, region) = match tag.split_once('-') {
+        Some((l, r)) => (l, Some(r)),
+        None => (tag, None),
+    };
+    (2..=3).contains(&lang.len())
+        && lang.chars().all(|c| c.is_ascii_lowercase())
+        && region.is_none_or(|r| (2..=8).contains(&r.len()) && r.chars().all(|c| c.is_ascii_alphanumeric()))
+}
+
+/// The tags of the plugin's `locales/<tag>.json` files.
+pub fn locale_tags(dir: &Path) -> Vec<String> {
+    let Ok(read) = std::fs::read_dir(dir.join("locales")) else { return Vec::new() };
+    let mut tags: Vec<String> = read
+        .flatten()
+        .filter_map(|e| e.file_name().to_str().and_then(|n| n.strip_suffix(".json")).map(String::from))
+        .filter(|t| is_locale_tag(t))
+        .collect();
+    tags.sort();
+    tags
+}
+
+/// The tag among [available] the keyboard would use for [locale], as
+/// PluginLocales.pick chooses: the whole tag, then the language, then any
+/// tag of that language. None when the plugin's English stands.
+pub fn pick_locale(available: &[String], locale: &str) -> Option<String> {
+    let lang = locale.split(['-', '_']).next().unwrap_or(locale);
+    let whole = locale.replace('_', "-");
+    available
+        .iter()
+        .find(|t| t.eq_ignore_ascii_case(&whole))
+        .or_else(|| available.iter().find(|t| t.eq_ignore_ascii_case(lang)))
+        .or_else(|| available.iter().find(|t| t.split('-').next().is_some_and(|l| l.eq_ignore_ascii_case(lang))))
+        .cloned()
+}
+
+/// The strings the keyboard hands an API 5 plugin for [locale]: the chosen
+/// `locales/<tag>.json`, whole, with `@lang` naming it; Null when none fits
+/// or the file is not a translation file.
+pub fn strings_for(dir: &Path, locale: &str) -> serde_json::Value {
+    let Some(tag) = pick_locale(&locale_tags(dir), locale) else { return serde_json::Value::Null };
+    let Ok(text) = std::fs::read_to_string(dir.join("locales").join(format!("{tag}.json"))) else { return serde_json::Value::Null };
+    match serde_json::from_str::<serde_json::Value>(&text) {
+        Ok(serde_json::Value::Object(mut map)) => {
+            map.insert("@lang".into(), serde_json::Value::String(tag));
+            serde_json::Value::Object(map)
+        }
+        _ => serde_json::Value::Null,
+    }
+}
+
+/// The session config the keyboard would build for the plugin in [dir], in
+/// this run's [context].
 pub fn session_config(dir: &Path, m: &Manifest, settings: serde_json::Value) -> serde_json::Value {
-    serde_json::json!({
+    session_config_in(dir, m, settings, &context())
+}
+
+/// [session_config] in [ctx].
+pub fn session_config_in(dir: &Path, m: &Manifest, settings: serde_json::Value, ctx: &Context) -> serde_json::Value {
+    let mut config = serde_json::json!({
         "id": m.id, "version": m.version, "permissions": m.permissions, "mode": if m.panel { "panel" } else { "action" },
         "apiVersion": m.api, "entry": m.entry, "files": modules(dir, &m.entry), "settings": settings,
-        "context": {"locale": "en", "theme": "light", "surface": "panel"},
-    })
+        "context": ctx.json(),
+    });
+    if m.api >= 5 {
+        let strings = strings_for(dir, &ctx.locale);
+        if !strings.is_null() {
+            config["strings"] = strings;
+        }
+    }
+    config
 }
 
 /// A file inside [dir], or why not: absolute paths and `..` are refused, and
@@ -181,8 +299,56 @@ pub fn plugin_dir(given: &Path) -> Result<PathBuf, Diag> {
     Err(d)
 }
 
+/// Runs [once], then again each time a file in [dir] changes, until stopped.
+pub fn watch(dir: &Path, mut once: impl FnMut()) -> ! {
+    let snapshot = || -> Vec<(String, Option<std::time::SystemTime>, u64)> {
+        files(dir)
+            .into_iter()
+            .filter(|f| !f.ends_with(".wmplugin"))
+            .map(|f| {
+                let meta = std::fs::metadata(dir.join(&f)).ok();
+                (f, meta.as_ref().and_then(|m| m.modified().ok()), meta.map(|m| m.len()).unwrap_or(0))
+            })
+            .collect()
+    };
+    loop {
+        let seen = snapshot();
+        once();
+        eprintln!("watching {} for changes (Ctrl-C to stop)", shown(dir));
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            let now = snapshot();
+            if now != seen {
+                let changed = now.iter().find(|n| !seen.contains(n)).or_else(|| seen.iter().find(|s| !now.contains(s))).map(|n| n.0.clone());
+                eprintln!("\n-- {} changed --\n", changed.as_deref().unwrap_or("a file"));
+                // Let an editor finish writing before reading.
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                break;
+            }
+        }
+    }
+}
+
 /// [dir] as a person reads it: `.` for the folder they are in.
 pub fn shown(dir: &Path) -> String {
     let s = dir.display().to_string();
     if s.is_empty() { ".".into() } else { s }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn locales_are_picked_as_the_keyboard_picks_them() {
+        let tags: Vec<String> = ["bn", "pt", "pt-BR", "zh-Hant"].iter().map(|s| s.to_string()).collect();
+        assert_eq!(pick_locale(&tags, "pt-BR").as_deref(), Some("pt-BR"));
+        assert_eq!(pick_locale(&tags, "pt-PT").as_deref(), Some("pt"));
+        assert_eq!(pick_locale(&tags, "bn-IN").as_deref(), Some("bn"));
+        assert_eq!(pick_locale(&tags, "zh-TW").as_deref(), Some("zh-Hant"));
+        assert_eq!(pick_locale(&tags, "en"), None);
+        assert!(is_locale_tag("es-419") && is_locale_tag("bn") && !is_locale_tag("Bengali") && !is_locale_tag("b"));
+        assert!(Context { locale: "ar-EG".into(), ..Context::default() }.rtl());
+        assert!(!Context::default().rtl());
+    }
 }

@@ -10,7 +10,10 @@
 //!   the interpreter's own verdict on whether it loads. Test files and the
 //!   packages `wmpy pip` vendored are checked for syntax only.
 //!
-//! Exit 1 on an error, or on a warning with `--strict`.
+//! Exit 1 on an error, or on a warning with `--strict` (or wmpy.toml's
+//! `[check] strict = true`). A code in wmpy.toml's `[check] ignore`, or
+//! named by a `# wmpy: ignore[code]` comment on the problem's line, is not
+//! reported. `--watch` checks again on every save.
 //!
 //! `--fix` makes the changes the editors' quick fixes make, round after round
 //! until none is left: a misspelt name, a missing import, a stub for what
@@ -41,9 +44,12 @@ pub struct Args {
     /// Print {"ok", "errors", "warnings", "problems"} as JSON on stdout
     #[arg(long)]
     pub json: bool,
-    /// Fail on warnings too, not only on errors
+    /// Fail on warnings too, not only on errors [default: wmpy.toml's check.strict]
     #[arg(long)]
     pub strict: bool,
+    /// Check again whenever a file in the plugin folder changes
+    #[arg(long, conflicts_with_all = ["fix", "json"])]
+    pub watch: bool,
     /// Make the fixes the editors offer, then check again
     #[arg(long)]
     pub fix: bool,
@@ -89,7 +95,10 @@ impl Outcome {
             eprint!("{}", d.render(source, color));
             eprintln!();
         }
-        eprintln!("{}", self.summary());
+        // --quiet: nothing at all for a clean plugin.
+        if !(crate::output::quiet() && self.problems.is_empty()) {
+            eprintln!("{}", self.summary());
+        }
     }
 
     pub fn summary(&self) -> String {
@@ -122,8 +131,20 @@ pub fn run(args: Args) -> u8 {
             return 2;
         }
     };
+    let config = match crate::config::load_or_report(&dir) {
+        Ok(c) => c,
+        Err(code) => return code,
+    };
+    let mut args = args;
+    args.strict |= config.check.strict.unwrap_or(false);
     if args.fix {
         return fix(&dir, &args);
+    }
+    if args.watch {
+        crate::project::watch(&dir, || {
+            let outcome = check_dir(&dir);
+            outcome.print(&dir);
+        });
     }
     let outcome = check_dir(&dir);
     if args.json {
@@ -351,15 +372,44 @@ fn check_with(dir: &Path, overlay: &Overlay) -> (Outcome, Vec<Fixable>) {
         problems.extend(found.iter().filter(|d| SYNTAX_CODES.contains(&d.code.name())).map(|d| Diag::from_tooling(d, &file, &source)));
     }
 
+    // wmpy.toml's [check] ignore: codes never reported for this plugin.
+    let ignore = crate::config::load(dir).map(|c| c.check.ignore).unwrap_or_default();
+    if !ignore.is_empty() {
+        problems.retain(|d| !(d.code.as_deref().is_some_and(|c| ignore.iter().any(|i| i == c)) && d.code.as_deref() != Some("will_not_run")));
+        fixes.retain(|f| !ignore.contains(&f.code));
+    }
     (Outcome { problems, python_files }, fixes)
 }
 
-/// The language service's problems with [source], the interpreter's verdict among them.
+/// The language service's problems with [source], the interpreter's verdict
+/// among them. A name the service calls undefined that the interpreter has
+/// as a builtin (one newer than the service's list) is left out.
 fn diagnostics(source: &str, host: &Host) -> Vec<Diagnostic> {
     let verdict = wm_python::interp::check(source).err().map(|e| Verdict { message: e.message, kind: e.kind, line: e.line.map(|l| l as usize) });
     let host = Host { verdict, ..host.clone() };
     let doc = Document::new(source);
-    diagnose(&doc, &host).diagnostics
+    let mut found = diagnose(&doc, &host).diagnostics;
+    found.retain(|d| !(matches!(d.code.name(), "undefined_name" | "name_typo") && d.args.first().is_some_and(|n| interpreter_builtin(n))));
+    found
+}
+
+/// Whether the keyboard's interpreter knows [name] with nothing imported.
+pub fn interpreter_builtin(name: &str) -> bool {
+    use std::collections::HashMap;
+    thread_local! {
+        static SEEN: std::cell::RefCell<HashMap<String, bool>> = std::cell::RefCell::new(HashMap::new());
+    }
+    if name.is_empty() || !name.chars().all(|c| c.is_alphanumeric() || c == '_') || name.starts_with(|c: char| c.is_ascii_digit()) {
+        return false;
+    }
+    if let Some(known) = SEEN.with(|s| s.borrow().get(name).copied()) {
+        return known;
+    }
+    let limits = wm_python::interp::Limits { steps: 100_000, container_items: 10_000, string_length: 10_000 };
+    let mut rt = wm_python::interp::Runtime::new(limits, wm_python::interp::STANDARD_MODULES);
+    let known = rt.load(&format!("{name}\n")).is_ok();
+    SEEN.with(|s| s.borrow_mut().insert(name.to_string(), known));
+    known
 }
 
 /// What a module's decorators answer: `(provider:<tool>, id)`, `(preview, id)`,
