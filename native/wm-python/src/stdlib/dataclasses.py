@@ -342,6 +342,9 @@ def dataclass(cls=None, *, init=True, repr=True, eq=True, order=False, unsafe_ha
         # Frozen and compared by value: hashed by value too, so equal ones are one dict key.
         if unsafe_hash or (frozen and eq and "__hash__" not in own):
             cls.__hash__ = _make_hash(fields)
+        elif eq and not frozen and "__hash__" not in own:
+            # Compared by value but changeable: unhashable, as in CPython.
+            cls.__hash__ = None
         return cls
 
     if cls is None:
