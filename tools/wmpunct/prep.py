@@ -114,7 +114,7 @@ def main():
         overall.update(c)
     del per_lang_counts
     for w, n in overall.most_common():
-        if len(vocab) >= word_slots + len(SPECIALS):
+        if len(vocab) >= o["vocab"] - o["pieces"]:
             break
         if n < o["min_count"]:
             break
