@@ -128,7 +128,7 @@ is the real cause.
 ### Memory
 
 There is no per-thread heap limit on Android, so this is layered rather than
-absolute. The script is capped at 256 KB, and the step budget bounds the
+absolute. Each `.py` file is capped at 1 MB, and the step budget bounds the
 allocation *rate*. No string can pass 100,000 characters, no list, dict or set
 10,000 items, and no call chain 1,000 calls (or the native stack's 6 MB,
 whichever comes first), so the doubling trick

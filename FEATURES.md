@@ -3678,7 +3678,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Python plugins** `RARE` — .wmplugin tool panels and selection actions in Python, run by wm-python, a Rust port of PyMini (Clink's interpreter); 50 installs max, subsystem off until enabled
   - .wmplugin package `RARE` — ZIP with plugin.json + a main.py source file
     - Source only — Plugins are parsed from source by the interpreter's own parser; there is no bytecode format to load
-    - Zip-bomb caps — 16 entries, 1 MB archive, 256 KB script, 64 KB manifest; sizes counted from bytes actually read
+    - Zip-bomb caps — 64 entries, 4 MB archive, 1 MB per .py file (eight path parts at most), 64 KB manifest; sizes counted from bytes actually read
     - Entry names never used as paths — manifest entry field is a map key; ../ in an entry name or the manifest has nowhere to go
     - Manifest-only read for disclosure — Showing what a plugin may do never touches the code that would do it
   - Manifest validation is total `RARE` — Any problem is a refusal with a reason; nothing about a plugin is repaired

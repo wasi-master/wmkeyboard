@@ -29,7 +29,10 @@ export const MAX_ENTRIES = 64;
 export const MAX_FILES = MAX_ENTRIES - 2;
 export const MAX_TOTAL_BYTES = 4 * 1024 * 1024;
 export const MAX_ASSET_BYTES = 512 * 1024;
-export const MAX_PYTHON_BYTES = 256 * 1024;
+/** One `.py` file, as `PluginFile.MAX_SCRIPT_BYTES`. */
+export const MAX_PYTHON_BYTES = 1024 * 1024;
+/** Folders and file in a module's path, as `PluginFile.MAX_MODULE_PARTS`. */
+export const MAX_MODULE_PARTS = 8;
 export const MAX_LOCALE_BYTES = 64 * 1024;
 export const ASSETS_PREFIX = 'assets/';
 export const LOCALES_PREFIX = 'locales/';
@@ -39,11 +42,11 @@ const MODULE_PART = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 const LOCALE_TAG = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
 const TEXT_ASSET_EXTENSIONS = new Set(['json', 'txt', 'svg']);
 
-/** Identifiers between slashes, at most four deep, ending `.py`: what `import` reaches. */
+/** Identifiers between slashes, at most [MAX_MODULE_PARTS] deep, ending `.py`: what `import` reaches. */
 export function isModuleName(path: string): boolean {
 	if (!path.endsWith('.py')) return false;
 	const parts = path.slice(0, -3).split('/');
-	return parts.length <= 4 && parts.every((p) => MODULE_PART.test(p));
+	return parts.length <= MAX_MODULE_PARTS && parts.every((p) => MODULE_PART.test(p));
 }
 
 export const isAssetName = (name: string) => ASSET_NAME.test(name) && !name.includes('..');
@@ -408,8 +411,10 @@ export function buildArchive(manifest: PluginManifest, entryText: string, files:
 		else shakeMissing = !Py.pipAvailable().shake;
 	}
 	const pythonBytes = Object.values(python).reduce((n, s) => n + utf8.encode(s).byteLength, 0);
+	// The keyboard caps each file, as PluginFile does; the archive's total is checked with the rest of it.
 	// A one-file plugin keeps the rule it always had: Install checks the script's size (MAX_SCRIPT_BYTES).
-	if (Object.keys(python).length > 1 && pythonBytes > MAX_PYTHON_BYTES) problems.push(S.pythonTooLarge(name, Math.round(pythonBytes / 1024), MAX_PYTHON_BYTES / 1024));
+	const largest = Math.max(...Object.values(python).map((s) => utf8.encode(s).byteLength));
+	if (Object.keys(python).length > 1 && largest > MAX_PYTHON_BYTES) problems.push(S.rejectScriptTooLarge(name, MAX_PYTHON_BYTES / 1024));
 	const entries = [
 		{ name: MANIFEST_FILE, data: JSON.stringify(m, null, 2) + '\n' as FileData },
 		{ name: entry, data: python[entry]! as FileData },

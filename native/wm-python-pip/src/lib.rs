@@ -57,13 +57,13 @@ pub fn python_version() -> (u32, u32, u32) {
 /// The keyboard's caps on a plugin archive (`PluginFile.kt` in core/plugins).
 pub mod limits {
     /// One `.py` file.
-    pub const MAX_SCRIPT_BYTES: usize = 256 * 1024;
+    pub const MAX_SCRIPT_BYTES: usize = 1024 * 1024;
     /// Entries in the `.wmplugin` archive, `plugin.json` included.
     pub const MAX_ENTRIES: usize = 64;
     /// The whole archive, uncompressed.
     pub const MAX_TOTAL_BYTES: usize = 4 * 1024 * 1024;
-    /// Folders and file in a module's path: `a/b/c/d.py` at most.
-    pub const MAX_MODULE_PARTS: usize = 4;
+    /// Folders and file in a module's path: `a/b/c/d/e/f/g/h.py` at most.
+    pub const MAX_MODULE_PARTS: usize = 8;
     /// One part of a module's path.
     pub const MAX_PART_CHARS: usize = 64;
 }

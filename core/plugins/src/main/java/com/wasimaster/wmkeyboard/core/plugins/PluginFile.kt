@@ -103,11 +103,14 @@ object PluginFile {
     const val MANIFEST = "plugin.json"
 
     /**
-     * Source cap. Generous for a panel tool, and low enough that compiling
-     * it — which happens in Java, where the instruction budget cannot reach — is
-     * bounded to milliseconds.
+     * One `.py` file. Room for the largest single modules of the PyPI
+     * packages plugins vendor (fastapi's, xlsxwriter's); the archive's total
+     * still stops at [MAX_TOTAL_BYTES].
      */
-    const val MAX_SCRIPT_BYTES = 256 * 1024
+    const val MAX_SCRIPT_BYTES = 1024 * 1024
+
+    /** Folders and file in a module's path: `a/b/c/d/e/f/g/h.py` at most. */
+    const val MAX_MODULE_PARTS = 8
 
     /** Zip-bomb guards: nothing legitimate comes close to either. */
     const val MAX_ENTRIES = 64
@@ -128,7 +131,7 @@ object PluginFile {
     fun isModuleName(entry: String): Boolean {
         if (!entry.endsWith(".py")) return false
         val parts = entry.removeSuffix(".py").split('/')
-        return parts.size <= 4 && parts.all { MODULE_PART.matches(it) }
+        return parts.size <= MAX_MODULE_PARTS && parts.all { MODULE_PART.matches(it) }
     }
 
     /** Manifests are small; this is already an order of magnitude of headroom. */

@@ -199,7 +199,7 @@ Problems carry a short code. The common ones:
 | `missing-builtin`, `sandbox-builtin` | A builtin the keyboard does not have, or one that raises an error in plugins when called: `open` (no file system), `input` (no terminal). Only naming one, as in `prompt = input`, is fine. |
 | `missing-name` | `from x import y` where `x` has no `y`. |
 | `c-extension`, `c-source`, `needs-build` | Compiled code, its sources, or a source archive that would have to be built. |
-| `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 256 KB, more than four folders deep, or a path that is not a module name. An error when the package loads it, a warning when it does not. |
+| `file-too-big`, `too-deep`, `module-name` | A file the keyboard refuses: over 1 MB, deeper than `a/b/c/d/e/f/g/h.py`, or a path that is not a module name. An error when the package loads it, a warning when it does not. |
 | `multiple-inheritance`, `metaclass`, `big-int` | Python the parser takes but the interpreter runs differently or not at all. |
 
 ## Keep track
@@ -269,8 +269,11 @@ The keyboard refuses a plugin over these limits:
 |---|---|
 | Files in the `.wmplugin` | 64, `plugin.json` and licence files included |
 | All files together | 4 MB |
-| One `.py` file | 256 KB |
-| Module paths | four parts at most: `a/b/c/d.py` |
+| One `.py` file | 1 MB |
+| Module paths | eight parts at most: `a/b/c/d/e/f/g/h.py` |
+
+Keyboards up to 0.6.8rc1 took 256 KB and four parts (`a/b/c/d.py`), and
+refuse a plugin with a larger or deeper file.
 
 Packages add up fast. `install` and `update` count the files after each run
 and warn when the plugin is over. `wmpy pack` usually brings it back under,

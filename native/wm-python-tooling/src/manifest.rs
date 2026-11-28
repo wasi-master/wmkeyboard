@@ -67,7 +67,9 @@ const MAX_GRAMMAR_PATTERN: usize = 512;
 const MAX_GRAMMAR_MARKER: usize = 8;
 
 /// `PluginFile`: the archive's caps.
-pub const MAX_SCRIPT_BYTES: usize = 256 * 1024;
+pub const MAX_SCRIPT_BYTES: usize = 1024 * 1024;
+/// Folders and file in a module's path, as `PluginFile.MAX_MODULE_PARTS`.
+pub const MAX_MODULE_PARTS: usize = 8;
 pub const MAX_ENTRIES: usize = 64;
 pub const MAX_TOTAL_BYTES: usize = 4 * 1024 * 1024;
 pub const MAX_ASSET_BYTES: usize = 512 * 1024;
@@ -1393,9 +1395,9 @@ pub fn archive_problems(m: &Manifest, files: &[(&str, &[u8])]) -> Vec<Problem> {
             }
         } else if path.ends_with(".py") {
             let why = if !is_module_name(path) {
-                Some("its path is not a module `import` can reach: up to 4 Python names between slashes, ending .py".to_string())
+                Some(format!("its path is not a module `import` can reach: up to {MAX_MODULE_PARTS} Python names between slashes, ending .py"))
             } else if bytes.len() > MAX_SCRIPT_BYTES {
-                Some(format!("it is {} KB; a module is at most 256 KB", bytes.len() / 1024))
+                Some(format!("it is {} KB; a module is at most {} KB", bytes.len() / 1024, MAX_SCRIPT_BYTES / 1024))
             } else if std::str::from_utf8(bytes).is_err() {
                 Some("it is not UTF-8 text".into())
             } else {
@@ -1574,11 +1576,12 @@ pub fn is_asset_name(name: &str) -> bool {
         && b.iter().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || matches!(c, b'_' | b'.' | b'-'))
 }
 
-/// `PluginFile.isModuleName`: identifiers between slashes, at most four, ending `.py`.
+/// `PluginFile.isModuleName`: identifiers between slashes, at most
+/// [MAX_MODULE_PARTS], ending `.py`.
 pub fn is_module_name(entry: &str) -> bool {
     let Some(stem) = entry.strip_suffix(".py") else { return false };
     let parts: Vec<&str> = stem.split('/').collect();
-    parts.len() <= 4
+    parts.len() <= MAX_MODULE_PARTS
         && parts.iter().all(|p| {
             let b = p.as_bytes();
             (1..=64).contains(&b.len()) && (b[0].is_ascii_alphabetic() || b[0] == b'_') && b.iter().all(|c| c.is_ascii_alphanumeric() || *c == b'_')
@@ -1998,7 +2001,7 @@ mod tests {
         let r = check(GOOD);
         assert_eq!(file_name(r.manifest.as_ref().unwrap()), "Weather-1.0.0.wmplugin");
         assert!(is_valid_host("*.example.co.uk") && !is_valid_host("example") && !is_valid_host("ex_ample.com") && !is_valid_host("a.123"));
-        assert!(is_module_name("pkg/util.py") && !is_module_name("my-lib/x.py") && !is_module_name("a/b/c/d/e.py"));
+        assert!(is_module_name("pkg/util.py") && !is_module_name("my-lib/x.py") && is_module_name("a/b/c/d/e/f/g/h.py") && !is_module_name("a/b/c/d/e/f/g/h/i.py"));
         assert!(is_locale_tag("pt-BR") && is_locale_tag("bn") && !is_locale_tag("english"));
         assert!(is_asset_name("logo.png") && !is_asset_name("Logo.png") && !is_asset_name("sub/logo.png") && !is_asset_name("a.gif"));
     }

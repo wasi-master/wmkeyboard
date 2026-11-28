@@ -115,7 +115,7 @@ The full manifest shape, slot-id tables, and supported SVG subset for icon packs
 
 ## Plugins
 
-`.wmplugin` is a ZIP containing a `plugin.json` manifest and a Python script, the only format here that's code rather than data. The script is capped at 256 KB, and the archive as a whole at 16 entries / 1 MB. A Lua plugin from before 0.6.6 is refused, since the app no longer runs Lua. A device can hold up to 50 installed plugins. Nothing about a plugin is silently repaired on import. See [Opening a file](#opening-a-file) above.
+`.wmplugin` is a ZIP containing a `plugin.json` manifest and a Python script, the only format here that's code rather than data. Each `.py` file is capped at 1 MB and eight path parts, and the archive as a whole at 64 entries / 4 MB. A Lua plugin from before 0.6.6 is refused, since the app no longer runs Lua. A device can hold up to 50 installed plugins. Nothing about a plugin is silently repaired on import. See [Opening a file](#opening-a-file) above.
 
 One difference matters here. An addon repository's index requires a `sha256` hash for every plugin entry, and the app verifies it before installing from a repository. Opening a `.wmplugin` file directly (from a file manager or a chat attachment) skips that check entirely, and only the manifest and script validation above apply. See the [plugin developer guide](/plugins/overview/) and its [security model](/plugins/security/) for what a plugin can and can't do once installed.
 

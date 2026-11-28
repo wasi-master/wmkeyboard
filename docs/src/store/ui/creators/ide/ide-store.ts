@@ -56,7 +56,7 @@ export interface PluginDraft {
 export const MAX_DRAFTS = 20;
 export const MAX_SNAPSHOTS = 30;
 export const MAX_SNAPSHOT_CHARACTERS = 512 * 1024;
-export const MAX_SCRIPT_BYTES = 256 * 1024;
+export const MAX_SCRIPT_BYTES = 1024 * 1024;
 export const MANIFEST_FORMAT = 'wmkeyboard-plugin';
 export const API_VERSION = 4;
 export const LANGUAGE = 'python';

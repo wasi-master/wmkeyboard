@@ -1187,8 +1187,9 @@ export function readPlugin(bytes: Uint8Array): PluginRead {
 	if (entries.length > 64) problems.push(`${entries.length} entries; the app caps at 64.`);
 	const totalBytes = entries.reduce((n, e) => n + e.data.byteLength, 0);
 	if (totalBytes > 4 * 1024 * 1024) problems.push(`The archive unpacks to ${Math.round(totalBytes / 1024)} KB; the app caps at 4 MB.`);
-	const scriptBytes = entries.filter((e) => e.name.endsWith('.py')).reduce((n, e) => n + e.data.byteLength, 0);
-	if (scriptBytes > 256 * 1024) problems.push(`Python totals ${Math.round(scriptBytes / 1024)} KB; the app caps at 256 KB.`);
+	for (const e of entries) {
+		if (e.name.endsWith('.py') && e.data.byteLength > 1024 * 1024) problems.push(`${e.name} is ${Math.round(e.data.byteLength / 1024)} KB; the app caps a .py file at 1 MB.`);
+	}
 	for (const e of entries) {
 		if (e.name.startsWith('assets/') && e.data.byteLength > 512 * 1024) problems.push(`${e.name} is over 512 KB.`);
 	}

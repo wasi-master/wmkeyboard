@@ -422,7 +422,6 @@ export const S = {
 	fileCannotLoad: (name: string, path: string) => `“${name}” has a file this version of WM Keyboard cannot load: ${path}`,
 	rejectBadLocale: (name: string, path: string) => `“${name}” has a translation file the keyboard cannot read: ${path}. Each file under locales/ must be a language tag such as bn.json or pt-BR.json, holding a JSON object of text, at most 64 KB.`,
 	rejectArchiveTooLarge: (name: string, kb: number) => `“${name}” is larger than ${kb} KB.`,
-	pythonTooLarge: (name: string, kb: number, cap: number) => `“${name}” has ${kb} KB of Python. A plugin holds at most ${cap} KB.`,
 	archiveSummary: (size: string, entries: number, python: string) => `${size} · ${entries} ${entries === 1 ? 'entry' : 'entries'} · Python ${python}`,
 	shakeLine: (files: number, symbols: number, before: string, after: string) => `Tree shaking took out ${files} ${files === 1 ? 'file' : 'files'} and ${symbols} ${symbols === 1 ? 'function or class' : 'functions and classes'} of the packages: ${before} of Python became ${after}.`,
 	shakeNothing: 'Tree shaking found nothing in the packages to take out.',

@@ -96,15 +96,15 @@ fn syntax_the_interpreter_refuses_is_named() {
 
 #[test]
 fn compiled_files_and_keyboard_limits() {
-    let big = format!("X = 1\n{}", "# padding\n".repeat(30_000));
+    let big = format!("X = 1\n{}", "# padding\n".repeat(110_000));
     let r = run(
         &[
-            ("fastpkg/__init__.py", "from . import core, big\nfrom .a.b.c import d\n"),
+            ("fastpkg/__init__.py", "from . import core, big\nfrom .a.b.c.d.e.f.g import h\n"),
             ("fastpkg/core.py", "def f():\n    return 1\n"),
             ("fastpkg/_speed.cpython-312-darwin.so", ""),
             ("fastpkg/_speed.c", ""),
             ("fastpkg/big.py", &big),
-            ("fastpkg/a/b/c/d.py", "x = 1\n"),
+            ("fastpkg/a/b/c/d/e/f/g/h.py", "x = 1\n"),
             ("fastpkg/data-files/x.py", "y = 2\n"),
         ],
         &[],
@@ -113,13 +113,13 @@ fn compiled_files_and_keyboard_limits() {
     assert!(c.contains(&(Severity::Error, "c-extension", "fastpkg/_speed.cpython-312-darwin.so".into())), "{c:?}");
     assert!(c.contains(&(Severity::Warning, "c-source", "fastpkg/_speed.c".into())), "{c:?}");
     assert!(c.contains(&(Severity::Error, "file-too-big", "fastpkg/big.py".into())), "{c:?}");
-    assert!(c.contains(&(Severity::Error, "too-deep", "fastpkg/a/b/c/d.py".into())), "{c:?}");
+    assert!(c.contains(&(Severity::Error, "too-deep", "fastpkg/a/b/c/d/e/f/g/h.py".into())), "{c:?}");
     assert!(c.contains(&(Severity::Error, "module-name", "fastpkg/data-files/x.py".into())), "{c:?}");
     // Nothing imports them: `wmpy pack` leaves them out unless the plugin's code reaches them.
-    let r = run(&[("fastpkg/__init__.py", ""), ("fastpkg/big.py", &big), ("fastpkg/a/b/c/d.py", "x = 1\n")], &[]);
+    let r = run(&[("fastpkg/__init__.py", ""), ("fastpkg/big.py", &big), ("fastpkg/a/b/c/d/e/f/g/h.py", "x = 1\n")], &[]);
     let c: Vec<(Severity, &str, String)> = r.problems().map(|p| (p.severity, p.code, p.file.clone())).collect();
     assert!(c.contains(&(Severity::Warning, "file-too-big", "fastpkg/big.py".into())), "{c:?}");
-    assert!(c.contains(&(Severity::Warning, "too-deep", "fastpkg/a/b/c/d.py".into())), "{c:?}");
+    assert!(c.contains(&(Severity::Warning, "too-deep", "fastpkg/a/b/c/d/e/f/g/h.py".into())), "{c:?}");
     assert_eq!(r.verdict, Verdict::Warnings);
 }
 
@@ -312,15 +312,15 @@ fn empty_package_files_too_deep_are_left_out_not_refused() {
     let r = run(
         &[
             ("zones/__init__.py", ""),
-            ("zones/data/America/Argentina/__init__.py", ""),
-            ("zones/data/America/Argentina/extra.py", "x = 1\n"),
+            ("zones/data/tz/v2/zones/tz2026/America/Argentina/__init__.py", ""),
+            ("zones/data/tz/v2/zones/tz2026/America/Argentina/extra.py", "x = 1\n"),
         ],
         &[],
     );
     let c = codes(&r);
-    assert!(c.contains(&(Severity::Info, "too-deep", "zones/data/America/Argentina/__init__.py".into(), None)), "{c:?}");
+    assert!(c.contains(&(Severity::Info, "too-deep", "zones/data/tz/v2/zones/tz2026/America/Argentina/__init__.py".into(), None)), "{c:?}");
     // Nothing imports it: an error only for code that does.
-    assert!(c.contains(&(Severity::Warning, "too-deep", "zones/data/America/Argentina/extra.py".into(), None)), "{c:?}");
+    assert!(c.contains(&(Severity::Warning, "too-deep", "zones/data/tz/v2/zones/tz2026/America/Argentina/extra.py".into(), None)), "{c:?}");
 }
 
 #[test]
