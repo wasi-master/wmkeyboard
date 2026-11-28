@@ -575,6 +575,7 @@ internal fun RowsSettings(
                 options = listOf(
                     RecentWordPlacement.OWN_ROW to stringResource(R.string.rows_recent_words_placement_row),
                     RecentWordPlacement.INLINE to stringResource(R.string.rows_recent_words_placement_inline),
+                    RecentWordPlacement.STACKED to stringResource(R.string.rows_recent_words_placement_stacked),
                 ),
                 selected = settings.watch { it.rows.recentWordPlacement },
                 default = SettingsDefaults.rows.recentWordPlacement,

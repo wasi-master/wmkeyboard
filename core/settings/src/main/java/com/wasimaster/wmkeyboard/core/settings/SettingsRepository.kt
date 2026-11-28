@@ -8745,7 +8745,8 @@ data class RowSettings(
     /**
      * Where the recent words go while [SuggestionStripSettings.recentWordBar]
      * is on (#894): a row of their own, at [BarRow.RECENT]'s place in the
-     * order, or at the start of the strip, which costs no height.
+     * order, at the start of the strip, which costs no height, or stacked in
+     * the strip, Nintype style, which makes the strip taller.
      */
     val recentWordPlacement: RecentWordPlacement = RecentWordPlacement.OWN_ROW,
     /**
@@ -8771,6 +8772,13 @@ enum class RecentWordPlacement {
 
     /** At the start of the suggestion strip, the suggestions after them. */
     INLINE,
+
+    /**
+     * In the suggestion strip itself, Nintype style: every word written is a
+     * column with its other readings above and below it, the word being typed
+     * is the last column, and the strip is taller to hold three lines.
+     */
+    STACKED,
 }
 
 /** Whether [langId]'s emoji keyword packs are read; see [EmojiSettings.disabledKeywordLangs]. */

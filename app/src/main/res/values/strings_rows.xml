@@ -191,7 +191,8 @@
     <string name="rows_recent_words_placement_title">Where the recent words go</string>
     <string name="rows_recent_words_placement_row">A row of their own</string>
     <string name="rows_recent_words_placement_inline">At the start of the strip</string>
-    <string name="rows_recent_words_placement_info">A row of their own sits in the row order above, over the suggestion strip unless you move it, and keeps the strip\'s full width for the suggestions. At the start of the strip, the recent words take its left end and the suggestions follow them, so the keyboard never grows for them.</string>
+    <string name="rows_recent_words_placement_stacked">Stacked in the strip</string>
+    <string name="rows_recent_words_placement_info">A row of their own sits in the row order above, over the suggestion strip unless you move it, and keeps the strip\'s full width for the suggestions. At the start of the strip, the recent words take its left end and the suggestions follow them, so the keyboard never grows for them. Stacked in the strip works like Nintype: every word you wrote is a column in the strip with two other readings above and below it, and the word you are typing is the last column. Tap a reading to change that word. Tap the word itself to select it, and the next word you type or swipe goes in its place; an arrow at the end of the strip then takes you back to where you were typing. The strip grows taller to fit the three lines.</string>
     <string name="rows_recent_words_steady_title">Keep the row\'s height</string>
     <string name="rows_recent_words_steady_subtitle">The row stays while it is empty, so the keyboard doesn\'t change height between messages</string>
     <string name="rows_recent_words_steady_info">Without this, the row is there only while it has words to show, so the keyboard grows by it after your first word and shrinks again when a chat app empties the box on send. With it on, the row keeps its place empty instead.</string>

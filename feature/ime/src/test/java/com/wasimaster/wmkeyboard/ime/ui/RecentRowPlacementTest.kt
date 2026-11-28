@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.settings.RowSettings
 import com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.RecentBarWord
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,5 +49,37 @@ class RecentRowPlacementTest {
         assertTrue(recentWordsInline(inline))
         assertFalse(recentWordsInline(state(placement = RecentWordPlacement.INLINE, bar = emptyList())))
         assertFalse(recentWordsInline(state()))
+    }
+
+    @Test
+    fun `stacked they take no row and are not the inline words`() {
+        val stacked = state(placement = RecentWordPlacement.STACKED, steady = true)
+        assertFalse(recentRowShown(stacked))
+        assertFalse(recentWordsInline(stacked))
+        assertTrue(recentStackOn(stacked))
+        assertTrue(recentStackShown(stacked))
+    }
+
+    @Test
+    fun `the stacked strip holds itself up only with words to show`() {
+        assertFalse(recentStackShown(state(placement = RecentWordPlacement.STACKED, bar = emptyList())))
+        assertFalse(recentStackShown(state(placement = RecentWordPlacement.STACKED, on = false)))
+        assertFalse(recentStackShown(state(placement = RecentWordPlacement.INLINE)))
+        val selectedOnly = state(placement = RecentWordPlacement.STACKED, bar = emptyList())
+            .copy(recentSelected = words.first())
+        assertTrue(recentStackShown(selectedOnly))
+        val afterOnly = state(placement = RecentWordPlacement.STACKED, bar = emptyList())
+            .copy(recentBarAfter = words)
+        assertTrue(recentStackShown(afterOnly))
+    }
+
+    @Test
+    fun `only the stacked strip makes the bar taller`() {
+        val plain = state().settings
+        val stacked = state(placement = RecentWordPlacement.STACKED).settings
+        assertEquals(topBarHeight(plain) + RecentStackExtra, topBarHeight(stacked))
+        assertEquals(topBarHeight(plain), topBarHeight(state(placement = RecentWordPlacement.INLINE).settings))
+        // Off, the placement left on Stacked changes nothing.
+        assertEquals(topBarHeight(plain), topBarHeight(state(placement = RecentWordPlacement.STACKED, on = false).settings))
     }
 }

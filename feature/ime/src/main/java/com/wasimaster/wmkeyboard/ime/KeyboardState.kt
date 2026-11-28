@@ -4697,6 +4697,19 @@ data class KeyboardUiState(
      * bar is off or has nothing to show.
      */
     val recentBar: List<RecentBarWord> = emptyList(),
+    /**
+     * With the recent words stacked in the strip: the ones written after the
+     * caret, oldest first, there once the strip has put the caret back on an
+     * earlier word. Always empty in the other placements, which show only
+     * the words before the caret.
+     */
+    val recentBarAfter: List<RecentBarWord> = emptyList(),
+    /**
+     * With the recent words stacked in the strip: the word the strip selected
+     * in the field, while it is still selected and nothing is typed over it.
+     * Its column is the live one, with its other readings above and below it.
+     */
+    val recentSelected: RecentBarWord? = null,
     /** The focused keyboard-owned field's undo history, while it has one (#665). */
     val captureUndo: CaptureUndoMark? = null,
     /**

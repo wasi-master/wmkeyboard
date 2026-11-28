@@ -4259,6 +4259,9 @@ private fun TopBar(
         // The password manager chip (#1003), for the same reason: it is up
         // exactly when a login field has nothing else on the strip.
         state.showsPasswordManagerChip() ||
+        // The words written so far, stacked in the strip: they are there to
+        // be fixed after the word's suggestions have gone.
+        recentStackShown(state) ||
         // A Chinese reading kept out of the field (#973) is drawn here and
         // nowhere else, so it holds the row even before a candidate is found.
         (state.composingPreview.isNotEmpty() && state.readingInKeyboard())
@@ -5094,7 +5097,7 @@ private const val BubbleLabelCacheSize = 128
  * exposed to accessibility the way a `Text` would expose it.
  */
 @Composable
-private fun CachedTextLine(
+internal fun CachedTextLine(
     text: AnnotatedString,
     style: TextStyle,
     color: Color,
@@ -6163,72 +6166,88 @@ private fun RowScope.StripWords(
             }
         }
         if (!rewriteAtEnd) rewrite()
-        LatinSuggestionChips(
-            // One slot, so the word sits centred across the whole strip
-            // rather than in the first of three (see [glideStripOnly]).
-            candidates = if (glideStripOnly) {
-                listOfNotNull(state.glideWord)
-            } else {
-                shownSuggestions
-            },
-            enabled = suggestionsShowing,
-            alpha = stripContentFade,
-            slotCount = wordSlots,
-            weight = wordSlots.toFloat(),
-            textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
-            scrollable = state.settings.suggestionStrip.scrollable,
-            textPadding = state.settings.suggestionStrip.chipPadding.dp,
-            centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
-                !state.fixedPhoneticStrip(),
-            primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
-            newWordColor = state.settings.suggestionStrip.newWordColor?.let { Color(it.toInt()) },
-            newWords = state.newWords,
-            rankMarks = if (state.settings.suggestionStrip.rankMarks) state.wordRanks else emptyMap(),
-            leadWord = state.stripTyped.takeIf { state.settings.suggestionStrip.typedWordFirst && !glideStripOnly },
-            fitMore = state.settings.suggestionStrip.fitMoreWords && !glideStripOnly,
-            autocorrectWord = state.autocorrectWord,
-            // A fixed phonetic strip leads with the word as typed, not
-            // with what a space writes; the bold follows the latter.
-            primaryWord = if (state.fixedPhoneticStrip()) state.autocorrectWord.orEmpty() else null,
-            // Mid-stroke, the shift the lift will commit under (#162):
-            // a glide through the shift key previews its capital on
-            // the strip as well as in the pill. Zero crossings between
-            // strokes, so this is the board's own shift then.
-            shiftState = shiftForGlide(state.shiftState, state.glideCase),
-            // Per-letter capitals a stroke drew (#163), which no one
-            // shift state can say; empty under the whole-word reading.
-            // A shift pressed mid-word cycles the words' case, lower case
-            // included (#1195).
-            casedWords = if (state.shiftCyclesCase()) {
-                remember(state.suggestions, state.shiftState, state.glideCased) {
-                    state.suggestions.associateWith { cycleCaseForShift(it, state.shiftState) } + state.glideCased
-                }
-            } else {
-                state.glideCased
-            },
-            // A glided trigger shows what the lift types for it (#205).
-            expansions = state.glideExpansions,
-            // Only while the live candidates are the ones on screen: the
-            // strip holds the last set behind alpha 0, and a key promised
-            // against a faded word would commit something else.
-            hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
-            onSuggestion = onSuggestion,
-            suggestionHold = suggestionHold,
-            menuItems = state.settings.suggestionStrip.wordMenuItems,
-            overflow = state.settings.suggestionStrip.overflow,
-            fixedSlots = fixedStrip,
-            // With the chips at the far end the words start the strip, so its
-            // second slot is the words' own second.
-            primarySlot = if (rewriteAtEnd) minOf(1, wordSlots - 1) else (1 - leadSlots).coerceAtLeast(0),
-            tinted = state.settings.suggestionStrip.tintedSlots,
-        )
+        // The words written so far stacked in the strip, Nintype style, the
+        // word being typed their last column. In place of the slots, not
+        // beside them: the live column is the slots' words, stacked.
+        if (recentStackOn(state)) {
+            RecentStackStrip(
+                state = state,
+                live = if (glideStripOnly) listOfNotNull(state.glideWord) else shownSuggestions,
+                enabled = suggestionsShowing,
+                alpha = stripContentFade,
+                weight = wordSlots.toFloat(),
+                textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
+                onSuggestion = onSuggestion,
+                hold = suggestionHold,
+            )
+        } else {
+            LatinSuggestionChips(
+                // One slot, so the word sits centred across the whole strip
+                // rather than in the first of three (see [glideStripOnly]).
+                candidates = if (glideStripOnly) {
+                    listOfNotNull(state.glideWord)
+                } else {
+                    shownSuggestions
+                },
+                enabled = suggestionsShowing,
+                alpha = stripContentFade,
+                slotCount = wordSlots,
+                weight = wordSlots.toFloat(),
+                textScale = state.settings.suggestionStrip.textScaleFor(state.language.id),
+                scrollable = state.settings.suggestionStrip.scrollable,
+                textPadding = state.settings.suggestionStrip.chipPadding.dp,
+                centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
+                    !state.fixedPhoneticStrip(),
+                primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
+                newWordColor = state.settings.suggestionStrip.newWordColor?.let { Color(it.toInt()) },
+                newWords = state.newWords,
+                rankMarks = if (state.settings.suggestionStrip.rankMarks) state.wordRanks else emptyMap(),
+                leadWord = state.stripTyped.takeIf { state.settings.suggestionStrip.typedWordFirst && !glideStripOnly },
+                fitMore = state.settings.suggestionStrip.fitMoreWords && !glideStripOnly,
+                autocorrectWord = state.autocorrectWord,
+                // A fixed phonetic strip leads with the word as typed, not
+                // with what a space writes; the bold follows the latter.
+                primaryWord = if (state.fixedPhoneticStrip()) state.autocorrectWord.orEmpty() else null,
+                // Mid-stroke, the shift the lift will commit under (#162):
+                // a glide through the shift key previews its capital on
+                // the strip as well as in the pill. Zero crossings between
+                // strokes, so this is the board's own shift then.
+                shiftState = shiftForGlide(state.shiftState, state.glideCase),
+                // Per-letter capitals a stroke drew (#163), which no one
+                // shift state can say; empty under the whole-word reading.
+                // A shift pressed mid-word cycles the words' case, lower case
+                // included (#1195).
+                casedWords = if (state.shiftCyclesCase()) {
+                    remember(state.suggestions, state.shiftState, state.glideCased) {
+                        state.suggestions.associateWith { cycleCaseForShift(it, state.shiftState) } + state.glideCased
+                    }
+                } else {
+                    state.glideCased
+                },
+                // A glided trigger shows what the lift types for it (#205).
+                expansions = state.glideExpansions,
+                // Only while the live candidates are the ones on screen: the
+                // strip holds the last set behind alpha 0, and a key promised
+                // against a faded word would commit something else.
+                hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
+                onSuggestion = onSuggestion,
+                suggestionHold = suggestionHold,
+                menuItems = state.settings.suggestionStrip.wordMenuItems,
+                overflow = state.settings.suggestionStrip.overflow,
+                fixedSlots = fixedStrip,
+                // With the chips at the far end the words start the strip, so its
+                // second slot is the words' own second.
+                primarySlot = if (rewriteAtEnd) minOf(1, wordSlots - 1) else (1 - leadSlots).coerceAtLeast(0),
+                tinted = state.settings.suggestionStrip.tintedSlots,
+            )
+        }
         if (rewriteAtEnd) rewrite()
         // A strip that scrolls gets the arrow the conversion strip has (#890):
         // past the words it scrolls through, the rest of the ranked list opens
         // in the same grid a swipe down does. Outside the scroll, as there, so
         // it cannot scroll away itself.
         if (state.settings.suggestionStrip.scrollable && state.settings.suggestionStrip.moreArrow &&
-            !glideStripOnly && shownSuggestions.size > wordSlots
+            !glideStripOnly && shownSuggestions.size > wordSlots && !recentStackOn(state)
         ) {
             IconHint(stringResource(R.string.ime_candidates_more_desc)) {
                 IconButton(onClick = onCandidatesExpand, enabled = suggestionsShowing) {
@@ -19096,6 +19115,14 @@ internal class KeyRects {
     /** The face outline [key] is drawn in; null for the theme's. */
     fun shapeOf(key: Key): Shape? = if (faceShapes.isEmpty()) null else faceShapes[key]
 
+    /** The cell holding [point], in root space, or null outside the grid. */
+    fun cellAt(point: Offset): Rect? {
+        for (rect in cells.keys) {
+            if (rect.contains(point)) return rect
+        }
+        return null
+    }
+
     /** The key whose cell holds [point], or null outside the grid. */
     fun keyAt(point: Offset): Key? {
         for ((rect, key) in cells) {
@@ -22112,6 +22139,16 @@ private fun KeyRows(
         } else {
             null
         }
+    // The trail's theme looks (colours, glow, sparkles, rings), their moving
+    // parts already gone under reduce motion and power saving; and whether a
+    // glide lights the keys it crosses, which feeds the same pulse a press
+    // does and so means something only while something listens to it.
+    val trailLook = kbTheme.liveTrail
+    val trailSparks = remember { TrailSparkField() }
+    val glideLightsKeys = pulseOn && trailLook.lightsKeys
+    // Which touches ring; the finger pass below records them, and only this
+    // grid's, since only this grid draws them.
+    val ringMode = trailLook.ring
     // Customisable glide-trail + start-sensitivity knobs (Settings → Gestures).
     val gesture = state.settings.gesture
     val trailMs = gesture.trailDurationMs.toLong()
@@ -22325,6 +22362,21 @@ private fun KeyRows(
             }
         }
     }
+    // Every stroke the grid can draw, in drawing order, for the loops that
+    // walk all of them.
+    val allTrails = remember { arrayOf(trail, trail2, *fingerTrails) }
+    // What a glide does beyond its line: the keys it crosses light up, and the
+    // trail sheds its sparkles and bursts where it lifts.
+    GlideTrailFx(
+        strokes = allTrails,
+        trail = trailLook,
+        lightKeys = glideLightsKeys,
+        sparks = trailSparks,
+        keyRects = keyRects,
+        origin = { boxOrigin },
+        solid = trailColor,
+        headWidthDp = trailHeadWidth,
+    )
     // A trail outlives the thing that drew it otherwise: switching the feature
     // off or changing the layout leaves the last stroke painted over the new
     // grid, because the pointer loop that would have released it is gone.
@@ -24072,8 +24124,8 @@ private fun KeyRows(
             // consumes. Keyed on the bloom being on, so a theme without one
             // runs no loop at all.
             .then(
-                if (touchBloom != null || fontMotion?.followsFingers == true) {
-                    Modifier.touchBloomFingers({ boxOrigin })
+                if (touchBloom != null || fontMotion?.followsFingers == true || ringMode != null) {
+                    Modifier.touchBloomFingers({ boxOrigin }, rings = ringMode)
                 } else {
                     Modifier
                 },
@@ -28326,7 +28378,7 @@ private fun toolbarReadsRtl(state: KeyboardUiState): Boolean =
  * caller (full-bleed absorption, emoji-search sizing) drops the strip with it.
  */
 internal fun topBarHeight(settings: KeyboardSettings): Dp =
-    if (settings.toolbarBehavior.enabled) paddedToolbarHeight(settings) else 0.dp
+    if (settings.toolbarBehavior.enabled) paddedToolbarHeight(settings) + recentStackExtra(settings) else 0.dp
 
 /**
  * The toolbar's height with its padding, whether or not the toolbar is on:

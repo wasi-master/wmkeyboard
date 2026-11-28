@@ -356,6 +356,7 @@ import android.net.ConnectivityManager
 import com.wasimaster.wmkeyboard.core.settings.PerAppLanguageSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoNetworkConditions
 import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
+import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
 import com.wasimaster.wmkeyboard.core.settings.RetypeTarget
 import com.wasimaster.wmkeyboard.core.settings.RotationState
 import com.wasimaster.wmkeyboard.core.settings.isRotationDue
@@ -11519,7 +11520,9 @@ open class WMKeyboardService : InputMethodService() {
             if (!still) closeKeypadSum()
         }
         recentEchoOwed = false
-        if (recentBarAwaitsEcho) scheduleRecentBar()
+        // The stacked strip shows words on both sides of the caret, so every
+        // move of it, a tap in the text included, re-reads them.
+        if (recentBarAwaitsEcho || recentStacked()) scheduleRecentBar()
         noteTypedCaret(oldSelEnd, newSelStart, newSelEnd)
         // The space commit's echo is the first one with no composing region:
         // the letter echoes still queued ahead of it all carry the word's.
@@ -61253,6 +61256,8 @@ open class WMKeyboardService : InputMethodService() {
             onCandidateAdjust = ::onCandidateAdjust,
             onRankSlide = ::onSuggestionRankSlide,
             onRecentPick = ::onRecentWordPick,
+            onRecentSelect = ::onRecentSelect,
+            onRecentReturn = ::onRecentReturn,
             onRetype = ::onRetypeButton,
         )
     }
@@ -61295,7 +61300,15 @@ open class WMKeyboardService : InputMethodService() {
         var word: String,
         var previous: String?,
         val offers: List<String>,
-    )
+    ) {
+        /**
+         * The stacked strip's [recentOffers] for this entry and the facts they
+         * were worked out from. The stacked strip re-reads on every caret move
+         * and shows dozens of words, and a word that kept no offers asks the
+         * dictionary for some each time.
+         */
+        var shownOffers: Pair<String, List<String>>? = null
+    }
 
     /**
      * The words written in this field, oldest first (#842). Only words the
@@ -61354,6 +61367,26 @@ open class WMKeyboardService : InputMethodService() {
             !state.secureField && !state.incognitoOn && !isNullField()
 
     /**
+     * Whether the recent words are stacked in the suggestion strip, Nintype
+     * style (see [RecentStack]), rather than in a row of their own or flat at
+     * the strip's start.
+     */
+    private fun recentStacked(state: KeyboardUiState = _uiState.value): Boolean =
+        state.settings.suggestionStrip.recentWordBar &&
+            state.settings.rows.recentWordPlacement == RecentWordPlacement.STACKED
+
+    /** How far the bar reads each way from the caret: the stacked strip holds many more words. */
+    private fun recentReach(): Int = if (recentStacked()) RECENT_STACK_READ else RECENT_BAR_LOOKBEHIND
+
+    /** Takes every recent word off the screen, keeping what the bar remembers. */
+    private fun clearRecentShown() {
+        val state = _uiState.value
+        if (state.recentBar.isNotEmpty() || state.recentBarAfter.isNotEmpty() || state.recentSelected != null) {
+            _uiState.update { it.copy(recentBar = emptyList(), recentBarAfter = emptyList(), recentSelected = null) }
+        }
+    }
+
+    /**
      * A word was written: [parts] are its words, and the strip's words as it
      * was written are what else the last one could have been (#842).
      */
@@ -61402,7 +61435,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun scheduleRecentBar() {
         if (recentBarPending) return
         if (!recentBarAllowed()) {
-            if (_uiState.value.recentBar.isNotEmpty()) _uiState.update { it.copy(recentBar = emptyList()) }
+            clearRecentShown()
             return
         }
         recentBarPending = true
@@ -61416,7 +61449,7 @@ open class WMKeyboardService : InputMethodService() {
         recentBarAwaitsEcho = false
         if (!recentBarAllowed()) {
             recentPending.clear()
-            if (_uiState.value.recentBar.isNotEmpty()) _uiState.update { it.copy(recentBar = emptyList()) }
+            clearRecentShown()
             return
         }
         val read = recentRead()
@@ -61439,6 +61472,19 @@ open class WMKeyboardService : InputMethodService() {
             if ((expectedSelStart < 0 || stale) && currentInputConnection != null) recentBarAwaitsEcho = true
             return
         }
+        // Stacked in the strip, the words after the caret are shown too, so
+        // every word is found again before the new ones are placed: a word
+        // typed in front of them moved them, and a stale place could be taken
+        // for the new word's (see [RecentStack]).
+        val stacked = recentStacked()
+        if (stacked) {
+            if (ic == null) return
+            if (expectedSelStart < 0 || expectedSelEnd < expectedSelStart) {
+                recentBarAwaitsEcho = true
+                return
+            }
+            relocateRecentStack(ic, read)
+        }
         // The words written since the last read are the newest in the field.
         if (recentPending.isNotEmpty()) {
             var at = read.words.lastIndex
@@ -61457,7 +61503,13 @@ open class WMKeyboardService : InputMethodService() {
             }
             recentPending.clear()
             recentEntries.sortBy { it.start }
-            while (recentEntries.size > RECENT_BAR_KEPT) recentEntries.removeAt(0)
+            val kept = if (stacked) RECENT_STACK_KEPT else RECENT_BAR_KEPT
+            while (recentEntries.size > kept) recentEntries.removeAt(0)
+        }
+        recentSentenceStarts = read.sentenceStarts
+        if (stacked) {
+            publishRecentStack(read)
+            return
         }
         // A word the read can see that no longer reads as itself is gone: it
         // was deleted or rewritten. One out of sight (after the caret, or
@@ -61466,8 +61518,83 @@ open class WMKeyboardService : InputMethodService() {
         recentEntries.removeAll { entry ->
             entry.start >= read.origin && entry.start < read.end && at[entry.start] != entry.word
         }
-        recentSentenceStarts = read.sentenceStarts
         publishRecentBar(at)
+    }
+
+    /**
+     * What the field reads after the caret (the selection's end), as words
+     * placed in the field, for the stacked strip; null when the field will
+     * not say.
+     */
+    private fun recentWordsAfter(ic: InputConnection): List<Pair<Int, String>>? {
+        val reach = recentReach()
+        val after = runCatching { ic.getTextAfterCursor(reach, 0)?.toString() }.getOrNull() ?: return null
+        return RecentStack.wordsIn(after, expectedSelEnd, cut = after.length >= reach)
+    }
+
+    /**
+     * The selected text's words, placed in the field: the word the stacked
+     * strip selected for fixing, which neither side of the caret reads.
+     */
+    private fun recentWordsSelected(ic: InputConnection): List<Pair<Int, String>> {
+        if (expectedSelEnd <= expectedSelStart) return emptyList()
+        val selected = runCatching { ic.getSelectedText(0)?.toString() }.getOrNull() ?: return emptyList()
+        return RecentStack.wordsIn(selected, expectedSelStart, cut = false)
+    }
+
+    /**
+     * Finds every word the stacked strip keeps where it stands now (#842's
+     * rule, both sides of the caret): matched in order against the field's
+     * words before the caret, in the selection and after it, so text typed
+     * or deleted in front of a word moves it rather than losing it. A word
+     * the field no longer has leaves. One before what [read] reaches stays
+     * where it was, unshown.
+     */
+    private fun relocateRecentStack(ic: InputConnection, read: RecentRead) {
+        val after = recentWordsAfter(ic) ?: return
+        val found = read.words + recentWordsSelected(ic) + after
+        val movable = recentEntries.filter { it.start >= read.origin }
+        val starts = RecentStack.relocate(movable.map { it.word }, found)
+        movable.forEachIndexed { i, entry ->
+            val start = starts[i]
+            if (start == null) recentEntries.remove(entry) else entry.start = start
+        }
+        recentEntries.sortBy { it.start }
+    }
+
+    /**
+     * The stacked strip's words: the ones before the caret, the newest of
+     * them last, then the ones after it, and the word the strip selected,
+     * which its live column shows while nothing is typed over it.
+     */
+    private fun publishRecentStack(read: RecentRead) {
+        val before = ArrayList<RecentBarWord>()
+        val after = ArrayList<RecentBarWord>()
+        var selected: RecentBarWord? = null
+        val selStart = expectedSelStart
+        val selEnd = expectedSelEnd
+        for (entry in recentEntries) {
+            if (entry.start < read.origin) continue
+            val end = entry.start + entry.word.length
+            val shown = { RecentBarWord(entry.start, entry.word, recentStackOffers(entry)) }
+            when {
+                end <= read.end -> before += shown()
+                entry.start >= selEnd -> after += shown()
+                composing.isEmpty() && entry.start == selStart && end == selEnd -> selected = shown()
+            }
+        }
+        val words = before.takeLast(RECENT_STACK_WORDS)
+        val state = _uiState.value
+        if (state.recentBar != words || state.recentBarAfter != after || state.recentSelected != selected) {
+            _uiState.update { it.copy(recentBar = words, recentBarAfter = after, recentSelected = selected) }
+        }
+    }
+
+    /** [recentOffers] for the stacked strip, worked out again only when what they rest on changes. */
+    private fun recentStackOffers(entry: RecentEntry): List<String> {
+        val key = "${entry.start}\u0000${entry.word}\u0000${entry.previous}\u0000${entry.start in recentSentenceStarts}"
+        entry.shownOffers?.let { (was, offers) -> if (was == key) return offers }
+        return recentOffers(entry).also { entry.shownOffers = key to it }
     }
 
     /** The entries [visible] reads where they stand, the newest few, as the bar draws them. */
@@ -61485,7 +61612,7 @@ open class WMKeyboardService : InputMethodService() {
         recentPending.clear()
         recentBarHandler.removeCallbacksAndMessages(null)
         recentBarPending = false
-        if (_uiState.value.recentBar.isNotEmpty()) _uiState.update { it.copy(recentBar = emptyList()) }
+        clearRecentShown()
     }
 
     /**
@@ -61513,12 +61640,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun recentRead(): RecentRead? {
         val ic = currentInputConnection ?: return null
-        val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull()
+        val reach = recentReach()
+        val before = runCatching { ic.getTextBeforeCursor(reach, 0)?.toString() }.getOrNull()
             ?: return null
         // The word in the composing region is not written yet.
         val written = before.dropLast(composingShownLength().coerceAtMost(before.length))
         // Short of the whole lookbehind, the read starts at the field's start.
-        val anchored = before.length < RECENT_BAR_LOOKBEHIND
+        val anchored = before.length < reach
         val origin = if (anchored) 0 else (expectedSelStart.takeIf { it >= 0 } ?: return null) - before.length
         val found = ArrayList<Pair<Int, String>>()
         val opening = HashSet<Int>()
@@ -61532,7 +61660,7 @@ open class WMKeyboardService : InputMethodService() {
             while (i < written.length && isComposingWordChar(written[i])) i++
             val word = written.substring(start, i)
             // A word cut off at the start of what was read may be longer.
-            if (start == 0 && before.length >= RECENT_BAR_LOOKBEHIND) continue
+            if (start == 0 && before.length >= reach) continue
             if (word.any { it.isLetter() }) {
                 found += (origin + start) to word
                 if (WordContext.completedWordBefore(written.substring(0, start), SENTENCE_ENDERS) == WordContext.SENTENCE_START) {
@@ -61586,9 +61714,9 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         val entry = recentEntries.firstOrNull { it.start == start && it.word == word }
         val caret = expectedSelStart
-        val read = recentRead()
+        val selEnd = expectedSelEnd.coerceAtLeast(caret)
         if (entry == null || replacement.isEmpty() || caret < 0 || !caretStillAt(ic, caret) ||
-            read == null || read.words.none { it.first == start && it.second == word }
+            !recentStandsAt(ic, start, word)
         ) {
             refreshRecentBar()
             return
@@ -61596,14 +61724,18 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         val end = start + word.length
         val delta = replacement.length - word.length
+        // Only what comes after the word moves: the stacked strip also fixes
+        // words after the caret, and the word it selected, which stays
+        // selected at its new length.
+        val moved = { at: Int -> if (at >= end) at + delta else at }
         val typing = composing.isNotEmpty()
         val composeStart = caret - composingShownLength()
         ic.beginBatchEdit()
         if (typing) ic.finishComposingText()
         ic.setSelection(start, end)
         ic.commitText(replacement, 1)
-        ic.setSelection(caret + delta, caret + delta)
-        if (typing) ic.setComposingRegion(composeStart + delta, caret + delta)
+        ic.setSelection(moved(caret), moved(selEnd))
+        if (typing) ic.setComposingRegion(moved(composeStart), moved(caret))
         ic.endBatchEdit()
         invalidateExpectedSelection()
         glideReadings.onReplaced(start, end, replacement.length)
@@ -61620,6 +61752,71 @@ open class WMKeyboardService : InputMethodService() {
         for (other in recentEntries) if (other.start > start) other.start += delta
         entry.previous = word
         entry.word = replacement
+        scheduleRecentBar()
+    }
+
+    /**
+     * Whether the field still reads [word] at [start]: before the caret, and
+     * for the stacked strip also as the selection or after the caret.
+     */
+    private fun recentStandsAt(ic: InputConnection, start: Int, word: String): Boolean {
+        val read = recentRead() ?: return false
+        if (read.words.any { it.first == start && it.second == word }) return true
+        if (!recentStacked()) return false
+        if (recentWordsSelected(ic).any { it.first == start && it.second == word }) return true
+        return recentWordsAfter(ic)?.any { it.first == start && it.second == word } == true
+    }
+
+    /**
+     * A word itself was tapped on the stacked strip, Nintype's way back to an
+     * earlier word: it is selected in the field, so the next word typed,
+     * swiped or picked goes in its place, and the strip offers what else it
+     * could be. A word still being typed is finished first, as typed, the way
+     * moving the caret finishes it. Left alone when the field no longer reads
+     * the word there.
+     */
+    private fun onRecentSelect(start: Int, word: String) {
+        val ic = currentInputConnection ?: return
+        val caret = expectedSelStart
+        if (recentEntries.none { it.start == start && it.word == word } || caret < 0 ||
+            !caretStillAt(ic, caret) || !recentStandsAt(ic, start, word)
+        ) {
+            refreshRecentBar()
+            return
+        }
+        vibrate()
+        endCompositionForCaretKey(ic)
+        ic.setSelection(start, start + word.length)
+        lastGestureWord = null
+        invalidateExpectedSelection()
+        scheduleRecentBar()
+    }
+
+    /**
+     * The stacked strip's back arrow: the caret goes back to where the
+     * writing left off, past the last word written after it, the marks that
+     * close up onto that word and one space (see [RecentStack.returnPoint]).
+     */
+    private fun onRecentReturn() {
+        val ic = currentInputConnection ?: return
+        val last = _uiState.value.recentBarAfter.lastOrNull()
+        val selEnd = expectedSelEnd
+        if (last == null || selEnd < 0 || last.start < selEnd || !caretStillAt(ic, expectedSelStart)) {
+            refreshRecentBar()
+            return
+        }
+        val end = last.start + last.word.length - selEnd
+        val after = runCatching { ic.getTextAfterCursor(end + RECENT_RETURN_SLACK, 0)?.toString() }.getOrNull()
+        if (after == null || after.length < end || after.substring(last.start - selEnd, end) != last.word) {
+            refreshRecentBar()
+            return
+        }
+        vibrate()
+        val target = selEnd + RecentStack.returnPoint(after, end)
+        endCompositionForCaretKey(ic)
+        ic.setSelection(target, target)
+        lastGestureWord = null
+        invalidateExpectedSelection()
         scheduleRecentBar()
     }
 
@@ -68571,6 +68768,18 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How far back the bar reads for its words. */
         private const val RECENT_BAR_LOOKBEHIND = 128
+
+        /** Words the stacked strip shows before the caret; it scrolls back through them. */
+        private const val RECENT_STACK_WORDS = 40
+
+        /** Words the stacked strip remembers in a field, both sides of the caret. */
+        private const val RECENT_STACK_KEPT = 64
+
+        /** How far each way from the caret the stacked strip reads for its words. */
+        private const val RECENT_STACK_READ = 600
+
+        /** Characters read past the last word for the back arrow's marks and space. */
+        private const val RECENT_RETURN_SLACK = 8
 
         /** How far before a word [wordOpensSentence] reads for a sentence end. */
         private const val SENTENCE_OPENING_LOOKBACK = 16

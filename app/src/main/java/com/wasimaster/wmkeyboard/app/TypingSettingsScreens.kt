@@ -1673,7 +1673,8 @@ internal fun TypingSuggestionsSettings(
         item(level = SettingLevel.STANDARD) {
             val place = settings.watch { it.suggestionStrip.retypeButton }
             val recentOn = settings.watch { it.suggestionStrip.recentWordBar }
-            val recentInline = settings.watch { it.rows.recentWordPlacement == RecentWordPlacement.INLINE }
+            // At the start of the strip or stacked in it, the words have no row for the button.
+            val recentInline = settings.watch { it.rows.recentWordPlacement != RecentWordPlacement.OWN_ROW }
             val stripHidden = settings.watch { it.toolbarBehavior.stripHidden }
             val blockers = buildList {
                 if (place != RetypeButtonPlace.OFF && stripHidden) {

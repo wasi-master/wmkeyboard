@@ -53,6 +53,13 @@ class SuggestionHoldCallbacks(
      * [replacement] where [word] stands, the occurrence that starts at [start].
      */
     val onRecentPick: (start: Int, word: String, replacement: String) -> Unit = { _, _, _ -> },
+    /**
+     * A recent word itself was tapped on the stacked strip: select the
+     * occurrence of [word] that starts at [start], to type over it.
+     */
+    val onRecentSelect: (start: Int, word: String) -> Unit = { _, _ -> },
+    /** The stacked strip's back arrow: the caret back to where the writing left off. */
+    val onRecentReturn: () -> Unit = {},
     /** The Retype button on the strip or the recent words' row was pressed (#1189). */
     val onRetype: () -> Unit = {},
 )
