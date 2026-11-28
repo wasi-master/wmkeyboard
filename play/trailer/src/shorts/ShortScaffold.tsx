@@ -43,9 +43,8 @@ export const ShortScaffold: React.FC<
   const look = { ...resolveLook(lookProp ?? spec.look), accent, accentB };
   const starts = beatStarts(spec.beats);
   const body = beatsFrames(spec);
-  // A spec's own bedVolume (a track picked to sit low) also caps the outro lift.
+  // A spec's own bedVolume (a track picked to sit low) caps the bed level.
   const bedLevel = spec.bedVolume ?? bedVolume;
-  const outroBed = spec.bedVolume !== undefined ? Math.min(1, bedLevel * 1.5) : Math.max(bedLevel, 0.6);
 
   return (
     <LookContext.Provider value={look}>
@@ -55,11 +54,11 @@ export const ShortScaffold: React.FC<
             src={staticFile(spec.bed ?? "music.mp3")}
             loop
             volume={(f) =>
-              // ducked bed (VO) comes back up for the outro, after the voice is done
+              // fade out music from when ending WM Keyboard text comes up till the end
               interpolate(
                 f,
-                [0, 8, body - 6, body + 4, durationInFrames - 20, durationInFrames - 2],
-                [0, bedLevel, bedLevel, outroBed, outroBed, 0],
+                [0, 8, body + 4, body + 30, durationInFrames - 2],
+                [0, bedLevel, bedLevel, bedLevel * 0.15, 0],
                 clamp,
               )
             }

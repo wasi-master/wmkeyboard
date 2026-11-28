@@ -14,6 +14,7 @@ export const CLIP_CROP_TOP: Record<string, number> = {
   "shorts/clips/s04-calc.mp4": CHROME_TOP,
   "shorts/clips/s06-emoji.mp4": CHROME_TOP,
   "shorts/clips/s07-clipboard.mp4": CHROME_TOP,
+  "shorts/clips/s08-spacebar.mp4": CHROME_TOP,
   "shorts/clips/s09-themes.mp4": CHROME_TOP, // Themes tool over the chat canvas
   "shorts/clips/s11-langs.mp4": CHROME_TOP,
   "shorts/clips/s15-undo.mp4": CHROME_TOP,

@@ -8,3 +8,4 @@ export const SFX_MIX: Record<string, { vol: number; on: boolean }> = {
   impact: { vol: 1, on: false }, // logo landings
   riser: { vol: 1, on: true }, // outro build-up
 };
+

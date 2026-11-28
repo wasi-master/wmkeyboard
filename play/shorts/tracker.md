@@ -27,48 +27,48 @@ Style: V voiceover · T text + music · H meme hook.
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | ✓ | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | ✓ | | | | | | | | | |
 | 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
-| 16 | 11-04 | 49 | OTP code chip | Tools | V | draft | ✓ | ✓ | draft | | | | | | | |
+| 16 | 11-04 | 49 | OTP code chip | Tools | V | draft | ✓ | placeholder | draft | | | | | | | |
 | 17 | 11-05 | 18 | Hindi phonetic | Languages | H | draft | ✓ | | draft | | | | | | | |
 | 18 | 11-06 | 50 | Snippets / text expansion | Tools | T | draft | ✓ | | draft | | | | | | | |
 | 19 | 11-07 | 19 | Japanese flick | Languages | T | draft | ✓ | | draft | | | | | | | |
 | 20 | 11-08 | 51 | Translator | Tools | T | draft | ✓ | | draft | | | | | | | |
-| 21 | 11-09 | 30 | Theme editor colours | Looks | V | draft | ✓ | ✓ | draft | | | | | | | |
+| 21 | 11-09 | 30 | Theme editor colours | Looks | V | draft | ✓ | placeholder | draft | | | | | | | |
 | 22 | 11-10 | 52 | Dictionary | Tools | T | draft | ✓ | | draft | | | | | | | |
 | 23 | 11-11 | 8 | Gliding very long words | Typing | H | draft | ✓ | | draft | | | | | | | |
 | 24 | 11-12 | 20 | Korean Cheonjiin/Naratgeul | Languages | T | draft | ✓ | | draft | | | | | | | |
 | 25 | 11-13 | 32 | Rotating backgrounds | Looks | T | draft | ✓ | | draft | | | | | | | |
 | 26 | 11-14 | 53 | Scanner / OCR | Tools | H | draft | ✓ | | draft | | | | | | | |
-| 27 | 11-15 | 10 | Personal learning + word card | Typing | V | draft | ✓ | ✓ | draft | | | | | | | |
+| 27 | 11-15 | 10 | Personal learning + word card | Typing | V | draft | ✓ | placeholder | draft | | | | | | | |
 | 28 | 11-16 | 21 | Chinese Pinyin | Languages | T | draft | ✓ | | draft | | | | | | | |
 | 29 | 11-17 | 33 | Key shapes | Looks | T | draft | ✓ | | draft | | | | | | | |
 | 30 | 11-18 | 40 | Emoji suggested while typing | Emoji | T | draft | ✓ | | draft | | | | | | | |
 | 31 | 11-19 | 54 | Camera in the keyboard | Tools | H |  | | | | | | | | | | |
 | 32 | 11-20 | 12 | Backspace swipe with preview | Typing | H |  | | | | | | | | | | |
-| 33 | 11-21 | 22 | Urdu/Arabic phonetic | Languages | H |  | | | | | | | | | | |
+| 33 | 11-21 | 22 | Urdu/Arabic phonetic | Languages | H | draft | | | | | | | | | | |
 | 34 | 11-22 | 34 | Decorations and particles | Looks | H |  | | | | | | | | | | |
 | 35 | 11-23 | 41 | Animated emoji | Emoji | T |  | | | | | | | | | | |
 | 36 | 11-24 | 55 | Trackpad / selection mode | Tools | T |  | | | | | | | | | | |
 | 37 | 11-25 | 3 | Incognito mode | Privacy | T |  | | | | | | | | | | |
 | 38 | 11-26 | 13 | Multi-finger swipes | Typing | T |  | | | | | | | | | | |
-| 39 | 11-27 | 23 | Two languages without switching | Languages | V |  | | | | | | | | | | |
+| 39 | 11-27 | 23 | Two languages without switching | Languages | V | draft | | | | | | | | | | |
 | 40 | 11-28 | 35 | Fonts | Looks | T |  | | | | | | | | | | |
 | 41 | 11-29 | 42 | Emoji sent as a picture | Emoji | H |  | | | | | | | | | | |
 | 42 | 11-30 | 56 | Clock and timer | Tools | H |  | | | | | | | | | | |
 | 43 | 12-01 | 4 | App lock | Privacy | H |  | | | | | | | | | | |
 | 44 | 12-02 | 14 | Per-app keyboard modes | Typing | V |  | | | | | | | | | | |
-| 45 | 12-03 | 25 | Fancy text | Languages | H |  | | | | | | | | | | |
+| 45 | 12-03 | 25 | Fancy text | Languages | H | draft | | | | | | | | | | |
 | 46 | 12-04 | 36 | Addons and Lua plugins | Looks | V |  | | | | | | | | | | |
 | 47 | 12-05 | 43 | Kaomoji | Emoji | H |  | | | | | | | | | | |
 | 48 | 12-06 | 57 | Notes tool | Tools | T |  | | | | | | | | | | |
 | 49 | 12-07 | 5 | Storage manager | Privacy | T |  | | | | | | | | | | |
 | 50 | 12-08 | 15 | Contact-aware completion | Typing | T |  | | | | | | | | | | |
-| 51 | 12-09 | 27 | Layout editor | Languages | V |  | | | | | | | | | | |
+| 51 | 12-09 | 27 | Layout editor | Languages | V | draft | | | | | | | | | | |
 | 52 | 12-10 | 37 | Automatic light/dark | Looks | H |  | | | | | | | | | | |
 | 53 | 12-11 | 44 | GIF search | Emoji | T |  | | | | | | | | | | |
 | 54 | 12-12 | 59 | Handwriting | Tools | H |  | | | | | | | | | | |
 | 55 | 12-13 | 6 | Encrypted automatic backup | Privacy | V |  | | | | | | | | | | |
-| 56 | 12-14 | 16 | Typing speed test | Typing | H |  | | | | | | | | | | |
-| 57 | 12-15 | 28 | Importing layouts | Languages | V |  | | | | | | | | | | |
+| 56 | 12-14 | 16 | Typing speed test | Typing | H | draft | | | | | | | | | | |
+| 57 | 12-15 | 28 | Importing layouts | Languages | V | draft | | | | | | | | | | |
 | 58 | 12-16 | 38 | Sound packs | Looks | H |  | | | | | | | | | | |
 | 59 | 12-17 | 46 | Sticker editor cutout | Emoji | H |  | | | | | | | | | | |
 | 60 | 12-18 | 60 | AI writing actions | Tools | V |  | | | | | | | | | | |
@@ -169,6 +169,7 @@ Style: V voiceover · T text + music · H meme hook.
   STILL TO DO on the phone: revert the app/build.gradle.kts harness edit and reinstall a normal
   build; delete /sdcard/Pictures/WMShorts; optionally delete the two test "My theme" themes and the
   "My 🐱" sticker pack; the user's own Record_*.mp4 files are theirs to keep or delete.
+
 - 2026-10-18: batch 2 scripts drafted (days 16-30, scripts.md) while the user was away; not yet approved.
   Session F/G/H filmed over adb: s30-emoji, s20-translate, s22-dictionary, s18-snippets, s27-wordcard,
   s17-hindi, s28-pinyin, s24-korean, s21-colours, s29-shapes, s25-rotate (.mkv in footage/, raw with
@@ -208,6 +209,12 @@ Style: V voiceover · T text + music · H meme hook.
 - 2026-10-19: batch 2 cut and rendered. Clips in ../trailer/public/shorts/clips (s16-s30), specs Day16-Day30 in
   src/shorts/shorts.ts, renders out/shorts/DayNN-full.mp4 (9.6-15 s), beat sheets DayNN-beats.png. VO for 16/21/27 is
   the `say` placeholder. Known: day 16 chip shows "Shell" as source (adb-posted), day 26 is short (9.6 s, 5 s of camera).
-- 2026-10-19: real VO for days 16, 21, 27 in the locked Chatterbox voice (am_puck clone, exaggeration 0.6,
-  cfg 0.4, seed 7), -16 LUFS, word timings from whisper (no interpolated words). Day 16 last beat 3 -> 4 s so the
-  13.3 s take ends before the end card. Rendered: Day16 16.0 s, Day21 13.1 s, Day27 13.5 s.
+- 2026-11-27: the rest scheduled. YouTube (WM Keyboard channel): days 16-30 every second day, 28 Nov to 26 Dec,
+  18:00 GMT+6, vertical covers from out/shorts/upload/thumbs/DayNN.jpg. TikTok had stopped after day 5; days 6-30 are
+  now scheduled at 19:00: daily 28 Nov to 18 Dec (16, 6, 17, 7 ... 25, 15, 26), then 27-30 every second day to 26 Dec,
+  with the same covers. schedule.csv has the rows and dates. Day 16: the adb "Shell" source label on the code chip is
+  masked in s16-otp.mp4 (drawbox, 2.88-19.12 s) and the video and cover re-rendered.
+  Not done: Instagram and Telegram (logged out in Chrome), X (Cloudflare check), Reddit (blocked for the browser tool).
+  TikTok Studio notes: wait for "Uploaded" before opening Edit cover, because opening it mid-upload kills the upload;
+  a "Continue to post?" prompt while checks run means Cancel, wait, Schedule again; the HEVC copies of days 7 and 10
+  failed processing, so days 10 and 13 went up as H.264 (out/shorts/upload/h264/).
