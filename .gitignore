@@ -79,3 +79,12 @@ vendor/bundle/
 
 # Local wiki conversion output
 wiki-dist/
+/play/praise
+/play/shorts
+/play
+
+# Snapshot written by tools/metrics/fetch_stats.py
+tools/metrics/stats.json
+
+# Cloudflare wrangler cache (docs deploy)
+.wrangler/
