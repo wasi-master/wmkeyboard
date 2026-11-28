@@ -141,7 +141,11 @@ needs:
 no files and no console to read. A module still has a `__file__`, so
 packages can work out paths when they load: `/plugin/` and the module's
 path in your plugin, such as `/plugin/helpers.py`, or `/lib/python3.13/`
-for the standard library. A package's `__path__` is its folder. Bytes take
+for the standard library. A package's `__path__` is its folder. The one
+thing `open` reads is the data files that came with a package `wmpy pip`
+installed: `open(os.path.join(os.path.dirname(__file__), "words.txt"))` in
+that package works, for reading (see
+[package data](/plugins/guides/python-packages/#data-files)). Bytes take
 `%` formatting as well as text does: `b"%s=%d" % (key, n)` gives bytes.
 Strings cannot hold a lone surrogate such as `"\ud800"`, which stays as its
 six characters of escape, so `surrogateescape` and `surrogatepass` work as
@@ -181,7 +185,9 @@ supplies modules nothing else has, as with CPython's importlib.
 itself: `getcwd()` is `"/"` and `getuid()` is 0. Its file functions, such as
 `listdir`, `stat` and `rename`, are there for code that names them and raise
 `PermissionError` when called: files go through [`wm.storage`](#storage) and
-[`wm.files`](#files). `walk` finds nothing.
+[`wm.files`](#files). `stat`, `listdir`, `scandir`, `walk` and `os.path`'s
+`exists`, `isfile` and `isdir` do find a package's data files, under
+`/plugin/<package>/`.
 
 Some modules stand in for what plugins go without, so packages that import
 them still load:
@@ -193,7 +199,8 @@ them still load:
   event or a condition. A `Timer` never fires.
 - `pathlib` paths join, split and match as on Linux. Asking about the disk
   answers as for a path that is not there: `exists()` is false and `iterdir()`
-  finds nothing. Reading or writing raises `PermissionError`.
+  finds nothing. Reading or writing raises `PermissionError`. A package's
+  data files are there to list, glob and read.
 - `subprocess` has its constants, exceptions and `CompletedProcess`. Starting
   a program raises `PermissionError`.
 - `shutil` has `get_terminal_size` (80 by 24 unless `COLUMNS` and `LINES` in
@@ -293,8 +300,10 @@ signatures (the builtins' too, where CPython has one, such as `len` and
 `importlib.machinery`'s path finders find nothing and its file loaders
 can't read (`EXTENSION_SUFFIXES` is empty), and `importlib.metadata` finds
 no installed packages. `pkgutil.iter_modules` and `walk_packages` list
-your plugin's modules and the interpreter's, and `pkgutil.get_data` raises
-`FileNotFoundError`. A function has no bytecode, so `dis` finds no
+your plugin's modules and the interpreter's. `pkgutil.get_data` and
+`importlib.resources` (`files()`, which gives a `pathlib.Path`, `read_text`,
+`open_binary`, `as_file`) read a package's data files, and raise
+`FileNotFoundError` for a file it did not come with. A function has no bytecode, so `dis` finds no
 instructions, though `opcode` has CPython's tables; `marshal` reads and
 writes CPython's format for everything but code objects, a `zipimporter`
 refuses every path, and `site` lists no site-packages. A `weakref` keeps its object

@@ -152,9 +152,10 @@ def find_loader(fullname):
 
 
 def get_data(package, resource):
-    """The bytes of data file [resource] beside package's modules. Those
-    files can't be read in a plugin, so this raises FileNotFoundError; it
-    gives None, as CPython's does, when the package isn't there."""
+    """The bytes of data file [resource] beside package's modules: the
+    data files that came with it (see _plugin_data). FileNotFoundError
+    when it has no such file, and None, as CPython's does, when the
+    package isn't there."""
     import importlib.util
 
     spec = importlib.util.find_spec(package)
@@ -165,7 +166,13 @@ def get_data(package, resource):
         return None
     parts = resource.split("/")
     parts.insert(0, os.path.dirname(mod.__file__))
-    raise FileNotFoundError(f"a plugin can't read data files beside its modules: {os.path.join(*parts)!r}")
+    path = os.path.join(*parts)
+    import _plugin_data
+
+    data = _plugin_data.read(path)
+    if data is None:
+        raise FileNotFoundError(2, "No such file or directory", path)
+    return data
 
 
 def read_code(stream):

@@ -4,7 +4,9 @@ The pure paths work as CPython's do on Linux: joining with /, the name,
 suffixes, parents, relative_to, matching. Plugins have no file system, so a
 concrete Path answers its questions about the disk as for a path that is not
 there (exists() is False, iterdir() and glob() find nothing), and reading,
-writing or creating raises PermissionError.
+writing or creating raises PermissionError. The exception is the data files
+that came with a plugin's packages, under /plugin/<package>/ where a module's
+__file__ leads: those exist, list and read (see _plugin_data).
 
 PureWindowsPath and WindowsPath read and print paths the POSIX way.
 """
@@ -293,13 +295,13 @@ class Path(PurePath):
         raise OSError(_NO_FILES)
 
     def exists(self, *, follow_symlinks=True):
-        return False
+        return os.path.exists(str(self))
 
     def is_file(self, *, follow_symlinks=True):
-        return False
+        return os.path.isfile(str(self))
 
     def is_dir(self, *, follow_symlinks=True):
-        return False
+        return os.path.isdir(str(self))
 
     def is_symlink(self):
         return False
@@ -326,19 +328,42 @@ class Path(PurePath):
         raise FileNotFoundError(2, "No such file or directory", str(self))
 
     def iterdir(self):
-        return iter(())
+        import _plugin_data
+
+        names = _plugin_data.listdir(str(self))
+        if names is None:
+            return iter(())
+        return iter([self / n for n in names])
+
+    def _tree(self):
+        """Every path under this data folder, folders first."""
+        out = []
+        for p in self.iterdir():
+            out.append(p)
+            if p.is_dir():
+                out.extend(p._tree())
+        return out
 
     def glob(self, pattern, *, case_sensitive=None, recurse_symlinks=False):
-        return iter(())
+        pattern = str(pattern)
+        if "**" in pattern:
+            return self.rglob(pattern.replace("**/", "", 1) or "*")
+        depth = pattern.count("/") + 1
+        base = len(self.parts)
+        return iter([p for p in self._tree() if len(p.parts) - base == depth and fnmatch.fnmatchcase("/".join(p.parts[base:]), pattern)])
 
     def rglob(self, pattern, *, case_sensitive=None, recurse_symlinks=False):
-        return iter(())
+        pattern = str(pattern)
+        return iter([p for p in self._tree() if fnmatch.fnmatchcase(p.name, pattern)])
 
     def walk(self, top_down=True, on_error=None, follow_symlinks=False):
-        return iter(())
+        out = []
+        for top, dirs, files in os.walk(str(self), topdown=top_down):
+            out.append((type(self)(top), dirs, files))
+        return iter(out)
 
     def stat(self, *, follow_symlinks=True):
-        raise FileNotFoundError(2, "No such file or directory", str(self))
+        return os.stat(str(self))
 
     def lstat(self):
         return self.stat()
@@ -350,13 +375,15 @@ class Path(PurePath):
         raise PermissionError(_NO_FILES)
 
     def open(self, mode="r", buffering=-1, encoding=None, errors=None, newline=None):
-        raise PermissionError(_NO_FILES)
+        return open(str(self), mode, buffering, encoding, errors, newline)
 
     def read_text(self, encoding=None, errors=None, newline=None):
-        raise PermissionError(_NO_FILES)
+        with self.open("r", encoding=encoding, errors=errors, newline=newline) as f:
+            return f.read()
 
     def read_bytes(self):
-        raise PermissionError(_NO_FILES)
+        with self.open("rb") as f:
+            return f.read()
 
     def write_text(self, data, encoding=None, errors=None, newline=None):
         raise PermissionError(_NO_FILES)

@@ -664,4 +664,7 @@ class TextIOWrapper(TextIOBase):
 
 
 def open(*args, **kwargs):
-    raise OSError("plugins cannot open files; use wm.storage or wm.files")
+    """The builtin open(): only a package's data files open, for reading."""
+    import builtins
+
+    return builtins.open(*args, **kwargs)

@@ -500,8 +500,10 @@ separate mark. A Windows line end, `"\r\n"`, is one character too, but
 `splitlines()` splits there as Python does.
 
 **Dicts answer attribute reads.** `d.name` is `d["name"]` when the key is
-there, and otherwise a dict method such as `d.get`. That is why `e.type` works
-on an event. Writing still takes brackets: `d["name"] = value`.
+there. That is why `e.type` works on an event. A dict's own methods come
+first, as in Python: `d.items` and `d.get` are the methods even when the dict
+has an `"items"` or `"get"` key, so read those keys with brackets. Writing
+still takes brackets: `d["name"] = value`.
 
 **Modules:** `import` reaches these six and nothing else.
 

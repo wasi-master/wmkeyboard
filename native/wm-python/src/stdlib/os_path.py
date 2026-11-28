@@ -1,4 +1,5 @@
-"""os.path, for POSIX paths: text only, no file is looked at."""
+"""os.path, for POSIX paths: text only, no file is looked at, but for the
+data files that came with a plugin's packages (see _plugin_data)."""
 
 sep = "/"
 curdir = "."
@@ -132,6 +133,24 @@ def normcase(s):
 
 
 def exists(path):
+    import _plugin_data
+
+    return _plugin_data.is_file(path) or _plugin_data.is_dir(path)
+
+
+def isfile(path):
+    import _plugin_data
+
+    return _plugin_data.is_file(path)
+
+
+def isdir(s):
+    import _plugin_data
+
+    return _plugin_data.is_dir(s)
+
+
+def islink(path):
     return False
 
 
@@ -145,10 +164,17 @@ def samefile(f1, f2):
 
 
 def getsize(filename):
-    raise FileNotFoundError(2, "No such file or directory", filename)
+    import _plugin_data
+
+    n = _plugin_data.size(filename)
+    if n is None:
+        raise FileNotFoundError(2, "No such file or directory", filename)
+    return n
 
 
 def getmtime(filename):
+    if exists(filename):
+        return 0.0
     raise FileNotFoundError(2, "No such file or directory", filename)
 
 
@@ -172,7 +198,4 @@ def splitroot(p):
     return "", "/", p.lstrip("/")
 
 
-isfile = exists
-isdir = exists
-islink = exists
 lexists = exists

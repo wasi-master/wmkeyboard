@@ -8,6 +8,10 @@ MutableMapping, a tuple a Sequence, a generator an Iterator.
 
 from abc import ABCMeta, abstractmethod
 
+# Iterable[int], Mapping[str, Any]: subscripting an ABC gives a GenericAlias,
+# as in CPython, so `class Registry(Mapping[K, V])` subclasses Mapping.
+_GenericAlias = type(list[int])
+
 _ITER = {"__iter__"}
 _SIZED_ITER = {"__iter__", "__len__", "__contains__"}
 _SEQ = _SIZED_ITER | {"__getitem__", "__reversed__", "index", "count"}
@@ -110,6 +114,8 @@ class Hashable(metaclass=ABCMeta):
 
 
 class Iterable(metaclass=ABCMeta):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     @abstractmethod
     def __iter__(self):
         while False:
@@ -173,6 +179,8 @@ class Generator(Iterator):
 
 
 class Awaitable(metaclass=ABCMeta):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     @abstractmethod
     def __await__(self):
         yield
@@ -204,6 +212,8 @@ class Coroutine(Awaitable):
 
 
 class AsyncIterable(metaclass=ABCMeta):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     @abstractmethod
     def __aiter__(self):
         return AsyncIterator()
@@ -265,6 +275,8 @@ class Sized(metaclass=ABCMeta):
 
 
 class Container(metaclass=ABCMeta):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     @abstractmethod
     def __contains__(self, x):
         return False
@@ -285,6 +297,8 @@ class Collection(Sized, Iterable, Container):
 
 
 class Callable(metaclass=ABCMeta):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     @abstractmethod
     def __call__(self, *args, **kwds):
         return False
@@ -569,6 +583,8 @@ class Buffer(metaclass=ABCMeta):
 
 
 class MappingView(Sized):
+    __class_getitem__ = classmethod(_GenericAlias)
+
     def __init__(self, mapping):
         self._mapping = mapping
 

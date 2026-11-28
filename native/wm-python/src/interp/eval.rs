@@ -2693,11 +2693,13 @@ impl Interp {
                 _ => Err(self.error(format!("Match has no attribute '{name}'"), "AttributeError")),
             },
             Value::Dict(d) => {
-                if let Some(v) = d.borrow().get(&StrKey(name)) {
-                    return Ok(v.clone());
-                }
+                // A dict's own methods first, as in CPython: a key named
+                // "items" or "get" (a JSON Schema's, say) must not hide them.
                 if super::methods::has_builtin_method(obj, name) {
                     return Ok(self.method_value(obj, name));
+                }
+                if let Some(v) = d.borrow().get(&StrKey(name)) {
+                    return Ok(v.clone());
                 }
                 Err(self.error(format!("'dict' object has no attribute '{name}'"), "AttributeError"))
             }

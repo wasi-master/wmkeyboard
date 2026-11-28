@@ -1207,7 +1207,16 @@ def input(prompt="", /):
 
 def open(file, mode="r", buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None):
     """Plugins have no file system: the keyboard's wm.files and
-    wm.storage read and keep what a plugin needs."""
+    wm.storage read and keep what a plugin needs. What opens is the data
+    files that came with the plugin's packages, for reading, at the paths
+    their modules' __file__ leads to (/plugin/<package>/...)."""
+    import _plugin_data
+
+    f = _plugin_data.open_data(file, mode, encoding, errors, newline)
+    if f is not None:
+        return f
+    if _plugin_data.split(file) is not None:
+        raise FileNotFoundError(2, "No such file or directory", file)
     raise PermissionError(13, "plugins have no file system", file)
 
 

@@ -164,7 +164,12 @@ class FileLoader:
         return self.path
 
     def get_data(self, path):
-        raise PermissionError(f"a plugin can't read {path!r}: modules come from the plugin, not from files")
+        import _plugin_data
+
+        data = _plugin_data.read(path)
+        if data is None:
+            raise PermissionError(f"a plugin can't read {path!r}: modules come from the plugin, not from files")
+        return data
 
     def get_resource_reader(self, module):
         return None

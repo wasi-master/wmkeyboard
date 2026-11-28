@@ -2,7 +2,9 @@
 splitting (os.path), the separators, and an empty environment. Plugins
 read and write files through wm.storage and wm.files instead: the file
 functions are here so code that names them loads, and raise
-PermissionError when called."""
+PermissionError when called. The data files that came with a plugin's
+packages are the exception: stat, listdir, scandir and walk find them
+under /plugin/<package>/ (see _plugin_data)."""
 
 import abc as _abc
 
@@ -274,10 +276,10 @@ def _refusing(name):
 
 
 for _name in (
-    "access", "chdir", "chmod", "chown", "lchown", "close", "closerange", "dup", "dup2", "fchmod", "fchown",
-    "fdatasync", "fstat", "fsync", "ftruncate", "isatty", "link", "listdir", "lseek", "lstat", "mkdir", "mkfifo",
+    "chdir", "chmod", "chown", "lchown", "close", "closerange", "dup", "dup2", "fchmod", "fchown",
+    "fdatasync", "fstat", "fsync", "ftruncate", "isatty", "link", "lseek", "mkdir", "mkfifo",
     "makedirs", "open", "pipe", "read", "readlink", "remove", "removedirs", "rename", "renames", "replace", "rmdir",
-    "scandir", "stat", "statvfs", "symlink", "truncate", "unlink", "utime", "write", "sendfile", "fdopen",
+    "statvfs", "symlink", "truncate", "unlink", "utime", "write", "sendfile", "fdopen",
     "chroot", "mknod", "pread", "pwrite", "readv", "writev", "kill", "killpg", "system", "popen",
     "waitpid", "wait", "nice", "get_inheritable", "set_inheritable", "set_blocking",
     "getxattr", "setxattr", "listxattr", "removexattr",
@@ -286,14 +288,123 @@ for _name in (
 del _name
 
 
+# The data files that came with a plugin's packages (see _plugin_data) are
+# the one thing here with a path: they stat, list and walk, read-only.
+
+
+def _missing_or_refused(path):
+    import _plugin_data
+
+    if _plugin_data.split(path) is not None:
+        return FileNotFoundError(2, "No such file or directory", path)
+    return PermissionError(13, _NO_FILES)
+
+
+def stat(path, *, dir_fd=None, follow_symlinks=True):
+    import _plugin_data
+
+    n = _plugin_data.size(path)
+    if n is not None:
+        return stat_result((0o100444, 0, 0, 1, 0, 0, n, 0, 0, 0))
+    if _plugin_data.is_dir(path):
+        return stat_result((0o40555, 0, 0, 2, 0, 0, 0, 0, 0, 0))
+    raise _missing_or_refused(path)
+
+
+def lstat(path, *, dir_fd=None):
+    return stat(path)
+
+
+def access(path, mode, *, dir_fd=None, effective_ids=False, follow_symlinks=True):
+    """True for a package's data file or folder that is only read (W_OK is never true)."""
+    import _plugin_data
+
+    there = _plugin_data.is_file(path) or _plugin_data.is_dir(path)
+    return there and not (mode & W_OK)
+
+
+def listdir(path="."):
+    import _plugin_data
+
+    names = _plugin_data.listdir(path)
+    if names is None:
+        raise _missing_or_refused(path)
+    return names
+
+
+class _DataEntry:
+    """What scandir yields for a package's data file or folder."""
+
+    def __init__(self, folder, name):
+        self.name = name
+        self.path = path.join(fspath(folder), name)
+
+    def __fspath__(self):
+        return self.path
+
+    def __repr__(self):
+        return f"<DirEntry {self.name!r}>"
+
+    def is_dir(self, *, follow_symlinks=True):
+        return path.isdir(self.path)
+
+    def is_file(self, *, follow_symlinks=True):
+        return path.isfile(self.path)
+
+    def is_symlink(self):
+        return False
+
+    def is_junction(self):
+        return False
+
+    def stat(self, *, follow_symlinks=True):
+        return stat(self.path)
+
+    def inode(self):
+        return 0
+
+
+class _Scandir:
+    def __init__(self, entries):
+        self._it = iter(entries)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return next(self._it)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def close(self):
+        pass
+
+
+def scandir(path="."):
+    return _Scandir([_DataEntry(path, n) for n in listdir(path)])
+
+
 def walk(top, topdown=True, onerror=None, followlinks=False):
-    """Walks nothing: listing a folder raises, and onerror hears of it."""
+    """Walks a package's data folders; anywhere else listing raises, and onerror hears of it."""
+    top = fspath(top)
     try:
-        listdir(top)
+        names = listdir(top)
     except OSError as e:
         if onerror is not None:
             onerror(e)
-    return iter(())
+        return
+    dirs = [n for n in names if path.isdir(path.join(top, n))]
+    files = [n for n in names if n not in dirs]
+    if topdown:
+        yield top, dirs, files
+    for d in dirs:
+        yield from walk(path.join(top, d), topdown, onerror, followlinks)
+    if not topdown:
+        yield top, dirs, files
 
 
 def fwalk(top=".", topdown=True, onerror=None, *, follow_symlinks=False, dir_fd=None):

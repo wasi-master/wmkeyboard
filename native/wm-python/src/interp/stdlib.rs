@@ -234,6 +234,7 @@ pub(crate) const PYTHON_MODULES: &[(&str, &[u8], bool)] = &[
     ("_interpreters", packed!("_interpreters.py"), false),
     ("_interpqueues", packed!("_interpqueues.py"), false),
     ("wave", packed!("wave.py"), false),
+    ("_plugin_data", packed!("_plugin_data.py"), false),
     ("asyncio.events", packed!("asyncio/events.py"), false),
     ("asyncio.futures", packed!("asyncio/futures.py"), false),
     ("asyncio.coroutines", packed!("asyncio/coroutines.py"), false),
