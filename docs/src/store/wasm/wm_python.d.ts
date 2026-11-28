@@ -118,6 +118,14 @@ export function pip_patch(project: string, files_json: string): string;
 export function pip_shake(files_json: string, entry: string, roots_json: string, symbols: boolean): string;
 
 /**
+ * The keyboard's pure-Python stand-in for [project] (a PEP 503 name) at
+ * release [version], which `wmpy pip install` puts in when that release has
+ * no pure-Python wheel. Answers `{"files": {path: source}, "license": text,
+ * "roots": [str], "source": url, "note": str}`, or `{}` when it has none.
+ */
+export function pip_stand_in(project: string, name: string, version: string): string;
+
+/**
  * The provider lists a plugin can answer, with a sample request each.
  */
 export function providerTools(): string;
@@ -161,6 +169,7 @@ export interface InitOutput {
     readonly pip_analyse: (a: number, b: number, c: number, d: number) => [number, number];
     readonly pip_patch: (a: number, b: number, c: number, d: number) => [number, number];
     readonly pip_shake: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
+    readonly pip_stand_in: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
     readonly providerTools: () => [number, number];
     readonly pysession_cancel: (a: number) => void;
     readonly pysession_event: (a: number, b: number, c: number) => [number, number];

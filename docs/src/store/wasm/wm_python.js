@@ -595,6 +595,43 @@ export function pip_shake(files_json, entry, roots_json, symbols) {
 }
 
 /**
+ * The keyboard's pure-Python stand-in for [project] (a PEP 503 name) at
+ * release [version], which `wmpy pip install` puts in when that release has
+ * no pure-Python wheel. Answers `{"files": {path: source}, "license": text,
+ * "roots": [str], "source": url, "note": str}`, or `{}` when it has none.
+ * @param {string} project
+ * @param {string} name
+ * @param {string} version
+ * @returns {string}
+ */
+export function pip_stand_in(project, name, version) {
+    let deferred4_0;
+    let deferred4_1;
+    try {
+        let ptr0, len0, ptr1, len1, ptr2, len2;
+        try {
+            ptr0 = passStringToWasm0(project, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+            ptr2 = passStringToWasm0(version, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len2 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr2) { wasm.__wbindgen_free(ptr2, len2 * 1, 1); }
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.pip_stand_in(ptr0, len0, ptr1, len1, ptr2, len2);
+        deferred4_0 = ret[0];
+        deferred4_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+    }
+}
+
+/**
  * The provider lists a plugin can answer, with a sample request each.
  * @returns {string}
  */
