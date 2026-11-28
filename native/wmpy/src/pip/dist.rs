@@ -50,6 +50,9 @@ pub struct Dist {
     pub notes: Vec<String>,
     /// Why it cannot be used at all, before any analysis.
     pub refused: Option<String>,
+    /// It is the keyboard's pure-Python stand-in for a compiled package
+    /// ([wm_python_pip::replacements]), not the project's own files.
+    pub stand_in: bool,
 }
 
 impl Dist {
@@ -263,6 +266,33 @@ fn finish(dist: &mut Dist, skipped: usize, skipped_py: Vec<String>) {
     }
     if dist.licenses.is_empty() {
         dist.notes.push("no licence file came with it".into());
+    }
+}
+
+/// The keyboard's pure-Python stand-in [r] for a compiled package, as
+/// release [version] of [name] (the release the resolver chose).
+pub fn from_replacement(r: &wm_python_pip::replacements::Replacement, name: &str, version: &str) -> Dist {
+    let modules = r.sources();
+    let mut all = Vec::new();
+    for (path, text) in &modules {
+        all.extend_from_slice(path.as_bytes());
+        all.push(0);
+        all.extend_from_slice(text.as_bytes());
+        all.push(0);
+    }
+    Dist {
+        key: r.project.to_string(),
+        name: name.to_string(),
+        version: version.to_string(),
+        source: r.source(),
+        sha256: super::index::sha256_hex(&all),
+        modules,
+        licenses: vec![("LICENSE".into(), wm_python_pip::replacements::LICENSE.as_bytes().to_vec())],
+        license: Some("MIT".into()),
+        roots: r.roots(),
+        notes: vec![r.note(name, version)],
+        stand_in: true,
+        ..Default::default()
     }
 }
 
@@ -593,5 +623,22 @@ mod tests {
         assert_eq!(r.len(), 3);
         assert!(!r[1].applies(&[]).unwrap() && r[1].applies(&["tz".into()]).unwrap());
         assert!(!r[2].applies(&[]).unwrap());
+    }
+
+    #[test]
+    fn a_stand_in_comes_as_the_release_asked_for_and_passes_the_check() {
+        let r = wm_python_pip::replacements::for_project("orjson").expect("orjson stand-in");
+        let d = from_replacement(r, "orjson", "3.99.0");
+        assert_eq!((d.key.as_str(), d.name.as_str(), d.version.as_str(), d.license.as_deref()), ("orjson", "orjson", "3.99.0", Some("MIT")));
+        assert!(d.stand_in && d.refused.is_none() && d.requires.is_empty());
+        assert_eq!(d.roots, vec!["orjson".to_string()]);
+        assert!(d.modules.contains_key("orjson/__init__.py"));
+        assert_eq!(d.licenses[0].0, "LICENSE");
+        assert!(d.notes[0].contains("stand-in") && d.notes[0].contains("written against orjson 3.13.0"), "{:?}", d.notes);
+        // The same files hash the same, so wmpy.lock stays as it was on a reinstall.
+        assert_eq!(d.sha256, from_replacement(r, "orjson", "3.99.0").sha256);
+        assert_eq!(d.sha256.len(), 64);
+        let report = super::super::install::analyse(&d, &[]);
+        assert_ne!(report.verdict, wm_python_pip::Verdict::Incompatible, "{:?}", report.problems().collect::<Vec<_>>());
     }
 }

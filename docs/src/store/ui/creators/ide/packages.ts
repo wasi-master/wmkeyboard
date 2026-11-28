@@ -13,7 +13,7 @@ export interface PreparedPackage {
 	contents: WheelContents;
 	/** Null when this build has no compatibility check. */
 	analysis: PipAnalysis | null;
-	/** What the keyboard's patch for it changed ([Py.pipPatch]), one line each. */
+	/** What the keyboard changed: its stand-in in place of compiled code ([standInContents]), or its patch ([Py.pipPatch]); one line each. */
 	patched?: string[];
 }
 
@@ -32,6 +32,20 @@ export function patchPackage(key: string, contents: WheelContents): { contents: 
 		if (sources[path] !== text) modules[path] = encoder.encode(text);
 	}
 	return { contents: { ...contents, modules }, notes: result.notes };
+}
+
+/**
+ * What the keyboard's pure-Python stand-in for [planned] puts in a plugin,
+ * as a wheel's contents would, and the note saying so; null when this build
+ * has no stand-in for it.
+ */
+export function standInContents(planned: PlannedPackage): { contents: WheelContents; note: string } | null {
+	const s = Py.pipStandIn(planned.key, planned.name, planned.version);
+	if (!s) return null;
+	const encoder = new TextEncoder();
+	const modules: Record<string, Uint8Array> = {};
+	for (const [path, text] of Object.entries(s.files)) modules[path] = encoder.encode(text);
+	return { contents: { modules, licenses: { LICENSE: encoder.encode(s.license) }, roots: [...s.roots].sort(), requiresDist: [], license: 'MIT' }, note: s.note };
 }
 
 export type Changes = Record<string, FileData | null>;

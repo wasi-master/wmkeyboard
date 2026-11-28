@@ -891,7 +891,7 @@ fn run_check(args: CheckArgs) -> u8 {
         }
         packages.push(json!({
             "name": d.key, "version": d.version, "verdict": verdict.name(), "problems": problems,
-            "roots": d.roots, "license": d.license, "notes": d.notes, "bytes": d.bytes(),
+            "roots": d.roots, "license": d.license, "notes": d.notes, "bytes": d.bytes(), "standIn": d.stand_in,
         }));
     }
     if args.json {

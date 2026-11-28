@@ -100,6 +100,49 @@ impl Guard {
     }
 }
 
+/// What `with suppress(ImportError):` (or `contextlib.suppress(...)`) among
+/// a `with` statement's context expressions [exprs] catches, if it has one.
+pub(crate) fn suppress_guard(exprs: &[Expr]) -> Option<Guard> {
+    let mut found = None;
+    for e in exprs {
+        let ExprKind::Call { func, args, .. } = &e.kind else { continue };
+        let named = match &func.kind {
+            ExprKind::Name(n) => n == "suppress",
+            ExprKind::Attribute { attr, .. } => attr == "suppress",
+            _ => false,
+        };
+        if !named {
+            continue;
+        }
+        let g: &mut Guard = found.get_or_insert_with(Guard::default);
+        for a in args {
+            let mut names = Vec::new();
+            collect_names(a, &mut names);
+            for n in names {
+                match n.as_str() {
+                    "Exception" | "BaseException" => *g = Guard { import_error: true, attribute_error: true, name_error: true },
+                    "ImportError" | "ModuleNotFoundError" => g.import_error = true,
+                    "AttributeError" => g.attribute_error = true,
+                    "NameError" => g.name_error = true,
+                    _ => {}
+                }
+            }
+        }
+    }
+    found
+}
+
+impl Guard {
+    /// Both: what either catches.
+    pub(crate) fn or(self, other: Guard) -> Guard {
+        Guard {
+            import_error: self.import_error || other.import_error,
+            attribute_error: self.attribute_error || other.attribute_error,
+            name_error: self.name_error || other.name_error,
+        }
+    }
+}
+
 fn collect_names(e: &Expr, out: &mut Vec<String>) {
     match &e.kind {
         ExprKind::Name(n) => out.push(n.clone()),
@@ -272,9 +315,14 @@ fn collect_imports(
                 collect_imports(s, top_index, false, true, guard, flags, current, package, out);
             }
         }
-        StmtKind::Unsupported { what, body, .. } => {
+        StmtKind::Unsupported { what, exprs, body, .. } => {
             // A class body runs when the class is made; a nameless `def` is a function.
             let in_fn = in_function || *what == "def";
+            // `with suppress(ImportError):` guards what is in it as `try` does.
+            let guard = match suppress_guard(exprs) {
+                Some(g) if what.contains("with") => guard.or(g),
+                _ => guard,
+            };
             for s in body {
                 collect_imports(s, top_index, false, in_fn, guard, flags, current, package, out);
             }

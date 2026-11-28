@@ -441,3 +441,36 @@ fn the_dead_arm_of_a_conditional_expression_is_not_checked() {
     let r = run(&[("m.py", "import builtins\nimport sys\n\n_UNSET = object() if sys.version_info < (3, 99) else builtins.no_such_thing(\"x\")\n")], &[]);
     assert!(r.problems().all(|p| p.code != "missing-attribute"), "{:?}", codes(&r));
 }
+
+#[test]
+fn names_a_module_makes_through_globals_it_hands_on_are_unknowable() {
+    // protobuf's generated _pb2 modules.
+    let r = run(
+        &[
+            ("pb/__init__.py", ""),
+            ("pb/any_pb2.py", "from pb import builder as _builder\n_globals = globals()\n_builder.build(_globals)\n"),
+            ("pb/builder.py", "def build(g):\n    g['Any'] = object\n"),
+            ("pb/any.py", "from pb.any_pb2 import Any\n"),
+        ],
+        &[],
+    );
+    assert!(r.problems().all(|p| p.code != "missing-name"), "{:?}", codes(&r));
+}
+
+#[test]
+fn imports_under_with_suppress_import_error_are_guarded() {
+    let r = run(
+        &[(
+            "fmt.py",
+            "from contextlib import suppress\nimport contextlib\n\nwith suppress(ImportError):\n    import rfc3339_validator\nwith contextlib.suppress(ImportError, AttributeError):\n    from webcolors import name_to_hex\n",
+        )],
+        &[],
+    );
+    assert_eq!(r.verdict, Verdict::Ok, "{:?}", codes(&r));
+}
+
+#[test]
+fn a_desktop_window_module_in_an_add_on_is_a_warning() {
+    let r = run(&[("bar/__init__.py", "from .std import tqdm\n"), ("bar/std.py", "class tqdm:\n    pass\n"), ("bar/tk.py", "import tkinter\nfrom tkinter import ttk\n")], &[]);
+    assert_eq!(r.verdict, Verdict::Warnings, "{:?}", codes(&r));
+}

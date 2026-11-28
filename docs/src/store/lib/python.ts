@@ -471,6 +471,35 @@ export function pipPatch(project: string, files: Record<string, string>): { file
 	}
 }
 
+/** The keyboard's pure-Python stand-in for a compiled package ([Py.pipStandIn]). */
+export interface PipStandIn {
+	files: Record<string, string>;
+	license: string;
+	roots: string[];
+	/** Where its sources are, for the lock. */
+	source: string;
+	/** What to tell the person adding it. */
+	note: string;
+}
+
+/**
+ * The keyboard's pure-Python stand-in for [project] (its PEP 503 name) at
+ * release [version] of [name], which `wmpy pip install` puts in when that
+ * release has no pure-Python wheel. Null when it has none, or this build
+ * has no `pip_stand_in`.
+ */
+export function pipStandIn(project: string, name: string, version: string): PipStandIn | null {
+	const f = pipExport('pip_stand_in', 'pipStandIn');
+	if (!f) return null;
+	try {
+		const raw = JSON.parse(f(project, name, version)) as Partial<PipStandIn>;
+		if (!raw.files || typeof raw.files !== 'object') return null;
+		return { files: raw.files, license: raw.license ?? '', roots: raw.roots ?? [], source: raw.source ?? '', note: raw.note ?? '' };
+	} catch {
+		return null;
+	}
+}
+
 /**
  * Tree-shakes the vendored packages ([roots]) among [files] (every `.py`
  * file of the plugin), reached from [entry] and the plugin's own modules.

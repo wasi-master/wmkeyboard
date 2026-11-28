@@ -778,6 +778,20 @@ export interface Plan {
 export interface ResolveHooks {
 	project: (name: string) => Promise<Project>;
 	release: (name: string, version: string) => Promise<Release>;
+	/**
+	 * Where the keyboard's pure-Python stand-in for [key] comes from, when it
+	 * keeps one: a release with no pure wheel is then planned with the
+	 * stand-in ([STAND_IN]) in its place, as `wmpy pip install` does.
+	 */
+	standIn?: (key: string) => string | null;
+}
+
+/** The `packagetype` of the file planned for a package the keyboard's stand-in replaces. */
+export const STAND_IN = 'stand-in';
+
+/** The file planned for [key] when its stand-in ([source]) goes in: nothing to download. */
+export function standInFile(key: string, source: string): PypiFile {
+	return { filename: `${key} (stand-in)`, url: source, packagetype: STAND_IN, sha256: '', size: 0, yanked: false, requiresPython: null };
 }
 
 /**
@@ -818,16 +832,21 @@ export async function resolvePlan(request: Requirement, lock: Lock, hooks: Resol
 		const project = await hooks.project(req.name);
 		const anyPre = specs.some((s) => { const t = parseVersion(s.version.replace(/\.\*$/, '')); return t && isPrerelease(t); });
 		const fitting = project.versions.filter((v) => !v.yanked && satisfies(v.version, specs, anyPre));
-		const usable = fitting.filter((v) => v.pure);
+		const standIn = hooks.standIn?.(key) ?? null;
+		// With a stand-in, the newest release goes in whatever it ships.
+		const takes = (v: ProjectVersion) => v.pure || standIn !== null;
+		const usable = fitting.filter(takes);
 		// Only pre-releases fit: take one, as pip does when nothing final is left.
-		const pick = usable.find((v) => !v.pre) ?? usable[0] ?? (fitting.length === 0 ? project.versions.filter((v) => !v.yanked && v.pure && satisfies(v.version, specs, true))[0] : undefined);
+		const pick = usable.find((v) => !v.pre) ?? usable[0] ?? (fitting.length === 0 ? project.versions.filter((v) => !v.yanked && takes(v) && satisfies(v.version, specs, true))[0] : undefined);
 		if (!pick) {
 			if (!fitting.length) throw new PypiError('no-version', `${project.name}|${specifiersText(specs)}`);
 			throw new PypiError(fitting.every((v) => v.sdistOnly) ? 'sdist-only' : 'compiled', project.name);
 		}
 		const release = await hooks.release(project.name, pick.version);
-		const wheel = pickWheel(release);
-		const deps = dependencies(release, req.extras, false);
+		const replaced = !pick.pure && standIn !== null;
+		const wheel = replaced ? standInFile(key, standIn) : pickWheel(release);
+		// A stand-in needs nothing beside it.
+		const deps = replaced ? [] : dependencies(release, req.extras, false);
 		const planned: PlannedPackage = {
 			key, name: release.name, version: release.version, release, wheel, extras: [...req.extras],
 			requires: [...new Set(deps.map((d) => normalizeName(d.name)))], requiredBy: by, replaces: held && held.version !== release.version ? held.version : null,

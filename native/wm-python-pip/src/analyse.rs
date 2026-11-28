@@ -148,8 +148,8 @@ struct Ctx<'a> {
     /// The package's compiled modules, left out.
     compiled: HashSet<String>,
     /// The package's modules that make top-level names the analysis cannot
-    /// list: they write to `globals()` (reading it, as `__dir__` does, makes
-    /// nothing) or reach themselves through `sys.modules`.
+    /// list: they write to `globals()` or hand it on (reading it, as `__dir__`
+    /// does, makes nothing), or reach themselves through `sys.modules`.
     dynamic: HashSet<String>,
 }
 
@@ -205,7 +205,10 @@ pub fn analyse(files: &BTreeMap<String, String>, opts: &AnalyseOptions) -> Repor
             .iter()
             .filter(|f| {
                 let text = &files[&f.path];
-                text.contains("globals()[") || text.contains("globals().update") || text.contains("globals().setdefault") || text.contains("sys.modules[__name__]")
+                // Writing to globals(), keeping it in a name or handing it to a call
+                // (protobuf's generated `_globals = globals()`); reading it, as
+                // `[*globals(), "x"]` in a `__dir__` does, makes nothing.
+                ["globals()[", "globals().update", "globals().setdefault", "= globals()", "globals())", "sys.modules[__name__]"].iter().any(|p| text.contains(p))
             })
             .map(|f| f.name.clone())
             .collect(),
@@ -323,6 +326,10 @@ fn settle_by_load(path: &str, load: Load, problems: &mut Vec<Problem>) {
     }
 }
 
+/// Modules for a desktop's windows and terminals, which no plugin has: a
+/// module only they would make work is an add-on for desktop programs.
+const DESKTOP_MODULES: &[&str] = &["tkinter", "turtle", "curses", "readline", "pty", "tty", "termios", "_tkinter", "idlelib"];
+
 /// A public module the package never imports itself: what it breaks on is
 /// its own, but a package it alone imports, one the package does not
 /// depend on, makes it an add-on for code that has that package
@@ -331,7 +338,9 @@ fn settle_by_load(path: &str, load: Load, problems: &mut Vec<Problem>) {
 fn settle_direct(path: &str, problems: &mut Vec<Problem>) {
     let mut moved = false;
     for p in problems.iter_mut() {
-        let add_on = p.code == "missing-import" && p.help.as_deref().is_some_and(|h| h.starts_with("wmpy pip install"));
+        // A package it alone imports, or a desktop's windows or terminal (tqdm.tk, a pty helper).
+        let add_on = (p.code == "missing-import" && p.help.as_deref().is_some_and(|h| h.starts_with("wmpy pip install")))
+            || (matches!(p.code, "missing-import" | "sandbox-import") && DESKTOP_MODULES.iter().any(|m| p.message.contains(&format!("'{m}'")) || p.message.contains(&format!("'{m}."))));
         if p.severity == Severity::Error && (add_on || PACKED_ONLY_IF_USED.contains(&p.code)) {
             p.severity = Severity::Warning;
             if !add_on {
@@ -761,7 +770,12 @@ fn top_regions(body: &[Stmt], guards: &mut Vec<(Span, Guard)>, skipped: &mut Vec
                 top_regions(body, guards, skipped);
                 top_regions(orelse, guards, skipped);
             }
-            StmtKind::Unsupported { what, body, .. } if *what != "def" => top_regions(body, guards, skipped),
+            StmtKind::Unsupported { what, exprs, body, .. } if *what != "def" => {
+                if let (Some(g), Some(first), Some(last)) = (crate::program::suppress_guard(exprs).filter(|_| what.contains("with")), body.first(), body.last()) {
+                    guards.push((Span::new(first.span.start, last.span.end), g));
+                }
+                top_regions(body, guards, skipped)
+            }
             _ => {}
         }
     }

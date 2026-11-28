@@ -13,6 +13,7 @@
 
 mod analyse;
 pub mod patches;
+pub mod replacements;
 mod probe;
 mod program;
 mod reach;

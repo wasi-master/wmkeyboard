@@ -172,7 +172,12 @@ impl Resolver<'_> {
         }
         let (raw, file, files) = choose(&project, &req.specifier)?;
         let key = req.key();
-        let dist = if file.is_pure_wheel() {
+        let stand_in = if file.is_pure_wheel() { None } else { wm_python_pip::replacements::for_project(&key) };
+        let dist = if let Some(r) = stand_in {
+            // Compiled only, and the keyboard keeps a pure-Python stand-in for it.
+            self.say(&format!("{} {raw} is compiled code: using the keyboard's pure-Python stand-in", project.name));
+            dist::from_replacement(r, &project.name, &raw)
+        } else if file.is_pure_wheel() {
             self.say(&format!("downloading {}", file.filename));
             let bytes = self.index.download(&file)?;
             dist::from_wheel(&bytes, &file.url, &file.sha256)?

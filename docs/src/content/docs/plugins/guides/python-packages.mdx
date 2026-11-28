@@ -54,7 +54,10 @@ For each package, `wmpy pip install`:
    multidict), and the analysis checks that they do. A compiled wheel over
    24 MB is mostly compiled code, so it is refused without downloading it.
    So is a package that only installs a program compiled for computers,
-   such as `ruff` or `uv`: its Python just starts that program.
+   such as `ruff` or `uv`: its Python just starts that program. A few small
+   packages that come only compiled, such as orjson and rpds-py, get the
+   keyboard's [pure-Python stand-in](#stand-ins-for-compiled-packages)
+   instead, with nothing to download.
 3. Checks the download against the SHA-256 that PyPI lists.
 4. Reads its dependencies and installs those the same way. Markers such as
    `python_version < "3.9"` are read as CPython on Linux (aarch64) would read
@@ -116,8 +119,9 @@ line and column.
   missing module imported at the top of a file, syntax the keyboard's parser
   rejects, compiled code, or a file over the limits.
 
-An import inside `try: ... except ImportError:` is noted but does not count,
-since the package already copes without it. Code that never runs in a plugin
+An import inside `try: ... except ImportError:` or
+`with suppress(ImportError):` is noted but does not count, since the package
+already copes without it. Code that never runs in a plugin
 is not checked at all:
 
 - anything under `if TYPE_CHECKING:` or `if __name__ == "__main__":`;
@@ -142,7 +146,8 @@ A public module nothing in the package imports, such as
 `urllib3.contrib.pyopenssl`, loads only if your plugin imports it. Its own
 problems still count, but a package only it imports, one the package does
 not depend on, makes it an add-on for people who have that package: a
-warning. A file over the keyboard's limits that nothing loads when the
+warning. So does a desktop's windows or terminal (`tkinter`, `curses`,
+`readline`, `pty`), as in `tqdm.tk`. A file over the keyboard's limits that nothing loads when the
 package loads is a warning too, since `wmpy pack` leaves out what your code
 never reaches.
 
@@ -170,6 +175,31 @@ package, as Pyodide does for the packages it ships, and say so:
 A patch that no longer fits a new release is skipped, and wmpy says that too.
 The patches live in
 [`native/wm-python-pip/patches`](https://github.com/wasi-master/WMKeyboard/tree/main/native/wm-python-pip/patches).
+
+## Stand-ins for compiled packages
+
+A few small packages ship only as compiled Rust, yet popular packages need
+them: jsonschema needs rpds-py, and many API clients use orjson. For these
+the keyboard keeps a stand-in written in Python, with the same import name
+and the same API. When the release `wmpy pip` or the web editor picks has
+no pure-Python wheel, the stand-in goes in under that release's version,
+and the install says so.
+
+| Package | Imports as | Leaves out |
+|---|---|---|
+| fastuuid | `fastuuid` | |
+| jiter | `jiter` | the string cache: `cache_usage()` is always 0 |
+| orjson | `orjson` | numpy arrays |
+| rpds-py | `rpds` | |
+| uuid-utils | `uuid_utils` | |
+
+Each one passes its project's own test suite, apart from a few error messages
+and the limits plugins run under. A stand-in is slower than the compiled
+package: orjson's `dumps` writes the same bytes, but in Python, not Rust.
+For the few kilobytes a plugin sends, that rarely shows. A release that
+ships a pure-Python wheel is installed as it is. The stand-ins are the
+keyboard's own code, under its MIT licence, and live in
+[`native/wm-python-pip/replacements`](https://github.com/wasi-master/WMKeyboard/tree/main/native/wm-python-pip/replacements).
 
 ## Check before you install
 
@@ -341,8 +371,9 @@ The [plugin editor](/addons/new?type=plugin) can add packages too.
 **Check** downloads each package from PyPI in your browser and compares it
 with the sha256 PyPI lists. It runs the same check as `wmpy pip`, and shows
 the verdict and the lines that won't run before it adds anything. Only
-pure-Python wheels work here. For a package that comes only as source, try
-`wmpy pip install` on a computer.
+pure-Python wheels work here, and the keyboard's
+[stand-ins](#stand-ins-for-compiled-packages) for compiled packages. For a
+package that comes only as source, try `wmpy pip install` on a computer.
 
 The editor writes the same files and the same `wmpy.lock` as `wmpy pip`, so a
 plugin can move between the web editor and `wmpy` freely. **Remove** keeps

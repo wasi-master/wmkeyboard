@@ -383,6 +383,7 @@ export const S = {
 	packageVersionLatest: (v: string) => `${v} (latest)`,
 	packageVersionSource: (v: string) => `${v} (source only)`,
 	packageVersionCompiled: (v: string) => `${v} (compiled only)`,
+	packageVersionStandIn: (v: string) => `${v} (compiled; the keyboard’s stand-in)`,
 	packageCheck: 'Check',
 	packageChecking: 'Downloading and checking…',
 	packageAdd: 'Add',

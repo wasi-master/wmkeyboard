@@ -298,6 +298,22 @@ pub fn pip_patch(project: &str, files_json: &str) -> String {
     json!({ "files": files, "notes": notes }).to_string()
 }
 
+/// The keyboard's pure-Python stand-in for [project] (a PEP 503 name) at
+/// release [version], which `wmpy pip install` puts in when that release has
+/// no pure-Python wheel. Answers `{"files": {path: source}, "license": text,
+/// "roots": [str], "source": url, "note": str}`, or `{}` when it has none.
+#[wasm_bindgen]
+pub fn pip_stand_in(project: &str, name: &str, version: &str) -> String {
+    match wm_python_pip::replacements::for_project(project) {
+        Some(r) => json!({
+            "files": r.sources(), "license": wm_python_pip::replacements::LICENSE, "roots": r.roots(),
+            "source": r.source(), "note": r.note(name, version),
+        })
+        .to_string(),
+        None => "{}".to_string(),
+    }
+}
+
 /// Tree-shakes the vendored packages ([roots_json], their top-level names)
 /// among [files_json] (every `.py` file of the plugin), reached from [entry]
 /// and the plugin's own modules; [symbols] also drops unused top-level

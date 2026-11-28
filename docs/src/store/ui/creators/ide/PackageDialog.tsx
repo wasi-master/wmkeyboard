@@ -8,9 +8,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { fmtBytes, NetError } from '../../../lib/net';
 import * as Py from '../../../lib/python';
-import { downloadWheel, fetchProject, fetchRelease, lockRoots, normalizeName, parseRequirement, PypiError, readWheel, resolvePlan, satisfies, type Lock, type Plan, type Project, type Requirement } from '../../../lib/pypi';
+import { downloadWheel, fetchProject, fetchRelease, lockRoots, normalizeName, parseRequirement, PypiError, readWheel, resolvePlan, satisfies, STAND_IN, type Lock, type Plan, type Project, type Requirement } from '../../../lib/pypi';
 import { moduleNames, type DraftFiles } from './draft-files';
-import { addPackages, neededBy, packageSources, patchPackage, removePackage, type Changes, type PreparedPackage } from './packages';
+import { addPackages, neededBy, packageSources, patchPackage, removePackage, standInContents, type Changes, type PreparedPackage } from './packages';
 import { Dialog, TextButton } from './parts';
 import { S } from './strings';
 
@@ -68,7 +68,7 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 		try {
 			const project = await fetchProject(request.name, signal());
 			const fits = project.versions.filter((v) => !v.yanked && satisfies(v.version, request.specifiers));
-			const pick = fits.find((v) => v.pure && !v.pre) ?? fits.find((v) => v.pure) ?? fits[0] ?? project.versions[0];
+			const pick = fits.find((v) => v.pure && !v.pre) ?? fits.find((v) => v.pure) ?? fits.find((v) => !v.pre) ?? fits[0] ?? project.versions[0];
 			setVersion(pick?.version ?? project.latest);
 			setStage({ kind: 'found', project, request });
 		} catch (e) {
@@ -85,8 +85,16 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 			const plan = await resolvePlan(request, lock, {
 				project: (name) => (normalizeName(name) === normalizeName(project.name) ? Promise.resolve(project) : fetchProject(name, s)),
 				release: (name, v) => fetchRelease(name, v, s),
+				standIn: (key) => Py.pipStandIn(key, key, '')?.source ?? null,
 			}, version || undefined);
-			const contents = await Promise.all(plan.packages.map(async (p) => {
+			const notes: string[][] = plan.packages.map(() => []);
+			const contents = await Promise.all(plan.packages.map(async (p, i) => {
+				if (p.wheel.packagetype === STAND_IN) {
+					const s = standInContents(p);
+					if (!s) throw new PypiError('compiled', p.name);
+					notes[i]!.push(s.note);
+					return s.contents;
+				}
 				try {
 					return readWheel(await downloadWheel(p.wheel, s));
 				} catch (e) {
@@ -102,7 +110,7 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 				const available = [...new Set([...held, ...own, ...contents.flatMap((c, j) => (j === i ? [] : c.roots))])].sort();
 				// The small fixes the keyboard keeps for a few packages, as wmpy pip applies them.
 				const patched = patchPackage(planned.key, contents[i]!);
-				return { planned, contents: patched.contents, patched: patched.notes, analysis: Py.pipAnalyse(packageSources(patched.contents), { package: planned.name, available }) };
+				return { planned, contents: patched.contents, patched: [...notes[i]!, ...patched.notes], analysis: Py.pipAnalyse(packageSources(patched.contents), { package: planned.name, available }) };
 			});
 			setStage({ kind: 'checked', project, request, plan, prepared });
 		} catch (e) {
@@ -125,6 +133,8 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 
 	const busy = stage.kind === 'finding' || stage.kind === 'checking';
 	const project = 'project' in stage ? stage.project : undefined;
+	// Its compiled-only releases go in as the keyboard's pure-Python stand-in.
+	const hasStandIn = project ? Py.pipStandIn(normalizeName(project.name), project.name, '') !== null : false;
 	const request = 'request' in stage ? stage.request : undefined;
 	const incompatible = stage.kind === 'checked' && stage.prepared.some((p) => p.analysis?.verdict === 'incompatible');
 	return (
@@ -158,7 +168,7 @@ export function PackageDialog({ files, entry, lock, onApply, onDismiss }: { file
 						<select class="st-select" value={version} disabled={busy} onChange={(e) => { setVersion((e.target as HTMLSelectElement).value); setStage({ kind: 'found', project, request }); }}>
 							{project.versions.filter((v) => !v.yanked).map((v) => (
 								<option key={v.version} value={v.version}>
-									{v.version === project.latest ? S.packageVersionLatest(v.version) : v.pure ? v.version : v.sdistOnly ? S.packageVersionSource(v.version) : S.packageVersionCompiled(v.version)}
+									{v.version === project.latest ? S.packageVersionLatest(v.version) : v.pure ? v.version : hasStandIn ? S.packageVersionStandIn(v.version) : v.sdistOnly ? S.packageVersionSource(v.version) : S.packageVersionCompiled(v.version)}
 								</option>
 							))}
 						</select>
