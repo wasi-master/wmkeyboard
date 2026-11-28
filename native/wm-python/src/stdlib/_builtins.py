@@ -200,6 +200,9 @@ class bytearray:
     def __rmul__(self, n):
         return bytearray(self._b * n)
 
+    def __mod__(self, args):
+        return bytearray(bytes(self._b) % args)
+
     def append(self, value):
         self._b.append(_byte(value))
 
@@ -1313,6 +1316,47 @@ class _re_Scanner:
 
 _re_Scanner.__name__ = _re_Scanner.__qualname__ = "Scanner"
 _re_Scanner.__module__ = "re"
+
+
+class member_descriptor:
+    """What a name in a class's __slots__ is on the class: CPython's member
+    descriptor, which reads, sets and deletes that attribute of an instance."""
+
+    def __init__(self, name, objclass):
+        self.__name__ = name
+        self.__objclass__ = objclass
+        self.__qualname__ = f"{objclass.__qualname__}.{name}"
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        if self.__name__ == "__weakref__":
+            return None
+        try:
+            return vars(obj)[self.__name__]
+        except KeyError:
+            raise AttributeError(f"'{type(obj).__name__}' object has no attribute '{self.__name__}'") from None
+
+    def __set__(self, obj, value):
+        vars(obj)[self.__name__] = value
+
+    def __delete__(self, obj):
+        try:
+            del vars(obj)[self.__name__]
+        except KeyError:
+            raise AttributeError(f"'{type(obj).__name__}' object has no attribute '{self.__name__}'") from None
+
+    def __repr__(self):
+        return f"<member '{self.__name__}' of '{self.__objclass__.__name__}' objects>"
+
+    def __eq__(self, other):
+        return isinstance(other, member_descriptor) and self.__name__ == other.__name__ and self.__objclass__ is other.__objclass__
+
+    def __hash__(self):
+        return hash((self.__name__, id(self.__objclass__)))
+
+
+member_descriptor.__module__ = "builtins"
 
 
 class JSONDecodeError(ValueError):

@@ -30,8 +30,9 @@ pub(crate) const ASCII: i64 = 256;
 /// searches bytes. Hidden from `pattern.flags`.
 pub(crate) const BYTES: i64 = 1 << 40;
 
-/// Longest subject this engine will scan.
-pub(crate) const MAX_SUBJECT: usize = 40_000;
+/// Longest subject this engine will scan: as long as a string may be. The
+/// step budget, not the length, is what bounds a slow pattern.
+pub(crate) const MAX_SUBJECT: usize = 10_000_000;
 /// Deepest nested backtrack before giving up, which bounds the stack.
 pub(crate) const MAX_DEPTH: u32 = 2_000;
 
@@ -359,7 +360,7 @@ impl RxParser<'_> {
     fn parse_alternation(&mut self) -> Res<Node> {
         self.depth += 1;
         if self.depth > 200 {
-            return Err(PyError::abort(AbortKind::Recursion, "regular expression nested too deeply to finish", None));
+            return Err(PyError::new("maximum recursion depth exceeded in a regular expression", "RecursionError"));
         }
         let mut branches = vec![self.parse_sequence()?];
         while self.peek() == Some("|") {
@@ -772,7 +773,7 @@ impl<'a> Matcher<'a> {
 
     fn matches_inner(&mut self, node: &'a Node, pos: usize, cont: Cont<'_, 'a>) -> Res<bool> {
         if self.depth >= MAX_DEPTH {
-            return Err(PyError::abort(AbortKind::Recursion, "regular expression nested too deeply to finish", None));
+            return Err(PyError::new("maximum recursion depth exceeded in a regular expression", "RecursionError"));
         }
         let n = self.subject.len();
         match node {

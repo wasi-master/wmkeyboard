@@ -127,6 +127,12 @@ needs:
 - what packages use to look at code: a class's `__dict__` and `vars(cls)` are
   read-only views, `__mro_entries__` and `__orig_bases__`, a module's own
   `__getattr__`, `__spec__` on every module, and finders in `sys.meta_path`
+- exceptions that take attributes (`err.hint = "..."`) and keep them through
+  `raise`, `ImportError(msg, name=..., path=...)`, and a
+  `UnicodeDecodeError` or `UnicodeEncodeError` with its `encoding`,
+  `object`, `start`, `end` and `reason`
+- a name in `__slots__` is a member descriptor on its class, as
+  `attrs` and `dataclasses` read it
 
 `hash()` of a number or a tuple is CPython's, so `hash(2)` is 2 and
 `hash(2.5)` is the same on the phone as on a computer.
@@ -135,8 +141,16 @@ needs:
 no files and no console to read. A module still has a `__file__`, so
 packages can work out paths when they load: `/plugin/` and the module's
 path in your plugin, such as `/plugin/helpers.py`, or `/lib/python3.13/`
-for the standard library. A package's `__path__` is its folder. `%`
-formatting of bytes is not there.
+for the standard library. A package's `__path__` is its folder. Bytes take
+`%` formatting as well as text does: `b"%s=%d" % (key, n)` gives bytes.
+Strings cannot hold a lone surrogate such as `"\ud800"`, which stays as its
+six characters of escape, so `surrogateescape` and `surrogatepass` work as
+`strict`.
+
+`json` reads and writes 1,000 levels of nesting. `re` scans a string of any
+length, but a group repeated more than 2,000 times in one match, such as
+`(ab)*` over a long text, goes too deep for it. Past these limits, and past
+the recursion limit, they raise `RecursionError`, which a plugin can catch.
 
 **Modules you can import:**
 

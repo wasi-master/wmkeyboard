@@ -117,8 +117,13 @@ class GetSetDescriptorType(_Descriptor):
     pass
 
 
-class MemberDescriptorType(_Descriptor):
-    pass
+class _Slotted:
+    __slots__ = ("_slot",)
+
+
+# What a name in __slots__ is on its class.
+MemberDescriptorType = type(_Slotted._slot)
+del _Slotted
 
 
 WrapperDescriptorType.__name__ = WrapperDescriptorType.__qualname__ = "wrapper_descriptor"
@@ -126,9 +131,8 @@ MethodWrapperType.__name__ = MethodWrapperType.__qualname__ = "method-wrapper"
 MethodDescriptorType.__name__ = MethodDescriptorType.__qualname__ = "method_descriptor"
 ClassMethodDescriptorType.__name__ = ClassMethodDescriptorType.__qualname__ = "classmethod_descriptor"
 GetSetDescriptorType.__name__ = GetSetDescriptorType.__qualname__ = "getset_descriptor"
-MemberDescriptorType.__name__ = MemberDescriptorType.__qualname__ = "member_descriptor"
 for _t in (WrapperDescriptorType, MethodWrapperType, MethodDescriptorType, ClassMethodDescriptorType,
-           GetSetDescriptorType, MemberDescriptorType):
+           GetSetDescriptorType):
     _t.__module__ = "builtins"
 del _t, _Descriptor
 

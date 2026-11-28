@@ -711,6 +711,8 @@ impl Interp {
         }
         if class.exception_root.is_some() {
             inst.insert(Rc::from("args"), Value::tuple(args.clone()));
+            // An ImportError's fields are None until its __init__ fills them.
+            self.import_error_fields(&inst, &[], &[])?;
         }
         match class.lookup("__init__") {
             Some(init) => {
@@ -718,6 +720,7 @@ impl Interp {
                 self.call_value(&bound, args, kwargs)?;
             }
             None => {
+                self.import_error_fields(&inst, &args, &kwargs)?;
                 if class.exception_root.is_none() && (!args.is_empty() || !kwargs.is_empty()) {
                     return Err(self.error(format!("{}() takes no arguments", class.name), "TypeError"));
                 }
@@ -743,6 +746,28 @@ impl Interp {
             },
             _ => v,
         }
+    }
+
+    /// `ImportError.__init__`'s part for a subclass instance: `msg`, and the
+    /// `name` and `path` keywords. False when the class is no ImportError.
+    fn import_error_fields(&mut self, inst: &Rc<Instance>, args: &[Value], kwargs: &[(Rc<str>, Value)]) -> R<bool> {
+        if !inst.class.exception_root.as_deref().is_some_and(|r| super::eval::exception_matches("ImportError", r)) {
+            return Ok(false);
+        }
+        let mut fields = [("name", Value::None), ("path", Value::None)];
+        for (k, v) in kwargs {
+            match fields.iter_mut().find(|(n, _)| *n == k.as_ref()) {
+                Some(slot) => slot.1 = v.clone(),
+                None => {
+                    return Err(self.error(format!("ImportError() got an unexpected keyword argument '{k}'"), "TypeError"));
+                }
+            }
+        }
+        for (n, v) in fields {
+            inst.insert(Rc::from(n), v);
+        }
+        inst.insert(Rc::from("msg"), if args.len() == 1 { args[0].clone() } else { Value::None });
+        Ok(true)
     }
 
     // MARK: - attributes
@@ -1085,6 +1110,18 @@ impl Interp {
                 self.set_module_override(&m, name, Some(value));
                 Ok(())
             }
+            // A built-in exception takes attributes as CPython's do: `err.extra = …`.
+            Value::Exception(e) => {
+                // `e.args = [...]` keeps a tuple, as CPython's does.
+                let value = if name.as_ref() == "args" { Value::tuple(self.iterate(&value)?) } else { value };
+                if let Value::Dict(d) = self.exception_store(e, name) {
+                    if d.borrow().len() >= self.max_container && d.borrow().get(&StrKey(name)).is_none() {
+                        return Err(self.container_abort("dict"));
+                    }
+                    d.borrow_mut().insert(HKey::Str(name.clone()), value);
+                }
+                Ok(())
+            }
             other => Err(self.error(
                 format!("cannot set attribute '{name}' on '{}'; only class instances take new attributes", other.type_name()),
                 "AttributeError",
@@ -1175,6 +1212,10 @@ impl Interp {
                 old.is_some()
             }
             Value::Function(f) => f.del_attr(name),
+            Value::Exception(e) => match self.exception_store(e, name) {
+                Value::Dict(d) => d.borrow_mut().shift_remove(&StrKey(name)).is_some(),
+                _ => false,
+            },
             Value::Module(m) if m.as_ref() == "builtins" => {
                 let m = m.clone();
                 self.set_module_override(&m, &Rc::from(name), None)
@@ -1378,6 +1419,9 @@ impl Interp {
         // `"%s has host bits set" % obj`: str's own formatting.
         if let (BinOp::Mod, Value::Str(s)) = (op, a) {
             return Ok(Value::str(self.printf_style(s, b)?));
+        }
+        if let (BinOp::Mod, Value::Bytes(f)) = (op, a) {
+            return Ok(Value::bytes(&self.bytes_printf(f, b)?));
         }
         // `"ab" * n` repeats by what `n.__index__()` says.
         if op == BinOp::Mul {
@@ -1657,6 +1701,17 @@ impl Interp {
             }
             Value::List(_) | Value::Tuple(_) | Value::Dict(_) | Value::Set(_) => self.to_repr(v),
             Value::Object(o) if matches!(o.as_ref(), Object::DictView(..)) => self.to_repr(v),
+            // `e.args = (...)` set later: str(e) is what the new args give.
+            Value::Exception(e) if self.exception_attr(e, "args").is_some() => {
+                let args = self.exception_attr(e, "args").unwrap_or(Value::None);
+                let items = if let Value::Tuple(t) = &args { t.as_ref().clone() } else { vec![args] };
+                match items.len() {
+                    0 => Ok(String::new()),
+                    1 if e.kind == "KeyError" => self.to_repr(&items[0]),
+                    1 => self.to_str(&items[0]),
+                    _ => self.to_repr(&Value::tuple(items)),
+                }
+            }
             Value::Big(b) => super::bigint::to_decimal(b).map_err(|(m, k)| self.error(m, k)),
             Value::Class(c) if c.meta.is_some() => {
                 for name in ["__str__", "__repr__"] {
@@ -2350,6 +2405,10 @@ impl Interp {
                 if let Some(Value::Instance(inst)) = args.first() {
                     if inst.class.exception_root.is_some() {
                         inst.insert(Rc::from("args"), Value::tuple(args[1..].to_vec()));
+                        let inst = inst.clone();
+                        if self.import_error_fields(&inst, &args[1..], kwargs)? {
+                            return Ok(Some(Value::None));
+                        }
                     } else if let Some(base) = inst.class.builtin_base.clone().filter(|b| super::value::descriptor_base(b) && inst.payload().is_none()) {
                         // `super().__init__(fget, ...)` in a property subclass: what it carries.
                         let carried = self.new_payload(&base, &args[1..], kwargs)?;
@@ -2710,13 +2769,17 @@ impl Interp {
         let from_class = |c: &Rc<Class>, names: &mut Vec<String>| {
             for k in std::iter::once(c.clone()).chain(c.mro_list()) {
                 names.extend(k.attrs.borrow().keys().map(|s| s.to_string()));
+                names.extend(super::eval::class_slots(&k).iter().map(|s| s.to_string()));
             }
         };
         match v {
             Value::Instance(i) => {
                 names.extend(i.keys().iter().map(|s| s.to_string()));
                 from_class(&i.class, &mut names);
-                names.extend(["__class__", "__dict__", "__repr__", "__str__"].map(String::from));
+                names.extend(["__class__", "__repr__", "__str__"].map(String::from));
+                if super::eval::instances_have_dict(&i.class) {
+                    names.push("__dict__".to_string());
+                }
                 if let Some(base) = &i.class.builtin_base {
                     names.extend(super::methods::type_members(base).map(String::from));
                 }

@@ -17,12 +17,22 @@ _MIXINS = (int, str, float, tuple, bytes)
 _type = type
 
 
-class _Auto:
-    pass
+class _auto_null:
+    def __repr__(self):
+        return "_auto_null"
 
 
-def auto():
-    return _Auto()
+_auto_null = _auto_null()
+
+
+class auto:
+    """Instances are replaced with an appropriate value in Enum class suites."""
+
+    def __init__(self, value=_auto_null):
+        self.value = value
+
+    def __repr__(self):
+        return "auto(%r)" % self.value
 
 
 def _member_type(cls):
@@ -58,8 +68,11 @@ class Enum:
         for name, value in list(vars(cls).items()):
             if name.startswith("_") or callable(value) or _is_descriptor(value):
                 continue
-            if isinstance(value, _Auto):
-                value = cls._generate_next_value_(name, 1, len(members), list(last_values))
+            if isinstance(value, auto):
+                if value.value is _auto_null:
+                    value = cls._generate_next_value_(name, 1, len(members), list(last_values))
+                else:
+                    value = value.value
             if member_type is object:
                 mvalue = value
             else:

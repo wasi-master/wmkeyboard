@@ -13,8 +13,10 @@ use super::value::{format_double, payload_of, py_identical, HKey, Value};
 
 type Res<T> = Result<T, PyError>;
 
-/// Deepest nesting accepted either way, so a hostile value can't recurse the stack out.
-const MAX_DEPTH: u32 = 100;
+/// Deepest nesting read or written, about where CPython's recursion limit
+/// stops its json; past it, or with the native stack running low, a
+/// RecursionError a script can catch.
+const MAX_DEPTH: u32 = 1000;
 
 /// What the encoder and decoder ask of the interpreter.
 pub(crate) trait Host {
@@ -22,6 +24,10 @@ pub(crate) trait Host {
     fn charge(&mut self) -> Res<()>;
     /// Call a script function: `default`, a hook, a `parse_*` function.
     fn call(&mut self, f: &Value, args: Vec<Value>) -> Res<Value>;
+    /// Whether there is native stack left for one more level of nesting.
+    fn stack_room(&self) -> bool {
+        true
+    }
 }
 
 /// How `json.dumps` writes: CPython's JSONEncoder options.
@@ -151,8 +157,8 @@ impl Writer<'_> {
         if longer_than(&self.out, self.limit) {
             return Err(PyError::abort(AbortKind::StringCap, "string too large", None));
         }
-        if depth > MAX_DEPTH * 2 {
-            return Err(PyError::abort(AbortKind::Recursion, "maximum recursion depth exceeded", None));
+        if depth > MAX_DEPTH || !self.host.stack_room() {
+            return Err(PyError::new("maximum recursion depth exceeded while encoding a JSON object", "RecursionError"));
         }
         // A subclass of a built-in type writes as its value.
         if let Some(p) = payload_of(v) {
@@ -405,8 +411,9 @@ impl Parser<'_, '_> {
 
     fn nested(&mut self, i: usize, f: fn(&mut Self, usize) -> DRes<(Value, usize)>) -> DRes<(Value, usize)> {
         self.depth += 1;
-        if self.depth >= MAX_DEPTH {
-            return Err(PyError::abort(AbortKind::Recursion, "JSON nested too deeply", None).into());
+        if self.depth >= MAX_DEPTH || !self.host.stack_room() {
+            self.depth -= 1;
+            return Err(PyError::new("maximum recursion depth exceeded while decoding a JSON document", "RecursionError").into());
         }
         let r = f(self, i);
         self.depth -= 1;

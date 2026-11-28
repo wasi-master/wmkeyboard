@@ -39,7 +39,7 @@ pub const STACK_BUDGET: usize = if cfg!(debug_assertions) { 24 << 20 } else { 6 
 /// How often, in steps, the cancel flag and the deadline are read.
 const POLL_EVERY: u64 = 256;
 
-const PRINTF_TYPES: &[&str] = &["s", "r", "a", "d", "i", "u", "f", "F", "g", "G", "e", "E", "x", "X", "o", "c"];
+const PRINTF_TYPES: &[&str] = &["s", "r", "a", "d", "i", "u", "f", "F", "g", "G", "e", "E", "x", "X", "o", "c", "b"];
 
 /// A scope at run time. A function call's (or a comprehension's) keeps its
 /// variables in [slots], laid out by the resolver; a module's or a class
@@ -189,9 +189,11 @@ pub(crate) struct Interp {
     /// Modules that are objects of their own rather than a scope: what a
     /// `sys.meta_path` loader made, or what a script put in `sys.modules`.
     pub(crate) object_modules: HashMap<String, Value>,
-    /// `__notes__` of the interpreter's own exceptions, which are values that
-    /// cannot change: what `add_note` gave each, by the exception.
-    pub(crate) exception_notes: Vec<(Weak<ExceptionValue>, Value)>,
+    /// What was set on each of the interpreter's own exceptions, by the
+    /// exception, as the values themselves cannot change: its `__dict__`
+    /// (`e.extra = 1`, `add_note`), and the fields CPython keeps outside it
+    /// (`e.args = …`, ImportError's `name=` and `path=`).
+    pub(crate) exception_dicts: Vec<(Weak<ExceptionValue>, Value, Value)>,
     /// The ones loaded so far, by dotted name.
     pub(crate) module_envs: HashMap<String, Rc<Env>>,
     /// The module whose top level is running: `__main__`, or one being imported.
@@ -320,7 +322,7 @@ impl Interp {
             packages: HashSet::new(),
             sys_values: RefCell::new(HashMap::new()),
             object_modules: HashMap::new(),
-            exception_notes: Vec::new(),
+            exception_dicts: Vec::new(),
             module_envs,
             current_module: Rc::from("__main__"),
             module_runs: Vec::new(),
@@ -1647,7 +1649,42 @@ impl Interp {
 
     /// The `__notes__` list `add_note` made for a built-in exception, if it did.
     pub(crate) fn notes_of(&self, e: &Rc<ExceptionValue>) -> Option<Value> {
-        self.exception_notes.iter().find(|(w, _)| std::ptr::eq(w.as_ptr(), Rc::as_ptr(e))).map(|(_, n)| n.clone())
+        self.exception_attr(e, "__notes__")
+    }
+
+    /// What was set on a built-in exception under [name], if anything was.
+    pub(crate) fn exception_attr(&self, e: &Rc<ExceptionValue>, name: &str) -> Option<Value> {
+        if self.exception_dicts.is_empty() {
+            return None;
+        }
+        let (_, dict, fields) = self.exception_dicts.iter().find(|(w, ..)| std::ptr::eq(w.as_ptr(), Rc::as_ptr(e)))?;
+        let held = if exception_field(name) { fields } else { dict };
+        match held {
+            Value::Dict(d) => d.borrow().get(&StrKey(name)).cloned(),
+            _ => None,
+        }
+    }
+
+    /// Where [name] set on a built-in exception is kept: its `__dict__`, or
+    /// for a field CPython keeps outside it, beside it. Made empty the first
+    /// time it is asked for.
+    pub(crate) fn exception_store(&mut self, e: &Rc<ExceptionValue>, name: &str) -> Value {
+        let at = match self.exception_dicts.iter().position(|(w, ..)| std::ptr::eq(w.as_ptr(), Rc::as_ptr(e))) {
+            Some(at) => at,
+            None => {
+                self.exception_dicts.retain(|(w, ..)| w.strong_count() > 0);
+                let (d, f) = (Value::new_dict(DictMap::default()), Value::new_dict(DictMap::default()));
+                self.exception_dicts.push((Rc::downgrade(e), d, f));
+                self.exception_dicts.len() - 1
+            }
+        };
+        let (_, dict, fields) = &self.exception_dicts[at];
+        if exception_field(name) { fields.clone() } else { dict.clone() }
+    }
+
+    /// A built-in exception's `__dict__`.
+    pub(crate) fn exception_dict(&mut self, e: &Rc<ExceptionValue>) -> Value {
+        self.exception_store(e, "__dict__")
     }
 
     /// [name] as set through `globals()` of the module [module], if it was.
@@ -2208,6 +2245,18 @@ impl Interp {
                 if name == "__call__" {
                     return Ok(obj.clone());
                 }
+                // A name in `__slots__`: CPython's member descriptor for it,
+                // which reads and writes the instance's attribute.
+                // A class's `__weakref__` is one too, which reads None: nothing here holds weak references.
+                let owner = if name == "__weakref__" {
+                    Some(c.clone())
+                } else {
+                    std::iter::once(c.clone()).chain(c.mro_list()).find(|k| class_slots(k).iter().any(|s| s.as_ref() == name))
+                };
+                if let Some(owner) = owner {
+                    let make = self.python_builtin("member_descriptor")?;
+                    return self.call_value(&make, vec![Value::str(name), Value::Class(owner)], Vec::new());
+                }
                 Err(self.error(format!("type object '{}' has no attribute '{name}'", c.name), "AttributeError"))
             }
             Value::Object(o) => match o.as_ref() {
@@ -2556,6 +2605,13 @@ impl Interp {
                 None if modules::python_member(m, name).is_some() => self.python_builtin(modules::python_member(m, name).unwrap_or_default()),
                 // A submodule of a native module, once imported: `json.decoder`.
                 None if self.module_envs.contains_key(format!("{m}.{name}").as_str()) => Ok(Value::Module(Rc::from(format!("{m}.{name}")))),
+                // json's submodules, which CPython's json imports itself, so a
+                // plain `import json` reaches json.decoder.JSONDecodeError.
+                None if m.as_ref() == "json" && matches!(name, "decoder" | "encoder" | "scanner") && self.module_exists(&format!("json.{name}")) => {
+                    let full = format!("json.{name}");
+                    self.ensure_module(&full)?;
+                    Ok(Value::Module(Rc::from(full)))
+                }
                 None => match self.module_getattr(m, name)? {
                     Some(v) => Ok(v),
                     None => Err(self.error(format!("module '{m}' has no attribute '{name}'"), "AttributeError")),
@@ -2583,6 +2639,9 @@ impl Interp {
                 };
                 Ok(t[at].clone())
             }
+            // What a script set on it, and ImportError's `name=` and `path=`.
+            Value::Exception(e) if self.exception_attr(e, name).is_some() => Ok(self.exception_attr(e, name).unwrap()),
+            Value::Exception(e) if name == "__dict__" => Ok(self.exception_dict(e)),
             Value::Exception(e) => match name {
                 // An OSError keeps (errno, strerror) as its args, the file names apart.
                 "args" if (3..=5).contains(&e.args.len()) && !matches!(e.args[2], Value::None) && self.exception_is("OSError", &e.kind) => {
@@ -2605,6 +2664,13 @@ impl Interp {
                         _ => 4,
                     };
                     Ok(if (2..=5).contains(&e.args.len()) { e.args.get(at).cloned().unwrap_or(Value::None) } else { Value::None })
+                }
+                // A UnicodeDecodeError's (and UnicodeEncodeError's) five fields, its arguments.
+                "encoding" | "object" | "start" | "end" | "reason"
+                    if e.args.len() == 5 && matches!(e.kind.as_str(), "UnicodeDecodeError" | "UnicodeEncodeError" | "UnicodeTranslateError") =>
+                {
+                    let at = ["encoding", "object", "start", "end", "reason"].iter().position(|n| *n == name).unwrap_or(0);
+                    Ok(e.args[at].clone())
                 }
                 // An ImportError's module, read back off the import's message.
                 "name" | "path" | "msg" if self.exception_is("ImportError", &e.kind) => Ok(match name {
@@ -3197,6 +3263,9 @@ impl Interp {
             if let Value::Str(s) = a {
                 return Ok(Value::str(self.printf_style(s, b)?));
             }
+            if let Value::Bytes(f) = a {
+                return Ok(Value::bytes(&self.bytes_printf(f, b)?));
+            }
         }
         // `int | str`, `list[int] | None`: a union of types.
         if op == BinOp::BitOr && type_like(a) && type_like(b) {
@@ -3360,6 +3429,44 @@ impl Interp {
 
     /// `"%s scored %d" % (name, score)`.
     pub(crate) fn printf_style(&mut self, format: &Rc<str>, rhs: &Value) -> R<String> {
+        self.printf_core(format, rhs, false)
+    }
+
+    /// `b"%s=%d" % (key, n)`: PEP 461's bytes formatting. The format runs as
+    /// Latin-1 text, a character a byte, and comes back as bytes.
+    pub(crate) fn bytes_printf(&mut self, format: &[u8], rhs: &Value) -> R<Vec<u8>> {
+        let text: Rc<str> = Rc::from(super::regex::latin1_text(format));
+        let out = self.printf_core(&text, rhs, true)?;
+        Ok(super::regex::latin1_bytes(&out))
+    }
+
+    /// What `%s` and `%b` put into bytes: a bytes-like object's bytes, or
+    /// what its `__bytes__` gives.
+    fn printf_bytes_arg(&mut self, value: &Value) -> R<Vec<u8>> {
+        let plain = plain_value(value.clone());
+        if let Value::Bytes(b) = &plain {
+            return Ok(b.to_vec());
+        }
+        if matches!(plain, Value::Instance(_)) {
+            let buffer = [self.python_builtin("bytearray")?, self.python_builtin("memoryview")?];
+            if buffer.iter().any(|t| self.is_instance(&plain, t)) {
+                if let Value::Bytes(b) = self.call_builtin("bytes", &[plain], &[])? {
+                    return Ok(b.to_vec());
+                }
+            } else if let Some(r) = self.dunder(&plain, "__bytes__", Vec::new())? {
+                return match r {
+                    Value::Bytes(b) => Ok(b.to_vec()),
+                    other => Err(self.error(format!("__bytes__ returned non-bytes (type {})", other.type_name()), "TypeError")),
+                };
+            }
+        }
+        Err(self.error(
+            format!("%b requires a bytes-like object, or an object that implements __bytes__, not '{}'", value.type_name()),
+            "TypeError",
+        ))
+    }
+
+    fn printf_core(&mut self, format: &Rc<str>, rhs: &Value, bytes_mode: bool) -> R<String> {
         let args: Vec<Value> = match rhs {
             Value::Tuple(t) => t.as_ref().clone(),
             other => vec![other.clone()],
@@ -3412,7 +3519,8 @@ impl Interp {
                 if matches!(rhs, Value::Tuple(_)) || !matches!(rhs, Value::Dict(_) | Value::Instance(_)) {
                     return Err(self.error("format requires a mapping", "TypeError"));
                 }
-                keyed = Some(self.index(rhs, &Value::str(key))?);
+                let key = if bytes_mode { Value::bytes(&super::regex::latin1_bytes(&key)) } else { Value::str(key) };
+                keyed = Some(self.index(rhs, &key)?);
             }
             let mut spec = String::new();
             while i < chars.len() && !PRINTF_TYPES.contains(&chars[i]) {
@@ -3442,6 +3550,9 @@ impl Interp {
                 return Err(self.error("incomplete format", "ValueError"));
             }
             let ty = chars[i];
+            if ty == "b" && !bytes_mode {
+                return Err(self.error(format!("unsupported format character 'b' (0x62) at index {i}"), "ValueError"));
+            }
             i += 1;
             let value = match keyed {
                 Some(v) => {
@@ -3456,8 +3567,25 @@ impl Interp {
                     args[next - 1].clone()
                 }
             };
-            // `%s` asks an object's __str__, `%r` and `%a` its __repr__.
+            // `%s` asks an object's __str__, `%r` and `%a` its __repr__. In
+            // bytes, `%s` and `%b` take bytes and `%r` is `%a`.
             let value = match ty {
+                "s" | "b" if bytes_mode => Value::str(super::regex::latin1_text(&self.printf_bytes_arg(&value)?)),
+                "r" | "a" if bytes_mode => Value::str(ascii_escape(&self.to_repr(&value)?)),
+                "c" if bytes_mode => {
+                    let byte = match plain_value(value.clone()) {
+                        Value::Int(n) if (0..256).contains(&n) => n as u8,
+                        Value::Int(_) | Value::Big(_) => return Err(self.error("%c arg not in range(256)", "OverflowError")),
+                        Value::Bool(b) => b as u8,
+                        _ => match self.printf_bytes_arg(&value) {
+                            Ok(b) if b.len() == 1 => b[0],
+                            _ => {
+                                return Err(self.error("%c requires an integer in range(256) or a single byte", "TypeError"));
+                            }
+                        },
+                    };
+                    Value::str((byte as char).to_string())
+                }
                 "s" => Value::str(self.to_str(&value)?),
                 "r" => Value::str(self.to_repr(&value)?),
                 "a" => Value::str(ascii_escape(&self.to_repr(&value)?)),
@@ -3465,7 +3593,8 @@ impl Interp {
             };
             spec.push_str(match ty {
                 "i" | "u" => "d",
-                "r" | "a" => "s",
+                "r" | "a" | "b" => "s",
+                "c" if bytes_mode => "s",
                 other => other,
             });
             out.push_str(&py_format(&value, &spec)?);
@@ -3474,7 +3603,8 @@ impl Interp {
         // hold keys the format never names) or a tuple fully used.
         let mapping = matches!(rhs, Value::Dict(_)) || (matches!(rhs, Value::Instance(_)) && (used_mapping || next == 0));
         if next < args.len() && !mapping {
-            return Err(self.error("not all arguments converted during string formatting", "TypeError"));
+            let what = if bytes_mode { "bytes" } else { "string" };
+            return Err(self.error(format!("not all arguments converted during {what} formatting"), "TypeError"));
         }
         Ok(out)
     }
@@ -3586,6 +3716,18 @@ impl Interp {
             }
         }
         // Sets order by inclusion: `a <= b` is a subset, `a < b` a proper one.
+        // A keys or items view orders as the set it stands for.
+        if matches!(op, CmpOp::Lt | CmpOp::Le | CmpOp::Gt | CmpOp::Ge) && (is_set_view(a) || is_set_view(b)) {
+            if let (Some(x), Some(y)) = (as_key_set(a), as_key_set(b)) {
+                let subset = |p: &KeySet, q: &KeySet| p.iter().all(|k| q.contains(k));
+                return Ok(match op {
+                    CmpOp::Le => subset(&x, &y),
+                    CmpOp::Lt => x.len() < y.len() && subset(&x, &y),
+                    CmpOp::Ge => subset(&y, &x),
+                    _ => y.len() < x.len() && subset(&y, &x),
+                });
+            }
+        }
         if let (Value::Set(x), Value::Set(y), CmpOp::Lt | CmpOp::Le | CmpOp::Gt | CmpOp::Ge) = (a, b, op) {
             let (x, y) = (x.borrow(), y.borrow());
             let subset = |p: &KeySet, q: &KeySet| p.iter().all(|k| q.contains(k));
@@ -4567,3 +4709,43 @@ pub(crate) fn docstring(body: &[Stmt]) -> Value {
 
 /// A call's keyword arguments, in the order written.
 pub(crate) type Keywords = Vec<(Rc<str>, Value)>;
+
+/// An attribute of a built-in exception that CPython keeps in a slot of
+/// its own, not in the exception's `__dict__`.
+pub(crate) fn exception_field(name: &str) -> bool {
+    matches!(
+        name,
+        "args" | "name" | "path" | "msg" | "name_from" | "__cause__" | "__context__" | "__traceback__" | "__suppress_context__"
+            | "errno" | "strerror" | "filename" | "filename2" | "winerror" | "characters_written" | "encoding" | "object"
+            | "start" | "end" | "reason" | "value" | "code" | "obj" | "lineno" | "offset" | "text" | "end_lineno"
+            | "end_offset" | "print_file_and_line"
+    )
+}
+
+/// The names a class's own `__slots__` lists: a string is one name, a dict
+/// its keys, anything else its items; `__dict__` and `__weakref__` aside.
+pub(crate) fn class_slots(c: &Class) -> Vec<Rc<str>> {
+    slot_names(c).into_iter().filter(|n| !matches!(n.as_ref(), "__dict__" | "__weakref__")).collect()
+}
+
+/// Whether a class's instances have a `__dict__`, as CPython's do unless
+/// every class in the MRO gives `__slots__` without naming `__dict__`.
+pub(crate) fn instances_have_dict(c: &Rc<Class>) -> bool {
+    std::iter::once(c.clone())
+        .chain(c.mro_list())
+        .any(|k| !k.attrs.borrow().contains_key("__slots__") || slot_names(&k).iter().any(|n| n.as_ref() == "__dict__"))
+}
+
+fn slot_names(c: &Class) -> Vec<Rc<str>> {
+    let attrs = c.attrs.borrow();
+    let Some(slots) = attrs.get("__slots__") else { return Vec::new() };
+    let names: Vec<Rc<str>> = match slots {
+        Value::Str(s) => vec![s.clone()],
+        Value::Tuple(t) => t.iter().filter_map(|v| v.as_str().map(Rc::from)).collect(),
+        Value::List(l) => l.borrow().iter().filter_map(|v| v.as_str().map(Rc::from)).collect(),
+        Value::Dict(d) => d.borrow().keys().filter_map(|k| if let HKey::Str(s) = k { Some(s.clone()) } else { None }).collect(),
+        _ => Vec::new(),
+    };
+    names
+}
+

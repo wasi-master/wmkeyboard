@@ -10,7 +10,8 @@
 //! lazy builtins and `range`, `eval` and `exec`, deep recursion, star and
 //! `__future__` imports, `sys`, `collections.abc`, `contextlib`, `types`,
 //! `logging`, `warnings`, the small modules, verbose regexes, `str.format`
-//! fields, dict views, number parts and float sums, exception context, and `time`.
+//! fields, dict views, number parts and float sums, exception context, `time`,
+//! bytes `%` formatting, exception attributes and slot descriptors.
 
 mod common;
 use common::big_stack;
@@ -3470,6 +3471,94 @@ for bad in ((), (D,), (B, B)):
         errors.append(str(e))
 repr((GPt(v=3), GPt.__parameters__, str(GPt[int]).rsplit(".", 1)[-1], before, D.x, [k.__name__ for k in D.__mro__], isinstance(D(), B), issubclass(D, A), errors))"#),
         r#"(GPt(v=3), (~T,), 'GPt[int]', 'A', 'B', ['D', 'C', 'B', 'object'], True, False, ['can only assign non-empty tuple to C.__bases__, not ()', 'a __bases__ item causes an inheritance cycle', 'duplicate base class B'])"#
+    );
+}
+
+#[test]
+fn bytes_percent_formatting() {
+    assert_eq!(
+        py(r#"class B:
+    def __bytes__(self):
+        return b"BB"
+errors = []
+for bad in (lambda: b"%s" % "str", lambda: b"%c" % 300, lambda: b"%s %s" % (b"a",), lambda: "%b" % b"x"):
+    try:
+        bad()
+    except (TypeError, ValueError, OverflowError) as e:
+        errors.append((type(e).__name__, str(e)))
+repr((b"%s-%d" % (b"ab", 5), b"%5.2f|%x|%c|%c" % (3.14159, 255, 65, b"z"), b"%(a)s %(b)r" % {b"a": b"x", b"b": "q"},
+      b"%a" % "\xe9", b"[%s]" % B(), bytearray(b"%s") % b"k", b"%-4s|%04d" % (memoryview(b"a"), 7), errors))"#),
+        r#"(b'ab-5', b' 3.14|ff|A|z', b"x 'q'", b"'\\xe9'", b'[BB]', bytearray(b'k'), b'a   |0007', [('TypeError', "%b requires a bytes-like object, or an object that implements __bytes__, not 'str'"), ('OverflowError', '%c arg not in range(256)'), ('TypeError', 'not enough arguments for format string'), ('ValueError', "unsupported format character 'b' (0x62) at index 1")])"#
+    );
+}
+
+#[test]
+fn exceptions_take_attributes() {
+    assert_eq!(
+        py(r#"e = ImportError("x", name="m", path="/p")
+v = ValueError("v")
+v.extra = 5
+try:
+    raise v
+except ValueError as caught:
+    seen = (caught.extra, caught is v)
+v.args = ["p", "q"]
+k = KeyError("k")
+k.tag = 1
+del k.tag
+class Sub(ImportError):
+    def __init__(self, m):
+        super().__init__(m, name="z")
+errors = []
+for bad in (lambda: ImportError("a", bogus=1), lambda: ValueError("a", name="m")):
+    try:
+        bad()
+    except TypeError as err:
+        errors.append(str(err))
+repr(((e.args, e.name, e.path, e.msg), (ImportError("y").name, ImportError("y").path), seen, v.__dict__, (v.args, str(v)),
+      hasattr(k, "tag"), (Sub("q").name, Sub("q").msg), ModuleNotFoundError("m", name="mm").name, errors))"#),
+        r#"((('x',), 'm', '/p', 'x'), (None, None), (5, True), {'extra': 5}, (('p', 'q'), "('p', 'q')"), False, ('z', 'q'), 'mm', ["ImportError() got an unexpected keyword argument 'bogus'", 'ValueError() takes no keyword arguments'])"#
+    );
+}
+
+#[test]
+fn slot_names_are_member_descriptors() {
+    assert_eq!(
+        py(r#"import types, enum
+class S:
+    __slots__ = ("a", "b")
+class D:
+    pass
+class Auto(enum.auto):
+    pass
+class E(enum.Enum):
+    A = enum.auto()
+    B = enum.auto()
+s = S()
+s.a = 1
+repr((type(S.a) is types.MemberDescriptorType, repr(S.a), S.a.__get__(s, S), "a" in dir(s), "__dict__" in dir(s), "__dict__" in dir(D()),
+      issubclass(Auto, enum.auto), repr(enum.auto()), (E.A.value, E.B.value)))"#),
+        r#"(True, "<member 'a' of 'S' objects>", 1, True, False, True, True, 'auto(_auto_null)', (1, 2))"#
+    );
+}
+
+#[test]
+fn codec_errors_carry_their_fields() {
+    assert_eq!(
+        py(r#"import json
+try:
+    b"ab\xff".decode("utf-8")
+except UnicodeDecodeError as e:
+    dec = (e.encoding, e.object, e.start, e.end, e.reason)
+try:
+    "a\xe9".encode("ascii")
+except UnicodeEncodeError as e:
+    enc = (e.encoding, e.object, e.start, e.end, e.reason)
+d = {"a": 1, "b": 2}
+deep = "[" * 900 + "]" * 900
+repr((dec, enc, d.keys() <= {"a", "b", "c"}, d.keys() < {"a"}, d.items() >= {("a", 1)}, json.decoder.JSONDecodeError is json.JSONDecodeError,
+      len(json.dumps(json.loads(deep)))))"#),
+        r#"(('utf-8', b'ab\xff', 2, 3, 'invalid start byte'), ('ascii', 'aé', 1, 2, 'ordinal not in range(128)'), True, False, True, True, 1800)"#
     );
 }
 

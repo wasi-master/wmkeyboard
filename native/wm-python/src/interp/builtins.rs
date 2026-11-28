@@ -135,7 +135,8 @@ pub(crate) const PYTHON_BUILTINS: &[&str] =
 /// The builtins that take keyword arguments.
 pub(crate) const KWARG_BUILTINS: &[&str] = &[
     "sorted", "min", "max", "round", "property", "print", "enumerate", "dict", "sum", "int", "zip", "str", "bytes",
-    "complex", "__import__", "__base_init__", "__object_new__", "__json_encode__", "__json_decode__",
+    "complex", "__import__", "__base_init__", "__object_new__", "__json_encode__", "__json_decode__", "ImportError",
+    "ModuleNotFoundError",
 ];
 
 /// The special methods a numeric builtin asks an instance for.
@@ -175,9 +176,34 @@ impl Interp {
         if name.as_bytes().first().is_some_and(u8::is_ascii_uppercase) && EXCEPTION_KINDS.contains(&name) {
             // What str(e) gives, as CPython has it: nothing, the one argument
             // (a KeyError's in quotes), or the tuple of them all.
+            // `ImportError(msg, name=…, path=…)`, the only built-in exception with keywords.
+            let mut import_fields = Vec::new();
+            for (k, v) in kwargs {
+                if super::eval::exception_matches("ImportError", name) && matches!(k.as_ref(), "name" | "path") {
+                    import_fields.push((k.clone(), v.clone()));
+                } else if super::eval::exception_matches("ImportError", name) {
+                    return Err(self.error(format!("ImportError() got an unexpected keyword argument '{k}'"), "TypeError"));
+                } else {
+                    return Err(self.error(format!("{name}() takes no keyword arguments"), "TypeError"));
+                }
+            }
+            if !import_fields.is_empty() {
+                let made = self.call_builtin(name, args, &[])?;
+                if let Value::Exception(e) = &made {
+                    if let Value::Dict(d) = self.exception_store(e, "name") {
+                        for (k, v) in import_fields {
+                            d.borrow_mut().insert(HKey::Str(k), v);
+                        }
+                    }
+                }
+                return Ok(made);
+            }
             let os_error = super::eval::exception_matches("OSError", name) && (2..=5).contains(&args.len());
             if os_error {
                 return self.os_error(name, args);
+            }
+            if let Some(message) = codec_error_message(name, args) {
+                return Ok(Value::Exception(Rc::new(ExceptionValue { kind: name.to_string(), message, args: args.to_vec(), cause: None, context: None })));
             }
             let message = match args.len() {
                 0 => String::new(),
@@ -1210,7 +1236,7 @@ impl Interp {
                 let errors = args.get(2).and_then(Value::as_str).unwrap_or("strict");
                 match encode_with(s, enc, errors) {
                     Ok(b) => Ok(Value::bytes(&b)),
-                    Err(e) => Err(self.byte_error(e)),
+                    Err(e) => Err(self.codec_error(e, Value::Str(s.clone()))),
                 }
             }
             Value::Int(n) => {
@@ -1239,6 +1265,21 @@ impl Interp {
                 Ok(Value::bytes(&out))
             }
         }
+    }
+
+    /// [byte_error] for a decode or encode of [object]: the UnicodeDecodeError
+    /// (or UnicodeEncodeError) carries CPython's encoding, object, start, end
+    /// and reason, read back off its message.
+    pub(crate) fn codec_error(&mut self, e: ByteError, object: Value) -> Exc {
+        let (message, kind) = match &e {
+            ByteError::Decode(m) => (m.clone(), "UnicodeDecodeError"),
+            ByteError::Encode(m) => (m.clone(), "UnicodeEncodeError"),
+            _ => return self.byte_error(e),
+        };
+        let Some((encoding, start, end, reason)) = codec_error_parts(&message) else { return self.byte_error(e) };
+        let args = vec![Value::str(encoding), object, Value::Int(start), Value::Int(end), Value::str(reason)];
+        let ex = Rc::new(ExceptionValue { kind: kind.to_string(), message, args, cause: None, context: None });
+        self.raise_exception(ex, None)
     }
 
     pub(crate) fn byte_error(&self, e: ByteError) -> Exc {
@@ -1327,3 +1368,44 @@ pub(crate) fn to_radix(mut n: u64, radix: u32) -> String {
     }
     digits.iter().rev().collect()
 }
+
+/// (encoding, start, end, reason) from "'utf-8' codec can't decode byte 0xff
+/// in position 3: invalid start byte", or "... bytes in position 3-4: ...".
+pub(crate) fn codec_error_parts(message: &str) -> Option<(String, i64, i64, String)> {
+    let encoding = message.strip_prefix('\'')?.split('\'').next()?.to_string();
+    let (_, at) = message.split_once(" in position ")?;
+    let (span, reason) = at.split_once(": ")?;
+    let (start, end) = match span.split_once('-') {
+        Some((a, b)) => (a.parse().ok()?, b.parse::<i64>().ok()? + 1),
+        None => {
+            let a: i64 = span.parse().ok()?;
+            (a, a + 1)
+        }
+    };
+    Some((encoding, start, end, reason.to_string()))
+}
+
+/// The message CPython gives a UnicodeDecodeError (or Encode) made from its five arguments.
+pub(crate) fn codec_error_message(kind: &str, args: &[Value]) -> Option<String> {
+    let [Value::Str(encoding), object, Value::Int(start), Value::Int(end), Value::Str(reason)] = args else { return None };
+    let decode = kind == "UnicodeDecodeError";
+    let one = *end == *start + 1;
+    let what = match (decode, object) {
+        (true, Value::Bytes(b)) if one => format!("byte 0x{:02x}", b.get(*start as usize).copied().unwrap_or(0)),
+        (false, Value::Str(s)) if one => {
+            let c = s.chars().nth(*start as usize).unwrap_or('?');
+            let code = c as u32;
+            if code < 0x100 { format!("character '\\x{code:02x}'") } else if code < 0x10000 { format!("character '\\u{code:04x}'") } else { format!("character '\\U{code:08x}'") }
+        }
+        (true, _) => "byte".to_string(),
+        (false, _) => "character".to_string(),
+    };
+    let verb = if decode { "decode" } else { "encode" };
+    Some(if one {
+        format!("'{encoding}' codec can't {verb} {what} in position {start}: {reason}")
+    } else {
+        let noun = if decode { "bytes" } else { "characters" };
+        format!("'{encoding}' codec can't {verb} {noun} in position {start}-{}: {reason}", end - 1)
+    })
+}
+

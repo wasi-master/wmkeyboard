@@ -247,6 +247,10 @@ impl json::Host for JsonHost<'_> {
             _ => PyError::new("a JSON hook returned out of a loop", "RuntimeError"),
         })
     }
+
+    fn stack_room(&self) -> bool {
+        self.0.check_depth().is_ok()
+    }
 }
 
 /// What a compiled pattern answers to, as `pattern.search(text)`.
@@ -899,7 +903,7 @@ impl Interp {
                 };
                 match super::bytes::decode(b, encoding, "strict") {
                     Ok(text) => Ok(Rc::from(text)),
-                    Err(e) => Err(self.byte_error(e)),
+                    Err(e) => Err(self.codec_error(e, Value::Bytes(b.clone()))),
                 }
             }
             other => Err(self.error(format!("the JSON object must be str, bytes or bytearray, not {}", other.type_name()), "TypeError")),

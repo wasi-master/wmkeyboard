@@ -360,9 +360,10 @@ impl Interp {
                     let notes = match self.notes_of(e) {
                         Some(n) => n,
                         None => {
-                            self.exception_notes.retain(|(w, _)| w.strong_count() > 0);
                             let n = Value::list(Vec::new());
-                            self.exception_notes.push((Rc::downgrade(e), n.clone()));
+                            if let Value::Dict(d) = self.exception_dict(e) {
+                                d.borrow_mut().insert(HKey::Str(Rc::from("__notes__")), n.clone());
+                            }
                             n
                         }
                     };
@@ -834,7 +835,7 @@ impl Interp {
                 };
                 match encode_with(s, &enc, &errors) {
                     Ok(b) => Ok(Value::bytes(&b)),
-                    Err(e) => Err(self.byte_error(e)),
+                    Err(e) => Err(self.codec_error(e, Value::Str(s.clone()))),
                 }
             }
             _ => Err(self.error(format!("'str' object has no method '{name}'"), "AttributeError")),
@@ -1570,7 +1571,7 @@ impl Interp {
                 };
                 match decode(b, &enc, &errors) {
                     Ok(s) => Ok(Value::str(s)),
-                    Err(e) => Err(self.byte_error(e)),
+                    Err(e) => Err(self.codec_error(e, Value::bytes(b))),
                 }
             }
             "join" => {
