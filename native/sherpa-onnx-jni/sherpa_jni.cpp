@@ -228,6 +228,24 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeStreamFree(J
     if (s) SherpaOnnxDestroyOnlineStream(stream(s));
 }
 
+// Sets one of a stream's options before it is fed: "language" for a
+// multilingual Nemotron model ("ja", "pt-BR", or "auto"), which a model
+// without language prompts ignores. Key and value are UTF-8.
+JNIEXPORT void JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeStreamOption(
+    JNIEnv* env, jclass, jlong s, jbyteArray key, jbyteArray value) {
+    if (!s || !key || !value) return;
+    auto read = [env](jbyteArray b) {
+        const jsize n = env->GetArrayLength(b);
+        std::string out(static_cast<size_t>(n), '\0');
+        if (n > 0) env->GetByteArrayRegion(b, 0, n, reinterpret_cast<jbyte*>(&out[0]));
+        return out;
+    };
+    const std::string k = read(key), v = read(value);
+    if (k.empty()) return;
+    SherpaOnnxOnlineStreamSetOption(stream(s), k.c_str(), v.c_str());
+}
+
 // Feeds n samples (16 kHz, [-1, 1]) and decodes every frame they complete.
 JNIEXPORT void JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeFeed(

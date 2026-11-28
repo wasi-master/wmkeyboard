@@ -26,7 +26,9 @@ endif()
 # token classifiers (tagger_jni.cpp) that punctuate dictation, and FireRedVAD
 # and Smart Turn (vad_jni.cpp, smart_turn_jni.cpp), which hear a phrase end.
 # Qwen3-ASR (qwen3_jni.cpp) goes through sherpa-onnx's offline recognizer,
-# with a probe on plain ONNX Runtime for the models users bring (#1437).
+# with a probe on plain ONNX Runtime for the models users bring (#1437), and
+# so do Offline Sherpa's phrase-at-a-time models (offline_jni.cpp): Dolphin,
+# Moonshine's other languages, SenseVoice, CTC models and offline transducers.
 # Speech enhancement is always built: dpdfnet_jni.cpp drives its streaming
 # denoiser.
 set(BUILD_SHARED_LIBS                      OFF CACHE BOOL "" FORCE)
@@ -79,7 +81,7 @@ if (WMSHERPA_QNN)
 endif()
 
 add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp kokoro_jni.cpp omnilingual_jni.cpp dpdfnet_jni.cpp
-    tagger_jni.cpp vad_jni.cpp smart_turn_jni.cpp qwen3_jni.cpp)
+    tagger_jni.cpp vad_jni.cpp smart_turn_jni.cpp qwen3_jni.cpp offline_jni.cpp)
 target_include_directories(wmsherpa PRIVATE "${SHERPA_SRC}" "$ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}"
     "${kaldi_native_fbank_SOURCE_DIR}")
 target_link_libraries(wmsherpa PRIVATE sherpa-onnx-c-api kaldi-native-fbank-core log)

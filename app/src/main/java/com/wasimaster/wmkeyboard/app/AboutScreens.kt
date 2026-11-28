@@ -1030,6 +1030,89 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/facebookresearch/omnilingual-asr",
             ),
         )
+        // Offline Sherpa's models beyond k2-fsa's own Zipformers, each
+        // downloaded on request under its own licence.
+        add(
+            Attribution(
+                "Nemotron 3.5 ASR Streaming",
+                R.string.about_bundled_nemotron_used,
+                "Copyright (c) NVIDIA Corporation; ONNX conversion by the k2-fsa project",
+                "OpenMDW-1.1", "openmdw-1.1.txt",
+                "https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b",
+            ),
+        )
+        add(
+            Attribution(
+                "Addis Scribe Streaming",
+                R.string.about_bundled_addis_scribe_used,
+                "Addis AI, on NVIDIA's Nemotron 3.5 ASR",
+                "OpenMDW-1.1", "openmdw-1.1.txt",
+                "https://huggingface.co/addisai/addis-scribe-streaming",
+            ),
+        )
+        add(
+            Attribution(
+                "Typhoon ASR Streaming",
+                R.string.about_bundled_typhoon_used,
+                "SCB 10X (Typhoon), on NVIDIA's Nemotron; ONNX conversion by ohmeet-com",
+                "OpenMDW-1.1", "openmdw-1.1.txt",
+                "https://huggingface.co/typhoon-ai/typhoon-asr-streaming-nemotron-0.6b",
+            ),
+        )
+        add(
+            Attribution(
+                "Nemotron ASR Streaming Farsi",
+                R.string.about_bundled_nemotron_farsi_used,
+                "mehdi-hf, on NVIDIA's Nemotron; ONNX conversion by mentisialog",
+                "OpenMDW-1.1", "openmdw-1.1.txt",
+                "https://huggingface.co/mehdi-hf/nemotron-asr-streaming-farsi",
+            ),
+        )
+        add(
+            Attribution(
+                "Dolphin",
+                R.string.about_bundled_dolphin_used,
+                "DataoceanAI and Tsinghua University; ONNX conversion by the k2-fsa project",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/DataoceanAI/Dolphin",
+            ),
+        )
+        add(
+            Attribution(
+                "SenseVoice",
+                R.string.about_bundled_sense_voice_used,
+                "Copyright (C) 2023-2028 Alibaba Group; ONNX conversion by the k2-fsa project",
+                "FunASR Model Open Source License 1.1", "funasr-model-license.txt",
+                "https://github.com/FunAudioLLM/SenseVoice",
+            ),
+        )
+        add(
+            Attribution(
+                "WenetSpeech-Yue U2++ Conformer",
+                R.string.about_bundled_wenetspeech_yue_used,
+                "The WenetSpeech-Yue authors (ASLP@NWPU); ONNX conversion by the k2-fsa project",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/ASLP-lab/WenetSpeech-Yue",
+            ),
+        )
+        add(
+            Attribution(
+                "GigaAM Uzbek",
+                R.string.about_bundled_gigaam_uzbek_used,
+                "rustam1221, on SberDevices' GigaAM-Multilingual; ONNX conversion by Alex13",
+                "MIT", "mit-gigaam-uzbek.txt",
+                "https://huggingface.co/rustam1221/uzbek-asr-gigaam",
+            ),
+        )
+        add(
+            Attribution(
+                "Moonshine (languages other than English)",
+                R.string.about_bundled_moonshine_languages_used,
+                "Copyright (c) 2025 Useful Sensors, Inc. (dba Moonshine AI); conversion by the k2-fsa project",
+                "Moonshine AI Community License", "moonshine-community-license.txt",
+                "https://github.com/moonshine-ai/moonshine",
+            ),
+        )
         add(
             Attribution(
                 "Qwen3-ASR",

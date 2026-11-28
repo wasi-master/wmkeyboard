@@ -261,6 +261,16 @@
     <string name="about_bundled_vosk_library_used">Offline Vosk\'s speech recognition library, downloaded from Maven Central when you pick it, and the models it downloads from alphacephei.com on request</string>
     <string name="about_bundled_kaldi_used">Built into the Vosk library: the speech recognition toolkit and the transducer library its models run on</string>
     <string name="about_bundled_qwen3_asr_used">Offline Qwen3-ASR\'s speech recognition model for 30 languages, downloaded on request</string>
+    <!-- Model names (Nemotron, Addis Scribe, Typhoon, Dolphin, SenseVoice, WenetSpeech-Yue, GigaAM, Moonshine) are not translated. -->
+    <string name="about_bundled_nemotron_used">Offline Sherpa\'s streaming speech recognition model for 28 languages, downloaded on request</string>
+    <string name="about_bundled_addis_scribe_used">Offline Sherpa\'s Amharic model, downloaded on request</string>
+    <string name="about_bundled_typhoon_used">Offline Sherpa\'s Thai model, downloaded on request</string>
+    <string name="about_bundled_nemotron_farsi_used">Offline Sherpa\'s Persian model, downloaded on request</string>
+    <string name="about_bundled_dolphin_used">Offline Sherpa\'s models for 40 Asian and Middle Eastern languages, downloaded on request</string>
+    <string name="about_bundled_sense_voice_used">Offline Sherpa\'s model for Chinese, English, Japanese, Korean and Cantonese, downloaded on request</string>
+    <string name="about_bundled_wenetspeech_yue_used">Offline Sherpa\'s Cantonese model, downloaded on request</string>
+    <string name="about_bundled_gigaam_uzbek_used">Offline Sherpa\'s Uzbek model, downloaded on request</string>
+    <string name="about_bundled_moonshine_languages_used">Offline Sherpa\'s Moonshine models for Arabic, Chinese, Japanese, Korean, Spanish, Ukrainian and Vietnamese, downloaded on request; free for personal use, not for every commercial use</string>
     <string name="about_bundled_omnilingual_used">Offline Omnilingual\'s speech recognition model for 1,600 languages, downloaded on request</string>
     <string name="about_bundled_opus_used">Compresses voice recordings before they are sent to a transcription server</string>
     <string name="about_bundled_rnnoise_used">Reduce background noise at Light, in front of the offline voice engines</string>

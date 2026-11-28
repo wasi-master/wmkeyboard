@@ -41578,7 +41578,8 @@ open class WMKeyboardService : InputMethodService() {
             conservative = settings.whisper.smartTurnConservative, graceMs = settings.whisper.vadGraceMs,
         )
         return when (model.engine) {
-            EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
+            // Nemotron and SenseVoice are told the language (SherpaLanguages.tagFor).
+            EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad, voiceLanguageIds())
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), vad)
             // Told the language when there is one, and the words to listen for (#1437).
             EtEngine.QWEN3 -> Qwen3AsrEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), words, vad)

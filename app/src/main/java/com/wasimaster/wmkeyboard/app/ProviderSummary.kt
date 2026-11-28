@@ -38,7 +38,7 @@ import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
-import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
@@ -344,7 +344,7 @@ internal fun whisperFacts(modelId: String, states: Map<String, WhisperDownloadMa
 internal fun etFacts(engine: EtEngine, states: Map<String, EtDownloadManager.Status>): ProviderFacts {
     val models = EtCatalog.forEngine(engine).filterNot { it.punctuation }
     val onPhone = models.filter { states[it.id] == EtDownloadManager.Status.Downloaded }
-    onPhone.maxWithOrNull(EtModel.ORDER)?.let { best ->
+    EtStore.pick(onPhone, emptyList())?.let { best ->
         return ProviderFacts.Model(best.label, best.bytes, ModelState.Ready, others = onPhone.size - 1)
     }
     models.firstNotNullOfOrNull { model ->

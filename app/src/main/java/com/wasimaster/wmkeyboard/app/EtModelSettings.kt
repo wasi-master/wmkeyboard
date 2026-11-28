@@ -33,6 +33,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager.Status
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 
 /** Downloads above this size ask before using mobile data. */
 private const val ET_METERED_CONFIRM_BYTES = 150_000_000L
@@ -73,14 +74,10 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
 
     // Read from the states, so the mark moves the moment a download lands.
     // A model is in use unless a bigger one on the device covers all its
-    // languages; for the single-language engines that leaves the largest.
+    // languages, and a fine-tune for a language takes it over from a general
+    // model (EtStore.pick); for the single-language engines that leaves the largest.
     val downloaded = models.filter { !it.punctuation && states[it.id] is Status.Downloaded }
-    val inUse = downloaded.filter { model ->
-        val languages = model.languages ?: model.engine.languages
-        downloaded.none { other ->
-            other !== model && other.outranks(model) && languages.all(other::supports)
-        }
-    }.toSet()
+    val inUse = downloaded.filter { EtStore.inUse(it, downloaded) }.toSet()
 
     // The runtime itself is an on-demand part off the APK: ONNX Runtime for
     // Sherpa, Omnilingual and Qwen3-ASR, Vosk's own library for Vosk (#1165), ExecuTorch
@@ -147,7 +144,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                             )
                             is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(status.bytes))
                             else -> stringResource(R.string.voice_et_model_missing, formatBytes(model.bytes))
-                        },
+                        } + if (model.nonCommercial) "\n" + stringResource(R.string.voice_et_model_noncommercial) else "",
                         swipeActions = if (status == Status.Downloaded) {
                             listOf(
                                 deleteSwipeAction(stringResource(R.string.models_delete_model_desc, title)) {

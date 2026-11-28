@@ -26,6 +26,15 @@ into the decoder's prompt. sherpa-onnx exits on graphs of the wrong shape,
 so `nativeQwen3Probe` opens a model the user brings with plain ONNX Runtime
 first and makes the same checks.
 
+Offline Sherpa's phrase-at-a-time models go through the same offline
+recognizer (`offline_jni.cpp`, driven by `SherpaEngine`): Dolphin, Moonshine's
+other languages, SenseVoice, Zipformer, WeNet and NeMo CTC models, and
+offline transducers, one `nativeOffline` call with the family as a number.
+Only models the app pins by SHA-256 reach it, since sherpa-onnx exits on a
+file it cannot read. Streaming models take per-stream options through
+`nativeStreamOption` (`sherpa_jni.cpp`): a multilingual Nemotron model is
+told the language there.
+
 The same library reads text aloud with Meta's MMS-TTS voices
 (`vits_jni.cpp`, driven by `core.voice.speech.MmsSpeech`). That part is not
 sherpa-onnx: it runs the VITS network through ONNX Runtime's C++ API. An MMS

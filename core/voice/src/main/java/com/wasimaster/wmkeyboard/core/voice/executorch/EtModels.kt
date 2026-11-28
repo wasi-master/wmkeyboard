@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.voice.executorch
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualLanguages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.Qwen3Languages
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaLanguages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaQnnNative
 import com.wasimaster.wmkeyboard.core.voice.vosk.VoskNative
@@ -33,14 +34,14 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
     MOONSHINE("moonshine", "moonshine", setOf("en")),
 
     /**
-     * Sherpa: k2-fsa's sherpa-onnx running streaming Zipformer transducers,
-     * one model per language (one covers eight), decoded while the user
-     * speaks, with Silero to hear the end of a phrase.
+     * Sherpa: k2-fsa's sherpa-onnx. Streaming transducers (Zipformers, one
+     * per language or a few, and NVIDIA's Nemotron for 28 languages at once),
+     * decoded while the user speaks, with Silero to hear the end of a phrase;
+     * and models decoded a phrase at a time ([SherpaKind]: Dolphin's 40
+     * Eastern languages, Moonshine's other languages, SenseVoice and a few
+     * single-language ones), with Silero cutting the phrases.
      */
-    SHERPA(
-        "sherpa", "sherpa",
-        setOf("en", "bn", "ru", "ko", "fr", "de", "es", "zh", "ar", "id", "ja", "th", "vi"),
-    ),
+    SHERPA("sherpa", "sherpa", SherpaLanguages.codes),
 
     /**
      * Meta's Omnilingual ASR, 300M CTC, on the same sherpa-onnx runtime: one
@@ -118,6 +119,36 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
     companion object {
         fun byId(id: String): EtEngine? = entries.firstOrNull { it.id == id }
     }
+}
+
+/**
+ * How sherpa-onnx runs a Sherpa model. [STREAMING] decodes while the user
+ * speaks (a transducer, or a Paraformer when there is no joiner); the others
+ * are its offline families, each phrase decoded whole once Silero hears the
+ * pause after it. [native] is the family's number for [SherpaNative.nativeOffline].
+ */
+enum class SherpaKind(val native: Int) {
+    STREAMING(-1),
+
+    /** DataoceanAI's Dolphin: model.int8.onnx. */
+    DOLPHIN(SherpaNative.OFFLINE_DOLPHIN),
+
+    /** Moonshine v2: encoder_model.ort and decoder_model_merged.ort. */
+    MOONSHINE(SherpaNative.OFFLINE_MOONSHINE),
+
+    /** SenseVoice: one model, told the language. */
+    SENSE_VOICE(SherpaNative.OFFLINE_SENSE_VOICE),
+    ZIPFORMER_CTC(SherpaNative.OFFLINE_ZIPFORMER_CTC),
+    WENET_CTC(SherpaNative.OFFLINE_WENET_CTC),
+
+    /** NeMo CTC, GigaAM among them. */
+    NEMO_CTC(SherpaNative.OFFLINE_NEMO_CTC),
+
+    /** An offline transducer: encoder, decoder and joiner. */
+    TRANSDUCER(SherpaNative.OFFLINE_TRANSDUCER),
+    ;
+
+    val offline: Boolean get() = this != STREAMING
 }
 
 /** A Hugging Face repo at a pinned revision. */
@@ -214,6 +245,30 @@ class EtModel(
      * every other model. See [EtNpuCatalog].
      */
     val etNpu: String? = null,
+    /**
+     * For a Sherpa model, how sherpa-onnx runs it: a streaming model, or one
+     * of the offline families it decodes a phrase at a time. Every other
+     * engine ignores it.
+     */
+    val sherpaKind: SherpaKind = SherpaKind.STREAMING,
+    /**
+     * For a model told the language of each dictation (Nemotron 3.5's
+     * prompts, SenseVoice): keyboard base code to the model's own tag
+     * ([SherpaLanguages.tagFor]). Null for a model that takes none.
+     */
+    val languageTags: Map<String, String>? = null,
+    /**
+     * A model fine-tuned for its [languages]: used for them over any general
+     * model on the device, whatever the sizes, since a fine-tune of a small
+     * model beats a large one that was never trained hard on the language.
+     */
+    val specialist: Boolean = false,
+    /**
+     * Weights under a licence that allows personal use but not every
+     * commercial one (Moonshine's Community License for its languages other
+     * than English): the model's row says so before it is downloaded.
+     */
+    val nonCommercial: Boolean = false,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
 
@@ -393,6 +448,47 @@ object EtCatalog {
         "vosk-$dirName", EtEngine.VOSK, dirName, label, rank, "alphacephei.com/vosk/models", name,
         listOf(EtFile("$name.zip", bytes, sha256, url = "$VOSK_MODELS/$name.zip", archive = true)),
         languages = setOf(language),
+    )
+
+    /** Where Addis AI keeps its sherpa-onnx export of the Amharic model, 320 ms chunk, int8. */
+    private const val ADDIS_AM_ONNX = "xbec3714bf3b2/asr/onnx/320ms/int8"
+
+    /** The tokens.txt every Moonshine language model but the Spanish one shares. */
+    private val MOONSHINE_TOKENS = EtFile("tokens.txt", 549_350L, "2870d843e14c1e187bf1913a521562a63b53933814bd7f2145120468f494a049")
+
+    /**
+     * One of Moonshine's models for a language other than English, from k2-fsa's
+     * `sherpa-onnx-moonshine-<size>-<code>-quantized-2026-02-27` at [revision]:
+     * its encoder and merged decoder in ONNX Runtime's own format, decoded by
+     * Sherpa a phrase at a time. [nonCommercial], since the Moonshine AI
+     * Community License is not an open-source one.
+     */
+    @Suppress("detekt.LongParameterList")
+    private fun moonshineLanguage(
+        code: String,
+        name: String,
+        size: String,
+        millions: Int,
+        revision: String,
+        encoderBytes: Long,
+        encoderSha: String,
+        decoderBytes: Long,
+        decoderSha: String,
+        tokens: EtFile = MOONSHINE_TOKENS,
+    ) = EtModel(
+        "sherpa-moonshine-$size-$code", EtEngine.SHERPA, "moonshine-$size-$code",
+        "Moonshine ${size.replaceFirstChar(Char::uppercaseChar)} $name", millions,
+        "csukuangfj2/sherpa-onnx-moonshine-$size-$code-quantized-2026-02-27", revision,
+        listOf(
+            tokens,
+            SILERO_VAD,
+            EtFile("encoder_model.ort", encoderBytes, encoderSha),
+            EtFile("decoder_model_merged.ort", decoderBytes, decoderSha),
+        ),
+        languages = setOf(code),
+        writesPunctuation = true,
+        sherpaKind = SherpaKind.MOONSHINE,
+        nonCommercial = true,
     )
 
     private const val ASR4ALL_PTE = "executorch/xnnpack_int8/asr_encoder.pte"
@@ -763,6 +859,189 @@ object EtCatalog {
             languages = setOf("ar", "en", "id", "ja", "ru", "th", "vi", "zh"),
             writesPunctuation = true,
         ),
+        // NVIDIA's Nemotron 3.5 ASR Streaming 0.6B (OpenMDW-1.1), int8,
+        // exported for sherpa-onnx by k2-fsa at the 560 ms chunk: 28 keyboard
+        // languages in one streaming model, told which one by a prompt, with
+        // punctuation and capitals of its own.
+        EtModel(
+            "sherpa-nemotron", EtEngine.SHERPA, "nemotron-3.5", "Nemotron 3.5 ASR Streaming 0.6B", 600,
+            "csukuangfj2/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11",
+            "ab43d895f5985b1bbab8b6eac8607fcdc05343f3",
+            listOf(
+                EtFile("tokens.txt", 131_440L, "729cc103155bafa785f9cd45746cd41cabe97eab7182fc04d594129587958f8a"),
+                EtFile("joiner.int8.onnx", 9_504_438L, "4101c7c679a0bc30483794b27a059e34e79232aa2068d78d51231a22c8b0d7ce"),
+                EtFile("decoder.int8.onnx", 14_978_075L, "19f9c98fc6d0a2c33a65a43b36fdb2e914c26c0aa9764be3aebc502a1e982fb0"),
+                SILERO_VAD,
+                EtFile("encoder.int8.onnx", 657_601_403L, "012e9321373af99021415e0b0eb3ec827b4be3153be6f30d9b448fe65e896e68"),
+            ),
+            languages = SherpaLanguages.NEMOTRON.keys,
+            writesPunctuation = true,
+            languageTags = SherpaLanguages.NEMOTRON,
+        ),
+        // SCB 10X's Typhoon ASR Streaming, NVIDIA's English Nemotron
+        // fine-tuned for Thai (OpenMDW-1.1), int8, exported for sherpa-onnx by
+        // ohmeet-com at the 560 ms chunk.
+        EtModel(
+            "sherpa-th-typhoon", EtEngine.SHERPA, "th-typhoon", "Typhoon ASR Thai Streaming", 600,
+            "ohmeet-com/typhoon-asr-streaming-nemotron-0.6b-sherpa-onnx-560ms-int8",
+            "e25c2ea82cd1c87e610c243d62a2786811ae00e8",
+            listOf(
+                EtFile("tokens.txt", 169_681L, "70300c69129e0e67469d25fd8c39a486f342439be3a56eb62f656c32a26e21c4"),
+                EtFile("joiner.int8.onnx", 10_823_352L, "969393fcebe70a41cab9606388d5ec28733a05cf6ee6456573e267a5c26577e9"),
+                EtFile("decoder.int8.onnx", 16_288_794L, "2cb9826010b98d99adc201eb69646c12bc0f6020a53ab3b70e9335ed2262da78"),
+                SILERO_VAD,
+                EtFile("encoder.int8.onnx", 657_573_660L, "b4289839619253d60b758105fa1e38025829c80439a41019ee396f65651b3717"),
+            ),
+            languages = setOf("th"),
+            writesPunctuation = true,
+            specialist = true,
+        ),
+        // NVIDIA's English Nemotron fine-tuned for Farsi by mehdi-hf
+        // (OpenMDW-1.1), int8, exported for sherpa-onnx by mentisialog at the
+        // 1,120 ms chunk. Bare words: the punctuation model adds the marks.
+        EtModel(
+            "sherpa-fa-nemotron", EtEngine.SHERPA, "fa-nemotron", "Nemotron Farsi Streaming", 600,
+            "mentisialog/sherpa-onnx-nemotron-asr-streaming-farsi-1120ms-int8",
+            "773e3d8f6ce043100a5dff6083271aa7811299bd",
+            listOf(
+                EtFile("tokens.txt", 15_037L, "7ace7d33f3784d50f9a46156cce7c411f39faab64b43df17bd5796abc56a3057"),
+                EtFile("joiner.int8.onnx", 1_735_861L, "e5e365bd22a7f678899674ecad00a9fae23323973de73b508e54ea79eb56b3cc"),
+                EtFile("decoder.int8.onnx", 7_257_753L, "548a4763366e3ba4ba5272f3d68465425f5c62b207922ee2d617be920a921b06"),
+                SILERO_VAD,
+                EtFile("encoder.int8.onnx", 657_573_705L, "13c1d630f1c82a3534c76ff36a38b4823bdc2413254d5cf7489927b000d57aa2"),
+            ),
+            languages = setOf("fa"),
+            specialist = true,
+        ),
+        // Addis AI's Addis Scribe Streaming for Amharic, Nemotron 3.5 trained on
+        // 5,000 hours of Amharic (OpenMDW-1.1), int8 at the 320 ms chunk, as
+        // Addis AI exported it for sherpa-onnx: its prompt (am-ET) is the
+        // model's default, so it is told nothing. Bare words; the encoder's
+        // weights sit in encoder.onnx.data beside it, which has to come after
+        // encoder.onnx here (the engine takes the first encoder file).
+        EtModel(
+            "sherpa-am-addis", EtEngine.SHERPA, "am-addis", "Addis Scribe Streaming Amharic", 600,
+            "addisai/addis-scribe-streaming",
+            "1acb8b93c58155709c5831523432a1cb2a0e0ac6",
+            listOf(
+                EtFile("$ADDIS_AM_ONNX/tokens.txt", 25_807L, "2b673612995f890122f5e2ca237a91d87ff4038db643a1fcbe971d81b44c16c7"),
+                EtFile("$ADDIS_AM_ONNX/joiner.onnx", 2_395_318L, "ed19f12dcac0bee2e7e454e3ee495a5b931d291dd89a0d5ca37a52913a8d670a"),
+                EtFile("$ADDIS_AM_ONNX/decoder.onnx", 7_913_112L, "92bbe2fc616b562914b8f03d90b0cfeb76b937cfd967af9feb442584d848bb53"),
+                SILERO_VAD,
+                EtFile("$ADDIS_AM_ONNX/encoder.onnx", 2_036_663L, "7b6f5ae89d3f89c5e2d9a6e4b64abf42b5f66b5bd02aea5564b9eb00f9a47966"),
+                EtFile("$ADDIS_AM_ONNX/encoder.onnx.data", 655_605_504L, "50038e6420fe9071ff444c88c2960562e1d52481fc032955f8e158e02e95c0f6"),
+            ),
+            languages = setOf("am"),
+            specialist = true,
+        ),
+        // The models below are not streaming ones: Silero cuts the audio at
+        // each pause and the phrase before it is decoded whole ([SherpaKind]).
+        // DataoceanAI's Dolphin (Apache-2.0), CTC, int8, exported by k2-fsa:
+        // 40 Eastern languages and 22 Chinese dialects, punctuated.
+        EtModel(
+            "sherpa-dolphin-base", EtEngine.SHERPA, "dolphin-base", "Dolphin Base", 140,
+            "csukuangfj/sherpa-onnx-dolphin-base-ctc-multi-lang-int8-2025-04-02",
+            "1f3a53d0ecf658f8b0974e2cfde368eee40732fa",
+            listOf(
+                EtFile("tokens.txt", 504_662L, "c3788261a51df1899ea4b210b552cd42139204de72c0ad60f6cebb199078872e"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 103_729_802L, "a3aa46c97f3f60f135ff949793cb05fabe7a0b3c484dc2e3cc699d354ee11b76"),
+            ),
+            languages = SherpaLanguages.DOLPHIN,
+            writesPunctuation = true,
+            sherpaKind = SherpaKind.DOLPHIN,
+        ),
+        EtModel(
+            "sherpa-dolphin-small", EtEngine.SHERPA, "dolphin-small", "Dolphin Small", 372,
+            "csukuangfj/sherpa-onnx-dolphin-small-ctc-multi-lang-int8-2025-04-02",
+            "c8b6689509acfcd744c04e5e169164f9ac4cae32",
+            listOf(
+                EtFile("tokens.txt", 504_662L, "c3788261a51df1899ea4b210b552cd42139204de72c0ad60f6cebb199078872e"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 249_658_954L, "c1afcb9265de0ebd853eb8f570b371f399a6f9b2b9af9a3cb17c2e509171e697"),
+            ),
+            languages = SherpaLanguages.DOLPHIN,
+            writesPunctuation = true,
+            sherpaKind = SherpaKind.DOLPHIN,
+        ),
+        // Alibaba's SenseVoice Small (FunASR model licence, free to use with
+        // attribution), int8, exported by k2-fsa: Chinese, English, Japanese,
+        // Korean and Cantonese, punctuated through its own text normalisation.
+        EtModel(
+            "sherpa-sense-voice", EtEngine.SHERPA, "sense-voice", "SenseVoice Small", 234,
+            "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09",
+            "355f4d4884d8afd08aef04b9007a8556d7b463b2",
+            listOf(
+                EtFile("tokens.txt", 315_894L, "f449eb28dc567533d7fa59be34e2abca8784f771850c78a47fb731a31429a1dc"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 237_115_547L, "12ca1a2ae7ecf3e0019ef2822307ee0b5cadc9196569e379b4c4026f8205276d"),
+            ),
+            languages = SherpaLanguages.SENSE_VOICE.keys,
+            writesPunctuation = true,
+            sherpaKind = SherpaKind.SENSE_VOICE,
+            languageTags = SherpaLanguages.SENSE_VOICE,
+        ),
+        // WenetSpeech-Yue's U2++ Conformer for Cantonese (Apache-2.0), CTC,
+        // int8, exported by k2-fsa. Bare characters.
+        EtModel(
+            "sherpa-yue-wenet", EtEngine.SHERPA, "yue-wenet", "WenetSpeech-Yue Cantonese", 120,
+            "csukuangfj/sherpa-onnx-wenetspeech-yue-u2pp-conformer-ctc-zh-en-cantonese-int8-2025-09-10",
+            "c911764e8227cf372ee60adc75f7f407e5b8c905",
+            listOf(
+                EtFile("tokens.txt", 85_361L, "c7750677a1183606d2fd6f16d792e06e70d9843dba8a0c6e23a9dec78e06977a"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 134_698_500L, "201bfd9e12ec4ac9ee3b23c5e071d9fa2381a8b21df317e2e08a170d6f1f55d3"),
+            ),
+            languages = setOf("yue"),
+            sherpaKind = SherpaKind.WENET_CTC,
+            specialist = true,
+        ),
+        // GigaAM-Multilingual large fine-tuned for Uzbek by rustam1221 (MIT),
+        // NeMo CTC, int8, exported by Alex13: 13.3% WER on FLEURS, lower case
+        // with punctuation.
+        EtModel(
+            "sherpa-uz-gigaam", EtEngine.SHERPA, "uz-gigaam", "GigaAM Uzbek 600M", 600,
+            "Alex13/sherpa-onnx-gigaam-uzbek-600m",
+            "b53434a0b06418831dbc1cec73d6b851054f593d",
+            listOf(
+                EtFile("tokens.txt", 411L, "2022129a0c61784d4a1838da59e5875f9b29d2c6ad12413cbedc98632f98710f"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 591_649_160L, "8bff17ef8d7da04369a559b99b71c1155a90fc604d35d84c6d4e44159c1b0873"),
+            ),
+            languages = setOf("uz"),
+            writesPunctuation = true,
+            sherpaKind = SherpaKind.NEMO_CTC,
+            specialist = true,
+        ),
+        // Moonshine's models for languages other than English, quantised and
+        // converted for sherpa-onnx by k2-fsa. The Moonshine AI Community
+        // License covers them: free for personal and research use and for
+        // organisations under US $1 million a year in revenue.
+        moonshineLanguage("ar", "Arabic", "base", 61, "00c1062f1b70e4da96658486f4fd79552d8bc22b",
+            31_326_824L, "68e50ebe0317ce909f098044a5dda2a76e6b86dc882829a317771fbafc5826ae",
+            109_424_552L, "8f272cb50818e28ad86bbffc21e1450a4d57155e95f099ca6a236f38f4d9eafb"),
+        moonshineLanguage("es", "Spanish", "base", 61, "59e235a505b7372eb7f896471a74c776f6f6e061",
+            20_964_320L, "331aafa2fc7f7e55ba28376eef08eaf919ae105bb719cd64ba6875505dca72b3",
+            43_612_200L, "8e6513ad66a3a71ca86824746a09051eeb60468940eaf8201ce758e8919e2b5d",
+            tokens = EtFile("tokens.txt", 532_090L, "c6e35883ba038f70ceea8b4a21cf79742adbda7e6730cbff27460857e0667a02")),
+        moonshineLanguage("ja", "Japanese", "base", 61, "cf95fc9c3a55a240892c80c501e80b35603d20bc",
+            31_326_816L, "3230cafb84d5f08800e60de6f932aad7c69c649a37fa6997fe04fe25f808b56b",
+            109_424_424L, "35a522052d2d8695d0dd2870666f088d633111e08cfbed0418f61c4122b4ba25"),
+        moonshineLanguage("zh", "Chinese", "base", 61, "19042e30b8680b101d0db3b0b8cabc84ae954b7f",
+            31_326_816L, "c725a24b58595905921ea2a47e2bcf0f18c78f4d171d96136f2dcbc8c77a58a6",
+            109_424_520L, "bf79fce626e123739ec37eceb2b2a010a93d720da266dd5d8ef9a47ef9a7dc36"),
+        moonshineLanguage("uk", "Ukrainian", "base", 61, "336649c4c1cd81d066c586163381fe8bb65d9145",
+            31_326_816L, "ea37ff7a2c308b566def1fd6e6860e23db4968590f192d5cc0fbc494666e30f9",
+            109_424_424L, "2c0c1ebc20ba75a21ff5315fd039e53d2fc9ba77a9ca9ad3bc4c7c1c1de93cbc"),
+        moonshineLanguage("vi", "Vietnamese", "base", 61, "2946c5272fcb2d92f5cd99edb6e828c66be94f2e",
+            31_326_816L, "5a63cf0e248ef463776fbad50784813b4185eb73136f1fb062c5722e667130dc",
+            109_424_520L, "0a4f007e9d585348d94124d8de47f7aefbc3e2d3fa44152646af7b94c639770d"),
+        moonshineLanguage("ja", "Japanese", "tiny", 27, "550e2eb0a8b33092f3b394f64649ee1b3d9eb506",
+            13_238_184L, "86ece73812604b9b5f1274b4d1e6eec0d783b96088ff46d49e30a53f881cad73",
+            58_327_272L, "9fcd9b71323a496b307e20dd305c4e9a1b533c7bedd6e4f660e974967dd60bb6"),
+        moonshineLanguage("ko", "Korean", "tiny", 27, "3f2e79d6fe04ae0009fcb150a035586c12ac742f",
+            13_238_176L, "947260d46252f48eada86a34986b3f70c01d68a343959949a77375b94debd055",
+            58_327_336L, "95aa9f2e764b80625d2889d6ec9f05c965808e540ac50c16abd10c7ea33fe44b"),
         // The sherpa-onnx project's online punctuation model for English:
         // punctuation and capitals in one pass. Not on k2-fsa's own Hugging
         // Face; this copy is the same bytes as their GitHub release, pinned by
@@ -788,6 +1067,19 @@ object EtCatalog {
                 EtFile("tokens.txt", 86_423L, "a7a044c52cb29cbe8b0dc1953e92cefd4ca16b0ed968177b6beab21f9a7d0b31"),
                 SILERO_VAD,
                 EtFile("model.int8.onnx", 365_352_120L, "e7c4e54ee4c4c47829cc6667d5d00ed8ea7bef1dcfeef0fce766f77752a2726c"),
+            ),
+        ),
+        // The 1B CTC model of Omnilingual ASR's v2 release (Apache-2.0), int8,
+        // exported by k2-fsa: average CER 8.6 on FLEURS's 81 languages to the
+        // 300M's 11.8, for about three times the memory (some 3 GB open).
+        EtModel(
+            "omnilingual-1b", EtEngine.OMNILINGUAL, "1b-ctc-v2", "Omnilingual ASR 1B v2", 1000,
+            "csukuangfj2/sherpa-onnx-omnilingual-asr-1600-languages-1B-ctc-v2-int8-2026-02-05",
+            "5243e02858d1428b8fbeeb5f7f1cc6fccf4d9433",
+            listOf(
+                EtFile("tokens.txt", 90_630L, "7d99997ef207ff14c2cfe825f2aa037528ea250113cc3c6392bfe49326884ba6"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 1_032_239_439L, "8af72da192fc2c8567c328d4f8059bdf47f182a0369077893c295ef39740c637"),
             ),
         ),
         // Alibaba's Qwen3-ASR 0.6B (Apache-2.0), int8 encoder and decoder,
@@ -1041,12 +1333,27 @@ object EtStore {
     /**
      * The model an engine dictates with: the largest one on the device that
      * transcribes every one of [languageIds], since that is the one kept on
-     * purpose ([EtModel.ORDER]). Any language when [languageIds] is empty.
+     * purpose ([EtModel.ORDER]), except that a [EtModel.specialist] for them
+     * comes first. Any language when [languageIds] is empty, and then a
+     * general model before a specialist.
      */
     fun active(filesDir: File, engine: EtEngine, languageIds: List<String> = emptyList()): EtModel? =
-        downloaded(filesDir, engine)
-            .filter { model -> languageIds.all(model::supports) }
-            .maxWithOrNull(EtModel.ORDER)
+        pick(downloaded(filesDir, engine), languageIds)
+
+    /** [active]'s choice among [models]. */
+    fun pick(models: List<EtModel>, languageIds: List<String>): EtModel? {
+        val fits = models.filter { model -> languageIds.all(model::supports) }
+        val (specialists, general) = fits.partition { it.specialist }
+        val first = if (languageIds.isEmpty()) general.ifEmpty { specialists } else specialists.ifEmpty { general }
+        return first.maxWithOrNull(EtModel.ORDER)
+    }
+
+    /**
+     * Whether [model] dictates for at least one of its languages while
+     * [downloaded] are on the device, as [pick] would decide for each.
+     */
+    fun inUse(model: EtModel, downloaded: List<EtModel>): Boolean =
+        (model.languages ?: model.engine.languages).any { pick(downloaded, listOf(it)) === model }
 
     fun bytesOnDisk(filesDir: File, model: EtModel): Long =
         FileDownloader.bytesUnder(dir(filesDir, model))

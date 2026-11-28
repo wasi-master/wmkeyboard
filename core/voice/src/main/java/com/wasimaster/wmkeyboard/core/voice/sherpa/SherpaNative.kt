@@ -105,6 +105,13 @@ object SherpaNative {
 
     @JvmStatic external fun nativeStreamFree(stream: Long)
 
+    /**
+     * One of a stream's options, set before it is fed: `language` for a
+     * multilingual Nemotron model ("ja", "pt-BR", "auto"). Key and value are
+     * UTF-8. Not in a bridge built before it: that one throws [UnsatisfiedLinkError].
+     */
+    @JvmStatic external fun nativeStreamOption(stream: Long, key: ByteArray, value: ByteArray)
+
     @JvmStatic external fun nativeFeed(recognizer: Long, stream: Long, samples: FloatArray, count: Int)
 
     @JvmStatic external fun nativeFinish(recognizer: Long, stream: Long)
@@ -248,6 +255,45 @@ object SherpaNative {
      * takes seconds and memory for a large decoder; for an import only.
      */
     @JvmStatic external fun nativeQwen3Probe(convFrontend: String, encoder: String, decoder: String): Int
+
+    // Offline Sherpa's phrase-at-a-time models (offline_jni.cpp) through
+    // sherpa-onnx's offline recognizer. [kind] is one of the OFFLINE_*
+    // families; [a], [b] and [c] are its files in the order the family lists
+    // them; null where it has fewer. 0 when it will not load. sherpa-onnx
+    // exits the process on a file it cannot read, so only pinned models come
+    // here. Not in a bridge built before it: that one throws [UnsatisfiedLinkError].
+
+    /** DataoceanAI's Dolphin, a CTC model: [a] the model. */
+    const val OFFLINE_DOLPHIN = 0
+
+    /** A Moonshine model: [a] the encoder, [b] the merged decoder. */
+    const val OFFLINE_MOONSHINE = 1
+
+    /** SenseVoice: [a] the model. */
+    const val OFFLINE_SENSE_VOICE = 2
+
+    /** A Zipformer CTC model: [a] the model. */
+    const val OFFLINE_ZIPFORMER_CTC = 3
+
+    /** A WeNet CTC model: [a] the model. */
+    const val OFFLINE_WENET_CTC = 4
+
+    /** A NeMo CTC model (GigaAM among them): [a] the model. */
+    const val OFFLINE_NEMO_CTC = 5
+
+    /** An offline transducer: [a] the encoder, [b] the decoder, [c] the joiner. */
+    const val OFFLINE_TRANSDUCER = 6
+
+    @JvmStatic external fun nativeOffline(kind: Int, a: String, b: String?, c: String?, tokens: String, threads: Int): Long
+
+    @JvmStatic external fun nativeOfflineFree(model: Long)
+
+    /**
+     * The first [count] samples of a phrase (16 kHz mono, in [-1, 1]) as text,
+     * UTF-8. [language] (UTF-8) is the language the model is told, for the
+     * ones that take one (SenseVoice); null leaves it to the model.
+     */
+    @JvmStatic external fun nativeOfflineDecode(model: Long, samples: FloatArray, count: Int, language: ByteArray?): ByteArray
 
     // Online punctuation: CNN-BiLSTM over BPE pieces, punctuation and capitals.
     @JvmStatic external fun nativePunctuation(model: String, vocab: String): Long

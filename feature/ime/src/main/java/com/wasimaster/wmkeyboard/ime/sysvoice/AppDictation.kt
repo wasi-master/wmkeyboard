@@ -481,7 +481,7 @@ class AppDictation(
             conservative = settings.whisper.smartTurnConservative, graceMs = settings.whisper.vadGraceMs,
         )
         return when (model.engine) {
-            EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
+            EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad, languageIds)
             EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, languageIds, vad)
             EtEngine.QWEN3 -> Qwen3AsrEngine.newStream(filesDir, model, pauseMs, languageIds, words, vad)
             EtEngine.VOSK -> VoiceVad.endpointed(

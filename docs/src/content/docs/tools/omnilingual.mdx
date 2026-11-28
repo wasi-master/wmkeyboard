@@ -15,13 +15,14 @@ Offline Omnilingual runs [Omnilingual ASR](https://github.com/facebookresearch/o
 
 1. Add **Omnilingual** to the **Recognition engine** list and move it to the top, or pick it for one language under **Engine for each language**. Picking it per language is the better fit when another engine already serves your main language well.
 2. Press **Omnilingual** on the list to open its screen, which holds the **Omnilingual model** group. The first time, a banner offers ONNX Runtime, the engine it runs on, shared with Sherpa: a one-time download of about 33 MB (arm64), from Google Play on the Play build and from Maven Central on the GitHub and F-Droid builds; the offline build carries it already. The F-Droid build asks you to turn on **Download feature libraries** first.
-3. Download **Omnilingual ASR 300M**: 367 MB from Hugging Face at a fixed revision, every file checked against its published SHA-256. On mobile data it asks first.
+3. Download **Omnilingual ASR 300M** (367 MB) or, on a phone with 12 GB of memory or more, **Omnilingual ASR 1B v2** (1 GB), from Hugging Face at a fixed revision, every file checked against its published SHA-256. On mobile data it asks first.
 
 | Model | Languages | Download | Licence |
 |---|---|---|---|
 | Omnilingual ASR 300M | about 380 keyboard languages (1,600 in all) | 367 MB | Apache-2.0 |
+| Omnilingual ASR 1B v2 | the same | 1,034 MB | Apache-2.0 |
 
-The download includes Silero VAD (2 MB), the voice detector that cuts your speech into phrases.
+The downloads include Silero VAD (2 MB), the voice detector that cuts your speech into phrases. With both on the phone, the 1B model dictates. On the 81 FLEURS languages Meta's paper reports, the 1B model's average character error rate is 8.6% against the 300M's 11.8%; on Tigrinya conversation (the WAXAL test set) the Ethio-ASR study (2026) found 50% of words wrong for the 1B v2 against 58% for the 300M v2 (the 300M here is the earlier v1), which says more about how hard spontaneous speech in that language is than about either model.
 
 ## How it works
 
@@ -31,11 +32,11 @@ Omnilingual is not a streaming model: it reads a whole phrase at once. While you
 
 **Plain words.** The model writes words without punctuation or capitals. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a punctuation model for 88 languages puts in full stops, commas, question marks and sentence capitals once it is downloaded from that setting's row on the Voice typing screen. Without it the keyboard capitalises the start of a dictation, and spoken punctuation ("comma", "full stop") works as usual.
 
-**Memory and speed.** The model takes about 1 GB of memory while it is open, so it suits a recent phone. The keyboard frees it when Android asks for memory back, and opening it closes Sherpa's model first. Measured on a Mac, it needs about 2.1 billion processor cycles per second of speech on one core; with four threads that comes to an estimated 0.3 seconds of waiting per second of speech on a flagship phone and about 0.5 on a mid-range one.
+**Memory and speed.** The 300M model takes about 1 GB of memory while it is open, so it suits a recent phone; the 1B model takes about three times that, and about three times the work per second of speech, and has not been timed on a phone yet. The keyboard frees it when Android asks for memory back, and opening it closes Sherpa's model first. Measured on a Mac, it needs about 2.1 billion processor cycles per second of speech on one core; with four threads that comes to an estimated 0.3 seconds of waiting per second of speech on a flagship phone and about 0.5 on a mid-range one.
 
 ## Omnilingual, Whisper or the others
 
-Use Omnilingual for a language that has no other offline engine here. Where one exists, it is usually the better choice: [Whisper](/tools/whisper/) is more accurate on the languages it was trained hardest on, [Sherpa](/tools/sherpa/) streams its 13 languages word by word, and [Parakeet](/tools/parakeet/) covers 25 European ones. On 12 FLEURS test clips per language, Omnilingual's character error rate was 14.3% for Hindi, 19.4% for Tamil, 5.3% for Swahili and 21.0% for Yoruba.
+Use Omnilingual for a language that has no other offline engine here. Where one exists, it is usually the better choice: [Whisper](/tools/whisper/) is more accurate on the languages it was trained hardest on, [Sherpa](/tools/sherpa/) has models for about 60 languages, most of them streaming word by word (Dolphin alone covers 40 Asian and Middle Eastern ones, and Addis Scribe is made for Amharic), and [Parakeet](/tools/parakeet/) covers 25 European ones. On 12 FLEURS test clips per language, Omnilingual's character error rate was 14.3% for Hindi, 19.4% for Tamil, 5.3% for Swahili and 21.0% for Yoruba.
 
 Meta's larger MMS-1B model was measured too and was more accurate (6.4% for Hindi), but at 1.9 GB of memory and about two and a half times the work per second of speech it is too heavy for a keyboard, so it is not offered.
 

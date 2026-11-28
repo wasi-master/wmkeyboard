@@ -1,13 +1,13 @@
 ---
 title: "Offline voice (Sherpa)"
-description: "Streaming dictation on your phone in 13 languages, Bangla among them, with words that appear while you speak."
+description: "Offline dictation on your phone in about 60 languages, from Bangla and Amharic to Khmer and Uzbek, most of them with words that appear while you speak."
 sidebar:
   order: 4.6
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa's speech toolkit, on your phone. Its models are streaming Zipformer transducers: they decode while you speak, so the words go into the field as you say them, the way the phone's own recognizer does it, and nothing waits for the end of the phrase. Each language has its own model, and one covers eight at once. Once a model is downloaded, no audio leaves the phone. The same runtime also reads text aloud: see [Read back and offline voices](/tools/read-back/). A language with no model on the phone uses the system recognizer instead.
+Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa's speech toolkit, on your phone. Most of its models are streaming transducers: they decode while you speak, so the words go into the field as you say them, the way the phone's own recognizer does it, and nothing waits for the end of the phrase. Most languages have a model of their own; one Zipformer covers eight languages, and NVIDIA's Nemotron 3.5 covers 28. The rest of the list are whole-phrase models, which write each phrase at the pause after it: Dolphin for 40 Asian and Middle Eastern languages, SenseVoice, Moonshine's models for languages other than English, and a few made for one language. Once a model is downloaded, no audio leaves the phone. The same runtime also reads text aloud: see [Read back and offline voices](/tools/read-back/). A language with no model on the phone uses the system recognizer instead.
 
 ## Setting it up
 
@@ -32,9 +32,27 @@ Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa
 | Zipformer Chinese + English | Mandarin and English in one model | 200 MB | Apache-2.0 |
 | Paraformer Chinese + English | Mandarin and English in one model; can't listen for your words | 239 MB | Apache-2.0 |
 | Zipformer ar en id ja ru th vi zh | Arabic, English, Indonesian, Japanese, Russian, Thai, Vietnamese, Mandarin | 341 MB | Apache-2.0 |
+| Nemotron 3.5 ASR Streaming 0.6B | 28 languages: English, Spanish, French, Italian, Portuguese, Dutch, German, Turkish, Russian, Arabic, Hindi, Japanese, Korean, Vietnamese, Ukrainian, Polish, Swedish, Czech, Norwegian Bokmål, Danish, Bulgarian, Finnish, Croatian, Slovak, Mandarin, Hungarian, Romanian, Estonian | 684 MB | OpenMDW-1.1 |
+| Typhoon ASR Thai Streaming | Thai | 687 MB | OpenMDW-1.1 |
+| Nemotron Farsi Streaming | Persian | 668 MB | OpenMDW-1.1 |
+| Addis Scribe Streaming Amharic | Amharic | 670 MB | OpenMDW-1.1 |
+| Dolphin Base | 40 languages (see below), whole phrases | 106 MB | Apache-2.0 |
+| Dolphin Small | the same 40, more accurately | 252 MB | Apache-2.0 |
+| SenseVoice Small | Mandarin, English, Japanese, Korean, Cantonese, whole phrases | 239 MB | FunASR model licence |
+| WenetSpeech-Yue Cantonese | Cantonese, whole phrases | 137 MB | Apache-2.0 |
+| GigaAM Uzbek 600M | Uzbek, whole phrases | 593 MB | MIT |
+| Moonshine Base Arabic, Chinese, Japanese, Ukrainian, Vietnamese | one language each, whole phrases | 143 MB each | Moonshine Community License |
+| Moonshine Base Spanish | Spanish, whole phrases | 67 MB | Moonshine Community License |
+| Moonshine Tiny Japanese, Korean | one language each, whole phrases | 74 MB each | Moonshine Community License |
 | Punctuation (English) | punctuation and capitals for English; see below | 8 MB | |
 
 The sizes include Silero VAD (2 MB), a small voice detector every model carries so that deleting one never breaks another.
+
+Dolphin's 40 languages are Mandarin (and 22 Chinese dialects), Japanese, Thai, Russian, Korean, Indonesian, Vietnamese, Cantonese, Hindi, Urdu, Malay, Uzbek, Arabic, Persian, Bangla, Tamil, Telugu, Uyghur, Gujarati, Burmese, Filipino, Kazakh, Odia, Nepali, Mongolian, Khmer, Javanese, Lao, Sinhala, Pashto, Punjabi, Kabyle, Bashkir, Kashmiri, Tajik, Sundanese, Marathi, Kyrgyz and Azerbaijani. For many of them, Burmese, Khmer, Lao, Sinhala and Pashto among them, the only other offline engine here is Omnilingual, which is larger and less accurate.
+
+Nemotron's model card names eight more languages (Greek, Lithuanian, Latvian, Maltese, Slovenian, Hebrew, Thai and Norwegian Nynorsk) that it says need further training before they transcribe well, so Sherpa does not offer it for them.
+
+**The Moonshine Community License.** Moonshine's models for languages other than English are free for personal use, research, and organisations with less than US $1 million in yearly revenue; other commercial use needs a licence from Moonshine AI. Their rows on the list say so before you download. The English Moonshine models, on the [Moonshine](/tools/moonshine/) screen, are MIT.
 
 ## How it works
 
@@ -42,9 +60,13 @@ While you speak, the words go into the field as underlined composing text, rewri
 
 **Where a phrase ends.** With **Stop after a pause** set, Silero listens for you to stop talking and ends the phrase after that long a pause; with **Keep listening** on, the next phrase starts at once. Silero hears speech rather than loudness, so a fan or traffic does not keep the phrase open the way it can for a loudness threshold. With the setting off, the phrase runs until you press the microphone or two minutes pass. **Phrase end detector** on the Voice typing screen swaps Silero for FireRedVAD, plain loudness or a model of your own, and **Smart Turn** ends the phrase sooner when you sound finished; see [Hearing the end of a phrase](/tools/voice/#hearing-the-end-of-a-phrase).
 
-**Which model.** When two downloaded models know the language, the larger one dictates. The model list marks each one in use, and **Engine for each language** can pin a language to a particular model.
+**Whole-phrase models.** Dolphin, SenseVoice, the Moonshine models, WenetSpeech-Yue and GigaAM Uzbek are not streaming models. Silero cuts what you say at each short breath (half a second), and the phrase before it is written out while you go on to the next one, as [Omnilingual](/tools/omnilingual/) does. The words arrive a phrase at a time rather than word by word; a phrase that runs past 20 seconds without a pause is cut at the next short breath.
 
-**Punctuation.** Most of these models write plain words with no punctuation, and the English ones trained on audiobooks spell in capitals. Sherpa turns capitals into ordinary lower case. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a finished phrase gets full stops, commas, question marks and sentence capitals from a punctuation model for 88 languages, downloaded from that setting's row on the Voice typing screen. **Punctuation (English)** here does the same for English on its own, and with both on the phone an English phrase takes the multilingual model's marks and this one's capitals for names. The German, Spanish, Korean and eight-language models punctuate by themselves and are left as they are. Spoken punctuation ("comma", "full stop") works either way.
+**Told the language.** Nemotron 3.5 and SenseVoice are told which language you dictate in, with the keyboard language's region where the model has one (English for the UK, Portuguese for Portugal, Spanish for the US and so on). A dictation in several languages at once lets them work it out.
+
+**Which model.** When two downloaded models know the language, a model made for that one language dictates first (Typhoon for Thai, the Farsi Nemotron, Addis Scribe for Amharic, WenetSpeech-Yue for Cantonese, GigaAM for Uzbek), and otherwise the larger one. The model list marks each one in use, and **Engine for each language** can pin a language to a particular model.
+
+**Punctuation.** Most of these models write plain words with no punctuation, and the English ones trained on audiobooks spell in capitals. Sherpa turns capitals into ordinary lower case. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a finished phrase gets full stops, commas, question marks and sentence capitals from a punctuation model for 88 languages, downloaded from that setting's row on the Voice typing screen. **Punctuation (English)** here does the same for English on its own, and with both on the phone an English phrase takes the multilingual model's marks and this one's capitals for names. The German, Spanish, Korean and eight-language Zipformers, Nemotron 3.5, Typhoon, Dolphin, SenseVoice, the Moonshine models and GigaAM Uzbek punctuate by themselves and are left as they are. The Farsi Nemotron, Addis Scribe and WenetSpeech-Yue write bare words. Spoken punctuation ("comma", "full stop") works either way.
 
 ## Words to listen for
 
@@ -82,8 +104,10 @@ For Bangla, Sherpa is the only offline engine that shows the words while you spe
 
 ## Details & edge cases
 
-**Several languages at once.** A dictation that listens for more than one language at a time needs one Sherpa model that knows all of them, which only the eight-language model can be. Otherwise the panel asks for a model.
+**Several languages at once.** A dictation that listens for more than one language at a time needs one Sherpa model that knows all of them: the eight-language Zipformer, Nemotron 3.5, Dolphin or SenseVoice. Otherwise the panel asks for a model.
 
-**The licences.** sherpa-onnx is Apache-2.0, ONNX Runtime is Microsoft's under MIT, Silero VAD is MIT, FireRedVAD is FireRedTeam's under Apache-2.0 and Smart Turn is pipecat's under BSD-2-Clause. The Kroko models are Banafo's community models under CC-BY-SA-4.0, the Vosk models Alpha Cephei's under Apache-2.0. All of them are credited in the app's About screen.
+**Words to listen for and the whole-phrase models.** Only the streaming models take hotwords. While a whole-phrase model dictates, your words go unheard.
+
+**The licences.** sherpa-onnx is Apache-2.0, ONNX Runtime is Microsoft's under MIT, Silero VAD is MIT, FireRedVAD is FireRedTeam's under Apache-2.0 and Smart Turn is pipecat's under BSD-2-Clause. The Kroko models are Banafo's community models under CC-BY-SA-4.0, the Vosk models Alpha Cephei's under Apache-2.0. Nemotron 3.5 is NVIDIA's and Typhoon (SCB 10X's), the Farsi Nemotron (mehdi-hf's) and Addis Scribe (Addis AI's) are built on NVIDIA's Nemotron; all four are under OpenMDW-1.1. Dolphin is DataoceanAI's under Apache-2.0, SenseVoice Alibaba's under the FunASR model licence, which asks for its name and source to be kept, WenetSpeech-Yue's under Apache-2.0 and GigaAM Uzbek (rustam1221's fine-tune of SberDevices' GigaAM) under MIT. All of them are credited in the app's About screen.
 
 **Where the runtime comes from.** The app never carries a copy of ONNX Runtime rebuilt by anyone but Microsoft: the Play build gets it from Play, the offline build carries Microsoft's own file inside the APK, and the GitHub and F-Droid builds read Microsoft's file straight out of its package on Maven Central, checked against a SHA-256 built into the app. See [Network activity](/privacy/network/).
