@@ -4554,10 +4554,10 @@
   "lang": "ru",
   "name": "Русский · Russian",
   "english": "Russian",
-  "words": 220485,
-  "gzBytes": 1195780,
+  "words": 220507,
+  "gzBytes": 1196143,
   "source": "AOSP",
-  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ru/ru_aosp.txt.gz"
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ru/ru_aosp_v2.txt.gz"
  },
  {
   "id": "sl_aosp",

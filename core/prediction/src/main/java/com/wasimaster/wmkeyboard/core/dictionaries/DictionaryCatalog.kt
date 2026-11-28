@@ -782,7 +782,13 @@ object DictionaryCatalog {
             variantRes = R.string.core_pred_wordlist_variant_brazil_label,
         ),
         aosp("ro_aosp", "ro", "ro", 1_125_199, 3_229_694L),
-        aosp("ru_aosp", "ru", "ru", 220_485, 1_195_780L),
+        // Spoken Russian lifted out of the counted list, as German's was: AOSP
+        // rated `привет` 81, rank 72,065, and a clean stroke for it glided as
+        // `пример` (128). See the data repo's build_ru_aosp_v2.py.
+        aosp(
+            "ru_aosp", "ru", "ru", 220_507, 1_196_143L,
+            fileStem = "ru_aosp_v2", legacyFileNames = listOf("ru_aosp.txt.gz"),
+        ),
         aosp("sl_aosp", "sl", "sl", 59_998, 260_336L),
         aosp("sr_aosp", "sr", "sr", 191_608, 895_311L),
         aosp("sv_aosp", "sv", "sv", 196_739, 969_689L),

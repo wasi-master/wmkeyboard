@@ -141,6 +141,17 @@ class DictionaryCatalogTest {
     }
 
     @Test
+    fun russianAospListIsTheOneWithSpokenWordsLifted() {
+        // AOSP's own list rated `привет` 81 against `пример` 128, so a clean
+        // stroke for the one glided as the other. The v2 file lifts spoken
+        // Russian from the counted list; the old name stays for packs.
+        val ru = DictionaryCatalog.preferred("ru")
+        assertEquals("ru_aosp", ru?.id)
+        assertEquals("ru_aosp_v2.txt.gz", ru?.fileName)
+        assertEquals(listOf("ru_aosp.txt.gz"), ru?.legacyFileNames)
+    }
+
+    @Test
     fun englishAospListsAreTheFourSpellings() {
         val en = DictionaryCatalog.forLanguage("en").filter { it.source == WordlistSource.AOSP }
         assertEquals(

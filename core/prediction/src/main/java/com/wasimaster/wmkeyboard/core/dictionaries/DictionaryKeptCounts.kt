@@ -426,7 +426,7 @@ internal object DictionaryKeptCounts {
         "roa_tara_full.txt.gz" to Kept(26875, 196608L),
         "rom_full_v2.txt.gz" to Kept(49723, 212047L),
         "rsk_full.txt.gz" to Kept(33416, 305125L),
-        "ru_aosp.txt.gz" to Kept(220485, 1195780L),
+        "ru_aosp_v2.txt.gz" to Kept(220507, 1196143L),
         "ru_full.txt.gz" to Kept(652302, 3473408L),
         "rue_full.txt.gz" to Kept(65556, 458752L),
         "russian_rom.txt.gz" to Kept(687438, 3080192L),
